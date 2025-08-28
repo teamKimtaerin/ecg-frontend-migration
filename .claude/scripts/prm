@@ -5,8 +5,8 @@ SUMMARY="$1"
 
 if [ -z "$SUMMARY" ]; then
     echo "❌ PR 제목을 입력해주세요"
-    echo "사용법: pr \"작업 내용\""
-    echo "예시: pr \"Feat: 블로그 생성\""
+    echo "사용법: prm \"작업 내용\""
+    echo "예시: prm \"Feat: 블로그 생성\""
     exit 1
 fi
 

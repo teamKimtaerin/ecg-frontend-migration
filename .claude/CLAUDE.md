@@ -99,7 +99,7 @@ source ~/.zshrc  # 또는 source ~/.bashrc
 git add .
 
 # 2. PR 생성 (자동 커밋 + 푸시 + PR)
-pr "Feat: 블로그 생성"
+prm "Feat: 블로그 생성"
 
 # 3. Claude Code에서 분석 후 결과 붙여넣기
 ```
@@ -119,7 +119,7 @@ git add .
 
 ### 3️⃣ PR 생성 명령어 실행
 ```bash
-pr "Feat: 블로그 생성 기능 구현"
+prm "Feat: 블로그 생성 기능 구현"
 ```
 
 ### 4️⃣ Claude Code 분석
@@ -175,7 +175,7 @@ gh auth login
 ```
 .claude/
 ├── scripts/
-│   └── pr          # PR 자동화 스크립트
+│   └── prm         # PR 자동화 스크립트 (PR Make)
 ├── CLAUDE.md       # 이 파일
 └── settings.local.json
 install.sh          # 설치 스크립트
@@ -216,7 +216,7 @@ git checkout -b refactor/api-structure
 ```bash
 # 실제 사용 예시
 git add .
-pr "Feat: 사용자 프로필 페이지 추가"
+prm "Feat: 사용자 프로필 페이지 추가"
 
 # Claude Code에서 분석 후
 # 생성된 PR 제목과 본문을 복사해서 사용

@@ -4,7 +4,7 @@
 echo "🔧 팀 PR 도구 설치 중..."
 
 # 실행 권한 부여
-chmod +x .claude/scripts/pr
+chmod +x .claude/scripts/prm
 
 # PATH에 추가 (bashrc)
 if [ -f ~/.bashrc ]; then
@@ -37,7 +37,7 @@ echo "1️⃣  작업 후 변경사항 추가:"
 echo "   git add ."
 echo ""
 echo "2️⃣  PR 생성 (자동 커밋 + 푸시 + PR):"
-echo '   pr "Feat: 블로그 생성"'
+echo '   prm "Feat: 블로그 생성"'
 echo ""
 echo "3️⃣  Claude Code에서 분석:"
 echo "   - 자동으로 클립보드에 복사된 프롬프트를 붙여넣기"
