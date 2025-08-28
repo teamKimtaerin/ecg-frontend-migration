@@ -1,27 +1,61 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## 팀원들이 받는 방법
-# 0. Github CLI 설치
-brew install gh # macOS
-winget install Github.cli #windows
+## 🚀 PR 자동화 도구 - 팀원 설정 가이드
 
-# 1. 최신 코드 받기
+### 0. Github CLI 설치
+```bash
+brew install gh      # macOS
+winget install Github.cli  # Windows
+```
+
+### 1. 최신 코드 받기
+```bash
 git pull origin main
+```
 
-# 2. 설치 스크립트 실행 (한 번만)
+### 2. 설치 스크립트 실행 (한 번만)
+```bash
 chmod +x install.sh
 ./install.sh
+```
 
-# 3. GitHub CLI 로그인 (각자 개인 계정으로)
+### 3. PATH 적용 (설치 후 한 번만)
+```bash
+source ~/.zshrc  # zsh 사용자 (macOS 기본)
+source ~/.bashrc # bash 사용자
+```
+
+### 4. GitHub CLI 로그인 (각자 개인 계정으로)
+```bash
 gh auth login
+# → GitHub.com 선택
+# → HTTPS 선택  
+# → Y (인증)
+# → Login with a web browser 선택
+```
 
-# 4. 사용 시작!
+### 5. 사용 시작!
+```bash
+# 작업 후 변경사항 추가
 git add .
-pr "첫 번째 테스트 PR"
-💡 사용 예시
-1. 기본 AI 분석 PR 생성 (추천!)
-bashgit add .
-pr "로그인 기능 개선"
+
+# PR 생성 (자동 커밋 + 푸시 + Claude 분석 + PR)
+prm "Feat: 첫 번째 테스트 PR"  # ⚠️ pr이 아닌 prm 사용!
+```
+
+### 📝 사용 흐름
+1. **코드 작업** → 기능 구현
+2. **`git add .`** → 변경사항 스테이징
+3. **`prm "작업 내용"`** → 자동 커밋/푸시
+4. **Claude Code 분석**
+   - 클립보드에 자동 복사된 프롬프트를 claude.ai/code에 붙여넣기
+   - 생성된 PR 내용 복사
+5. **터미널에 붙여넣기** → PR 자동 생성!
+
+### ⚠️ 주의사항
+- 명령어는 `pr`이 아닌 `prm` (PR Make)
+- 작업은 feature 브랜치에서 (main 브랜치 X)
+- Claude Code 접속: https://claude.ai/code
 
 ## Getting Started
 

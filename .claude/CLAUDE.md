@@ -82,219 +82,165 @@ pr "간단한 설명"  # 빠른 PR 생성 (아래 설정 참조)
 
 ---
 
-# 🔄 Claude Code PR 자동화 가이드
+# 🔄 Claude Code PR 자동화 가이드 (대화형 모드)
 
-## 🚀 Quick PR Command
-간단한 PR 생성:
+## 🚀 빠른 시작
+
+### 설치 (처음 한 번만)
 ```bash
-pr "작업 내용"
+# 프로젝트 루트에서 실행
+./install.sh
+source ~/.zshrc  # 또는 source ~/.bashrc
 ```
 
-예시:
+### 사용법
 ```bash
-pr "로그인 기능 개선"
+# 1. 작업 후 변경사항 추가
+git add .
+
+# 2. PR 생성 (자동 커밋 + 푸시 + PR)
+prm "Feat: 블로그 생성"
+
+# 3. Claude Code에서 분석 후 결과 붙여넣기
 ```
 
-## 📋 PR 템플릿 자동 생성
-상세한 PR 생성:
+## 📋 상세 워크플로우
+
+### 1️⃣ 작업 브랜치 생성
 ```bash
-team-pr "작업 내용" [이슈번호(선택)]
+git checkout -b feature/blog-create
 ```
 
-예시:
+### 2️⃣ 코드 작업 및 변경사항 추가
 ```bash
-team-pr "사용자 인증 로직 리팩토링" "#123"
+# 코드 작업...
+git add .
 ```
 
-## 🔧 명령어 설정 방법
-
-### 1. 간단한 PR 명령어 (pr)
+### 3️⃣ PR 생성 명령어 실행
 ```bash
-# ~/.zshrc 또는 ~/.bashrc에 추가
-pr() {
-  if [ -z "$1" ]; then
-    echo "❌ PR 제목을 입력해주세요"
-    echo "사용법: pr \"작업 내용\""
-    return 1
-  fi
-  
-  # 현재 브랜치 확인
-  current_branch=$(git branch --show-current)
-  
-  if [ "$current_branch" = "main" ] || [ "$current_branch" = "master" ]; then
-    echo "❌ main/master 브랜치에서는 직접 PR을 생성할 수 없습니다"
-    return 1
-  fi
-  
-  echo "📝 변경사항 확인 중..."
-  git status
-  
-  echo "\n🔄 origin/$current_branch 에 push 중..."
-  git push -u origin $current_branch
-  
-  echo "\n🎉 PR 생성 중..."
-  gh pr create \
-    --title "$1" \
-    --body "## 작업 내용
-$1
-
----
-🤖 Generated with [Claude Code](https://claude.ai/code)" \
-    --base main
-}
+prm "Feat: 블로그 생성 기능 구현"
 ```
 
-### 2. 팀 PR 템플릿 명령어 (team-pr)
+### 4️⃣ Claude Code 분석
+실행하면 자동으로:
+- ✅ 변경사항을 커밋 (제공한 메시지 사용)
+- ✅ 현재 브랜치를 origin에 푸시
+- ✅ Claude Code용 분석 프롬프트를 클립보드에 복사
+- ⏸️ Claude Code 분석을 기다림
+
+### 5️⃣ Claude Code에서 분석
+1. [claude.ai/code](https://claude.ai/code) 접속
+2. Cmd+V로 프롬프트 붙여넣기 (자동 복사됨)
+3. Claude가 생성한 PR 제목과 본문 복사
+
+### 6️⃣ PR 생성 완료
+1. 터미널로 돌아와서 Enter
+2. PR 제목 입력 (Claude 생성 내용)
+3. PR 본문 붙여넣기 후 Ctrl+D
+4. 자동으로 GitHub PR 생성!
+
+## 🔧 필수 설정
+
+### GitHub CLI 설치 및 인증
 ```bash
-# ~/.zshrc 또는 ~/.bashrc에 추가
-team-pr() {
-  if [ -z "$1" ]; then
-    echo "❌ 작업 내용을 입력해주세요"
-    echo "사용법: team-pr \"작업 내용\" [\"#이슈번호\"]"
-    return 1
-  fi
-  
-  # 현재 브랜치 확인
-  current_branch=$(git branch --show-current)
-  
-  if [ "$current_branch" = "main" ] || [ "$current_branch" = "master" ]; then
-    echo "❌ main/master 브랜치에서는 직접 PR을 생성할 수 없습니다"
-    return 1
-  fi
-  
-  # git diff 분석을 위한 변경사항 확인
-  echo "📊 변경사항 분석 중..."
-  changes=$(git diff --cached --stat)
-  if [ -z "$changes" ]; then
-    changes=$(git diff HEAD~1 --stat)
-  fi
-  
-  # 이슈 번호 처리
-  issue_ref=""
-  if [ ! -z "$2" ]; then
-    issue_ref="- 관련 이슈: $2"
-  fi
-  
-  # PR 타입 결정 (간단한 휴리스틱)
-  pr_type="feat"
-  if echo "$1" | grep -qi "fix\|버그\|수정\|오류"; then
-    pr_type="fix"
-  elif echo "$1" | grep -qi "refactor\|리팩토링\|개선"; then
-    pr_type="refactor"
-  elif echo "$1" | grep -qi "docs\|문서\|주석"; then
-    pr_type="docs"
-  elif echo "$1" | grep -qi "test\|테스트"; then
-    pr_type="test"
-  fi
-  
-  # PR 제목 (최대 72자)
-  title="[$pr_type] $1"
-  
-  # PR 본문 생성
-  body="## 개요
-- $1 작업을 완료했습니다
-- 코드 품질 향상 및 유지보수성을 개선했습니다
-- 팀 규칙에 따라 구현했습니다
-
-## 설명
-
-### What (무엇을 수정했나요?)
-- $1 관련 로직을 구현/수정했습니다
-- 필요한 컴포넌트와 함수를 추가했습니다
-
-### Why (왜 수정했나요?)
-- 기존 코드의 문제점을 해결하기 위해
-- 새로운 요구사항을 충족하기 위해
-- 성능 및 사용성 개선을 위해
-
-### How (어떻게 수정했나요?)
-- 모듈화된 구조로 구현
-- 재사용 가능한 컴포넌트 설계
-- 테스트 가능한 코드 작성
-
-## 참고
-$issue_ref
-- 로컬에서 테스트 완료
-- 코드 리뷰 요청드립니다
-
----
-🤖 Generated with [Claude Code](https://claude.ai/code)"
-  
-  echo "📝 변경사항 확인 중..."
-  git status
-  
-  echo "\n🔄 origin/$current_branch 에 push 중..."
-  git push -u origin $current_branch
-  
-  echo "\n🎉 PR 생성 중..."
-  gh pr create --title "$title" --body "$body" --base main
-}
-```
-
-## 📌 초기 설정 (처음 한 번만)
-
-1. GitHub CLI 설치 확인:
-```bash
-gh --version
-```
-
-설치 안 되어 있다면:
-```bash
-# macOS
+# 설치
 brew install gh
 
-# Ubuntu/Debian
-sudo apt install gh
-```
-
-2. GitHub 인증:
-```bash
+# GitHub 로그인
 gh auth login
 ```
 
-3. 셸 설정 파일에 함수 추가:
-```bash
-# zsh 사용자
-echo "위의 pr() 및 team-pr() 함수를 복사" >> ~/.zshrc
-source ~/.zshrc
+### Claude Code 접속
+- https://claude.ai/code
+- 팀원 모두 접속 가능해야 함
 
-# bash 사용자
-echo "위의 pr() 및 team-pr() 함수를 복사" >> ~/.bashrc
-source ~/.bashrc
+## ✨ 주요 기능
+
+### 자동 처리
+- 🤖 변경사항 분석 및 diff 생성
+- 📝 자동 커밋 (제공한 메시지 사용)
+- 🚀 자동 푸시 (현재 브랜치)
+- 📋 클립보드에 프롬프트 자동 복사
+- 🔗 PR 생성 후 URL 제공
+
+### Claude Code 분석 내용
+- 작업 개요 및 목적
+- 주요 변경사항 목록
+- 기술적 세부사항
+- 체크리스트
+- 리뷰 포인트
+
+## 📂 프로젝트 구조
 ```
-
-## 🎯 사용 워크플로우
-
-1. **작업 브랜치 생성 및 이동**
-```bash
-git checkout -b feature/login-improvement
-```
-
-2. **작업 수행 및 변경사항 추가**
-```bash
-git add .
-git commit -m "feat: 로그인 기능 개선"
-```
-
-3. **간단한 PR 생성**
-```bash
-pr "로그인 기능 개선"
-```
-
-또는
-
-4. **상세한 PR 생성**
-```bash
-team-pr "로그인 기능 개선" "#45"
+.claude/
+├── scripts/
+│   └── prm         # PR 자동화 스크립트 (PR Make)
+├── CLAUDE.md       # 이 파일
+└── settings.local.json
+install.sh          # 설치 스크립트
 ```
 
 ## 💡 팁
 
-- `git add`만 하고 commit은 자동으로 처리하려면 함수에 commit 로직 추가 가능
-- PR 생성 후 자동으로 브라우저에서 열기: `gh pr view --web` 추가
-- 팀 컨벤션에 맞춰 템플릿 수정 가능
+### 브랜치 네이밍
+```bash
+# 기능 추가
+git checkout -b feature/blog-create
 
-## 🤝 팀원과 공유
+# 버그 수정
+git checkout -b fix/login-error
 
-이 파일(`CLAUDE.md`)을 프로젝트 루트에 저장하고 팀원들과 공유하세요.
-각자 셸 설정에 위 함수들을 추가하면 동일한 PR 자동화를 사용할 수 있습니다.
+# 리팩토링
+git checkout -b refactor/api-structure
+```
+
+### PR 제목 컨벤션
+```
+[Feat] 새로운 기능 추가
+[Fix] 버그 수정
+[Refactor] 코드 리팩토링
+[Docs] 문서 수정
+[Test] 테스트 추가
+```
+
+## 🤝 팀원 공유
+
+### 팀원 설치 방법
+1. 이 저장소 클론
+2. `./install.sh` 실행
+3. `gh auth login`으로 GitHub 인증
+4. Claude Code 접속 가능 확인
+
+### 사용 예시
+```bash
+# 실제 사용 예시
+git add .
+prm "Feat: 사용자 프로필 페이지 추가"
+
+# Claude Code에서 분석 후
+# 생성된 PR 제목과 본문을 복사해서 사용
+```
+
+## ❓ 문제 해결
+
+### PATH를 찾을 수 없을 때
+```bash
+source ~/.zshrc  # zsh 사용자
+source ~/.bashrc # bash 사용자
+```
+
+### GitHub CLI 인증 문제
+```bash
+gh auth status  # 상태 확인
+gh auth login   # 재로그인
+```
+
+### 클립보드 복사가 안 될 때
+- macOS가 아닌 경우 수동으로 프롬프트 복사
+- 화면에 출력된 프롬프트 사용
+
+## 📝 업데이트 내역
+- 2024.01: 대화형 Claude Code 모드 구현
+- 자동 커밋, 푸시, PR 생성 기능 추가
+- 클립보드 자동 복사 기능 추가
