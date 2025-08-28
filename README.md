@@ -1,5 +1,28 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## 팀원들이 받는 방법
+# 0. Github CLI 설치
+brew install gh # macOS
+winget install Github.cli #windows
+
+# 1. 최신 코드 받기
+git pull origin main
+
+# 2. 설치 스크립트 실행 (한 번만)
+chmod +x install.sh
+./install.sh
+
+# 3. GitHub CLI 로그인 (각자 개인 계정으로)
+gh auth login
+
+# 4. 사용 시작!
+git add .
+pr "첫 번째 테스트 PR"
+💡 사용 예시
+1. 기본 AI 분석 PR 생성 (추천!)
+bashgit add .
+pr "로그인 기능 개선"
+
 ## Getting Started
 
 First, run the development server:
