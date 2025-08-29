@@ -2,6 +2,8 @@
 
 import Button from '@/components/Button';
 import ButtonGroup from '@/components/ButtonGroup';
+import Tab from '@/components/Tab';
+import TabItem from '@/components/TabItem';
 
 export default function Home() {
   // Sample icons for button demos
@@ -904,6 +906,228 @@ export default function Home() {
                     <Button label="State" />
                   </ButtonGroup>
                 </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Tab Components */}
+        <section className="mb-8">
+          <h2 className="text-h2 mb-4 text-text-primary">Tab Components</h2>
+          <p className="text-body text-text-secondary mb-8">네비게이션을 위한 탭 인터페이스 컴포넌트</p>
+
+          {/* Basic Horizontal Tabs */}
+          <div className="mb-8">
+            <h3 className="text-h3 mb-6 text-text-primary">Basic Horizontal Tabs</h3>
+            <div className="bg-surface p-8 rounded-default border border-border">
+              <div className="space-y-6">
+                
+                <div className="flex flex-col items-center gap-4">
+                  <h4 className="font-semibold text-text-primary">Regular Style</h4>
+                  <Tab>
+                    <TabItem id="tab1" label="Home" />
+                    <TabItem id="tab2" label="About" />
+                    <TabItem id="tab3" label="Services" />
+                    <TabItem id="tab4" label="Contact" />
+                  </Tab>
+                </div>
+
+                <div className="flex flex-col items-center gap-4">
+                  <h4 className="font-semibold text-text-primary">With Icons</h4>
+                  <Tab>
+                    <TabItem id="icon1" icon={<StarIcon />} label="Dashboard" />
+                    <TabItem id="icon2" icon={<HeartIcon />} label="Analytics" />
+                    <TabItem id="icon3" icon={<PlusIcon />} label="Settings" />
+                  </Tab>
+                </div>
+
+                <div className="flex flex-col items-center gap-4">
+                  <h4 className="font-semibold text-text-primary">Icon Only</h4>
+                  <Tab>
+                    <TabItem id="icononly1" icon={<StarIcon />} />
+                    <TabItem id="icononly2" icon={<HeartIcon />} />
+                    <TabItem id="icononly3" icon={<PlusIcon />} />
+                  </Tab>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Tab Styles */}
+          <div className="mb-8">
+            <h3 className="text-h3 mb-6 text-text-primary">Tab Styles</h3>
+            <div className="bg-surface p-8 rounded-default border border-border">
+              <div className="space-y-8">
+                
+                <div className="flex flex-col items-center gap-4">
+                  <h4 className="font-semibold text-text-primary">Regular (Default)</h4>
+                  <Tab>
+                    <TabItem id="reg1" label="Tab One" />
+                    <TabItem id="reg2" label="Tab Two" />
+                    <TabItem id="reg3" label="Tab Three" />
+                  </Tab>
+                </div>
+
+                <div className="flex flex-col items-center gap-4">
+                  <h4 className="font-semibold text-text-primary">Quiet Style</h4>
+                  <Tab isQuiet={true}>
+                    <TabItem id="quiet1" label="Tab One" />
+                    <TabItem id="quiet2" label="Tab Two" />
+                    <TabItem id="quiet3" label="Tab Three" />
+                  </Tab>
+                </div>
+
+                <div className="flex flex-col items-center gap-4">
+                  <h4 className="font-semibold text-text-primary">Emphasized Style</h4>
+                  <Tab isEmphasized={true}>
+                    <TabItem id="emp1" label="Tab One" />
+                    <TabItem id="emp2" label="Tab Two" />
+                    <TabItem id="emp3" label="Tab Three" />
+                  </Tab>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Tab Sizes */}
+          <div className="mb-8">
+            <h3 className="text-h3 mb-6 text-text-primary">Tab Sizes</h3>
+            <div className="bg-surface p-8 rounded-default border border-border">
+              <div className="space-y-6">
+                
+                <div className="flex flex-col items-center gap-4">
+                  <h4 className="font-semibold text-text-primary">Small</h4>
+                  <Tab size="small">
+                    <TabItem id="small1" label="Small Tab" />
+                    <TabItem id="small2" label="Small Tab" />
+                    <TabItem id="small3" label="Small Tab" />
+                  </Tab>
+                </div>
+
+                <div className="flex flex-col items-center gap-4">
+                  <h4 className="font-semibold text-text-primary">Medium</h4>
+                  <Tab size="medium">
+                    <TabItem id="med1" label="Medium Tab" />
+                    <TabItem id="med2" label="Medium Tab" />
+                    <TabItem id="med3" label="Medium Tab" />
+                  </Tab>
+                </div>
+
+                <div className="flex flex-col items-center gap-4">
+                  <h4 className="font-semibold text-text-primary">Large</h4>
+                  <Tab size="large">
+                    <TabItem id="large1" label="Large Tab" />
+                    <TabItem id="large2" label="Large Tab" />
+                    <TabItem id="large3" label="Large Tab" />
+                  </Tab>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Tab Density */}
+          <div className="mb-8">
+            <h3 className="text-h3 mb-6 text-text-primary">Tab Density</h3>
+            <div className="bg-surface p-8 rounded-default border border-border">
+              <div className="space-y-6">
+                
+                <div className="flex flex-col items-center gap-4">
+                  <h4 className="font-semibold text-text-primary">Regular Density</h4>
+                  <Tab density="regular">
+                    <TabItem id="regdens1" label="Regular Tab" />
+                    <TabItem id="regdens2" label="Regular Tab" />
+                    <TabItem id="regdens3" label="Regular Tab" />
+                  </Tab>
+                </div>
+
+                <div className="flex flex-col items-center gap-4">
+                  <h4 className="font-semibold text-text-primary">Compact Density</h4>
+                  <Tab density="compact">
+                    <TabItem id="compact1" label="Compact Tab" />
+                    <TabItem id="compact2" label="Compact Tab" />
+                    <TabItem id="compact3" label="Compact Tab" />
+                  </Tab>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Vertical Tabs */}
+          <div className="mb-8">
+            <h3 className="text-h3 mb-6 text-text-primary">Vertical Tabs</h3>
+            <div className="bg-surface p-8 rounded-default border border-border">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <div className="flex flex-col items-center gap-4">
+                  <h4 className="font-semibold text-text-primary">Basic Vertical</h4>
+                  <Tab orientation="vertical">
+                    <TabItem id="vert1" label="Dashboard" />
+                    <TabItem id="vert2" label="Analytics" />
+                    <TabItem id="vert3" label="Reports" />
+                    <TabItem id="vert4" label="Settings" />
+                  </Tab>
+                </div>
+
+                <div className="flex flex-col items-center gap-4">
+                  <h4 className="font-semibold text-text-primary">With Icons</h4>
+                  <Tab orientation="vertical">
+                    <TabItem id="verticon1" icon={<StarIcon />} label="Dashboard" />
+                    <TabItem id="verticon2" icon={<HeartIcon />} label="Analytics" />
+                    <TabItem id="verticon3" icon={<PlusIcon />} label="Settings" />
+                  </Tab>
+                </div>
+
+                <div className="flex flex-col items-center gap-4">
+                  <h4 className="font-semibold text-text-primary">Quiet Vertical</h4>
+                  <Tab orientation="vertical" isQuiet={true}>
+                    <TabItem id="vertquiet1" label="Option One" />
+                    <TabItem id="vertquiet2" label="Option Two" />
+                    <TabItem id="vertquiet3" label="Option Three" />
+                  </Tab>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Fluid and Alignment */}
+          <div className="mb-8">
+            <h3 className="text-h3 mb-6 text-text-primary">Fluid and Alignment</h3>
+            <div className="bg-surface p-8 rounded-default border border-border">
+              <div className="space-y-8">
+                
+                <div className="flex flex-col gap-4">
+                  <h4 className="font-semibold text-text-primary text-center">Fluid Tabs (Full Width)</h4>
+                  <Tab isFluid={true} className="w-full">
+                    <TabItem id="fluid1" label="Tab One" />
+                    <TabItem id="fluid2" label="Tab Two" />
+                    <TabItem id="fluid3" label="Tab Three" />
+                  </Tab>
+                </div>
+
+                <div className="flex flex-col gap-4">
+                  <h4 className="font-semibold text-text-primary text-center">Center Aligned</h4>
+                  <Tab alignment="center">
+                    <TabItem id="center1" label="Tab One" />
+                    <TabItem id="center2" label="Tab Two" />
+                    <TabItem id="center3" label="Tab Three" />
+                  </Tab>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Tab States */}
+          <div className="mb-8">
+            <h3 className="text-h3 mb-6 text-text-primary">Tab States</h3>
+            <div className="bg-surface p-8 rounded-default border border-border">
+              <div className="flex flex-col items-center gap-4">
+                <h4 className="font-semibold text-text-primary">With Disabled Tab</h4>
+                <Tab>
+                  <TabItem id="state1" label="Active Tab" />
+                  <TabItem id="state2" label="Normal Tab" />
+                  <TabItem id="state3" label="Disabled Tab" isDisabled={true} />
+                  <TabItem id="state4" label="Normal Tab" />
+                </Tab>
               </div>
             </div>
           </div>
