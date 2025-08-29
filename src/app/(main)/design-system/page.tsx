@@ -8,6 +8,7 @@ import TabItem from '@/components/TabItem';
 import Slider from '@/components/Slider';
 import Tag from '@/components/Tag';
 import Switch from '@/components/Switch';
+import Dropdown from '@/components/Dropdown';
 
 export default function Home() {
   // Switch states
@@ -33,6 +34,58 @@ export default function Home() {
   const handleSwitchChange = (key: string) => (selected: boolean) => {
     setSwitches(prev => ({ ...prev, [key]: selected }));
   };
+
+  // Dropdown states
+  const [dropdowns, setDropdowns] = useState({
+    basic: '',
+    quiet: '',
+    withIcon: '',
+    error: '',
+    required: '',
+    sideLabel: '',
+    small: '',
+    medium: '',
+    large: '',
+    extraLarge: '',
+    disabled: 'option1',
+    readonly: 'option2',
+  });
+
+  const handleDropdownChange = (key: string) => (value: string) => {
+    setDropdowns(prev => ({ ...prev, [key]: value }));
+  };
+
+  // Sample dropdown options
+  const basicOptions = [
+    { value: 'option1', label: 'Option 1' },
+    { value: 'option2', label: 'Option 2' },
+    { value: 'option3', label: 'Option 3' },
+    { value: 'option4', label: 'Option 4', disabled: true },
+  ];
+
+  const iconOptions = [
+    { 
+      value: 'home', 
+      label: 'Home', 
+      icon: <svg className="w-full h-full" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+      </svg>
+    },
+    { 
+      value: 'user', 
+      label: 'User Profile', 
+      icon: <svg className="w-full h-full" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+      </svg>
+    },
+    { 
+      value: 'settings', 
+      label: 'Settings', 
+      icon: <svg className="w-full h-full" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+      </svg>
+    },
+  ];
   // Sample icons for button demos
   const StarIcon = () => (
     <svg viewBox="0 0 24 24" fill="currentColor">
@@ -1879,6 +1932,284 @@ export default function Home() {
                         />
                         <p className="text-sm text-text-secondary">XL</p>
                       </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Dropdown Components */}
+        <section className="mb-8">
+          <h2 className="text-h2 mb-4 text-text-primary">Dropdown Components</h2>
+          <p className="text-body text-text-secondary mb-8">선택을 위한 드롭다운 컴포넌트 - 다양한 스타일과 옵션 지원</p>
+
+          {/* Basic Dropdowns */}
+          <div className="mb-8">
+            <h3 className="text-h3 mb-6 text-text-primary">Basic Dropdowns</h3>
+            <div className="bg-surface p-8 rounded-default border border-border">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">기본 드롭다운</h4>
+                    <Dropdown
+                      label="Select Country"
+                      placeholder="Choose a country..."
+                      options={basicOptions}
+                      value={dropdowns.basic}
+                      onChange={handleDropdownChange('basic')}
+                    />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">아이콘 포함</h4>
+                    <Dropdown
+                      label="Navigation"
+                      placeholder="Select a page..."
+                      options={iconOptions}
+                      value={dropdowns.withIcon}
+                      onChange={handleDropdownChange('withIcon')}
+                    />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">필수 입력</h4>
+                    <Dropdown
+                      label="Required Field"
+                      placeholder="Please select an option"
+                      options={basicOptions}
+                      value={dropdowns.required}
+                      onChange={handleDropdownChange('required')}
+                      isRequired={true}
+                      description="This field is required to continue"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Quiet 스타일</h4>
+                    <Dropdown
+                      label="Minimal Style"
+                      placeholder="Select option..."
+                      options={basicOptions}
+                      value={dropdowns.quiet}
+                      onChange={handleDropdownChange('quiet')}
+                      isQuiet={true}
+                    />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">에러 상태</h4>
+                    <Dropdown
+                      label="Error Example"
+                      placeholder="This has an error..."
+                      options={basicOptions}
+                      value={dropdowns.error}
+                      onChange={handleDropdownChange('error')}
+                      isError={true}
+                      errorMessage="Please select a valid option"
+                    />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">사이드 라벨</h4>
+                    <Dropdown
+                      label="Side Label"
+                      labelPosition="side"
+                      placeholder="Choose..."
+                      options={basicOptions}
+                      value={dropdowns.sideLabel}
+                      onChange={handleDropdownChange('sideLabel')}
+                      width={200}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Dropdown Sizes */}
+          <div className="mb-8">
+            <h3 className="text-h3 mb-6 text-text-primary">Dropdown Sizes</h3>
+            <div className="bg-surface p-8 rounded-default border border-border">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Small</h4>
+                    <Dropdown
+                      label="Small Dropdown"
+                      size="small"
+                      placeholder="Small size..."
+                      options={basicOptions}
+                      value={dropdowns.small}
+                      onChange={handleDropdownChange('small')}
+                    />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Medium</h4>
+                    <Dropdown
+                      label="Medium Dropdown"
+                      size="medium"
+                      placeholder="Medium size..."
+                      options={basicOptions}
+                      value={dropdowns.medium}
+                      onChange={handleDropdownChange('medium')}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Large</h4>
+                    <Dropdown
+                      label="Large Dropdown"
+                      size="large"
+                      placeholder="Large size..."
+                      options={basicOptions}
+                      value={dropdowns.large}
+                      onChange={handleDropdownChange('large')}
+                    />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Extra Large</h4>
+                    <Dropdown
+                      label="Extra Large Dropdown"
+                      size="extra-large"
+                      placeholder="Extra large size..."
+                      options={basicOptions}
+                      value={dropdowns.extraLarge}
+                      onChange={handleDropdownChange('extraLarge')}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Dropdown States */}
+          <div className="mb-8">
+            <h3 className="text-h3 mb-6 text-text-primary">Dropdown States</h3>
+            <div className="bg-surface p-8 rounded-default border border-border">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Normal State</h4>
+                    <Dropdown
+                      label="Normal"
+                      placeholder="Select an option..."
+                      options={basicOptions}
+                      value={dropdowns.basic}
+                      onChange={handleDropdownChange('basic')}
+                      description="This is a normal dropdown"
+                    />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Disabled State</h4>
+                    <Dropdown
+                      label="Disabled"
+                      placeholder="Cannot interact..."
+                      options={basicOptions}
+                      value={dropdowns.disabled}
+                      isDisabled={true}
+                      description="This dropdown is disabled"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Read-Only State</h4>
+                    <Dropdown
+                      label="Read-Only"
+                      placeholder="View only..."
+                      options={basicOptions}
+                      value={dropdowns.readonly}
+                      isReadOnly={true}
+                      description="This dropdown is read-only"
+                    />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Custom Width</h4>
+                    <Dropdown
+                      label="Custom Width"
+                      placeholder="300px width..."
+                      options={basicOptions}
+                      value={dropdowns.basic}
+                      onChange={handleDropdownChange('basic')}
+                      width={300}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Interactive Examples */}
+          <div className="mb-8">
+            <h3 className="text-h3 mb-6 text-text-primary">Interactive Examples</h3>
+            <div className="bg-surface p-8 rounded-default border border-border">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">User Preferences</h4>
+                    <div className="space-y-4">
+                      <Dropdown
+                        label="Theme"
+                        options={[
+                          { value: 'light', label: 'Light Mode' },
+                          { value: 'dark', label: 'Dark Mode' },
+                          { value: 'auto', label: 'System Default' },
+                        ]}
+                        value={dropdowns.basic}
+                        onChange={handleDropdownChange('basic')}
+                        placeholder="Choose theme..."
+                      />
+                      <Dropdown
+                        label="Language"
+                        options={[
+                          { value: 'en', label: 'English' },
+                          { value: 'ko', label: '한국어' },
+                          { value: 'ja', label: '日本語' },
+                          { value: 'zh', label: '中文' },
+                        ]}
+                        value={dropdowns.quiet}
+                        onChange={handleDropdownChange('quiet')}
+                        placeholder="Select language..."
+                        isQuiet={true}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Form Fields</h4>
+                    <div className="space-y-4">
+                      <Dropdown
+                        label="Priority"
+                        labelPosition="side"
+                        options={[
+                          { value: 'low', label: 'Low Priority' },
+                          { value: 'medium', label: 'Medium Priority' },
+                          { value: 'high', label: 'High Priority' },
+                          { value: 'urgent', label: 'Urgent' },
+                        ]}
+                        value={dropdowns.sideLabel}
+                        onChange={handleDropdownChange('sideLabel')}
+                        placeholder="Select priority..."
+                        isRequired={true}
+                        size="small"
+                        width={180}
+                      />
+                      <Dropdown
+                        label="Status"
+                        labelPosition="side"
+                        options={[
+                          { value: 'draft', label: 'Draft' },
+                          { value: 'review', label: 'In Review' },
+                          { value: 'approved', label: 'Approved' },
+                          { value: 'published', label: 'Published' },
+                        ]}
+                        value={dropdowns.withIcon}
+                        onChange={handleDropdownChange('withIcon')}
+                        placeholder="Select status..."
+                        size="small"
+                        width={180}
+                      />
                     </div>
                   </div>
                 </div>
