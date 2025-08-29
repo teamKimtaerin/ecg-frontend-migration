@@ -2,10 +2,11 @@
 
 import React, { Children, cloneElement, isValidElement } from 'react';
 import { ButtonProps } from './Button';
+import { cn, type ComponentSize } from '@/lib/utils';
 
 export interface ButtonGroupProps {
   orientation?: 'horizontal' | 'vertical';
-  size?: 'small' | 'medium' | 'large' | 'extra-large';
+  size?: ComponentSize;
   spacing?: 'none' | 'small' | 'medium' | 'large';
   isDisabled?: boolean;
   className?: string;

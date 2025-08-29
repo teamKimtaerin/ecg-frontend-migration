@@ -4,6 +4,7 @@ import Button from '@/components/Button';
 import ButtonGroup from '@/components/ButtonGroup';
 import Tab from '@/components/Tab';
 import TabItem from '@/components/TabItem';
+import Slider from '@/components/Slider';
 
 export default function Home() {
   // Sample icons for button demos
@@ -1161,6 +1162,234 @@ export default function Home() {
               <p className="text-text-accent hover:text-primary-light transition-colors cursor-pointer">
                 This is accent text (hover me)
               </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Slider Components */}
+        <section className="mb-8">
+          <h2 className="text-h2 mb-4 text-text-primary">Slider Components</h2>
+          <p className="text-body text-text-secondary mb-8">값 입력을 위한 슬라이더 컴포넌트 - 기본 기능부터 고급 기능까지</p>
+
+          {/* Basic Sliders */}
+          <div className="mb-8">
+            <h3 className="text-h3 mb-6 text-text-primary">Basic Sliders</h3>
+            <div className="bg-surface p-8 rounded-default border border-border">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">기본 슬라이더</h4>
+                    <Slider 
+                      label="Volume"
+                      minValue={0}
+                      maxValue={100}
+                    />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Step 조정</h4>
+                    <Slider 
+                      label="Step by 10"
+                      minValue={0}
+                      maxValue={100}
+                      step={10}
+                    />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Custom Range</h4>
+                    <Slider 
+                      label="Temperature (°C)"
+                      minValue={-10}
+                      maxValue={50}
+                      valueFormat={(val) => `${val}°C`}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Left Label</h4>
+                    <Slider 
+                      label="Brightness"
+                      labelPosition="left"
+                      minValue={0}
+                      maxValue={100}
+                      width={200}
+                    />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Custom Width</h4>
+                    <Slider 
+                      label="Progress"
+                      minValue={0}
+                      maxValue={100}
+                      width={150}
+                    />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Disabled State</h4>
+                    <Slider 
+                      label="Read Only"
+                      value={60}
+                      minValue={0}
+                      maxValue={100}
+                      isDisabled={true}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Advanced Features */}
+          <div className="mb-8">
+            <h3 className="text-h3 mb-6 text-text-primary">Advanced Features</h3>
+            <div className="bg-surface p-8 rounded-default border border-border">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Fill 표시</h4>
+                    <Slider 
+                      label="Storage Used"
+                      minValue={0}
+                      maxValue={100}
+                      hasFill={true}
+                      valueFormat={(val) => `${val}%`}
+                    />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Fill with Start Point</h4>
+                    <Slider 
+                      label="Temperature Range"
+                      minValue={-20}
+                      maxValue={40}
+                      hasFill={true}
+                      fillStart={0}
+                      valueFormat={(val) => `${val}°C`}
+                    />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Gradient Fill</h4>
+                    <Slider 
+                      label="Performance"
+                      minValue={0}
+                      maxValue={100}
+                      hasFill={true}
+                      hasGradient={true}
+                      valueFormat={(val) => `${val}%`}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Logarithmic Scale</h4>
+                    <Slider 
+                      label="Frequency (Hz)"
+                      minValue={1}
+                      maxValue={1000}
+                      progressionScale="log"
+                      hasFill={true}
+                      valueFormat={(val) => `${Math.round(val)} Hz`}
+                    />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Price Range</h4>
+                    <Slider 
+                      label="Budget"
+                      minValue={0}
+                      maxValue={2000}
+                      step={50}
+                      hasFill={true}
+                      hasGradient={true}
+                      valueFormat={(val) => `$${val.toLocaleString()}`}
+                    />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Non-editable</h4>
+                    <Slider 
+                      label="System Load"
+                      value={42}
+                      minValue={0}
+                      maxValue={100}
+                      hasFill={true}
+                      isEditable={false}
+                      valueFormat={(val) => `${val}%`}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Interactive Examples */}
+          <div className="mb-8">
+            <h3 className="text-h3 mb-6 text-text-primary">Interactive Examples</h3>
+            <div className="bg-surface p-8 rounded-default border border-border">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Audio Settings</h4>
+                    <div className="space-y-4">
+                      <Slider 
+                        label="Master Volume"
+                        minValue={0}
+                        maxValue={100}
+                        hasFill={true}
+                        valueFormat={(val) => `${val}%`}
+                      />
+                      <Slider 
+                        label="Bass"
+                        minValue={-20}
+                        maxValue={20}
+                        fillStart={0}
+                        hasFill={true}
+                        valueFormat={(val) => val > 0 ? `+${val}dB` : `${val}dB`}
+                      />
+                      <Slider 
+                        label="Treble"
+                        minValue={-20}
+                        maxValue={20}
+                        fillStart={0}
+                        hasFill={true}
+                        valueFormat={(val) => val > 0 ? `+${val}dB` : `${val}dB`}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">System Monitor</h4>
+                    <div className="space-y-4">
+                      <Slider 
+                        label="CPU Usage"
+                        value={68}
+                        minValue={0}
+                        maxValue={100}
+                        hasFill={true}
+                        hasGradient={true}
+                        isEditable={false}
+                        valueFormat={(val) => `${val}%`}
+                      />
+                      <Slider 
+                        label="Memory Usage"
+                        value={42}
+                        minValue={0}
+                        maxValue={100}
+                        hasFill={true}
+                        isEditable={false}
+                        valueFormat={(val) => `${val}%`}
+                      />
+                      <Slider 
+                        label="Disk Usage"
+                        value={85}
+                        minValue={0}
+                        maxValue={100}
+                        hasFill={true}
+                        isEditable={false}
+                        valueFormat={(val) => `${val}%`}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>

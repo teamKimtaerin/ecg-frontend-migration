@@ -1,48 +1,66 @@
 @import 'tailwindcss';
 
 :root {
+  /* ========================================
+     COLOR SYSTEM
+     ======================================== */
+  
   /* Primary Colors */
-  --primary-blue: #146EF5;
-  --primary-black: #080808;
+  --color-primary: #146EF5;
+  --color-primary-dark: #0A57D4;
+  --color-primary-light: #3BB2F6;
+  --color-primary-very-light: #DBEAFE;
   
-  /* Support Colors */
-  --support-white: #FFFFFF;
-  --support-medium-gray: #E2E8F0;
-  --support-light-gray: #F8FAFC;
-  --support-slate-gray: #76797d;
-  
-  /* Variation Colors */
-  --variation-dark-blue: #0A57D4;
-  --variation-light-blue: #3BB2F6;
-  --variation-very-light-blue: #DBEAFE;
+  /* Neutral Colors */
+  --color-black: #080808;
+  --color-white: #FFFFFF;
+  --color-gray-slate: #76797d;
+  --color-gray-medium: #E2E8F0;
+  --color-gray-light: #F8FAFC;
   
   /* Theme Variables */
-  --background: var(--primary-black);
-  --foreground: var(--support-white);
+  --background: var(--color-black);
+  --foreground: var(--color-white);
   
-  /* Rounding */
+  /* ========================================
+     LAYOUT SYSTEM
+     ======================================== */
+  
+  /* Spacing & Sizing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+  
+  /* Border Radius */
   --radius-default: 3px;
   --radius-small: 8px;
   --radius-full: 30px;
   
   /* Border Width */
-  --border-1: 1px;
-  --border-2: 2px;
-  --border-4: 4px;
+  --border-thin: 1px;
+  --border-medium: 2px;
+  --border-thick: 4px;
   
-  /* Typography - Font Family */
+  /* ========================================
+     TYPOGRAPHY SYSTEM
+     ======================================== */
+  
+  /* Font Families */
   --font-primary: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   
-  /* Typography - Font Sizes */
-  --font-size-h1: clamp(2.5rem, 5vw, 3.5rem);    /* 56px */
-  --font-size-h2: clamp(1.75rem, 3vw, 2.25rem);  /* 36px */
-  --font-size-h3: clamp(1.25rem, 2vw, 1.5rem);   /* 24px */
-  --font-size-body: clamp(1rem, 1.5vw, 1.125rem); /* 18px */
-  --font-size-caption: clamp(0.75rem, 1vw, 0.875rem); /* 14px */
+  /* Font Sizes */
+  --font-size-h1: clamp(2.5rem, 5vw, 3.5rem);
+  --font-size-h2: clamp(1.75rem, 3vw, 2.25rem);
+  --font-size-h3: clamp(1.25rem, 2vw, 1.5rem);
+  --font-size-body: clamp(1rem, 1.5vw, 1.125rem);
+  --font-size-caption: clamp(0.75rem, 1vw, 0.875rem);
   
-  /* Typography - Font Weights */
+  /* Font Weights */
   --font-weight-light: 300;
   --font-weight-regular: 400;
   --font-weight-medium: 500;
@@ -50,13 +68,36 @@
   --font-weight-bold: 700;
   --font-weight-black: 900;
   
-  /* Typography - Line Heights & Letter Spacing */
+  /* Line Heights & Letter Spacing */
   --line-height-tight: 1.4;
   --line-height-normal: 1.6;
   --line-height-long: 1.8;
   --letter-spacing-tight: -0.02em;
   --letter-spacing-normal: 0em;
   --letter-spacing-long: 0.01em;
+  
+  /* ========================================
+     COMPONENT SYSTEM
+     ======================================== */
+  
+  /* Icon Sizes */
+  --icon-size-small: 16px;
+  --icon-size-medium: 24px;
+  --icon-size-large: 32px;
+  --icon-size-social: 40px;
+  --icon-size-decorative: 64px;
+  --icon-size-favicon: 32px;
+  --icon-size-touch: 256px;
+  
+  /* Transitions */
+  --transition-fast: 150ms ease-in-out;
+  --transition-normal: 200ms ease-in-out;
+  --transition-slow: 300ms ease-in-out;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 }
 
 
@@ -119,63 +160,137 @@ body {
 .font-bold { font-weight: var(--font-weight-bold); }
 .font-black { font-weight: var(--font-weight-black); }
 
-/* Background Color Classes */
-.bg-background { background-color: var(--primary-black); }
-.bg-surface { background-color: var(--support-white); }
-.bg-surface-secondary { background-color: var(--support-light-gray); }
-.bg-primary { background-color: var(--primary-blue); }
-.bg-primary-dark { background-color: var(--variation-dark-blue); }
-.bg-primary-light { background-color: var(--variation-light-blue); }
-.bg-primary-very-light { background-color: var(--variation-very-light-blue); }
-.bg-white { background-color: var(--support-white); }
-.bg-black { background-color: var(--primary-black); }
-.bg-gray-medium { background-color: var(--support-medium-gray); }
-.bg-gray-light { background-color: var(--support-light-gray); }
-.bg-gray-slate { background-color: var(--support-slate-gray); }
+/* ========================================
+   BACKGROUND COLOR UTILITIES
+   ======================================== */
 
-/* Text Color Classes - Default (Black background) */
-.text-text-primary { color: var(--support-white); }
-.text-text-secondary { color: var(--support-medium-gray); }
-.text-text-accent { color: var(--variation-light-blue); }
+.bg-background { background-color: var(--color-black); }
+.bg-surface { background-color: var(--color-white); }
+.bg-surface-secondary { background-color: var(--color-gray-light); }
 
-/* Text Color Classes - White background */
+/* Primary Colors */
+.bg-primary { background-color: var(--color-primary); }
+.bg-primary-dark { background-color: var(--color-primary-dark); }
+.bg-primary-light { background-color: var(--color-primary-light); }
+.bg-primary-very-light { background-color: var(--color-primary-very-light); }
+
+/* Neutral Colors */
+.bg-white { background-color: var(--color-white); }
+.bg-black { background-color: var(--color-black); }
+.bg-gray-light { background-color: var(--color-gray-light); }
+.bg-gray-medium { background-color: var(--color-gray-medium); }
+.bg-gray-slate { background-color: var(--color-gray-slate); }
+
+/* ========================================
+   HOVER UTILITIES
+   ======================================== */
+
+/* Hover Background Colors */
+.hover\:bg-primary:hover { background-color: var(--color-primary); }
+.hover\:bg-primary-dark:hover { background-color: var(--color-primary-dark); }
+.hover\:bg-primary-light:hover { background-color: var(--color-primary-light); }
+.hover\:bg-surface-secondary:hover { background-color: var(--color-gray-light); }
+.hover\:bg-gray-light:hover { background-color: var(--color-gray-light); }
+.hover\:bg-gray-medium:hover { background-color: var(--color-gray-medium); }
+.hover\:bg-gray-slate:hover { background-color: var(--color-gray-slate); }
+.hover\:bg-black:hover { background-color: var(--color-black); }
+.hover\:bg-white:hover { background-color: var(--color-white); }
+
+/* Hover Text Colors */
+.hover\:text-white:hover { color: var(--color-white); }
+.hover\:text-black:hover { color: var(--color-black); }
+.hover\:text-primary:hover { color: var(--color-primary); }
+
+/* ========================================
+   TEXT COLOR UTILITIES
+   ======================================== */
+
+/* Default Text Colors (for black background) */
+.text-text-primary { color: var(--color-white); }
+.text-text-secondary { color: var(--color-gray-medium); }
+.text-text-accent { color: var(--color-primary-light); }
+
+/* Direct Color Classes */
+.text-primary { color: var(--color-primary); }
+.text-white { color: var(--color-white); }
+.text-black { color: var(--color-black); }
+
+/* Contextual Text Colors (for light backgrounds) */
 .bg-white .text-text-primary,
 .bg-surface .text-text-primary,
 .bg-surface-secondary .text-text-primary,
 .bg-gray-light .text-text-primary { 
-  color: var(--primary-black); 
+  color: var(--color-black); 
 }
 
 .bg-white .text-text-secondary,
 .bg-surface .text-text-secondary,
 .bg-surface-secondary .text-text-secondary,
 .bg-gray-light .text-text-secondary { 
-  color: var(--support-slate-gray); 
+  color: var(--color-gray-slate); 
 }
 
-/* Border Classes */
-.border-border { border-color: var(--support-slate-gray); }
+/* ========================================
+   LAYOUT UTILITIES
+   ======================================== */
 
-/* Rounding Classes */
+/* Border Colors */
+.border-border { border-color: var(--color-gray-slate); }
+.border-primary { border-color: var(--color-primary); }
+.border-white { border-color: var(--color-white); }
+.border-black { border-color: var(--color-black); }
+
+/* Border Radius */
 .rounded-default { border-radius: var(--radius-default); }
 .rounded-small { border-radius: var(--radius-small); }
 .rounded-full { border-radius: var(--radius-full); }
 
-/* Border Width Classes */
-.border-1 { border-width: var(--border-1); }
-.border-2 { border-width: var(--border-2); }
-.border-4 { border-width: var(--border-4); }
+/* Border Width */
+.border-1 { border-width: var(--border-thin); }
+.border-2 { border-width: var(--border-medium); }
+.border-4 { border-width: var(--border-thick); }
 
-/* Icon Size Classes - 6px Grid Based */
-.icon-favicon { width: 32px; height: 32px; color: var(--primary-black); }
-.icon-touch { width: 256px; height: 256px; color: var(--primary-black); }
-.icon-ui-small { width: 16px; height: 16px; color: var(--primary-black); }
-.icon-ui-medium { width: 24px; height: 24px; color: var(--primary-black); }
-.icon-ui-large { width: 32px; height: 32px; color: var(--primary-black); }
-.icon-social { width: 40px; height: 40px; color: var(--primary-black); }
-.icon-decorative { width: 64px; height: 64px; color: var(--primary-black); }
+/* ========================================
+   ICON UTILITIES
+   ======================================== */
 
-/* Icon Grid Helper - 6px base grid */
+.icon-favicon { 
+  width: var(--icon-size-favicon); 
+  height: var(--icon-size-favicon); 
+  color: var(--color-black); 
+}
+.icon-touch { 
+  width: var(--icon-size-touch); 
+  height: var(--icon-size-touch); 
+  color: var(--color-black); 
+}
+.icon-ui-small { 
+  width: var(--icon-size-small); 
+  height: var(--icon-size-small); 
+  color: var(--color-black); 
+}
+.icon-ui-medium { 
+  width: var(--icon-size-medium); 
+  height: var(--icon-size-medium); 
+  color: var(--color-black); 
+}
+.icon-ui-large { 
+  width: var(--icon-size-large); 
+  height: var(--icon-size-large); 
+  color: var(--color-black); 
+}
+.icon-social { 
+  width: var(--icon-size-social); 
+  height: var(--icon-size-social); 
+  color: var(--color-black); 
+}
+.icon-decorative { 
+  width: var(--icon-size-decorative); 
+  height: var(--icon-size-decorative); 
+  color: var(--color-black); 
+}
+
+/* Icon Grid Helper */
 .icon-grid {
   background-image: 
     linear-gradient(to right, rgba(20, 110, 245, 0.1) 1px, transparent 1px),
@@ -188,7 +303,7 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--support-white);
-  border: 1px solid var(--support-slate-gray);
+  background-color: var(--color-white);
+  border: 1px solid var(--color-gray-slate);
   border-radius: var(--radius-default);
 }
