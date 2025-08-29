@@ -8,6 +8,7 @@ import {
   SIZE_CLASSES,
   type ComponentSize
 } from '@/lib/utils';
+import { ChevronDownIcon } from './icons';
 
 export interface DropdownOption {
   value: string;
@@ -43,25 +44,21 @@ const DROPDOWN_SIZE_CLASSES = {
     trigger: 'h-8 text-sm px-3',
     menu: 'text-sm py-1',
     option: 'px-3 py-1.5',
-    icon: 'w-4 h-4'
   },
   medium: {
     trigger: 'h-10 text-base px-3',
     menu: 'text-base py-1',
     option: 'px-3 py-2',
-    icon: 'w-5 h-5'
   },
   large: {
     trigger: 'h-12 text-lg px-4',
     menu: 'text-lg py-1',
     option: 'px-4 py-2.5',
-    icon: 'w-5 h-5'
   },
   'extra-large': {
     trigger: 'h-14 text-xl px-4',
     menu: 'text-xl py-2',
     option: 'px-4 py-3',
-    icon: 'w-6 h-6'
   }
 } as const;
 
@@ -252,23 +249,11 @@ const Dropdown: React.FC<DropdownProps> = ({
     }
   };
 
-  // 드롭다운 화살표 아이콘
-  const ChevronIcon = () => (
-    <svg 
-      className={cn(
-        'transition-transform duration-200',
-        sizeClasses.icon,
-        isOpen && 'transform rotate-180'
-      )}
-      viewBox="0 0 20 20" 
-      fill="currentColor"
-    >
-      <path 
-        fillRule="evenodd" 
-        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" 
-        clipRule="evenodd" 
-      />
-    </svg>
+  // 드롭다운 화살표 아이콘 클래스
+  const chevronIconClasses = cn(
+    'transition-transform duration-200',
+    SIZE_CLASSES.iconClasses[size],
+    isOpen && 'transform rotate-180'
   );
 
   const containerStyle = width ? { width: `${width}px` } : {};
@@ -290,12 +275,12 @@ const Dropdown: React.FC<DropdownProps> = ({
         <span className="truncate">
           {selectedOption ? (
             <span className="flex items-center gap-2">
-              {selectedOption.icon && <span className={sizeClasses.icon}>{selectedOption.icon}</span>}
+              {selectedOption.icon && <span className={SIZE_CLASSES.iconClasses[size]}>{selectedOption.icon}</span>}
               {selectedOption.label}
             </span>
           ) : placeholder}
         </span>
-        <ChevronIcon />
+        <ChevronDownIcon className={chevronIconClasses} />
       </button>
 
       {isOpen && (
@@ -314,7 +299,7 @@ const Dropdown: React.FC<DropdownProps> = ({
               onClick={() => handleOptionClick(option)}
               onMouseEnter={() => setFocusedIndex(index)}
             >
-              {option.icon && <span className={sizeClasses.icon}>{option.icon}</span>}
+              {option.icon && <span className={SIZE_CLASSES.iconClasses[size]}>{option.icon}</span>}
               {option.label}
             </li>
           ))}

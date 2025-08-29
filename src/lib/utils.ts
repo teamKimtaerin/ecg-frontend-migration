@@ -50,6 +50,20 @@ export const SIZE_CLASSES = {
     large: 'icon-ui-medium',
     'extra-large': 'icon-ui-medium',
   },
+  // 공통 아이콘 크기 (Tailwind 클래스)
+  iconClasses: {
+    small: 'w-3 h-3',
+    medium: 'w-4 h-4',
+    large: 'w-4 h-4',
+    'extra-large': 'w-5 h-5',
+  },
+  // 공통 gap 크기
+  gap: {
+    small: 'gap-1',
+    medium: 'gap-1.5',
+    large: 'gap-2',
+    'extra-large': 'gap-2',
+  },
 } as const;
 
 /**
