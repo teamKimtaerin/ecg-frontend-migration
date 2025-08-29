@@ -37,22 +37,25 @@ jobs:
       - name: Install dependencies
         run: yarn install
 
+      # Prettier 포맷팅 검사
+      - name: Check code formatting
+        run: yarn format:check
+
       # 코드 린팅 검사
       - name: Run ESLint
         run: yarn lint
 
       # TypeScript 타입 체크
       - name: Run TypeScript type check
-        run: npx tsc --noEmit
+        run: yarn type-check
 
       # 프로젝트 빌드
       - name: Build project
         run: yarn build
 
-      # 단위 테스트 실행 (Jest 설정이 있는 경우)
-      - name: Run unit tests
-        run: yarn test --ci --reporters=jest-junit
-        # Jest 설정 파일이 있을 때만 실행
+      # Jest 단위 테스트 실행
+      - name: Run Jest unit tests
+        run: yarn test --ci --coverage --reporters=jest-junit
         if: hashFiles('jest.config.*') != ''
 
       # Playwright E2E 테스트 실행
