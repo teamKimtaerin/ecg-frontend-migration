@@ -1,26 +1,194 @@
 @import 'tailwindcss';
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  /* Primary Colors */
+  --primary-blue: #146EF5;
+  --primary-black: #080808;
+  
+  /* Support Colors */
+  --support-white: #FFFFFF;
+  --support-medium-gray: #E2E8F0;
+  --support-light-gray: #F8FAFC;
+  --support-slate-gray: #76797d;
+  
+  /* Variation Colors */
+  --variation-dark-blue: #0A57D4;
+  --variation-light-blue: #3BB2F6;
+  --variation-very-light-blue: #DBEAFE;
+  
+  /* Theme Variables */
+  --background: var(--primary-black);
+  --foreground: var(--support-white);
+  
+  /* Rounding */
+  --radius-default: 5px;
+  --radius-small: 12px;
+  --radius-full: 30px;
+  
+  /* Border Width */
+  --border-1: 1px;
+  --border-2: 2px;
+  --border-4: 4px;
+  
+  /* Typography - Font Family */
+  --font-primary: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  
+  /* Typography - Font Sizes */
+  --font-size-h1: clamp(2.5rem, 5vw, 3.5rem);    /* 56px */
+  --font-size-h2: clamp(1.75rem, 3vw, 2.25rem);  /* 36px */
+  --font-size-h3: clamp(1.25rem, 2vw, 1.5rem);   /* 24px */
+  --font-size-body: clamp(1rem, 1.5vw, 1.125rem); /* 18px */
+  --font-size-caption: clamp(0.75rem, 1vw, 0.875rem); /* 14px */
+  
+  /* Typography - Font Weights */
+  --font-weight-light: 300;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-black: 900;
+  
+  /* Typography - Line Heights & Letter Spacing */
+  --line-height-tight: 1.4;
+  --line-height-normal: 1.6;
+  --line-height-long: 1.8;
+  --letter-spacing-tight: -0.02em;
+  --letter-spacing-normal: 0em;
+  --letter-spacing-long: 0.01em;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-primary);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+  letter-spacing: var(--letter-spacing-normal);
+}
+
+/* Typography Classes */
+.text-h1 {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+.text-h2 {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+.text-h3 {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-normal);
+  letter-spacing: var(--letter-spacing-normal);
+}
+
+.text-body {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-long);
+  letter-spacing: var(--letter-spacing-long);
+}
+
+.text-caption {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-light);
+  line-height: var(--line-height-normal);
+  letter-spacing: var(--letter-spacing-normal);
+}
+
+/* Font Weight Classes */
+.font-light { font-weight: var(--font-weight-light); }
+.font-regular { font-weight: var(--font-weight-regular); }
+.font-medium { font-weight: var(--font-weight-medium); }
+.font-semibold { font-weight: var(--font-weight-semibold); }
+.font-bold { font-weight: var(--font-weight-bold); }
+.font-black { font-weight: var(--font-weight-black); }
+
+/* Background Color Classes */
+.bg-background { background-color: var(--primary-black); }
+.bg-surface { background-color: var(--support-white); }
+.bg-surface-secondary { background-color: var(--support-light-gray); }
+.bg-primary { background-color: var(--primary-blue); }
+.bg-primary-dark { background-color: var(--variation-dark-blue); }
+.bg-primary-light { background-color: var(--variation-light-blue); }
+.bg-primary-very-light { background-color: var(--variation-very-light-blue); }
+.bg-white { background-color: var(--support-white); }
+.bg-black { background-color: var(--primary-black); }
+.bg-gray-medium { background-color: var(--support-medium-gray); }
+.bg-gray-light { background-color: var(--support-light-gray); }
+.bg-gray-slate { background-color: var(--support-slate-gray); }
+
+/* Text Color Classes - Default (Black background) */
+.text-text-primary { color: var(--support-white); }
+.text-text-secondary { color: var(--support-medium-gray); }
+.text-text-accent { color: var(--variation-light-blue); }
+
+/* Text Color Classes - White background */
+.bg-white .text-text-primary,
+.bg-surface .text-text-primary,
+.bg-surface-secondary .text-text-primary,
+.bg-gray-light .text-text-primary { 
+  color: var(--primary-black); 
+}
+
+.bg-white .text-text-secondary,
+.bg-surface .text-text-secondary,
+.bg-surface-secondary .text-text-secondary,
+.bg-gray-light .text-text-secondary { 
+  color: var(--support-slate-gray); 
+}
+
+/* Border Classes */
+.border-border { border-color: var(--support-slate-gray); }
+
+/* Rounding Classes */
+.rounded-default { border-radius: var(--radius-default); }
+.rounded-small { border-radius: var(--radius-small); }
+.rounded-full { border-radius: var(--radius-full); }
+
+/* Border Width Classes */
+.border-1 { border-width: var(--border-1); }
+.border-2 { border-width: var(--border-2); }
+.border-4 { border-width: var(--border-4); }
+
+/* Icon Size Classes - 6px Grid Based */
+.icon-favicon { width: 32px; height: 32px; color: var(--primary-black); }
+.icon-touch { width: 256px; height: 256px; color: var(--primary-black); }
+.icon-ui-small { width: 16px; height: 16px; color: var(--primary-black); }
+.icon-ui-medium { width: 24px; height: 24px; color: var(--primary-black); }
+.icon-ui-large { width: 32px; height: 32px; color: var(--primary-black); }
+.icon-social { width: 40px; height: 40px; color: var(--primary-black); }
+.icon-decorative { width: 64px; height: 64px; color: var(--primary-black); }
+
+/* Icon Grid Helper - 6px base grid */
+.icon-grid {
+  background-image: 
+    linear-gradient(to right, rgba(20, 110, 245, 0.1) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(20, 110, 245, 0.1) 1px, transparent 1px);
+  background-size: 6px 6px;
+}
+
+/* Icon Container */
+.icon-container {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--support-white);
+  border: 1px solid var(--support-slate-gray);
+  border-radius: var(--radius-default);
 }
