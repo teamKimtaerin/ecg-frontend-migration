@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server'
 
 /**
  * GET /api/test 엔드포인트를 처리하는 함수
@@ -14,6 +14,6 @@ export async function GET() {
       type: 'test-data',
       id: 123,
     },
-  };
-  return NextResponse.json(testData, { status: 200 });
+  }
+  return NextResponse.json(testData, { status: 200 })
 }

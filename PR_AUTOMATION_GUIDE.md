@@ -63,11 +63,13 @@ prm "Feat: 블로그 생성"
 ## 🆘 문제 해결
 
 ### prm 명령어를 찾을 수 없을 때
+
 ```bash
 source ~/.zshrc  # 또는 ~/.bashrc
 ```
 
 ### GitHub CLI 인증 문제
+
 ```bash
 gh auth status  # 상태 확인
 gh auth login   # 재로그인

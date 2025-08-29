@@ -15,7 +15,8 @@ const nextConfig: NextConfig = {
       // 추후 프로덕션 도메인 추가
     ],
     // Docker 컨테이너에서 이미지 최적화 설정
-    unoptimized: process.env.NODE_ENV === 'production' && process.env.DOCKER === 'true'
+    unoptimized:
+      process.env.NODE_ENV === 'production' && process.env.DOCKER === 'true',
   },
 
   // 환경변수 설정
@@ -62,10 +63,10 @@ const nextConfig: NextConfig = {
     if (!dev && isServer) {
       config.externals.push({
         'utf-8-validate': 'commonjs utf-8-validate',
-        'bufferutil': 'commonjs bufferutil',
+        bufferutil: 'commonjs bufferutil',
       })
     }
-    
+
     return config
   },
 }
