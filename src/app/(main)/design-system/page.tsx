@@ -1,10 +1,34 @@
+'use client';
+
+import Button from '@/components/Button';
+import ButtonGroup from '@/components/ButtonGroup';
+
 export default function Home() {
+  // Sample icons for button demos
+  const StarIcon = () => (
+    <svg viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+    </svg>
+  );
+
+  const HeartIcon = () => (
+    <svg viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+    </svg>
+  );
+
+  const PlusIcon = () => (
+    <svg viewBox="0 0 24 24" fill="currentColor">
+      <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+    </svg>
+  );
+
   return (
     <div className="font-sans min-h-screen bg-background text-foreground p-8">
       <main className="max-w-4xl mx-auto py-12">
         <div className="text-center mb-12">
           <h1 className="text-h1">디자인 시스템</h1>
-          <p className="text-sm text-text-secondary">TailwindCSS 기반 컬러 팔레트 및 타이포그래피 시스템</p>
+          <p className="text-sm text-text-secondary">TailwindCSS 기반 컬러 팔레트, 타이포그래피 및 컴포넌트 시스템</p>
         </div>
 
         {/* Typography Section */}
@@ -14,7 +38,7 @@ export default function Home() {
           {/* Font Sizes */}
           <div className="mb-6">
             <h3 className="text-h3 mb-3 text-text-primary">Font Sizes</h3>
-            <div className="bg-surface p-6 rounded-small border border-border space-y-4">
+            <div className="bg-surface p-6 rounded-default border border-border space-y-4">
               <div>
                 <h1 className="text-h1 text-text-primary">H1 (XL) - 56px</h1>
                 <p className="text-sm text-text-secondary">메인 헤드라인 - Bold (700)</p>
@@ -41,7 +65,7 @@ export default function Home() {
           {/* Font Weights */}
           <div className="mb-6">
             <h3 className="text-h3 mb-3 text-text-primary">Font Weights</h3>
-            <div className="bg-surface p-6 rounded-small border border-border space-y-3">
+            <div className="bg-surface p-6 rounded-default border border-border space-y-3">
               <div className="flex items-center justify-between">
                 <span className="font-light text-body text-text-primary">Light (300)</span>
                 <span className="text-sm text-text-secondary">보조 text, 캡션</span>
@@ -73,19 +97,19 @@ export default function Home() {
           <div className="mb-6">
             <h3 className="text-h3 mb-3 text-text-primary">Line Height & Letter Spacing</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-surface p-4 rounded-small border border-border">
+              <div className="bg-surface p-4 rounded-default border border-border">
                 <h4 className="font-semibold text-text-primary mb-2">Tight</h4>
                 <p className="text-body text-text-primary" style={{ lineHeight: 'var(--line-height-tight)', letterSpacing: 'var(--letter-spacing-tight)' }}>
                   제목과 짧은 텍스트용<br/>Line Height: 1.4<br/>Letter Spacing: -0.02em
                 </p>
               </div>
-              <div className="bg-surface p-4 rounded-small border border-border">
+              <div className="bg-surface p-4 rounded-default border border-border">
                 <h4 className="font-semibold text-text-primary mb-2">Normal</h4>
                 <p className="text-body text-text-primary" style={{ lineHeight: 'var(--line-height-normal)', letterSpacing: 'var(--letter-spacing-normal)' }}>
                   일반적인 읽기용<br/>Line Height: 1.6<br/>Letter Spacing: 0em
                 </p>
               </div>
-              <div className="bg-surface p-4 rounded-small border border-border">
+              <div className="bg-surface p-4 rounded-default border border-border">
                 <h4 className="font-semibold text-text-primary mb-2">Long</h4>
                 <p className="text-body text-text-primary" style={{ lineHeight: 'var(--line-height-long)', letterSpacing: 'var(--letter-spacing-long)' }}>
                   긴 글과 본문 텍스트용<br/>Line Height: 1.8<br/>Letter Spacing: 0.01em
@@ -99,13 +123,13 @@ export default function Home() {
         <section className="mb-8">
           <h2 className="text-h2 mb-4 text-text-primary">Primary Colors</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-surface p-6 rounded-small border border-border">
-              <div className="w-16 h-16 bg-primary rounded-small mb-3"></div>
+            <div className="bg-surface p-6 rounded-default border border-border">
+              <div className="w-16 h-16 bg-primary rounded-default mb-3"></div>
               <h3 className="font-semibold text-text-primary">Blue (#146EF5)</h3>
               <p className="text-sm text-text-secondary">버튼과 강조 색상</p>
             </div>
-            <div className="bg-surface p-6 rounded-small border border-border">
-              <div className="w-16 h-16 bg-black rounded-small mb-3"></div>
+            <div className="bg-surface p-6 rounded-default border border-border">
+              <div className="w-16 h-16 bg-black rounded-default mb-3"></div>
               <h3 className="font-semibold text-text-primary">Black (#080808)</h3>
               <p className="text-sm text-text-secondary">메인 배경색, 본문 텍스트</p>
             </div>
@@ -116,23 +140,23 @@ export default function Home() {
         <section className="mb-8">
           <h2 className="text-h2 mb-4 text-text-primary">Support Colors</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-surface p-6 rounded-small border border-border">
-              <div className="w-16 h-16 bg-white border border-gray-200 rounded-small mb-3"></div>
+            <div className="bg-surface p-6 rounded-default border border-border">
+              <div className="w-16 h-16 bg-white border border-gray-200 rounded-default mb-3"></div>
               <h3 className="font-semibold text-text-primary">Pure White</h3>
               <p className="text-sm text-text-secondary">컴포넌트 배경색</p>
             </div>
-            <div className="bg-surface p-6 rounded-small border border-border">
-              <div className="w-16 h-16 bg-gray-medium rounded-small mb-3"></div>
+            <div className="bg-surface p-6 rounded-default border border-border">
+              <div className="w-16 h-16 bg-gray-medium rounded-default mb-3"></div>
               <h3 className="font-semibold text-text-primary">Medium Gray</h3>
               <p className="text-sm text-text-secondary">기본 텍스트, 보조 정보</p>
             </div>
-            <div className="bg-surface p-6 rounded-small border border-border">
-              <div className="w-16 h-16 bg-gray-light rounded-small mb-3"></div>
+            <div className="bg-surface p-6 rounded-default border border-border">
+              <div className="w-16 h-16 bg-gray-light rounded-default mb-3"></div>
               <h3 className="font-semibold text-text-primary">Light Gray</h3>
               <p className="text-sm text-text-secondary">보조 정보용</p>
             </div>
-            <div className="bg-surface p-6 rounded-small border border-border">
-              <div className="w-16 h-16 bg-gray-slate rounded-small mb-3"></div>
+            <div className="bg-surface p-6 rounded-default border border-border">
+              <div className="w-16 h-16 bg-gray-slate rounded-default mb-3"></div>
               <h3 className="font-semibold text-text-primary">Slate Gray</h3>
               <p className="text-sm text-text-secondary">카드 배경, 구분선</p>
             </div>
@@ -143,18 +167,18 @@ export default function Home() {
         <section className="mb-8">
           <h2 className="text-h2 mb-4 text-text-primary">Variation Colors</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-surface p-6 rounded-small border border-border">
-              <div className="w-16 h-16 bg-primary-dark rounded-small mb-3"></div>
+            <div className="bg-surface p-6 rounded-default border border-border">
+              <div className="w-16 h-16 bg-primary-dark rounded-default mb-3"></div>
               <h3 className="font-semibold text-text-primary">Dark Blue</h3>
               <p className="text-sm text-text-secondary">버튼 hover 상태</p>
             </div>
-            <div className="bg-surface p-6 rounded-small border border-border">
-              <div className="w-16 h-16 bg-primary-light rounded-small mb-3"></div>
+            <div className="bg-surface p-6 rounded-default border border-border">
+              <div className="w-16 h-16 bg-primary-light rounded-default mb-3"></div>
               <h3 className="font-semibold text-text-primary">Light Blue</h3>
               <p className="text-sm text-text-secondary">텍스트 강조, hover</p>
             </div>
-            <div className="bg-surface p-6 rounded-small border border-border">
-              <div className="w-16 h-16 bg-primary-very-light rounded-small mb-3"></div>
+            <div className="bg-surface p-6 rounded-default border border-border">
+              <div className="w-16 h-16 bg-primary-very-light rounded-default mb-3"></div>
               <h3 className="font-semibold text-text-primary">Very Light Blue</h3>
               <p className="text-sm text-text-secondary">그라데이션용</p>
             </div>
@@ -171,15 +195,15 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-surface p-6 border border-border rounded-default">
                 <div className="w-16 h-16 bg-primary mb-3 rounded-default"></div>
-                <h4 className="font-semibold text-text-primary">Default (5px)</h4>
+                <h4 className="font-semibold text-text-primary">Default (3px)</h4>
                 <p className="text-sm text-text-secondary">기본 라운딩</p>
               </div>
-              <div className="bg-surface p-6 border border-border rounded-small">
+              <div className="bg-surface p-6 border border-border rounded-default">
                 <div className="w-16 h-16 bg-primary mb-3 rounded-small"></div>
-                <h4 className="font-semibold text-text-primary">Small (12px)</h4>
+                <h4 className="font-semibold text-text-primary">Small (8px)</h4>
                 <p className="text-sm text-text-secondary">작은 라운딩</p>
               </div>
-              <div className="bg-surface p-6 border border-border rounded-full">
+              <div className="bg-surface p-6 border border-border rounded-default">
                 <div className="w-16 h-16 bg-primary mb-3 rounded-full"></div>
                 <h4 className="font-semibold text-text-primary">Full (30px)</h4>
                 <p className="text-sm text-text-secondary">완전 라운딩</p>
@@ -215,7 +239,7 @@ export default function Home() {
           {/* Icon Sizes Grid */}
           <div className="mb-8">
             <h3 className="text-h3 mb-6 text-text-primary">Icon Sizes</h3>
-            <div className="bg-surface p-8 rounded-small border border-border">
+            <div className="bg-surface p-8 rounded-default border border-border">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                 
                 {/* UI Icons Small */}
@@ -284,16 +308,16 @@ export default function Home() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               
               {/* Buttons with Icons */}
-              <div className="bg-surface p-6 rounded-small border border-border">
+              <div className="bg-surface p-6 rounded-default border border-border">
                 <h4 className="font-semibold text-text-primary mb-4">Buttons with Icons</h4>
                 <div className="space-y-3">
-                  <button className="bg-primary text-white px-4 py-2 hover:bg-primary-dark transition-colors rounded-small font-medium flex items-center gap-2">
+                  <button className="bg-primary text-white px-4 py-2 hover:bg-primary-dark transition-colors rounded-default font-medium flex items-center gap-2">
                     <svg className="icon-ui-small" viewBox="0 0 16 16" fill="white">
                       <path d="M8 2v12l4-4H8V2z"/>
                     </svg>
                     Primary Action
                   </button>
-                  <button className="border-2 border-border text-text-primary px-4 py-2 hover:bg-surface-secondary transition-colors rounded-small font-medium flex items-center gap-2">
+                  <button className="border-2 border-border text-text-primary px-4 py-2 hover:bg-surface-secondary transition-colors rounded-default font-medium flex items-center gap-2">
                     <svg className="icon-ui-small" viewBox="0 0 16 16" fill="#080808">
                       <path d="M3 3h10v10H3V3zm2 2v6h6V5H5z"/>
                     </svg>
@@ -303,7 +327,7 @@ export default function Home() {
               </div>
 
               {/* Navigation with Icons */}
-              <div className="bg-surface p-6 rounded-small border border-border">
+              <div className="bg-surface p-6 rounded-default border border-border">
                 <h4 className="font-semibold text-text-primary mb-4">Navigation</h4>
                 <nav className="space-y-2">
                   <a href="#" className="flex items-center gap-3 p-2 text-text-primary hover:bg-surface-secondary rounded-default transition-colors">
@@ -332,13 +356,13 @@ export default function Home() {
           {/* 6px Grid System */}
           <div className="mb-8">
             <h3 className="text-h3 mb-6 text-text-primary">6px Grid System</h3>
-            <div className="bg-surface p-6 rounded-small border border-border">
+            <div className="bg-surface p-6 rounded-default border border-border">
               <p className="text-body text-text-secondary mb-6">
                 모든 아이콘은 6px 기본 그리드를 기반으로 설계되어 일관성과 픽셀 퍼펙트를 보장합니다.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="text-center">
-                  <div className="w-24 h-24 icon-grid border-2 border-primary rounded-small mx-auto mb-3 flex items-center justify-center">
+                  <div className="w-24 h-24 icon-grid border-2 border-primary rounded-default mx-auto mb-3 flex items-center justify-center">
                     <svg className="icon-ui-medium text-primary" viewBox="0 0 24 24" fill="#146EF5">
                       <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                     </svg>
@@ -346,7 +370,7 @@ export default function Home() {
                   <p className="text-caption text-text-secondary">6px 그리드 가이드</p>
                 </div>
                 <div className="text-center">
-                  <div className="w-24 h-24 border-2 border-border rounded-small mx-auto mb-3 flex items-center justify-center bg-gray-light">
+                  <div className="w-24 h-24 border-2 border-border rounded-default mx-auto mb-3 flex items-center justify-center bg-gray-light">
                     <svg className="icon-ui-medium text-text-primary" viewBox="0 0 24 24" fill="#080808">
                       <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                     </svg>
@@ -354,7 +378,7 @@ export default function Home() {
                   <p className="text-caption text-text-secondary">픽셀 퍼펙트 정렬</p>
                 </div>
                 <div className="text-center">
-                  <div className="w-24 h-24 border-2 border-border rounded-small mx-auto mb-3 flex items-center justify-center">
+                  <div className="w-24 h-24 border-2 border-border rounded-default mx-auto mb-3 flex items-center justify-center">
                     <svg className="icon-ui-medium text-text-accent" viewBox="0 0 24 24" fill="#3BB2F6">
                       <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                     </svg>
@@ -368,7 +392,7 @@ export default function Home() {
           {/* Icon Specifications */}
           <div className="mb-8">
             <h3 className="text-h3 mb-6 text-text-primary">Icon Specifications</h3>
-            <div className="bg-surface rounded-small border border-border overflow-hidden">
+            <div className="bg-surface rounded-default border border-border overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-gray-light">
@@ -400,7 +424,7 @@ export default function Home() {
                       <td className="p-4 text-text-secondary">홈스크린 바로가기</td>
                       <td className="p-4">
                         <div className="flex justify-center">
-                          <div className="w-8 h-8 bg-primary rounded-small flex items-center justify-center">
+                          <div className="w-8 h-8 bg-primary rounded-default flex items-center justify-center">
                             <svg className="w-4 h-4" viewBox="0 0 16 16" fill="white">
                               <path d="M8 2l2 4h4l-3 3 1 4-4-2-4 2 1-4-3-3h4l2-4z"/>
                             </svg>
@@ -476,22 +500,438 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Button Components */}
+        <section className="mb-8">
+          <h2 className="text-h2 mb-4 text-text-primary">Button Components</h2>
+          <p className="text-body text-text-secondary mb-8">globals.css 디자인 시스템 기반의 재사용 가능한 Button 컴포넌트</p>
+
+          {/* Button Variants */}
+          <div className="mb-8">
+            <h3 className="text-h3 mb-6 text-text-primary">Variants & Styles</h3>
+            <div className="bg-surface p-8 rounded-default border border-border">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+                <div className="flex flex-col items-center">
+                  <h4 className="font-semibold text-text-primary mb-4 h-6 flex items-center">Accent</h4>
+                  <div className="space-y-3 w-full flex flex-col items-center">
+                    <Button variant="accent" label="Fill Button" className="w-32" />
+                    <Button variant="accent" style="outline" label="Outline Button" className="w-32" />
+                  </div>
+                </div>
+                <div className="flex flex-col items-center">
+                  <h4 className="font-semibold text-text-primary mb-4 h-6 flex items-center">Primary</h4>
+                  <div className="space-y-3 w-full flex flex-col items-center">
+                    <Button variant="primary" label="Fill Button" className="w-32" />
+                    <Button variant="primary" style="outline" label="Outline Button" className="w-32" />
+                  </div>
+                </div>
+                <div className="flex flex-col items-center">
+                  <h4 className="font-semibold text-text-primary mb-4 h-6 flex items-center">Secondary</h4>
+                  <div className="space-y-3 w-full flex flex-col items-center">
+                    <Button variant="secondary" label="Fill Button" className="w-32" />
+                    <Button variant="secondary" style="outline" label="Outline Button" className="w-32" />
+                  </div>
+                </div>
+                <div className="flex flex-col items-center">
+                  <h4 className="font-semibold text-text-primary mb-4 h-6 flex items-center">Negative</h4>
+                  <div className="space-y-3 w-full flex flex-col items-center">
+                    <Button variant="negative" label="Fill Button" className="w-32" />
+                    <Button variant="negative" style="outline" label="Outline Button" className="w-32" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Button Sizes */}
+          <div className="mb-8">
+            <h3 className="text-h3 mb-6 text-text-primary">Sizes</h3>
+            <div className="bg-surface p-8 rounded-default border border-border">
+              <div className="flex items-center justify-center gap-6 flex-wrap">
+                <div className="flex flex-col items-center gap-2">
+                  <Button size="small" label="Small" />
+                  <p className="text-caption text-text-secondary">Small</p>
+                </div>
+                <div className="flex flex-col items-center gap-2">
+                  <Button size="medium" label="Medium" />
+                  <p className="text-caption text-text-secondary">Medium</p>
+                </div>
+                <div className="flex flex-col items-center gap-2">
+                  <Button size="large" label="Large" />
+                  <p className="text-caption text-text-secondary">Large</p>
+                </div>
+                <div className="flex flex-col items-center gap-2">
+                  <Button size="extra-large" label="Extra Large" />
+                  <p className="text-caption text-text-secondary">Extra Large</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Button with Icons */}
+          <div className="mb-8">
+            <h3 className="text-h3 mb-6 text-text-primary">With Icons</h3>
+            <div className="bg-surface p-8 rounded-default border border-border">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="flex flex-col items-center">
+                  <h4 className="font-semibold text-text-primary mb-4 h-6 flex items-center">Icon + Label</h4>
+                  <div className="space-y-3 w-full flex flex-col items-center">
+                    <Button icon={<StarIcon />} label="Favorite" className="w-36" />
+                    <Button icon={<HeartIcon />} label="Like" variant="secondary" className="w-36" />
+                    <Button icon={<PlusIcon />} label="Add New" size="large" className="w-36" />
+                  </div>
+                </div>
+                <div className="flex flex-col items-center">
+                  <h4 className="font-semibold text-text-primary mb-4 h-6 flex items-center">Icon Only</h4>
+                  <div className="space-y-3 w-full flex flex-col items-center">
+                    <Button icon={<StarIcon />} hideLabel="Favorite" />
+                    <Button icon={<HeartIcon />} hideLabel="Like" variant="secondary" />
+                    <Button icon={<PlusIcon />} hideLabel="Add" size="large" />
+                  </div>
+                </div>
+                <div className="flex flex-col items-center">
+                  <h4 className="font-semibold text-text-primary mb-4 h-6 flex items-center">Different Sizes</h4>
+                  <div className="space-y-3 w-full flex flex-col items-center">
+                    <Button icon={<StarIcon />} label="Small" size="small" className="w-28" />
+                    <Button icon={<HeartIcon />} label="Medium" size="medium" className="w-28" />
+                    <Button icon={<PlusIcon />} label="Large" size="large" className="w-28" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Static Colors */}
+          <div className="mb-8">
+            <h3 className="text-h3 mb-6 text-text-primary">Static Colors</h3>
+            <div className="bg-surface p-8 rounded-default border border-border">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="flex flex-col items-center">
+                  <h4 className="font-semibold text-text-primary mb-4 h-6 flex items-center">White Static</h4>
+                  <div className="bg-black p-6 rounded-default space-y-3 w-full flex flex-col items-center">
+                    <Button staticColor="white" label="White Fill" className="w-36" />
+                    <Button staticColor="white" style="outline" label="White Outline" className="w-36" />
+                  </div>
+                </div>
+                <div className="flex flex-col items-center">
+                  <h4 className="font-semibold text-text-primary mb-4 h-6 flex items-center">Black Static</h4>
+                  <div className="bg-white p-6 rounded-default space-y-3 w-full flex flex-col items-center">
+                    <Button staticColor="black" label="Black Fill" className="w-36" />
+                    <Button staticColor="black" style="outline" label="Black Outline" className="w-36" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Button States */}
+          <div className="mb-8">
+            <h3 className="text-h3 mb-6 text-text-primary">States</h3>
+            <div className="bg-surface p-8 rounded-default border border-border">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="flex flex-col items-center">
+                  <h4 className="font-semibold text-text-primary mb-4 h-6 flex items-center">Normal</h4>
+                  <Button label="Button" className="w-36" />
+                </div>
+                <div className="flex flex-col items-center">
+                  <h4 className="font-semibold text-text-primary mb-4 h-6 flex items-center">Pending</h4>
+                  <Button label="Loading..." isPending={true} className="w-36" />
+                </div>
+                <div className="flex flex-col items-center">
+                  <h4 className="font-semibold text-text-primary mb-4 h-6 flex items-center">Disabled</h4>
+                  <Button label="Disabled" isDisabled={true} className="w-36" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Justified Buttons */}
+          <div className="mb-8">
+            <h3 className="text-h3 mb-6 text-text-primary">Justified</h3>
+            <div className="bg-surface p-8 rounded-default border border-border">
+              <div className="space-y-4 max-w-md mx-auto">
+                <Button label="Normal Width" />
+                <Button label="Justified Button" justified={true} />
+                <Button 
+                  icon={<PlusIcon />} 
+                  label="Justified with Icon" 
+                  justified={true} 
+                  variant="secondary"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Button Group Components */}
+        <section className="mb-8">
+          <h2 className="text-h2 mb-4 text-text-primary">Button Group Components</h2>
+          <p className="text-body text-text-secondary mb-8">연결된 버튼들의 그룹으로 관련 액션들을 묶어서 표시</p>
+
+          {/* Horizontal Button Groups */}
+          <div className="mb-8">
+            <h3 className="text-h3 mb-6 text-text-primary">Horizontal Groups</h3>
+            <div className="bg-surface p-8 rounded-default border border-border">
+              <div className="space-y-6">
+                
+                {/* Basic horizontal group */}
+                <div className="flex flex-col items-center gap-4">
+                  <h4 className="font-semibold text-text-primary">Basic Group</h4>
+                  <ButtonGroup orientation="horizontal">
+                    <Button label="First" />
+                    <Button label="Second" />
+                    <Button label="Third" />
+                  </ButtonGroup>
+                </div>
+
+                {/* Mixed variants */}
+                <div className="flex flex-col items-center gap-4">
+                  <h4 className="font-semibold text-text-primary">Mixed Variants</h4>
+                  <ButtonGroup orientation="horizontal">
+                    <Button label="Primary" variant="primary" />
+                    <Button label="Secondary" variant="secondary" />
+                    <Button label="Accent" variant="accent" />
+                  </ButtonGroup>
+                </div>
+
+                {/* With icons */}
+                <div className="flex flex-col items-center gap-4">
+                  <h4 className="font-semibold text-text-primary">With Icons</h4>
+                  <ButtonGroup orientation="horizontal">
+                    <Button icon={<StarIcon />} label="Favorite" />
+                    <Button icon={<HeartIcon />} label="Like" />
+                    <Button icon={<PlusIcon />} label="Add" />
+                  </ButtonGroup>
+                </div>
+
+                {/* Icon only */}
+                <div className="flex flex-col items-center gap-4">
+                  <h4 className="font-semibold text-text-primary">Icon Only</h4>
+                  <ButtonGroup orientation="horizontal">
+                    <Button icon={<StarIcon />} hideLabel="Favorite" />
+                    <Button icon={<HeartIcon />} hideLabel="Like" />
+                    <Button icon={<PlusIcon />} hideLabel="Add" />
+                  </ButtonGroup>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Vertical Button Groups */}
+          <div className="mb-8">
+            <h3 className="text-h3 mb-6 text-text-primary">Vertical Groups</h3>
+            <div className="bg-surface p-8 rounded-default border border-border">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                {/* Basic vertical group */}
+                <div className="flex flex-col items-center gap-4">
+                  <h4 className="font-semibold text-text-primary">Basic Group</h4>
+                  <ButtonGroup orientation="vertical">
+                    <Button label="Option 1" />
+                    <Button label="Option 2" />
+                    <Button label="Option 3" />
+                  </ButtonGroup>
+                </div>
+
+                {/* Navigation style */}
+                <div className="flex flex-col items-center gap-4">
+                  <h4 className="font-semibold text-text-primary">Navigation Style</h4>
+                  <ButtonGroup orientation="vertical">
+                    <Button icon={<StarIcon />} label="Dashboard" variant="secondary" />
+                    <Button icon={<HeartIcon />} label="Analytics" variant="secondary" />
+                    <Button icon={<PlusIcon />} label="Settings" variant="secondary" />
+                  </ButtonGroup>
+                </div>
+
+                {/* Menu style */}
+                <div className="flex flex-col items-center gap-4">
+                  <h4 className="font-semibold text-text-primary">Menu Style</h4>
+                  <ButtonGroup orientation="vertical">
+                    <Button label="Edit Profile" style="outline" />
+                    <Button label="Account Settings" style="outline" />
+                    <Button label="Sign Out" style="outline" variant="negative" />
+                  </ButtonGroup>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Different Sizes */}
+          <div className="mb-8">
+            <h3 className="text-h3 mb-6 text-text-primary">Different Sizes</h3>
+            <div className="bg-surface p-8 rounded-default border border-border">
+              <div className="space-y-6">
+                
+                <div className="flex flex-col items-center gap-4">
+                  <h4 className="font-semibold text-text-primary">Small</h4>
+                  <ButtonGroup size="small">
+                    <Button label="Small" />
+                    <Button label="Group" />
+                    <Button label="Size" />
+                  </ButtonGroup>
+                </div>
+
+                <div className="flex flex-col items-center gap-4">
+                  <h4 className="font-semibold text-text-primary">Medium</h4>
+                  <ButtonGroup size="medium">
+                    <Button label="Medium" />
+                    <Button label="Group" />
+                    <Button label="Size" />
+                  </ButtonGroup>
+                </div>
+
+                <div className="flex flex-col items-center gap-4">
+                  <h4 className="font-semibold text-text-primary">Large</h4>
+                  <ButtonGroup size="large">
+                    <Button label="Large" />
+                    <Button label="Group" />
+                    <Button label="Size" />
+                  </ButtonGroup>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Spacing */}
+          <div className="mb-8">
+            <h3 className="text-h3 mb-6 text-text-primary">Button Spacing</h3>
+            <div className="bg-surface p-8 rounded-default border border-border">
+              <div className="space-y-6">
+                
+                <div className="flex flex-col items-center gap-4">
+                  <h4 className="font-semibold text-text-primary">No Spacing (Connected)</h4>
+                  <ButtonGroup spacing="none">
+                    <Button label="Connected" />
+                    <Button label="Button" />
+                    <Button label="Group" />
+                  </ButtonGroup>
+                </div>
+
+                <div className="flex flex-col items-center gap-4">
+                  <h4 className="font-semibold text-text-primary">Small Spacing</h4>
+                  <ButtonGroup spacing="small">
+                    <Button label="Small" />
+                    <Button label="Spaced" />
+                    <Button label="Group" />
+                  </ButtonGroup>
+                </div>
+
+                <div className="flex flex-col items-center gap-4">
+                  <h4 className="font-semibold text-text-primary">Medium Spacing</h4>
+                  <ButtonGroup spacing="medium">
+                    <Button label="Medium" />
+                    <Button label="Spaced" />
+                    <Button label="Group" />
+                  </ButtonGroup>
+                </div>
+
+                <div className="flex flex-col items-center gap-4">
+                  <h4 className="font-semibold text-text-primary">Large Spacing</h4>
+                  <ButtonGroup spacing="large">
+                    <Button label="Large" />
+                    <Button label="Spaced" />
+                    <Button label="Group" />
+                  </ButtonGroup>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Vertical Spacing */}
+          <div className="mb-8">
+            <h3 className="text-h3 mb-6 text-text-primary">Vertical Spacing</h3>
+            <div className="bg-surface p-8 rounded-default border border-border">
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                
+                <div className="flex flex-col items-center gap-4">
+                  <h4 className="font-semibold text-text-primary">No Spacing</h4>
+                  <ButtonGroup orientation="vertical" spacing="none">
+                    <Button label="Connected" />
+                    <Button label="Vertical" />
+                    <Button label="Group" />
+                  </ButtonGroup>
+                </div>
+
+                <div className="flex flex-col items-center gap-4">
+                  <h4 className="font-semibold text-text-primary">Small Spacing</h4>
+                  <ButtonGroup orientation="vertical" spacing="small">
+                    <Button label="Small" />
+                    <Button label="Spaced" />
+                    <Button label="Group" />
+                  </ButtonGroup>
+                </div>
+
+                <div className="flex flex-col items-center gap-4">
+                  <h4 className="font-semibold text-text-primary">Medium Spacing</h4>
+                  <ButtonGroup orientation="vertical" spacing="medium">
+                    <Button label="Medium" />
+                    <Button label="Spaced" />
+                    <Button label="Group" />
+                  </ButtonGroup>
+                </div>
+
+                <div className="flex flex-col items-center gap-4">
+                  <h4 className="font-semibold text-text-primary">Large Spacing</h4>
+                  <ButtonGroup orientation="vertical" spacing="large">
+                    <Button label="Large" />
+                    <Button label="Spaced" />
+                    <Button label="Group" />
+                  </ButtonGroup>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* States */}
+          <div className="mb-8">
+            <h3 className="text-h3 mb-6 text-text-primary">Group States</h3>
+            <div className="bg-surface p-8 rounded-default border border-border">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                <div className="flex flex-col items-center gap-4">
+                  <h4 className="font-semibold text-text-primary">Normal Group</h4>
+                  <ButtonGroup>
+                    <Button label="Normal" />
+                    <Button label="Group" />
+                    <Button label="State" />
+                  </ButtonGroup>
+                </div>
+
+                <div className="flex flex-col items-center gap-4">
+                  <h4 className="font-semibold text-text-primary">Disabled Group</h4>
+                  <ButtonGroup isDisabled={true}>
+                    <Button label="Disabled" />
+                    <Button label="Group" />
+                    <Button label="State" />
+                  </ButtonGroup>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Interactive Examples */}
         <section className="mb-8">
           <h2 className="text-h2 mb-4 text-text-primary">Interactive Examples</h2>
           <div className="space-y-4">
             <div className="flex gap-4 flex-wrap">
-              <button className="bg-primary text-white px-6 py-3 hover:bg-primary-dark transition-colors rounded-default">
-                Primary Button
-              </button>
-              <button className="text-text-primary px-6 py-3 hover:bg-surface-secondary transition-colors border-1 border-border rounded-small">
-                Secondary Button
-              </button>
-              <button className="bg-primary text-white px-6 py-3 hover:bg-primary-dark transition-colors rounded-full">
-                Rounded Button
-              </button>
+              <Button 
+                label="Alert Button" 
+                onClick={() => alert('Button clicked!')}
+              />
+              <Button 
+                icon={<HeartIcon />}
+                label="Console Log" 
+                variant="secondary"
+                onClick={() => console.log('Button clicked in console')}
+              />
+              <Button 
+                icon={<PlusIcon />}
+                label="Large Action" 
+                size="large"
+                onClick={() => alert('Large button clicked!')}
+              />
             </div>
-            <div className="bg-surface p-4 border-2 border-border rounded-small">
+            <div className="bg-surface p-4 border-2 border-border rounded-default">
               <p className="text-text-primary mb-2">This is primary text</p>
               <p className="text-text-secondary mb-2">This is secondary text</p>
               <p className="text-text-accent hover:text-primary-light transition-colors cursor-pointer">

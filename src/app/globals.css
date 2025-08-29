@@ -21,8 +21,8 @@
   --foreground: var(--support-white);
   
   /* Rounding */
-  --radius-default: 5px;
-  --radius-small: 12px;
+  --radius-default: 3px;
+  --radius-small: 8px;
   --radius-full: 30px;
   
   /* Border Width */
