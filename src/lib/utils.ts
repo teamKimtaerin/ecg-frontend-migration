@@ -97,7 +97,12 @@ export function getBaseInteractiveClasses() {
     'items-center', 
     'justify-center',
     'font-medium',
-    'transition-colors',
+    'transition-all',
+    'duration-200',
+    'shadow-sm',
+    'hover:shadow-md',
+    'active:shadow-none',
+    'active:translate-y-px',
     'focus:outline-none',
     'focus:ring-2',
     'focus:ring-offset-2',
@@ -108,7 +113,13 @@ export function getBaseInteractiveClasses() {
  * Generate disabled state classes
  */
 export function getDisabledClasses() {
-  return ['opacity-50', 'cursor-not-allowed', 'pointer-events-none'];
+  return [
+    'opacity-50', 
+    'cursor-not-allowed', 
+    'pointer-events-none',
+    'shadow-none',
+    'transform-none'
+  ];
 }
 
 /**

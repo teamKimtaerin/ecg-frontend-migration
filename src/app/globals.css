@@ -18,6 +18,13 @@
   --color-gray-medium: #E2E8F0;
   --color-gray-light: #F8FAFC;
   
+  /* Error Colors */
+  --color-red-50: #FEF2F2;
+  --color-red-100: #FEE2E2;
+  --color-red-200: #FECACA;
+  --color-red-600: #DC2626;
+  --color-red-700: #B91C1C;
+  
   /* Theme Variables */
   --background: var(--color-black);
   --foreground: var(--color-white);
@@ -181,6 +188,11 @@ body {
 .bg-gray-medium { background-color: var(--color-gray-medium); }
 .bg-gray-slate { background-color: var(--color-gray-slate); }
 
+/* Error Colors */
+.bg-red-50 { background-color: var(--color-red-50); }
+.bg-red-100 { background-color: var(--color-red-100); }
+.bg-red-200 { background-color: var(--color-red-200); }
+
 /* ========================================
    HOVER UTILITIES
    ======================================== */
@@ -195,6 +207,8 @@ body {
 .hover\:bg-gray-slate:hover { background-color: var(--color-gray-slate); }
 .hover\:bg-black:hover { background-color: var(--color-black); }
 .hover\:bg-white:hover { background-color: var(--color-white); }
+.hover\:bg-red-100:hover { background-color: var(--color-red-100); }
+.hover\:bg-red-200:hover { background-color: var(--color-red-200); }
 
 /* Hover Text Colors */
 .hover\:text-white:hover { color: var(--color-white); }
@@ -214,6 +228,8 @@ body {
 .text-primary { color: var(--color-primary); }
 .text-white { color: var(--color-white); }
 .text-black { color: var(--color-black); }
+.text-red-600 { color: var(--color-red-600); }
+.text-red-700 { color: var(--color-red-700); }
 
 /* Contextual Text Colors (for light backgrounds) */
 .bg-white .text-text-primary,
@@ -231,6 +247,39 @@ body {
 }
 
 /* ========================================
+   SHADOW UTILITIES
+   ======================================== */
+
+/* TailwindCSS provides basic shadow classes, we just ensure our variables work */
+.shadow-sm { box-shadow: var(--shadow-sm); }
+.shadow-md { box-shadow: var(--shadow-md); }
+.shadow-lg { box-shadow: var(--shadow-lg); }
+.shadow-none { box-shadow: none; }
+
+.hover\:shadow-md:hover { box-shadow: var(--shadow-md); }
+.active\:shadow-none:active { box-shadow: none; }
+
+/* ========================================
+   TRANSFORM UTILITIES
+   ======================================== */
+
+.translate-y-px { transform: translateY(1px); }
+.translate-y-0 { transform: translateY(0); }
+
+/* Active Transform Classes */
+.active\:translate-y-px:active { transform: translateY(1px); }
+.active\:translate-y-0:active { transform: translateY(0); }
+
+/* ========================================
+   TRANSITION UTILITIES
+   ======================================== */
+
+.transition-all { transition: all var(--transition-normal); }
+.transition-colors { transition: color, background-color, border-color var(--transition-normal); }
+.duration-200 { transition-duration: 200ms; }
+.transform-none { transform: none; }
+
+/* ========================================
    LAYOUT UTILITIES
    ======================================== */
 
@@ -239,6 +288,7 @@ body {
 .border-primary { border-color: var(--color-primary); }
 .border-white { border-color: var(--color-white); }
 .border-black { border-color: var(--color-black); }
+.border-red-200 { border-color: var(--color-red-200); }
 
 /* Border Radius */
 .rounded-default { border-radius: var(--radius-default); }

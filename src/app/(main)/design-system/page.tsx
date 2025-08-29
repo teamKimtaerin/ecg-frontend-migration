@@ -5,6 +5,8 @@ import ButtonGroup from '@/components/ButtonGroup';
 import Tab from '@/components/Tab';
 import TabItem from '@/components/TabItem';
 import Slider from '@/components/Slider';
+import Tag from '@/components/Tag';
+import Switch from '@/components/Switch';
 
 export default function Home() {
   // Sample icons for button demos
@@ -24,6 +26,12 @@ export default function Home() {
     <svg viewBox="0 0 24 24" fill="currentColor">
       <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
     </svg>
+  );
+
+  const UserAvatar = () => (
+    <div className="w-full h-full bg-primary text-white flex items-center justify-center text-xs font-bold">
+      U
+    </div>
   );
 
   return (
@@ -1386,6 +1394,390 @@ export default function Home() {
                         isEditable={false}
                         valueFormat={(val) => `${val}%`}
                       />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Tag Components */}
+        <section className="mb-8">
+          <h2 className="text-h2 mb-4 text-text-primary">Tag Components</h2>
+          <p className="text-body text-text-secondary mb-8">라벨링, 카테고리, 상태 표시를 위한 태그 컴포넌트</p>
+
+          {/* Basic Tags */}
+          <div className="mb-8">
+            <h3 className="text-h3 mb-6 text-text-primary">Basic Tags</h3>
+            <div className="bg-surface p-8 rounded-default border border-border">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">기본 태그</h4>
+                    <div className="flex flex-wrap gap-2">
+                      <Tag label="React" />
+                      <Tag label="TypeScript" />
+                      <Tag label="Next.js" />
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Avatar 포함</h4>
+                    <div className="flex flex-wrap gap-2">
+                      <Tag 
+                        label="John Doe" 
+                        hasAvatar={true}
+                        avatar={<UserAvatar />}
+                      />
+                      <Tag 
+                        label="Designer" 
+                        hasAvatar={true}
+                        avatar={<div className="w-full h-full bg-green-500 rounded-full"></div>}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">제거 가능한 태그</h4>
+                    <div className="flex flex-wrap gap-2">
+                      <Tag 
+                        label="JavaScript" 
+                        isRemovable={true}
+                        onRemove={() => alert('JavaScript tag removed')}
+                      />
+                      <Tag 
+                        label="CSS" 
+                        isRemovable={true}
+                        onRemove={() => alert('CSS tag removed')}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">클릭 가능한 태그</h4>
+                    <div className="flex flex-wrap gap-2">
+                      <Tag 
+                        label="Frontend" 
+                        onClick={() => alert('Frontend tag clicked')}
+                      />
+                      <Tag 
+                        label="Backend" 
+                        onClick={() => alert('Backend tag clicked')}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Avatar + 제거 가능</h4>
+                    <div className="flex flex-wrap gap-2">
+                      <Tag 
+                        label="Alice Smith" 
+                        hasAvatar={true}
+                        avatar={<UserAvatar />}
+                        isRemovable={true}
+                        onRemove={() => alert('Alice Smith removed')}
+                      />
+                      <Tag 
+                        label="Bob Johnson" 
+                        hasAvatar={true}
+                        avatar={<div className="w-full h-full bg-purple-500 rounded-full"></div>}
+                        isRemovable={true}
+                        onRemove={() => alert('Bob Johnson removed')}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">모든 기능 포함</h4>
+                    <div className="flex flex-wrap gap-2">
+                      <Tag 
+                        label="Team Lead" 
+                        hasAvatar={true}
+                        avatar={<UserAvatar />}
+                        isRemovable={true}
+                        onClick={() => alert('Team Lead clicked')}
+                        onRemove={() => alert('Team Lead removed')}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Tag States */}
+          <div className="mb-8">
+            <h3 className="text-h3 mb-6 text-text-primary">Tag States</h3>
+            <div className="bg-surface p-8 rounded-default border border-border">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Normal State</h4>
+                    <div className="flex flex-wrap gap-2">
+                      <Tag label="Normal" />
+                      <Tag 
+                        label="Interactive" 
+                        onClick={() => alert('Clicked')}
+                      />
+                      <Tag 
+                        label="Removable" 
+                        isRemovable={true}
+                        onRemove={() => alert('Removed')}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Error State</h4>
+                    <div className="flex flex-wrap gap-2">
+                      <Tag label="Error Tag" isError={true} />
+                      <Tag 
+                        label="Error Interactive" 
+                        isError={true}
+                        onClick={() => alert('Error clicked')}
+                      />
+                      <Tag 
+                        label="Error Removable" 
+                        isError={true}
+                        isRemovable={true}
+                        onRemove={() => alert('Error removed')}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Disabled State</h4>
+                    <div className="flex flex-wrap gap-2">
+                      <Tag label="Disabled" isDisabled={true} />
+                      <Tag 
+                        label="Disabled Interactive" 
+                        isDisabled={true}
+                        onClick={() => alert('Should not click')}
+                      />
+                      <Tag 
+                        label="Disabled Removable" 
+                        isDisabled={true}
+                        isRemovable={true}
+                        onRemove={() => alert('Should not remove')}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Read-Only State</h4>
+                    <div className="flex flex-wrap gap-2">
+                      <Tag label="Read Only" isReadOnly={true} />
+                      <Tag 
+                        label="Read Only Interactive" 
+                        isReadOnly={true}
+                        onClick={() => alert('Should not click')}
+                      />
+                      <Tag 
+                        label="Read Only Removable" 
+                        isReadOnly={true}
+                        isRemovable={true}
+                        onRemove={() => alert('Should not remove')}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Complex Examples */}
+          <div className="mb-8">
+            <h3 className="text-h3 mb-6 text-text-primary">Complex Examples</h3>
+            <div className="bg-surface p-8 rounded-default border border-border">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Skills Tags</h4>
+                    <div className="flex flex-wrap gap-2">
+                      <Tag 
+                        label="React.js" 
+                        isRemovable={true}
+                        onRemove={() => alert('React.js removed')}
+                      />
+                      <Tag 
+                        label="TypeScript" 
+                        isRemovable={true}
+                        onRemove={() => alert('TypeScript removed')}
+                      />
+                      <Tag 
+                        label="Node.js" 
+                        isRemovable={true}
+                        onRemove={() => alert('Node.js removed')}
+                      />
+                      <Tag 
+                        label="GraphQL" 
+                        isRemovable={true}
+                        onRemove={() => alert('GraphQL removed')}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Team Members</h4>
+                    <div className="flex flex-wrap gap-2">
+                      <Tag 
+                        label="Sarah Wilson" 
+                        hasAvatar={true}
+                        avatar={<div className="w-full h-full bg-blue-500 text-white flex items-center justify-center text-xs font-bold">SW</div>}
+                        isRemovable={true}
+                        onRemove={() => alert('Sarah removed')}
+                      />
+                      <Tag 
+                        label="Mike Chen" 
+                        hasAvatar={true}
+                        avatar={<div className="w-full h-full bg-green-500 text-white flex items-center justify-center text-xs font-bold">MC</div>}
+                        isRemovable={true}
+                        onRemove={() => alert('Mike removed')}
+                      />
+                      <Tag 
+                        label="Error User" 
+                        hasAvatar={true}
+                        avatar={<div className="w-full h-full bg-red-500 text-white flex items-center justify-center text-xs font-bold">EU</div>}
+                        isError={true}
+                        isRemovable={true}
+                        onRemove={() => alert('Error user removed')}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Project Status</h4>
+                    <div className="flex flex-wrap gap-2">
+                      <Tag 
+                        label="In Progress" 
+                        onClick={() => alert('In Progress clicked')}
+                      />
+                      <Tag 
+                        label="Completed" 
+                        onClick={() => alert('Completed clicked')}
+                      />
+                      <Tag 
+                        label="On Hold" 
+                        isError={true}
+                        onClick={() => alert('On Hold clicked')}
+                      />
+                      <Tag 
+                        label="Archived" 
+                        isDisabled={true}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Categories</h4>
+                    <div className="flex flex-wrap gap-2">
+                      <Tag 
+                        label="Design System" 
+                        onClick={() => alert('Design System clicked')}
+                      />
+                      <Tag 
+                        label="Frontend" 
+                        onClick={() => alert('Frontend clicked')}
+                      />
+                      <Tag 
+                        label="API" 
+                        onClick={() => alert('API clicked')}
+                      />
+                      <Tag 
+                        label="Documentation" 
+                        isReadOnly={true}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Switch Components */}
+        <section className="mb-8">
+          <h2 className="text-h2 mb-4 text-text-primary">Switch Components</h2>
+          <p className="text-body text-text-secondary mb-8">상태 전환을 위한 스위치 컴포넌트 - 다양한 크기와 스타일 지원</p>
+
+          {/* Basic Switches */}
+          <div className="mb-8">
+            <h3 className="text-h3 mb-6 text-text-primary">Basic Switches</h3>
+            <div className="bg-surface p-8 rounded-default border border-border">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">기본 스위치</h4>
+                    <div className="space-y-3">
+                      <Switch label="Wi-Fi" />
+                      <Switch label="Bluetooth" isSelected={true} />
+                      <Switch label="Location Services" />
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">라벨 없는 스위치</h4>
+                    <div className="flex gap-4 items-center">
+                      <Switch />
+                      <Switch isSelected={true} />
+                      <Switch isDisabled={true} />
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">강조 스타일</h4>
+                    <div className="space-y-3">
+                      <Switch label="Enhanced Mode" isEmphasized={true} />
+                      <Switch label="Premium Feature" isSelected={true} isEmphasized={true} />
+                      <Switch label="Advanced Settings" isEmphasized={true} />
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">상태별 스위치</h4>
+                    <div className="space-y-3">
+                      <Switch label="Normal" />
+                      <Switch label="Selected" isSelected={true} />
+                      <Switch label="Disabled" isDisabled={true} />
+                      <Switch label="Read Only" isSelected={true} isReadOnly={true} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Switch Sizes */}
+          <div className="mb-8">
+            <h3 className="text-h3 mb-6 text-text-primary">Switch Sizes</h3>
+            <div className="bg-surface p-8 rounded-default border border-border">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">라벨과 함께</h4>
+                    <div className="space-y-4">
+                      <Switch size="small" className="text-black" label="Small Switch" />
+                      <Switch size="medium" label="Medium Switch" />
+                      <Switch size="large" label="Large Switch" />
+                      <Switch size="extra-large" label="Extra Large Switch" />
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">라벨 없이</h4>
+                    <div className="flex items-center gap-6">
+                      <div className="flex flex-col items-center gap-2">
+                        <Switch size="small" isSelected={true} />
+                        <p className="text-sm text-text-secondary">Small</p>
+                      </div>
+                      <div className="flex flex-col items-center gap-2">
+                        <Switch size="medium" isSelected={true} />
+                        <p className="text-sm text-text-secondary">Medium</p>
+                      </div>
+                      <div className="flex flex-col items-center gap-2">
+                        <Switch size="large" isSelected={true} />
+                        <p className="text-sm text-text-secondary">Large</p>
+                      </div>
+                      <div className="flex flex-col items-center gap-2">
+                        <Switch size="extra-large" isSelected={true} />
+                        <p className="text-sm text-text-secondary">XL</p>
+                      </div>
                     </div>
                   </div>
                 </div>
