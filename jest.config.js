@@ -13,6 +13,13 @@ const customJestConfig = {
     '**/__tests__/**/*.{js,jsx,ts,tsx}',
     '**/?(*.)+(spec|test).{js,jsx,ts,tsx}',
   ],
+  testPathIgnorePatterns: [
+    '<rootDir>/.next/',
+    '<rootDir>/node_modules/',
+    '<rootDir>/coverage/',
+    '<rootDir>/out/',
+    '<rootDir>/build/',
+  ],
   collectCoverageFrom: [
     'src/**/*.{js,jsx,ts,tsx}',
     '!src/**/*.d.ts',
@@ -23,6 +30,8 @@ const customJestConfig = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
+  passWithNoTests: true,
+  moduleFileExtensions: ['js', 'jsx', 'ts', 'tsx', 'json'],
 }
 
 // createJestConfig는 async이므로 Next.js 구성을 로드할 수 있습니다

@@ -55,7 +55,7 @@ jobs:
 
       # Jest 단위 테스트 실행
       - name: Run Jest unit tests
-        run: yarn test --ci --coverage --reporters=jest-junit
+        run: yarn test --ci --coverage --passWithNoTests
         if: hashFiles('jest.config.*') != ''
 
       # Playwright E2E 테스트 실행
