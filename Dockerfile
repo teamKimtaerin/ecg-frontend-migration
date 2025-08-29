@@ -71,6 +71,9 @@ COPY --chown=nextjs:nodejs . .
 ENV NEXT_TELEMETRY_DISABLED=1 \
     NODE_ENV=production
 
+# Next.js 캐시 디렉토리 생성
+RUN mkdir -p .next && chown nextjs:nodejs .next
+
 USER nextjs
 
 # 빌드 실행
