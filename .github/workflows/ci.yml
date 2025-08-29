@@ -64,8 +64,8 @@ jobs:
         if: hashFiles('playwright.config.*') != ''
 
       - name: Run Playwright E2E tests
-        run: yarn test:e2e
-        if: hashFiles('playwright.config.*') != ''
+        run: yarn test:e2e --reporter=list
+        if: hashFiles('playwright.config.*') != '' && hashFiles('tests/**/*.spec.*') != ''
 
       # Docker 빌드 테스트
       - name: Test Docker build
