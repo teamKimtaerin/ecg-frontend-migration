@@ -1,5 +1,6 @@
 'use client';
 
+import React, { useState } from 'react';
 import Button from '@/components/Button';
 import ButtonGroup from '@/components/ButtonGroup';
 import Tab from '@/components/Tab';
@@ -9,6 +10,29 @@ import Tag from '@/components/Tag';
 import Switch from '@/components/Switch';
 
 export default function Home() {
+  // Switch states
+  const [switches, setSwitches] = useState({
+    wifi: false,
+    bluetooth: true,
+    location: false,
+    enhanced: false,
+    premium: true,
+    advanced: false,
+    normal: false,
+    selected: true,
+    small: false,
+    medium: false,
+    large: false,
+    extraLarge: false,
+    smallNoLabel: true,
+    mediumNoLabel: true,
+    largeNoLabel: true,
+    xlNoLabel: true,
+  });
+
+  const handleSwitchChange = (key: string) => (selected: boolean) => {
+    setSwitches(prev => ({ ...prev, [key]: selected }));
+  };
   // Sample icons for button demos
   const StarIcon = () => (
     <svg viewBox="0 0 24 24" fill="currentColor">
@@ -1705,16 +1729,34 @@ export default function Home() {
                   <div>
                     <h4 className="font-semibold text-text-primary mb-3">기본 스위치</h4>
                     <div className="space-y-3">
-                      <Switch label="Wi-Fi" />
-                      <Switch label="Bluetooth" isSelected={true} />
-                      <Switch label="Location Services" />
+                      <Switch 
+                        label="Wi-Fi" 
+                        isSelected={switches.wifi}
+                        onChange={handleSwitchChange('wifi')}
+                      />
+                      <Switch 
+                        label="Bluetooth" 
+                        isSelected={switches.bluetooth}
+                        onChange={handleSwitchChange('bluetooth')}
+                      />
+                      <Switch 
+                        label="Location Services" 
+                        isSelected={switches.location}
+                        onChange={handleSwitchChange('location')}
+                      />
                     </div>
                   </div>
                   <div>
                     <h4 className="font-semibold text-text-primary mb-3">라벨 없는 스위치</h4>
                     <div className="flex gap-4 items-center">
-                      <Switch />
-                      <Switch isSelected={true} />
+                      <Switch 
+                        isSelected={switches.smallNoLabel}
+                        onChange={handleSwitchChange('smallNoLabel')}
+                      />
+                      <Switch 
+                        isSelected={switches.mediumNoLabel}
+                        onChange={handleSwitchChange('mediumNoLabel')}
+                      />
                       <Switch isDisabled={true} />
                     </div>
                   </div>
@@ -1723,16 +1765,39 @@ export default function Home() {
                   <div>
                     <h4 className="font-semibold text-text-primary mb-3">강조 스타일</h4>
                     <div className="space-y-3">
-                      <Switch label="Enhanced Mode" isEmphasized={true} />
-                      <Switch label="Premium Feature" isSelected={true} isEmphasized={true} />
-                      <Switch label="Advanced Settings" isEmphasized={true} />
+                      <Switch 
+                        label="Enhanced Mode" 
+                        isEmphasized={true}
+                        isSelected={switches.enhanced}
+                        onChange={handleSwitchChange('enhanced')}
+                      />
+                      <Switch 
+                        label="Premium Feature" 
+                        isSelected={switches.premium}
+                        isEmphasized={true}
+                        onChange={handleSwitchChange('premium')}
+                      />
+                      <Switch 
+                        label="Advanced Settings" 
+                        isEmphasized={true}
+                        isSelected={switches.advanced}
+                        onChange={handleSwitchChange('advanced')}
+                      />
                     </div>
                   </div>
                   <div>
                     <h4 className="font-semibold text-text-primary mb-3">상태별 스위치</h4>
                     <div className="space-y-3">
-                      <Switch label="Normal" />
-                      <Switch label="Selected" isSelected={true} />
+                      <Switch 
+                        label="Normal"
+                        isSelected={switches.normal}
+                        onChange={handleSwitchChange('normal')}
+                      />
+                      <Switch 
+                        label="Selected" 
+                        isSelected={switches.selected}
+                        onChange={handleSwitchChange('selected')}
+                      />
                       <Switch label="Disabled" isDisabled={true} />
                       <Switch label="Read Only" isSelected={true} isReadOnly={true} />
                     </div>
@@ -1751,10 +1816,30 @@ export default function Home() {
                   <div>
                     <h4 className="font-semibold text-text-primary mb-3">라벨과 함께</h4>
                     <div className="space-y-4">
-                      <Switch size="small" className="text-black" label="Small Switch" />
-                      <Switch size="medium" label="Medium Switch" />
-                      <Switch size="large" label="Large Switch" />
-                      <Switch size="extra-large" label="Extra Large Switch" />
+                      <Switch 
+                        size="small" 
+                        label="Small Switch"
+                        isSelected={switches.small}
+                        onChange={handleSwitchChange('small')}
+                      />
+                      <Switch 
+                        size="medium" 
+                        label="Medium Switch"
+                        isSelected={switches.medium}
+                        onChange={handleSwitchChange('medium')}
+                      />
+                      <Switch 
+                        size="large" 
+                        label="Large Switch"
+                        isSelected={switches.large}
+                        onChange={handleSwitchChange('large')}
+                      />
+                      <Switch 
+                        size="extra-large" 
+                        label="Extra Large Switch"
+                        isSelected={switches.extraLarge}
+                        onChange={handleSwitchChange('extraLarge')}
+                      />
                     </div>
                   </div>
                 </div>
@@ -1763,19 +1848,35 @@ export default function Home() {
                     <h4 className="font-semibold text-text-primary mb-3">라벨 없이</h4>
                     <div className="flex items-center gap-6">
                       <div className="flex flex-col items-center gap-2">
-                        <Switch size="small" isSelected={true} />
+                        <Switch 
+                          size="small" 
+                          isSelected={switches.smallNoLabel}
+                          onChange={handleSwitchChange('smallNoLabel')}
+                        />
                         <p className="text-sm text-text-secondary">Small</p>
                       </div>
                       <div className="flex flex-col items-center gap-2">
-                        <Switch size="medium" isSelected={true} />
+                        <Switch 
+                          size="medium" 
+                          isSelected={switches.mediumNoLabel}
+                          onChange={handleSwitchChange('mediumNoLabel')}
+                        />
                         <p className="text-sm text-text-secondary">Medium</p>
                       </div>
                       <div className="flex flex-col items-center gap-2">
-                        <Switch size="large" isSelected={true} />
+                        <Switch 
+                          size="large" 
+                          isSelected={switches.largeNoLabel}
+                          onChange={handleSwitchChange('largeNoLabel')}
+                        />
                         <p className="text-sm text-text-secondary">Large</p>
                       </div>
                       <div className="flex flex-col items-center gap-2">
-                        <Switch size="extra-large" isSelected={true} />
+                        <Switch 
+                          size="extra-large" 
+                          isSelected={switches.xlNoLabel}
+                          onChange={handleSwitchChange('xlNoLabel')}
+                        />
                         <p className="text-sm text-text-secondary">XL</p>
                       </div>
                     </div>
