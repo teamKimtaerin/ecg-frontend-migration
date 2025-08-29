@@ -29,6 +29,10 @@ jobs:
       - name: Enable Yarn
         run: corepack enable
 
+      # Yarn 캐시 클리어
+      - name: Clear Yarn cache
+        run: yarn cache clean
+
       # 의존성 설치 (frozen-lockfile로 정확한 버전 보장)
       - name: Install dependencies
         run: yarn install --frozen-lockfile
