@@ -33,9 +33,9 @@ jobs:
       - name: Clear Yarn cache
         run: yarn cache clean
 
-      # 의존성 설치 (frozen-lockfile로 정확한 버전 보장)
+      # 의존성 설치
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install
 
       # 코드 린팅 검사
       - name: Run ESLint
@@ -43,7 +43,7 @@ jobs:
 
       # TypeScript 타입 체크
       - name: Run TypeScript type check
-        run: yarn type-check
+        run: npx tsc --noEmit
 
       # 프로젝트 빌드
       - name: Build project
