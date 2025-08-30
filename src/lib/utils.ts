@@ -229,12 +229,12 @@ export const VARIANT_STYLES = {
     outline: ['border-2', 'border-primary', 'text-primary', 'hover:bg-primary', 'hover:text-white', 'focus:ring-primary-light'],
   },
   secondary: {
-    fill: ['bg-surface', 'text-black', 'border-2', 'border-border', 'hover:bg-surface-secondary', 'hover:text-black'],
-    outline: ['border-2', 'border-border', 'text-text-primary', 'hover:bg-surface-secondary', 'hover:text-black'],
+    fill: ['bg-surface', 'text-black', 'border-2', 'border-primary-light', 'hover:bg-primary', 'hover:text-white'],
+    outline: ['border-2', 'border-black', 'text-black', 'hover:bg-primary-dark', 'hover:text-white'],
   },
   negative: {
     fill: ['bg-gray-slate', 'text-white', 'hover:bg-black', 'focus:ring-gray-medium'],
-    outline: ['border-2', 'border-gray-slate', 'text-gray-slate', 'hover:bg-gray-slate', 'hover:text-white', 'focus:ring-gray-medium'],
+    outline: ['border-2', 'border-gray-slate', 'text-black', 'hover:bg-gray-slate', 'hover:text-white', 'focus:ring-gray-medium'],
   },
 } as const;
 
