@@ -13,12 +13,14 @@ import {
 
 export type BadgeVariant = keyof typeof BADGE_COLORS;
 export type BadgeFixed = 'none' | 'top' | 'right' | 'bottom' | 'left';
+export type BadgeRounding = 'default' | 'small' | 'full';
 
 export interface BadgeProps extends Omit<BaseComponentProps, 'isDisabled'> {
   label?: string;
   icon?: React.ReactNode;
   variant?: BadgeVariant;
   fixed?: BadgeFixed;
+  rounding?: BadgeRounding;
   id?: string;
 }
 
@@ -27,6 +29,7 @@ const Badge: React.FC<BadgeProps> = ({
   icon,
   variant = 'neutral',
   fixed = 'none',
+  rounding = 'full',
   size = 'small',
   className,
   id
@@ -43,6 +46,9 @@ const Badge: React.FC<BadgeProps> = ({
   // Determine if it's icon-only
   const isIconOnly = !label && icon;
 
+  // Get rounding classes
+  const roundingClasses = getRoundingClasses(rounding);
+
   // Base badge classes
   const badgeClasses = cn(
     // Base styles
@@ -50,12 +56,14 @@ const Badge: React.FC<BadgeProps> = ({
     'items-center',
     'justify-center',
     'font-medium',
-    'rounded-full',
     'whitespace-nowrap',
     'select-none',
     
     // Size-based classes
     isIconOnly ? sizeClasses.onlyIcon : sizeClasses.container,
+    
+    // Rounding classes
+    roundingClasses,
     
     // Color classes
     colorClasses.bg,
@@ -100,6 +108,22 @@ const Badge: React.FC<BadgeProps> = ({
     </span>
   );
 };
+
+/**
+ * Get rounding classes for badge border radius
+ */
+function getRoundingClasses(rounding: BadgeRounding): string {
+  switch (rounding) {
+    case 'default':
+      return 'rounded-default';
+    case 'small':
+      return 'rounded-small';
+    case 'full':
+      return 'rounded-full';
+    default:
+      return 'rounded-full';
+  }
+}
 
 /**
  * Get fixed position classes for badge positioning

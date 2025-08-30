@@ -3824,6 +3824,33 @@ export default function Home() {
                   </div>
                 </div>
 
+                {/* Rounding */}
+                <div className="mb-6">
+                  <h4 className="font-semibold text-text-primary mb-3">Border Radius</h4>
+                  <div className="flex flex-wrap items-center gap-4">
+                    <Badge label="Default" rounding="default" variant="informative" />
+                    <Badge label="Small" rounding="small" variant="positive" />
+                    <Badge label="Full" rounding="full" variant="notice" />
+                  </div>
+                  <div className="flex flex-wrap items-center gap-4 mt-3">
+                    <Badge 
+                      icon={<StarIcon className="w-full h-full" />} 
+                      rounding="default" 
+                      variant="informative" 
+                    />
+                    <Badge 
+                      icon={<HeartIcon className="w-full h-full" />} 
+                      rounding="small" 
+                      variant="positive" 
+                    />
+                    <Badge 
+                      icon={<PlusIcon className="w-full h-full" />} 
+                      rounding="full" 
+                      variant="notice" 
+                    />
+                  </div>
+                </div>
+
                 {/* Icon Only */}
                 <div className="mb-6">
                   <h4 className="font-semibold text-text-primary mb-3">Icon Only</h4>
