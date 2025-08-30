@@ -1,9 +1,9 @@
-'use client';
+'use client'
 
-import React, { useState } from 'react';
-import Modal from '@/components/Modal';
-import Button from '@/components/Button';
-import { DESIGN_SYSTEM_CONSTANTS, getSpacingClass } from './constants';
+import React, { useState } from 'react'
+import Modal from '@/components/Modal'
+import Button from '@/components/Button'
+import { DESIGN_SYSTEM_CONSTANTS, getSpacingClass } from './constants'
 
 const SimpleModalDemo: React.FC = () => {
   const [modals, setModals] = useState({
@@ -16,61 +16,79 @@ const SimpleModalDemo: React.FC = () => {
     actions: false,
     scrollable: false,
     nonDismissible: false,
-  });
+  })
 
   const handleModalOpen = (key: keyof typeof modals) => {
-    setModals(prev => ({ ...prev, [key]: true }));
-  };
+    setModals((prev) => ({ ...prev, [key]: true }))
+  }
 
   const handleModalClose = (key: keyof typeof modals) => {
-    setModals(prev => ({ ...prev, [key]: false }));
-  };
+    setModals((prev) => ({ ...prev, [key]: false }))
+  }
 
   return (
     <div className={getSpacingClass('DEMO_SECTIONS')}>
       <div>
-        <h2 className={`text-h2 mb-${DESIGN_SYSTEM_CONSTANTS.DEMO_HEADER_MARGIN} text-text-primary`}>Modal Component (Simplified)</h2>
-        <p className={`text-body text-text-secondary mb-${DESIGN_SYSTEM_CONSTANTS.DEMO_DESCRIPTION_MARGIN}`}>
+        <h2
+          className={`text-h2 mb-${DESIGN_SYSTEM_CONSTANTS.DEMO_HEADER_MARGIN} text-text-primary`}
+        >
+          Modal Component (Simplified)
+        </h2>
+        <p
+          className={`text-body text-text-secondary mb-${DESIGN_SYSTEM_CONSTANTS.DEMO_DESCRIPTION_MARGIN}`}
+        >
           간소화된 Modal 컴포넌트: 기본 기능 중심으로 최적화되었습니다.
         </p>
       </div>
 
       {/* Basic Examples */}
       <div className={getSpacingClass('DEMO_SECTIONS')}>
-        <div className={`${getSpacingClass('CARD')} bg-surface-secondary rounded-small`}>
-          <h3 className={`text-h3 text-text-primary mb-${DESIGN_SYSTEM_CONSTANTS.SECTION_TITLE_MARGIN}`}>Basic Examples</h3>
+        <div
+          className={`${getSpacingClass('CARD')} bg-surface-secondary rounded-small`}
+        >
+          <h3
+            className={`text-h3 text-text-primary mb-${DESIGN_SYSTEM_CONSTANTS.SECTION_TITLE_MARGIN}`}
+          >
+            Basic Examples
+          </h3>
           <div className={`flex ${getSpacingClass('BUTTON_GROUP')} flex-wrap`}>
-            <Button 
-              label="Basic Modal" 
+            <Button
+              label="Basic Modal"
               onClick={() => handleModalOpen('basic')}
             />
-            <Button 
-              label="With Header" 
+            <Button
+              label="With Header"
               onClick={() => handleModalOpen('withHeader')}
             />
-            <Button 
-              label="With Action Footer" 
+            <Button
+              label="With Action Footer"
               onClick={() => handleModalOpen('withFooter')}
             />
           </div>
         </div>
 
         {/* Size Variants */}
-        <div className={`${getSpacingClass('CARD')} bg-surface-secondary rounded-small`}>
-          <h3 className={`text-h3 text-text-primary mb-${DESIGN_SYSTEM_CONSTANTS.SECTION_TITLE_MARGIN}`}>Size Variants</h3>
+        <div
+          className={`${getSpacingClass('CARD')} bg-surface-secondary rounded-small`}
+        >
+          <h3
+            className={`text-h3 text-text-primary mb-${DESIGN_SYSTEM_CONSTANTS.SECTION_TITLE_MARGIN}`}
+          >
+            Size Variants
+          </h3>
           <div className={`flex ${getSpacingClass('BUTTON_GROUP')} flex-wrap`}>
-            <Button 
-              label="Small (sm)" 
+            <Button
+              label="Small (sm)"
               onClick={() => handleModalOpen('sizeSmall')}
               size="small"
             />
-            <Button 
-              label="Medium (md)" 
+            <Button
+              label="Medium (md)"
               onClick={() => handleModalOpen('sizeMedium')}
               size="medium"
             />
-            <Button 
-              label="Large (lg)" 
+            <Button
+              label="Large (lg)"
               onClick={() => handleModalOpen('sizeLarge')}
               size="large"
             />
@@ -78,19 +96,25 @@ const SimpleModalDemo: React.FC = () => {
         </div>
 
         {/* Behavior Options */}
-        <div className={`${getSpacingClass('CARD')} bg-surface-secondary rounded-small`}>
-          <h3 className={`text-h3 text-text-primary mb-${DESIGN_SYSTEM_CONSTANTS.SECTION_TITLE_MARGIN}`}>Behavior Options</h3>
+        <div
+          className={`${getSpacingClass('CARD')} bg-surface-secondary rounded-small`}
+        >
+          <h3
+            className={`text-h3 text-text-primary mb-${DESIGN_SYSTEM_CONSTANTS.SECTION_TITLE_MARGIN}`}
+          >
+            Behavior Options
+          </h3>
           <div className={`flex ${getSpacingClass('BUTTON_GROUP')} flex-wrap`}>
-            <Button 
-              label="Action Buttons" 
+            <Button
+              label="Action Buttons"
               onClick={() => handleModalOpen('actions')}
             />
-            <Button 
-              label="Scrollable Content" 
+            <Button
+              label="Scrollable Content"
               onClick={() => handleModalOpen('scrollable')}
             />
-            <Button 
-              label="Non-Dismissible" 
+            <Button
+              label="Non-Dismissible"
               onClick={() => handleModalOpen('nonDismissible')}
             />
           </div>
@@ -124,24 +148,24 @@ const SimpleModalDemo: React.FC = () => {
         onClose={() => handleModalClose('withFooter')}
         title="Modal with Actions"
         primaryAction={{
-          label: "Save Changes",
+          label: 'Save Changes',
           onClick: () => {
-            alert('Changes saved!');
-            handleModalClose('withFooter');
-          }
+            alert('Changes saved!')
+            handleModalClose('withFooter')
+          },
         }}
         secondaryAction={{
-          label: "Save Draft",
+          label: 'Save Draft',
           onClick: () => {
-            alert('Draft saved!');
+            alert('Draft saved!')
           },
-          variant: "secondary"
+          variant: 'secondary',
         }}
         cancelAction={{
-          label: "Cancel",
+          label: 'Cancel',
           onClick: () => {
-            handleModalClose('withFooter');
-          }
+            handleModalClose('withFooter')
+          },
         }}
       >
         <div className={getSpacingClass('DEMO_SUBSECTIONS')}>
@@ -153,8 +177,8 @@ const SimpleModalDemo: React.FC = () => {
               <label className="block text-sm font-medium text-text-primary mb-1">
                 Setting Name
               </label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 className={`w-full p-${DESIGN_SYSTEM_CONSTANTS.INPUT_PADDING} border border-gray-medium rounded-default`}
                 placeholder="Enter setting name"
                 autoFocus
@@ -173,10 +197,15 @@ const SimpleModalDemo: React.FC = () => {
       >
         <div className={getSpacingClass('DEMO_SUBSECTIONS')}>
           <p className="text-body text-text-secondary">
-            This is a small modal (max-width: 384px). Perfect for simple confirmations and alerts.
+            This is a small modal (max-width: 384px). Perfect for simple
+            confirmations and alerts.
           </p>
-          <div className={`p-${DESIGN_SYSTEM_CONSTANTS.BUTTON_GROUP_GAP} bg-blue-50 border border-blue-200 rounded`}>
-            <p className="text-blue-800 text-sm">📏 Small size modal demonstration</p>
+          <div
+            className={`p-${DESIGN_SYSTEM_CONSTANTS.BUTTON_GROUP_GAP} bg-blue-50 border border-blue-200 rounded`}
+          >
+            <p className="text-blue-800 text-sm">
+              📏 Small size modal demonstration
+            </p>
           </div>
         </div>
       </Modal>
@@ -189,13 +218,19 @@ const SimpleModalDemo: React.FC = () => {
       >
         <div className={getSpacingClass('DEMO_SUBSECTIONS')}>
           <p className="text-body text-text-secondary">
-            This is a medium modal (max-width: 448px). The default size for most use cases.
+            This is a medium modal (max-width: 448px). The default size for most
+            use cases.
           </p>
-          <div className={`p-${DESIGN_SYSTEM_CONSTANTS.BUTTON_GROUP_GAP} bg-green-50 border border-green-200 rounded`}>
-            <p className="text-green-800 text-sm">📏 Medium size modal demonstration</p>
+          <div
+            className={`p-${DESIGN_SYSTEM_CONSTANTS.BUTTON_GROUP_GAP} bg-green-50 border border-green-200 rounded`}
+          >
+            <p className="text-green-800 text-sm">
+              📏 Medium size modal demonstration
+            </p>
           </div>
           <p className="text-sm text-text-secondary">
-            Medium modals provide a good balance between content space and screen real estate.
+            Medium modals provide a good balance between content space and
+            screen real estate.
           </p>
         </div>
       </Modal>
@@ -208,19 +243,34 @@ const SimpleModalDemo: React.FC = () => {
       >
         <div className={getSpacingClass('DEMO_SUBSECTIONS')}>
           <p className="text-body text-text-secondary">
-            This is a large modal (max-width: 512px). Great for forms and complex content.
+            This is a large modal (max-width: 512px). Great for forms and
+            complex content.
           </p>
-          <div className={`p-${DESIGN_SYSTEM_CONSTANTS.BUTTON_GROUP_GAP} bg-purple-50 border border-purple-200 rounded`}>
-            <p className="text-purple-800 text-sm">📏 Large size modal demonstration</p>
+          <div
+            className={`p-${DESIGN_SYSTEM_CONSTANTS.BUTTON_GROUP_GAP} bg-purple-50 border border-purple-200 rounded`}
+          >
+            <p className="text-purple-800 text-sm">
+              📏 Large size modal demonstration
+            </p>
           </div>
-          <div className={`grid grid-cols-${DESIGN_SYSTEM_CONSTANTS.MODAL_CONTENT_GRID_COLS} ${getSpacingClass('GRID_GAP')} mt-${DESIGN_SYSTEM_CONSTANTS.SECTION_TITLE_MARGIN}`}>
-            <div className={`p-${DESIGN_SYSTEM_CONSTANTS.BUTTON_GROUP_GAP} bg-gray-50 rounded`}>
+          <div
+            className={`grid grid-cols-${DESIGN_SYSTEM_CONSTANTS.MODAL_CONTENT_GRID_COLS} ${getSpacingClass('GRID_GAP')} mt-${DESIGN_SYSTEM_CONSTANTS.SECTION_TITLE_MARGIN}`}
+          >
+            <div
+              className={`p-${DESIGN_SYSTEM_CONSTANTS.BUTTON_GROUP_GAP} bg-gray-50 rounded`}
+            >
               <h4 className="font-medium mb-1">Feature 1</h4>
-              <p className="text-sm text-gray-600">Large modals can accommodate more detailed content.</p>
+              <p className="text-sm text-gray-600">
+                Large modals can accommodate more detailed content.
+              </p>
             </div>
-            <div className={`p-${DESIGN_SYSTEM_CONSTANTS.BUTTON_GROUP_GAP} bg-gray-50 rounded`}>
+            <div
+              className={`p-${DESIGN_SYSTEM_CONSTANTS.BUTTON_GROUP_GAP} bg-gray-50 rounded`}
+            >
               <h4 className="font-medium mb-1">Feature 2</h4>
-              <p className="text-sm text-gray-600">Perfect for complex forms and data presentation.</p>
+              <p className="text-sm text-gray-600">
+                Perfect for complex forms and data presentation.
+              </p>
             </div>
           </div>
         </div>
@@ -232,18 +282,18 @@ const SimpleModalDemo: React.FC = () => {
         title="Action Buttons Demo"
         size="md"
         primaryAction={{
-          label: "Primary Action",
+          label: 'Primary Action',
           onClick: () => alert('Primary action clicked!'),
-          variant: "primary"
+          variant: 'primary',
         }}
         secondaryAction={{
-          label: "Secondary Action",
+          label: 'Secondary Action',
           onClick: () => alert('Secondary action clicked!'),
-          variant: "secondary"
+          variant: 'secondary',
         }}
         cancelAction={{
-          label: "Cancel",
-          onClick: () => handleModalClose('actions')
+          label: 'Cancel',
+          onClick: () => handleModalClose('actions'),
         }}
       >
         <div className={getSpacingClass('DEMO_SUBSECTIONS')}>
@@ -251,9 +301,15 @@ const SimpleModalDemo: React.FC = () => {
             Modal with customizable action buttons in the footer.
           </p>
           <ul className="space-y-2 text-text-secondary text-sm">
-            <li>• <strong>Primary Action:</strong> Main call-to-action button</li>
-            <li>• <strong>Secondary Action:</strong> Alternative action</li>
-            <li>• <strong>Cancel Action:</strong> Close or cancel button</li>
+            <li>
+              • <strong>Primary Action:</strong> Main call-to-action button
+            </li>
+            <li>
+              • <strong>Secondary Action:</strong> Alternative action
+            </li>
+            <li>
+              • <strong>Cancel Action:</strong> Close or cancel button
+            </li>
           </ul>
         </div>
       </Modal>
@@ -267,22 +323,32 @@ const SimpleModalDemo: React.FC = () => {
       >
         <div className="space-y-6">
           <p className="text-body text-text-secondary">
-            This modal demonstrates scrollable content with proper overflow handling.
+            This modal demonstrates scrollable content with proper overflow
+            handling.
           </p>
-          
+
           {/* Generate long content */}
-          {Array.from({ length: DESIGN_SYSTEM_CONSTANTS.SCROLLABLE_CONTENT_ITEMS }, (_, i) => (
-            <div key={i} className={`p-${DESIGN_SYSTEM_CONSTANTS.SECTION_TITLE_MARGIN} bg-gray-light rounded-default`}>
-              <h4 className="font-semibold text-text-primary mb-2">
-                Section {i + DESIGN_SYSTEM_CONSTANTS.SECTION_INDEX_OFFSET}: Content Block
-              </h4>
-              <p className="text-text-secondary">
-                This is scrollable content section {i + DESIGN_SYSTEM_CONSTANTS.SECTION_INDEX_OFFSET}. The modal maintains proper scrolling behavior 
-                while keeping the header and footer fixed. Lorem ipsum dolor sit amet, consectetur 
-                adipiscing elit.
-              </p>
-            </div>
-          ))}
+          {Array.from(
+            { length: DESIGN_SYSTEM_CONSTANTS.SCROLLABLE_CONTENT_ITEMS },
+            (_, i) => (
+              <div
+                key={i}
+                className={`p-${DESIGN_SYSTEM_CONSTANTS.SECTION_TITLE_MARGIN} bg-gray-light rounded-default`}
+              >
+                <h4 className="font-semibold text-text-primary mb-2">
+                  Section {i + DESIGN_SYSTEM_CONSTANTS.SECTION_INDEX_OFFSET}:
+                  Content Block
+                </h4>
+                <p className="text-text-secondary">
+                  This is scrollable content section{' '}
+                  {i + DESIGN_SYSTEM_CONSTANTS.SECTION_INDEX_OFFSET}. The modal
+                  maintains proper scrolling behavior while keeping the header
+                  and footer fixed. Lorem ipsum dolor sit amet, consectetur
+                  adipiscing elit.
+                </p>
+              </div>
+            )
+          )}
         </div>
       </Modal>
 
@@ -295,28 +361,31 @@ const SimpleModalDemo: React.FC = () => {
         closeOnEsc={false}
         closeOnBackdropClick={false}
         primaryAction={{
-          label: "Complete Action",
+          label: 'Complete Action',
           onClick: () => {
-            alert('Action completed!');
-            handleModalClose('nonDismissible');
-          }
+            alert('Action completed!')
+            handleModalClose('nonDismissible')
+          },
         }}
       >
         <div className={getSpacingClass('DEMO_SUBSECTIONS')}>
-          <div className={`p-${DESIGN_SYSTEM_CONSTANTS.SECTION_TITLE_MARGIN} bg-red-50 border border-red-200 rounded-default`}>
+          <div
+            className={`p-${DESIGN_SYSTEM_CONSTANTS.SECTION_TITLE_MARGIN} bg-red-50 border border-red-200 rounded-default`}
+          >
             <p className="text-red-800">
-              ⚠️ This modal cannot be dismissed by clicking outside or pressing ESC.
+              ⚠️ This modal cannot be dismissed by clicking outside or pressing
+              ESC.
             </p>
           </div>
           <p className="text-body text-text-secondary">
-            Non-dismissible modals are useful for critical actions that require explicit user confirmation.
-            The only way to close this modal is by clicking the action button.
+            Non-dismissible modals are useful for critical actions that require
+            explicit user confirmation. The only way to close this modal is by
+            clicking the action button.
           </p>
         </div>
       </Modal>
-
     </div>
-  );
-};
+  )
+}
 
-export default SimpleModalDemo;
+export default SimpleModalDemo

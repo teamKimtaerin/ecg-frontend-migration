@@ -1,21 +1,21 @@
-'use client';
+'use client'
 
-import React from 'react';
+import React from 'react'
 
 export interface TabItemProps {
-  id: string;
-  label?: string;
-  icon?: React.ReactNode;
-  isSelected?: boolean;
-  isDisabled?: boolean;
-  onClick?: (id: string) => void;
-  size?: 'small' | 'medium' | 'large' | 'extra-large';
-  orientation?: 'horizontal' | 'vertical';
-  isQuiet?: boolean;
-  isEmphasized?: boolean;
-  density?: 'regular' | 'compact';
-  className?: string;
-  children?: React.ReactNode;
+  id: string
+  label?: string
+  icon?: React.ReactNode
+  isSelected?: boolean
+  isDisabled?: boolean
+  onClick?: (id: string) => void
+  size?: 'small' | 'medium' | 'large' | 'extra-large'
+  orientation?: 'horizontal' | 'vertical'
+  isQuiet?: boolean
+  isEmphasized?: boolean
+  density?: 'regular' | 'compact'
+  className?: string
+  children?: React.ReactNode
 }
 
 const TabItem: React.FC<TabItemProps> = ({
@@ -35,29 +35,30 @@ const TabItem: React.FC<TabItemProps> = ({
 }) => {
   // Size classes based on size prop
   const getSizeClasses = () => {
-    const padding = density === 'compact' 
-      ? {
-          small: 'px-3 py-1',
-          medium: 'px-4 py-1.5',
-          large: 'px-5 py-2',
-          'extra-large': 'px-6 py-2.5',
-        }
-      : {
-          small: 'px-3 py-1.5',
-          medium: 'px-4 py-2',
-          large: 'px-6 py-3',
-          'extra-large': 'px-8 py-4',
-        };
+    const padding =
+      density === 'compact'
+        ? {
+            small: 'px-3 py-1',
+            medium: 'px-4 py-1.5',
+            large: 'px-5 py-2',
+            'extra-large': 'px-6 py-2.5',
+          }
+        : {
+            small: 'px-3 py-1.5',
+            medium: 'px-4 py-2',
+            large: 'px-6 py-3',
+            'extra-large': 'px-8 py-4',
+          }
 
     const typography = {
       small: 'text-caption',
       medium: 'text-body',
       large: 'text-body',
       'extra-large': 'text-h3',
-    };
+    }
 
-    return [padding[size], typography[size]];
-  };
+    return [padding[size], typography[size]]
+  }
 
   // Icon sizes based on tab size
   const getIconSize = () => {
@@ -66,9 +67,9 @@ const TabItem: React.FC<TabItemProps> = ({
       medium: 'icon-ui-small',
       large: 'icon-ui-medium',
       'extra-large': 'icon-ui-medium',
-    };
-    return iconSizes[size];
-  };
+    }
+    return iconSizes[size]
+  }
 
   // Get base style classes
   const getBaseClasses = () => {
@@ -82,80 +83,90 @@ const TabItem: React.FC<TabItemProps> = ({
       'rounded-default',
       'relative',
       ...getSizeClasses(),
-    ];
+    ]
 
     // Add orientation-specific classes
     if (orientation === 'vertical') {
-      base.push('w-full', 'justify-start');
+      base.push('w-full', 'justify-start')
     }
 
-    return base;
-  };
+    return base
+  }
 
   // Get state-based classes
   const getStateClasses = () => {
-    const classes = [];
+    const classes = []
 
     if (isDisabled) {
-      classes.push('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+      classes.push('opacity-50', 'cursor-not-allowed', 'pointer-events-none')
     }
 
     // Color and style variations based on quiet/emphasized
     if (isQuiet) {
       if (isSelected) {
-        classes.push('text-text-primary');
+        classes.push('text-text-primary')
         if (orientation === 'horizontal') {
-          classes.push('border-b-2', 'border-primary');
+          classes.push('border-b-2', 'border-primary')
         } else {
-          classes.push('border-l-2', 'border-primary');
+          classes.push('border-l-2', 'border-primary')
         }
       } else {
-        classes.push('text-text-secondary', 'hover:text-text-primary');
+        classes.push('text-text-secondary', 'hover:text-text-primary')
       }
     } else if (isEmphasized) {
       if (isSelected) {
-        classes.push('bg-primary', 'text-white');
+        classes.push('bg-primary', 'text-white')
       } else {
-        classes.push('bg-surface', 'text-text-primary', 'hover:bg-surface-secondary', 'border', 'border-border');
+        classes.push(
+          'bg-surface',
+          'text-text-primary',
+          'hover:bg-surface-secondary',
+          'border',
+          'border-border'
+        )
       }
     } else {
       // Regular style - no individual borders, slider will handle this
       if (isSelected) {
-        classes.push('bg-surface', 'text-text-primary');
+        classes.push('bg-surface', 'text-text-primary')
       } else {
-        classes.push('text-text-secondary', 'hover:text-text-primary', 'hover:bg-surface-secondary');
+        classes.push(
+          'text-text-secondary',
+          'hover:text-text-primary',
+          'hover:bg-surface-secondary'
+        )
       }
     }
 
-    return classes;
-  };
+    return classes
+  }
 
   // Handle click
   const handleClick = () => {
     if (!isDisabled && onClick) {
-      onClick(id);
+      onClick(id)
     }
-  };
+  }
 
   // Handle keyboard events
   const handleKeyDown = (event: React.KeyboardEvent) => {
     if (!isDisabled && (event.key === 'Enter' || event.key === ' ')) {
-      event.preventDefault();
-      onClick?.(id);
+      event.preventDefault()
+      onClick?.(id)
     }
-  };
+  }
 
   // Combine all classes
   const allClasses = [
     ...getBaseClasses(),
     ...getStateClasses(),
     className,
-  ].join(' ');
+  ].join(' ')
 
   // Render content
   const renderContent = () => {
-    const hasLabel = label || children;
-    const iconSize = getIconSize();
+    const hasLabel = label || children
+    const iconSize = getIconSize()
 
     return (
       <>
@@ -164,14 +175,10 @@ const TabItem: React.FC<TabItemProps> = ({
             {icon}
           </span>
         )}
-        {hasLabel && (
-          <span>
-            {label || children}
-          </span>
-        )}
+        {hasLabel && <span>{label || children}</span>}
       </>
-    );
-  };
+    )
+  }
 
   return (
     <button
@@ -186,7 +193,7 @@ const TabItem: React.FC<TabItemProps> = ({
     >
       {renderContent()}
     </button>
-  );
-};
+  )
+}
 
-export default TabItem;
+export default TabItem

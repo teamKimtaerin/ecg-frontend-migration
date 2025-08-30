@@ -1,35 +1,35 @@
-'use client';
+'use client'
 
-import React from 'react';
-import { 
-  cn, 
+import React from 'react'
+import {
+  cn,
   SIZE_CLASSES,
   STATUS_LIGHT_COLORS,
   TRANSITIONS,
   getDisabledClasses,
   logComponentWarning,
-  type BaseComponentProps
-} from '@/lib/utils';
+  type BaseComponentProps,
+} from '@/lib/utils'
 
-export type StatusLightVariant = 
-  | 'informative' 
-  | 'neutral' 
-  | 'positive' 
-  | 'notice' 
-  | 'negative' 
-  | 'indigo' 
-  | 'celery' 
-  | 'chartreuse' 
-  | 'yellow' 
-  | 'magenta' 
-  | 'fuchsia' 
-  | 'purple' 
-  | 'seafoam';
+export type StatusLightVariant =
+  | 'informative'
+  | 'neutral'
+  | 'positive'
+  | 'notice'
+  | 'negative'
+  | 'indigo'
+  | 'celery'
+  | 'chartreuse'
+  | 'yellow'
+  | 'magenta'
+  | 'fuchsia'
+  | 'purple'
+  | 'seafoam'
 
 export interface StatusLightProps extends BaseComponentProps {
-  label: string;
-  variant?: StatusLightVariant;
-  id?: string;
+  label: string
+  variant?: StatusLightVariant
+  id?: string
 }
 
 const StatusLight: React.FC<StatusLightProps> = ({
@@ -38,15 +38,15 @@ const StatusLight: React.FC<StatusLightProps> = ({
   size = 'medium',
   isDisabled = false,
   className,
-  id
+  id,
 }) => {
   // Validation
   if (!label) {
-    logComponentWarning('StatusLight', 'Label is required and cannot be empty.');
+    logComponentWarning('StatusLight', 'Label is required and cannot be empty.')
   }
 
-  const sizeClasses = SIZE_CLASSES.statusLight[size];
-  
+  const sizeClasses = SIZE_CLASSES.statusLight[size]
+
   // Container classes
   const containerClasses = cn(
     'inline-flex',
@@ -55,15 +55,15 @@ const StatusLight: React.FC<StatusLightProps> = ({
     sizeClasses.container,
     sizeClasses.text,
     TRANSITIONS.colors,
-    
+
     // Text color
     'text-text-primary',
-    
+
     // Disabled state
     isDisabled && getDisabledClasses(),
-    
+
     className
-  );
+  )
 
   // Status dot classes
   const dotClasses = cn(
@@ -72,36 +72,28 @@ const StatusLight: React.FC<StatusLightProps> = ({
     sizeClasses.dot,
     STATUS_LIGHT_COLORS[variant],
     TRANSITIONS.colors,
-    
+
     // Disabled state for dot
     isDisabled && 'opacity-50'
-  );
+  )
 
   // Label classes
-  const labelClasses = cn(
-    'select-none',
-    isDisabled && 'opacity-50'
-  );
+  const labelClasses = cn('select-none', isDisabled && 'opacity-50')
 
   return (
-    <div 
+    <div
       className={containerClasses}
       role="status"
       aria-label={`Status: ${variant} - ${label}`}
       id={id}
     >
       {/* Status indicator dot */}
-      <div 
-        className={dotClasses}
-        aria-hidden="true"
-      />
-      
-      {/* Status label */}
-      <span className={labelClasses}>
-        {label}
-      </span>
-    </div>
-  );
-};
+      <div className={dotClasses} aria-hidden="true" />
 
-export default StatusLight;
+      {/* Status label */}
+      <span className={labelClasses}>{label}</span>
+    </div>
+  )
+}
+
+export default StatusLight

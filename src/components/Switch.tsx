@@ -1,24 +1,23 @@
-'use client';
+'use client'
 
-import React from 'react';
-import { 
-  cn, 
+import React from 'react'
+import {
+  cn,
   getDisabledClasses,
   SIZE_CLASSES,
   TRANSITIONS,
   createClickHandler,
   createKeyboardHandler,
-  type InteractiveComponentProps
-} from '@/lib/utils';
+  type InteractiveComponentProps,
+} from '@/lib/utils'
 
 export interface SwitchProps extends InteractiveComponentProps {
-  label?: string;
-  isSelected?: boolean;
-  isEmphasized?: boolean;
-  onChange?: (selected: boolean) => void;
-  id?: string;
+  label?: string
+  isSelected?: boolean
+  isEmphasized?: boolean
+  onChange?: (selected: boolean) => void
+  id?: string
 }
-
 
 const Switch: React.FC<SwitchProps> = ({
   label,
@@ -29,21 +28,21 @@ const Switch: React.FC<SwitchProps> = ({
   isReadOnly = false,
   onChange,
   className,
-  id
+  id,
 }) => {
-  const sizeClasses = SIZE_CLASSES.switch[size];
-  
+  const sizeClasses = SIZE_CLASSES.switch[size]
+
   const handleClick = createClickHandler({
     isDisabled,
     isReadOnly,
-    onClick: () => onChange?.(!isSelected)
-  });
+    onClick: () => onChange?.(!isSelected),
+  })
 
   const handleKeyDown = createKeyboardHandler({
     isDisabled,
     isReadOnly,
-    onActivate: () => onChange?.(!isSelected)
-  });
+    onActivate: () => onChange?.(!isSelected),
+  })
 
   const trackClasses = cn(
     'relative inline-flex items-center shrink-0 cursor-pointer',
@@ -51,32 +50,30 @@ const Switch: React.FC<SwitchProps> = ({
     TRANSITIONS.normal,
     'border-2 border-transparent',
     sizeClasses.track,
-    
+
     // Track background states - OFF/ON 상태에 따라 명확히 구분
-    isSelected 
-      ? isEmphasized 
+    isSelected
+      ? isEmphasized
         ? 'bg-primary-dark shadow-inner'
         : 'bg-primary shadow-inner'
       : 'bg-gray-slate shadow-inner',
-    
+
     // Hover states
-    !isDisabled && !isReadOnly && (
-      isSelected
+    !isDisabled &&
+      !isReadOnly &&
+      (isSelected
         ? isEmphasized
-          ? 'hover:bg-primary hover:shadow-md' 
+          ? 'hover:bg-primary hover:shadow-md'
           : 'hover:bg-primary-dark hover:shadow-md'
-        : 'hover:bg-black hover:shadow-sm'
-    ),
-    
+        : 'hover:bg-black hover:shadow-sm'),
+
     // Focus states
     'focus:outline-none focus:ring-2 focus:ring-offset-2',
-    isSelected 
-      ? 'focus:ring-primary-light'
-      : 'focus:ring-gray-medium',
-      
+    isSelected ? 'focus:ring-primary-light' : 'focus:ring-gray-medium',
+
     // Disabled states
     (isDisabled || isReadOnly) && getDisabledClasses()
-  );
+  )
 
   const thumbClasses = cn(
     'absolute',
@@ -87,30 +84,31 @@ const Switch: React.FC<SwitchProps> = ({
     TRANSITIONS.transform,
     'pointer-events-none',
     sizeClasses.thumb,
-    
+
     // Transform - OFF/ON 상태에 따라 좌우 이동
     isSelected && sizeClasses.thumbTransform,
-    
+
     // Interactive visual feedback
-    !isDisabled && !isReadOnly && (
-      isSelected
-        ? 'shadow-lg'
-        : 'shadow-md'
-    ),
-    
+    !isDisabled && !isReadOnly && (isSelected ? 'shadow-lg' : 'shadow-md'),
+
     // Enhanced shadow for emphasis
     isEmphasized && 'shadow-xl'
-  );
+  )
 
   const labelClasses = cn(
     'text-text-primary',
     'font-medium',
     SIZE_CLASSES.typography[size],
     isDisabled && 'opacity-50'
-  );
+  )
 
   return (
-    <div className={cn('inline-flex items-center gap-3 text-text-primary', className)}>
+    <div
+      className={cn(
+        'inline-flex items-center gap-3 text-text-primary',
+        className
+      )}
+    >
       <button
         type="button"
         role="switch"
@@ -125,19 +123,14 @@ const Switch: React.FC<SwitchProps> = ({
         aria-label={label || `Toggle switch ${isSelected ? 'on' : 'off'}`}
       >
         {/* Track 내부의 시각적 인디케이터 */}
-        <span className="sr-only">
-          {isSelected ? 'On' : 'Off'}
-        </span>
-        
+        <span className="sr-only">{isSelected ? 'On' : 'Off'}</span>
+
         {/* Thumb (Handle) */}
-        <span 
-          className={thumbClasses}
-          aria-hidden="true"
-        />
+        <span className={thumbClasses} aria-hidden="true" />
       </button>
-      
+
       {label && (
-        <label 
+        <label
           htmlFor={id}
           className={cn(
             labelClasses,
@@ -149,7 +142,7 @@ const Switch: React.FC<SwitchProps> = ({
         </label>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default Switch;
+export default Switch

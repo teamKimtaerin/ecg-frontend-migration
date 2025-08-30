@@ -1,8 +1,8 @@
-'use client';
+'use client'
 
-import React, { useEffect } from 'react';
-import { 
-  cn, 
+import React, { useEffect } from 'react'
+import {
+  cn,
   SIZE_CLASSES,
   ALERT_DIALOG_COLORS,
   TRANSITIONS,
@@ -10,31 +10,37 @@ import {
   createKeyboardHandler,
   logComponentWarning,
   type ComponentSize,
-  type BaseComponentProps 
-} from '@/lib/utils';
-import { 
-  CheckCircleIcon, 
-  InfoIcon, 
-  ExclamationTriangleIcon, 
-  XCircleIcon 
-} from './icons';
-import Button from './Button';
+  type BaseComponentProps,
+} from '@/lib/utils'
+import {
+  CheckCircleIcon,
+  InfoIcon,
+  ExclamationTriangleIcon,
+  XCircleIcon,
+} from './icons'
+import Button from './Button'
 
-export type AlertDialogVariant = 'confirmation' | 'information' | 'warning' | 'destructive' | 'error';
+export type AlertDialogVariant =
+  | 'confirmation'
+  | 'information'
+  | 'warning'
+  | 'destructive'
+  | 'error'
 
-export interface AlertDialogProps extends Omit<BaseComponentProps, 'isDisabled'> {
-  title: string;
-  description?: string;
-  variant?: AlertDialogVariant;
-  primaryActionLabel: string;
-  secondaryActionLabel?: string;
-  cancelActionLabel?: string;
-  isOpen: boolean;
-  onPrimaryAction: () => void;
-  onSecondaryAction?: () => void;
-  onCancel?: () => void;
-  onClose?: () => void;
-  id?: string;
+export interface AlertDialogProps
+  extends Omit<BaseComponentProps, 'isDisabled'> {
+  title: string
+  description?: string
+  variant?: AlertDialogVariant
+  primaryActionLabel: string
+  secondaryActionLabel?: string
+  cancelActionLabel?: string
+  isOpen: boolean
+  onPrimaryAction: () => void
+  onSecondaryAction?: () => void
+  onCancel?: () => void
+  onClose?: () => void
+  id?: string
 }
 
 const AlertDialog: React.FC<AlertDialogProps> = ({
@@ -51,78 +57,78 @@ const AlertDialog: React.FC<AlertDialogProps> = ({
   onClose,
   size = 'medium',
   className,
-  id
+  id,
 }) => {
   // Validation
   if (!title) {
-    logComponentWarning('AlertDialog', 'Title is required and cannot be empty.');
+    logComponentWarning('AlertDialog', 'Title is required and cannot be empty.')
   }
 
   if (!primaryActionLabel) {
-    logComponentWarning('AlertDialog', 'Primary action label is required.');
+    logComponentWarning('AlertDialog', 'Primary action label is required.')
   }
 
   // Get color classes for current variant
-  const colorClasses = ALERT_DIALOG_COLORS[variant];
-  
+  const colorClasses = ALERT_DIALOG_COLORS[variant]
+
   // Handle ESC key press
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && isOpen) {
-        event.preventDefault();
-        onClose?.() || onCancel?.();
+        event.preventDefault()
+        onClose?.() || onCancel?.()
       }
-    };
+    }
 
     if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
+      document.addEventListener('keydown', handleEscape)
       // Prevent body scroll
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden'
     }
 
     return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen, onClose, onCancel]);
+      document.removeEventListener('keydown', handleEscape)
+      document.body.style.overflow = 'unset'
+    }
+  }, [isOpen, onClose, onCancel])
 
   // Event handlers
   const handlePrimaryAction = createClickHandler({
-    onClick: onPrimaryAction
-  });
+    onClick: onPrimaryAction,
+  })
 
   const handleSecondaryAction = createClickHandler({
-    onClick: onSecondaryAction
-  });
+    onClick: onSecondaryAction,
+  })
 
   const handleCancel = createClickHandler({
-    onClick: onCancel || onClose
-  });
+    onClick: onCancel || onClose,
+  })
 
   const handleBackdropClick = (event: React.MouseEvent) => {
     if (event.target === event.currentTarget) {
-      onClose?.() || onCancel?.();
+      onClose?.() || onCancel?.()
     }
-  };
+  }
 
   // Get appropriate icon based on variant
   const renderIcon = () => {
-    const iconClasses = cn('w-6 h-6', colorClasses.iconColor, 'flex-shrink-0');
-    
+    const iconClasses = cn('w-6 h-6', colorClasses.iconColor, 'flex-shrink-0')
+
     switch (variant) {
       case 'confirmation':
-        return <CheckCircleIcon className={iconClasses} />;
+        return <CheckCircleIcon className={iconClasses} />
       case 'information':
-        return <InfoIcon className={iconClasses} />;
+        return <InfoIcon className={iconClasses} />
       case 'warning':
-        return <ExclamationTriangleIcon className={iconClasses} />;
+        return <ExclamationTriangleIcon className={iconClasses} />
       case 'destructive':
       case 'error':
-        return <XCircleIcon className={iconClasses} />;
+        return <XCircleIcon className={iconClasses} />
       default:
-        return <InfoIcon className={iconClasses} />;
+        return <InfoIcon className={iconClasses} />
     }
-  };
+  }
 
   // Size-based classes
   const sizeClasses = {
@@ -149,8 +155,8 @@ const AlertDialog: React.FC<AlertDialogProps> = ({
       gap: SIZE_CLASSES.gap['extra-large'],
       title: 'text-h3',
       description: 'text-body',
-    }
-  }[size];
+    },
+  }[size]
 
   // Modal overlay classes
   const overlayClasses = cn(
@@ -159,7 +165,7 @@ const AlertDialog: React.FC<AlertDialogProps> = ({
     'flex items-center justify-center p-4',
     TRANSITIONS.colors,
     isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-  );
+  )
 
   // Modal container classes
   const modalClasses = cn(
@@ -169,23 +175,15 @@ const AlertDialog: React.FC<AlertDialogProps> = ({
     'w-full',
     sizeClasses.modal,
     TRANSITIONS.normal,
-    isOpen 
-      ? 'opacity-100 scale-100' 
-      : 'opacity-0 scale-95',
+    isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95',
     className
-  );
+  )
 
   // Content area classes
-  const contentClasses = cn(
-    'flex flex-col',
-    sizeClasses.gap
-  );
+  const contentClasses = cn('flex flex-col', sizeClasses.gap)
 
   // Header classes
-  const headerClasses = cn(
-    'flex items-start',
-    'gap-3'
-  );
+  const headerClasses = cn('flex items-start', 'gap-3')
 
   // Title classes
   const titleClasses = cn(
@@ -193,7 +191,7 @@ const AlertDialog: React.FC<AlertDialogProps> = ({
     'font-semibold',
     colorClasses.titleColor,
     'leading-tight'
-  );
+  )
 
   // Description classes
   const descriptionClasses = cn(
@@ -201,20 +199,15 @@ const AlertDialog: React.FC<AlertDialogProps> = ({
     'text-text-secondary',
     'leading-relaxed',
     'mt-2'
-  );
+  )
 
   // Actions container classes
-  const actionsClasses = cn(
-    'flex',
-    'justify-end',
-    'gap-3',
-    'pt-2'
-  );
+  const actionsClasses = cn('flex', 'justify-end', 'gap-3', 'pt-2')
 
-  if (!isOpen) return null;
+  if (!isOpen) return null
 
   return (
-    <div 
+    <div
       className={overlayClasses}
       onClick={handleBackdropClick}
       role="dialog"
@@ -228,14 +221,11 @@ const AlertDialog: React.FC<AlertDialogProps> = ({
           <div className={headerClasses}>
             {renderIcon()}
             <div className="flex-1 min-w-0">
-              <h2 
-                className={titleClasses}
-                id={id ? `${id}-title` : undefined}
-              >
+              <h2 className={titleClasses} id={id ? `${id}-title` : undefined}>
                 {title}
               </h2>
               {description && (
-                <p 
+                <p
                   className={descriptionClasses}
                   id={id ? `${id}-description` : undefined}
                 >
@@ -257,7 +247,7 @@ const AlertDialog: React.FC<AlertDialogProps> = ({
                 onClick={handleCancel}
               />
             )}
-            
+
             {/* Secondary Action Button */}
             {secondaryActionLabel && onSecondaryAction && (
               <Button
@@ -281,7 +271,7 @@ const AlertDialog: React.FC<AlertDialogProps> = ({
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default AlertDialog;
+export default AlertDialog

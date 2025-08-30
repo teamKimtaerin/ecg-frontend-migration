@@ -1,24 +1,24 @@
-'use client';
+'use client'
 
-import React, { useState } from 'react';
-import ProgressBar from '@/components/ProgressBar';
-import ProgressCircle from '@/components/ProgressCircle';
-import { getProgressValue } from './constants';
+import React, { useState } from 'react'
+import ProgressBar from '@/components/ProgressBar'
+import ProgressCircle from '@/components/ProgressCircle'
+import { getProgressValue } from './constants'
 
 const ProgressDemo: React.FC = () => {
   const [progressValues, setProgressValues] = useState<{
-    basic: number;
-    download: number;
-    upload: number;
-    processing: number;
-    loading: number;
+    basic: number
+    download: number
+    upload: number
+    processing: number
+    loading: number
   }>({
     basic: getProgressValue('basic'),
     download: getProgressValue('download'),
     upload: getProgressValue('upload'),
     processing: getProgressValue('processing'),
     loading: getProgressValue('loading'),
-  });
+  })
 
   return (
     <div className="space-y-8">
@@ -35,25 +35,25 @@ const ProgressDemo: React.FC = () => {
           <h3 className="text-h3 text-text-primary mb-4">Progress Bars</h3>
           <div className="space-y-6">
             <div className="space-y-3">
-              <h4 className="text-sm font-medium text-text-primary">Basic Progress Bar</h4>
+              <h4 className="text-sm font-medium text-text-primary">
+                Basic Progress Bar
+              </h4>
               <ProgressBar
                 value={progressValues.basic}
                 label="Overall Progress"
               />
             </div>
             <div className="space-y-3">
-              <h4 className="text-sm font-medium text-text-primary">Download Progress</h4>
-              <ProgressBar
-                value={progressValues.download}
-                label="Download"
-              />
+              <h4 className="text-sm font-medium text-text-primary">
+                Download Progress
+              </h4>
+              <ProgressBar value={progressValues.download} label="Download" />
             </div>
             <div className="space-y-3">
-              <h4 className="text-sm font-medium text-text-primary">Upload Progress</h4>
-              <ProgressBar
-                value={progressValues.upload}
-                label="Upload"
-              />
+              <h4 className="text-sm font-medium text-text-primary">
+                Upload Progress
+              </h4>
+              <ProgressBar value={progressValues.upload} label="Upload" />
             </div>
           </div>
         </div>
@@ -63,15 +63,15 @@ const ProgressDemo: React.FC = () => {
           <h3 className="text-h3 text-text-primary mb-4">Progress Bar Sizes</h3>
           <div className="space-y-4">
             <div className="space-y-3">
-              <h4 className="text-sm font-medium text-text-primary">Small Size</h4>
-              <ProgressBar
-                value={75}
-                label="Small Size"
-                size="small"
-              />
+              <h4 className="text-sm font-medium text-text-primary">
+                Small Size
+              </h4>
+              <ProgressBar value={75} label="Small Size" size="small" />
             </div>
             <div className="space-y-3">
-              <h4 className="text-sm font-medium text-text-primary">Medium Size (Default)</h4>
+              <h4 className="text-sm font-medium text-text-primary">
+                Medium Size (Default)
+              </h4>
               <ProgressBar
                 value={75}
                 label="Medium Size (Default)"
@@ -79,15 +79,15 @@ const ProgressDemo: React.FC = () => {
               />
             </div>
             <div className="space-y-3">
-              <h4 className="text-sm font-medium text-text-primary">Large Size</h4>
-              <ProgressBar
-                value={75}
-                label="Large Size"
-                size="large"
-              />
+              <h4 className="text-sm font-medium text-text-primary">
+                Large Size
+              </h4>
+              <ProgressBar value={75} label="Large Size" size="large" />
             </div>
             <div className="space-y-3">
-              <h4 className="text-sm font-medium text-text-primary">Extra Large Size</h4>
+              <h4 className="text-sm font-medium text-text-primary">
+                Extra Large Size
+              </h4>
               <ProgressBar
                 value={75}
                 label="Extra Large Size"
@@ -124,10 +124,14 @@ const ProgressDemo: React.FC = () => {
 
         {/* Progress Bar Variants */}
         <div className="p-6 bg-surface-secondary rounded-small">
-          <h3 className="text-h3 text-text-primary mb-4">Progress Bar Variants</h3>
+          <h3 className="text-h3 text-text-primary mb-4">
+            Progress Bar Variants
+          </h3>
           <div className="space-y-4">
             <div className="space-y-3">
-              <h4 className="text-sm font-medium text-text-primary">Default Variant</h4>
+              <h4 className="text-sm font-medium text-text-primary">
+                Default Variant
+              </h4>
               <ProgressBar
                 value={60}
                 label="Default Progress"
@@ -135,7 +139,9 @@ const ProgressDemo: React.FC = () => {
               />
             </div>
             <div className="space-y-3">
-              <h4 className="text-sm font-medium text-text-primary">Over Background Variant</h4>
+              <h4 className="text-sm font-medium text-text-primary">
+                Over Background Variant
+              </h4>
               <div className="p-4 bg-gray-600 rounded">
                 <ProgressBar
                   value={75}
@@ -145,75 +151,90 @@ const ProgressDemo: React.FC = () => {
               </div>
             </div>
             <div className="space-y-3">
-              <h4 className="text-sm font-medium text-text-primary">Indeterminate Progress</h4>
-              <ProgressBar
-                isIndeterminate={true}
-                label="Loading..."
-              />
+              <h4 className="text-sm font-medium text-text-primary">
+                Indeterminate Progress
+              </h4>
+              <ProgressBar isIndeterminate={true} label="Loading..." />
             </div>
           </div>
         </div>
 
         {/* Interactive Progress */}
         <div className="p-6 bg-surface-secondary rounded-small">
-          <h3 className="text-h3 text-text-primary mb-4">Interactive Progress</h3>
+          <h3 className="text-h3 text-text-primary mb-4">
+            Interactive Progress
+          </h3>
           <div className="space-y-6">
             <div className="space-y-3">
-              <h4 className="text-sm font-medium text-text-primary">Dynamic Progress Control</h4>
+              <h4 className="text-sm font-medium text-text-primary">
+                Dynamic Progress Control
+              </h4>
               <div className="flex gap-3 flex-wrap">
-                <button 
+                <button
                   className="px-3 py-1 bg-primary text-white rounded text-sm hover:bg-blue-600 transition-colors"
-                  onClick={() => setProgressValues(prev => ({
-                    ...prev,
-                    processing: Math.min(100, prev.processing + 10)
-                  }))}
+                  onClick={() =>
+                    setProgressValues((prev) => ({
+                      ...prev,
+                      processing: Math.min(100, prev.processing + 10),
+                    }))
+                  }
                 >
                   +10%
                 </button>
-                <button 
+                <button
                   className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600 transition-colors"
-                  onClick={() => setProgressValues(prev => ({
-                    ...prev,
-                    processing: Math.max(0, prev.processing - 10)
-                  }))}
+                  onClick={() =>
+                    setProgressValues((prev) => ({
+                      ...prev,
+                      processing: Math.max(0, prev.processing - 10),
+                    }))
+                  }
                 >
                   -10%
                 </button>
-                <button 
+                <button
                   className="px-3 py-1 bg-gray-500 text-white rounded text-sm hover:bg-gray-600 transition-colors"
-                  onClick={() => setProgressValues(prev => ({
-                    ...prev,
-                    processing: 0
-                  }))}
+                  onClick={() =>
+                    setProgressValues((prev) => ({
+                      ...prev,
+                      processing: 0,
+                    }))
+                  }
                 >
                   Reset
                 </button>
-                <button 
+                <button
                   className="px-3 py-1 bg-green-400 text-white rounded text-sm hover:bg-green-600 transition-colors"
-                  onClick={() => setProgressValues(prev => ({
-                    ...prev,
-                    processing: 100
-                  }))}
+                  onClick={() =>
+                    setProgressValues((prev) => ({
+                      ...prev,
+                      processing: 100,
+                    }))
+                  }
                 >
                   Complete
                 </button>
               </div>
             </div>
-            
+
             <div className="space-y-4">
               <div className="space-y-3">
-                <h4 className="text-sm font-medium text-text-primary">Progress Bar</h4>
+                <h4 className="text-sm font-medium text-text-primary">
+                  Progress Bar
+                </h4>
                 <ProgressBar
                   value={progressValues.processing}
                   label={`Processing Task (${progressValues.processing}%)`}
                 />
               </div>
-              
+
               <div className="space-y-3">
-                <h4 className="text-sm font-medium text-text-primary">Progress Circle</h4>
+                <h4 className="text-sm font-medium text-text-primary">
+                  Progress Circle
+                </h4>
                 <div className="flex justify-center">
-                  <ProgressCircle 
-                    value={progressValues.processing} 
+                  <ProgressCircle
+                    value={progressValues.processing}
                     size="large"
                   >
                     <div className="text-center">
@@ -232,7 +253,7 @@ const ProgressDemo: React.FC = () => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default ProgressDemo;
+export default ProgressDemo

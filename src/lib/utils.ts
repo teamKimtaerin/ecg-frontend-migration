@@ -3,41 +3,41 @@
  * Shared utilities for consistent component styling and behavior
  */
 
-import { type ClassValue, clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { type ClassValue, clsx } from 'clsx'
+import { twMerge } from 'tailwind-merge'
 
 /**
  * Combines and merges className strings using clsx and tailwind-merge
  * Resolves conflicts between Tailwind classes intelligently
  */
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+  return twMerge(clsx(inputs))
 }
 
 /**
  * Component size type definitions
  */
-export type ComponentSize = 'small' | 'medium' | 'large' | 'extra-large';
-export type ComponentVariant = 'accent' | 'primary' | 'secondary' | 'negative';
-export type ComponentStyle = 'fill' | 'outline';
-export type StaticColor = 'none' | 'white' | 'black';
+export type ComponentSize = 'small' | 'medium' | 'large' | 'extra-large'
+export type ComponentVariant = 'accent' | 'primary' | 'secondary' | 'negative'
+export type ComponentStyle = 'fill' | 'outline'
+export type StaticColor = 'none' | 'white' | 'black'
 
 // 공통 베이스 인터페이스
 export interface BaseComponentProps {
-  size?: ComponentSize;
-  isDisabled?: boolean;
-  className?: string;
+  size?: ComponentSize
+  isDisabled?: boolean
+  className?: string
 }
 
 export interface InteractiveComponentProps extends BaseComponentProps {
-  isReadOnly?: boolean;
-  onClick?: () => void;
+  isReadOnly?: boolean
+  onClick?: () => void
 }
 
 export interface StatefulComponentProps {
-  isPending?: boolean;
-  isError?: boolean;
-  isSelected?: boolean;
+  isPending?: boolean
+  isError?: boolean
+  isSelected?: boolean
 }
 
 /**
@@ -46,7 +46,7 @@ export interface StatefulComponentProps {
 export const SIZE_CLASSES = {
   padding: {
     small: 'px-3 py-1.5',
-    medium: 'px-4 py-2', 
+    medium: 'px-4 py-2',
     large: 'px-6 py-3',
     'extra-large': 'px-8 py-4',
   } as const,
@@ -59,7 +59,7 @@ export const SIZE_CLASSES = {
   typography: {
     small: 'text-caption',
     medium: 'text-body',
-    large: 'text-body', 
+    large: 'text-body',
     'extra-large': 'text-h3',
   } as const,
   iconSize: {
@@ -95,26 +95,26 @@ export const SIZE_CLASSES = {
       track: 'w-9 h-5',
       thumb: 'w-4 h-4',
       thumbTransform: 'translate-x-4',
-      thumbPosition: 'top-1/2 -translate-y-1/2 left-0.2'
+      thumbPosition: 'top-1/2 -translate-y-1/2 left-0.2',
     },
     medium: {
-      track: 'w-11 h-6', 
+      track: 'w-11 h-6',
       thumb: 'w-5 h-5',
       thumbTransform: 'translate-x-5',
-      thumbPosition: 'top-1/2 -translate-y-1/2 left-0.2'
+      thumbPosition: 'top-1/2 -translate-y-1/2 left-0.2',
     },
     large: {
       track: 'w-13 h-7',
-      thumb: 'w-6 h-6', 
+      thumb: 'w-6 h-6',
       thumbTransform: 'translate-x-6',
-      thumbPosition: 'top-1/2 -translate-y-1/2 left-0.2'
+      thumbPosition: 'top-1/2 -translate-y-1/2 left-0.2',
     },
     'extra-large': {
       track: 'w-15 h-8',
       thumb: 'w-7 h-7',
       thumbTransform: 'translate-x-7',
-      thumbPosition: 'top-1/2 -translate-y-1/2 left-0.2'
-    }
+      thumbPosition: 'top-1/2 -translate-y-1/2 left-0.2',
+    },
   },
   // 태그 전용 크기 클래스
   tag: {
@@ -128,22 +128,22 @@ export const SIZE_CLASSES = {
     small: {
       dot: 'w-2 h-2',
       container: 'gap-1.5',
-      text: 'text-xs'
+      text: 'text-xs',
     },
     medium: {
       dot: 'w-3 h-3',
       container: 'gap-2',
-      text: 'text-sm'
+      text: 'text-sm',
     },
     large: {
       dot: 'w-4 h-4',
       container: 'gap-2.5',
-      text: 'text-base'
+      text: 'text-base',
     },
     'extra-large': {
       dot: 'w-5 h-5',
       container: 'gap-3',
-      text: 'text-lg'
+      text: 'text-lg',
     },
   },
   // Alert Banner 전용 크기 클래스
@@ -152,25 +152,25 @@ export const SIZE_CLASSES = {
       container: 'p-3',
       text: 'text-sm',
       icon: 'w-4 h-4',
-      button: 'w-6 h-6'
+      button: 'w-6 h-6',
     },
     medium: {
       container: 'p-4',
       text: 'text-base',
       icon: 'w-5 h-5',
-      button: 'w-7 h-7'
+      button: 'w-7 h-7',
     },
     large: {
       container: 'p-5',
       text: 'text-lg',
       icon: 'w-6 h-6',
-      button: 'w-8 h-8'
+      button: 'w-8 h-8',
     },
     'extra-large': {
       container: 'p-6',
       text: 'text-xl',
       icon: 'w-7 h-7',
-      button: 'w-9 h-9'
+      button: 'w-9 h-9',
     },
   },
   // Badge 전용 크기 클래스
@@ -214,29 +214,78 @@ export const SIZE_CLASSES = {
       content: 'text-base',
     },
   },
-} as const;
+} as const
 
 /**
  * Common variant-based styling
  */
 export const VARIANT_STYLES = {
   primary: {
-    fill: ['bg-primary', 'text-white', 'hover:bg-primary-dark', 'focus:ring-primary-light'],
-    outline: ['border-2', 'border-primary', 'text-primary', 'hover:bg-primary', 'hover:text-white', 'focus:ring-primary-light'],
+    fill: [
+      'bg-primary',
+      'text-white',
+      'hover:bg-primary-dark',
+      'focus:ring-primary-light',
+    ],
+    outline: [
+      'border-2',
+      'border-primary',
+      'text-primary',
+      'hover:bg-primary',
+      'hover:text-white',
+      'focus:ring-primary-light',
+    ],
   },
   accent: {
-    fill: ['bg-primary', 'text-white', 'hover:bg-primary-dark', 'focus:ring-primary-light'], 
-    outline: ['border-2', 'border-primary', 'text-primary', 'hover:bg-primary', 'hover:text-white', 'focus:ring-primary-light'],
+    fill: [
+      'bg-primary',
+      'text-white',
+      'hover:bg-primary-dark',
+      'focus:ring-primary-light',
+    ],
+    outline: [
+      'border-2',
+      'border-primary',
+      'text-primary',
+      'hover:bg-primary',
+      'hover:text-white',
+      'focus:ring-primary-light',
+    ],
   },
   secondary: {
-    fill: ['bg-surface', 'text-black', 'border-2', 'border-primary-light', 'hover:bg-primary', 'hover:text-white'],
-    outline: ['border-2', 'border-black', 'text-black', 'hover:bg-primary-dark', 'hover:text-white'],
+    fill: [
+      'bg-surface',
+      'text-black',
+      'border-2',
+      'border-primary-light',
+      'hover:bg-primary',
+      'hover:text-white',
+    ],
+    outline: [
+      'border-2',
+      'border-black',
+      'text-black',
+      'hover:bg-primary-dark',
+      'hover:text-white',
+    ],
   },
   negative: {
-    fill: ['bg-gray-slate', 'text-white', 'hover:bg-black', 'focus:ring-gray-medium'],
-    outline: ['border-2', 'border-gray-slate', 'text-black', 'hover:bg-gray-slate', 'hover:text-white', 'focus:ring-gray-medium'],
+    fill: [
+      'bg-gray-slate',
+      'text-white',
+      'hover:bg-black',
+      'focus:ring-gray-medium',
+    ],
+    outline: [
+      'border-2',
+      'border-gray-slate',
+      'text-black',
+      'hover:bg-gray-slate',
+      'hover:text-white',
+      'focus:ring-gray-medium',
+    ],
   },
-} as const;
+} as const
 
 /**
  * Unified Color System - leveraging existing semantic colors and CSS variables
@@ -255,7 +304,7 @@ export const STATUS_LIGHT_COLORS = {
   fuchsia: 'bg-status-fuchsia',
   purple: 'bg-status-purple',
   seafoam: 'bg-status-seafoam',
-} as const;
+} as const
 
 /**
  * Alert Banner variant colors - simplified to reuse existing color classes
@@ -265,21 +314,21 @@ export const ALERT_BANNER_COLORS = {
     background: 'bg-alert-neutral',
     text: 'text-alert-neutral',
     border: 'border-alert-neutral',
-    iconColor: 'text-alert-neutral'
+    iconColor: 'text-alert-neutral',
   },
   informative: {
     background: 'bg-alert-informative',
     text: 'text-alert-informative',
     border: 'border-alert-informative',
-    iconColor: 'text-alert-informative'
+    iconColor: 'text-alert-informative',
   },
   negative: {
     background: 'bg-alert-negative',
     text: 'text-alert-negative',
     border: 'border-alert-negative',
-    iconColor: 'text-alert-negative'
+    iconColor: 'text-alert-negative',
   },
-} as const;
+} as const
 
 /**
  * Semantic color system - consolidated with existing color variables
@@ -292,44 +341,79 @@ export const SEMANTIC_COLORS = {
     background: 'bg-red-50',
     text: 'text-red-700',
     border: 'border-red-200',
-    hover: 'hover:bg-red-100'
+    hover: 'hover:bg-red-100',
   },
   success: {
     // Using positive status color for consistency with StatusLight
-    fill: ['bg-status-positive', 'text-white', 'border', 'border-status-positive'],
-    outline: ['border', 'border-status-positive', 'text-status-positive', 'hover:bg-status-positive'],
+    fill: [
+      'bg-status-positive',
+      'text-white',
+      'border',
+      'border-status-positive',
+    ],
+    outline: [
+      'border',
+      'border-status-positive',
+      'text-status-positive',
+      'hover:bg-status-positive',
+    ],
     background: 'bg-status-positive',
     text: 'text-white',
     border: 'border-status-positive',
-    hover: 'hover:bg-status-positive'
+    hover: 'hover:bg-status-positive',
   },
   warning: {
     // Using notice status color for consistency with StatusLight
     fill: ['bg-status-notice', 'text-white', 'border', 'border-status-notice'],
-    outline: ['border', 'border-status-notice', 'text-status-notice', 'hover:bg-status-notice'],
+    outline: [
+      'border',
+      'border-status-notice',
+      'text-status-notice',
+      'hover:bg-status-notice',
+    ],
     background: 'bg-status-notice',
     text: 'text-white',
     border: 'border-status-notice',
-    hover: 'hover:bg-status-notice'
+    hover: 'hover:bg-status-notice',
   },
   info: {
     // Using informative status color for consistency with StatusLight
-    fill: ['bg-status-informative', 'text-white', 'border', 'border-status-informative'],
-    outline: ['border', 'border-status-informative', 'text-status-informative', 'hover:bg-status-informative'],
+    fill: [
+      'bg-status-informative',
+      'text-white',
+      'border',
+      'border-status-informative',
+    ],
+    outline: [
+      'border',
+      'border-status-informative',
+      'text-status-informative',
+      'hover:bg-status-informative',
+    ],
     background: 'bg-status-informative',
     text: 'text-white',
     border: 'border-status-informative',
-    hover: 'hover:bg-status-informative'
+    hover: 'hover:bg-status-informative',
   },
   neutral: {
-    fill: ['bg-surface-secondary', 'text-text-primary', 'border', 'border-border'],
-    outline: ['border', 'border-border', 'text-text-primary', 'hover:bg-surface-secondary'],
+    fill: [
+      'bg-surface-secondary',
+      'text-text-primary',
+      'border',
+      'border-border',
+    ],
+    outline: [
+      'border',
+      'border-border',
+      'text-text-primary',
+      'hover:bg-surface-secondary',
+    ],
     background: 'bg-surface-secondary',
     text: 'text-text-primary',
     border: 'border-border',
-    hover: 'hover:bg-gray-medium'
-  }
-} as const;
+    hover: 'hover:bg-gray-medium',
+  },
+} as const
 
 /**
  * Alert Dialog variant colors - leveraging existing semantic color system
@@ -360,7 +444,7 @@ export const ALERT_DIALOG_COLORS = {
     titleColor: 'text-black',
     primaryButton: 'negative',
   },
-} as const;
+} as const
 
 /**
  * Badge variant colors - comprehensive color palette
@@ -385,21 +469,38 @@ export const BADGE_COLORS = {
   purple: { bg: 'bg-status-purple', text: 'text-white' },
   fuchsia: { bg: 'bg-status-fuchsia', text: 'text-white' },
   magenta: { bg: 'bg-status-magenta', text: 'text-white' },
-} as const;
+} as const
 
 /**
  * Static color overrides
  */
 export const STATIC_COLOR_STYLES = {
   white: {
-    fill: ['bg-white', 'text-black', 'hover:bg-gray-medium', 'hover:text-black'],
-    outline: ['border-2', 'border-white', 'text-white', 'hover:bg-white', 'hover:text-black'],
+    fill: [
+      'bg-white',
+      'text-black',
+      'hover:bg-gray-medium',
+      'hover:text-black',
+    ],
+    outline: [
+      'border-2',
+      'border-white',
+      'text-white',
+      'hover:bg-white',
+      'hover:text-black',
+    ],
   },
   black: {
     fill: ['bg-black', 'text-white', 'hover:bg-gray-slate'],
-    outline: ['border-2', 'border-black', 'text-black', 'hover:bg-black', 'hover:text-white'],
+    outline: [
+      'border-2',
+      'border-black',
+      'text-black',
+      'hover:bg-black',
+      'hover:text-white',
+    ],
   },
-} as const;
+} as const
 
 /**
  * 공통 전환 애니메이션 클래스
@@ -410,9 +511,7 @@ export const TRANSITIONS = {
   slow: 'transition-all duration-500 ease-in-out',
   colors: 'transition-colors duration-200',
   transform: 'transition-transform duration-300 ease-out',
-} as const;
-
-
+} as const
 
 /**
  * Generate base interactive element classes
@@ -420,7 +519,7 @@ export const TRANSITIONS = {
 export function getBaseInteractiveClasses() {
   return [
     'inline-flex',
-    'items-center', 
+    'items-center',
     'justify-center',
     'font-medium',
     'transition-all',
@@ -432,7 +531,7 @@ export function getBaseInteractiveClasses() {
     'focus:outline-none',
     'focus:ring-2',
     'focus:ring-offset-2',
-  ];
+  ]
 }
 
 /**
@@ -440,40 +539,40 @@ export function getBaseInteractiveClasses() {
  */
 export function getDisabledClasses() {
   return [
-    'opacity-50', 
-    'cursor-not-allowed', 
+    'opacity-50',
+    'cursor-not-allowed',
     'pointer-events-none',
     'shadow-none',
-    'transform-none'
-  ];
+    'transform-none',
+  ]
 }
 
 /**
  * Get size-based classes for components
  */
 export function getSizeClasses(size: ComponentSize, compact: boolean = false) {
-  const paddingKey = compact ? 'compactPadding' : 'padding';
+  const paddingKey = compact ? 'compactPadding' : 'padding'
   return [
     SIZE_CLASSES[paddingKey][size],
     SIZE_CLASSES.typography[size],
-    'rounded-default'
-  ];
+    'rounded-default',
+  ]
 }
 
 /**
  * Get variant styling classes
  */
 export function getVariantClasses(
-  variant: ComponentVariant, 
+  variant: ComponentVariant,
   style: ComponentStyle,
   staticColor?: StaticColor
 ) {
   // Static color overrides variant
   if (staticColor && staticColor !== 'none') {
-    return STATIC_COLOR_STYLES[staticColor][style];
+    return STATIC_COLOR_STYLES[staticColor][style]
   }
-  
-  return VARIANT_STYLES[variant][style];
+
+  return VARIANT_STYLES[variant][style]
 }
 
 /**
@@ -483,44 +582,44 @@ export function debounce<TArgs extends readonly unknown[], TReturn>(
   func: (...args: TArgs) => TReturn,
   wait: number
 ): (...args: TArgs) => void {
-  let timeout: NodeJS.Timeout;
-  
+  let timeout: NodeJS.Timeout
+
   return (...args: TArgs) => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func(...args), wait);
-  };
+    clearTimeout(timeout)
+    timeout = setTimeout(() => func(...args), wait)
+  }
 }
 
 /**
- * Throttle utility for performance optimization  
+ * Throttle utility for performance optimization
  */
 export function throttle<TArgs extends readonly unknown[], TReturn>(
   func: (...args: TArgs) => TReturn,
   limit: number
 ): (...args: TArgs) => void {
-  let inThrottle: boolean;
-  
+  let inThrottle: boolean
+
   return (...args: TArgs) => {
     if (!inThrottle) {
-      func(...args);
-      inThrottle = true;
-      setTimeout(() => inThrottle = false, limit);
+      func(...args)
+      inThrottle = true
+      setTimeout(() => (inThrottle = false), limit)
     }
-  };
+  }
 }
 
 /**
  * Clamp a number within a range
  */
 export function clamp(value: number, min: number, max: number): number {
-  return Math.min(max, Math.max(min, value));
+  return Math.min(max, Math.max(min, value))
 }
 
 /**
  * Check if a value is defined (not null or undefined)
  */
 export function isDefined<T>(value: T | null | undefined): value is T {
-  return value !== null && value !== undefined;
+  return value !== null && value !== undefined
 }
 
 /**
@@ -531,7 +630,10 @@ export function calculateProgress(
   minValue: number = 0,
   maxValue: number = 100
 ): number {
-  return Math.min(100, Math.max(0, ((value - minValue) / (maxValue - minValue)) * 100));
+  return Math.min(
+    100,
+    Math.max(0, ((value - minValue) / (maxValue - minValue)) * 100)
+  )
 }
 
 /**
@@ -541,20 +643,20 @@ export function createClickHandler({
   isDisabled,
   isReadOnly,
   isPending,
-  onClick
+  onClick,
 }: {
-  isDisabled?: boolean;
-  isReadOnly?: boolean;
-  isPending?: boolean;
-  onClick?: () => void;
+  isDisabled?: boolean
+  isReadOnly?: boolean
+  isPending?: boolean
+  onClick?: () => void
 }) {
   return (event?: React.MouseEvent | React.KeyboardEvent) => {
     if (isDisabled || isReadOnly || isPending) {
-      event?.preventDefault();
-      return;
+      event?.preventDefault()
+      return
     }
-    onClick?.();
-  };
+    onClick?.()
+  }
 }
 
 /**
@@ -564,20 +666,20 @@ export function createKeyboardHandler({
   isDisabled,
   isReadOnly,
   onActivate,
-  keys = [' ', 'Enter']
+  keys = [' ', 'Enter'],
 }: {
-  isDisabled?: boolean;
-  isReadOnly?: boolean;
-  onActivate?: () => void;
-  keys?: string[];
+  isDisabled?: boolean
+  isReadOnly?: boolean
+  onActivate?: () => void
+  keys?: string[]
 }) {
   return (event: React.KeyboardEvent) => {
-    if (isDisabled || isReadOnly) return;
+    if (isDisabled || isReadOnly) return
     if (keys.includes(event.key)) {
-      event.preventDefault();
-      onActivate?.();
+      event.preventDefault()
+      onActivate?.()
     }
-  };
+  }
 }
 
 /**
@@ -587,7 +689,7 @@ export function getSemanticClasses(
   semantic: 'error' | 'success' | 'warning' | 'info' | 'neutral',
   style: 'fill' | 'outline' = 'fill'
 ) {
-  return SEMANTIC_COLORS[semantic][style];
+  return SEMANTIC_COLORS[semantic][style]
 }
 
 /**
@@ -595,21 +697,21 @@ export function getSemanticClasses(
  */
 export function logComponentWarning(component: string, message: string) {
   if (process.env.NODE_ENV === 'development') {
-    console.warn(`${component}: ${message}`);
+    console.warn(`${component}: ${message}`)
   }
 }
 
-
 export function preventBodyScroll(prevent: boolean) {
   if (typeof document !== 'undefined') {
-    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-    
+    const scrollbarWidth =
+      window.innerWidth - document.documentElement.clientWidth
+
     if (prevent) {
-      document.body.style.overflow = 'hidden';
-      document.body.style.paddingRight = `${scrollbarWidth}px`;
+      document.body.style.overflow = 'hidden'
+      document.body.style.paddingRight = `${scrollbarWidth}px`
     } else {
-      document.body.style.overflow = '';
-      document.body.style.paddingRight = '';
+      document.body.style.overflow = ''
+      document.body.style.paddingRight = ''
     }
   }
 }
@@ -621,52 +723,53 @@ export function createEscapeHandler(
 ): (event: KeyboardEvent) => void {
   return (event: KeyboardEvent) => {
     if (event.key === 'Escape' && enabled && isOpen) {
-      event.preventDefault();
-      onClose?.();
+      event.preventDefault()
+      onClose?.()
     }
-  };
+  }
 }
 
 /**
  * Focus management utilities - shared across Modal, AlertDialog, etc.
  */
-export const FOCUSABLE_SELECTOR = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+export const FOCUSABLE_SELECTOR =
+  'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
 
 export function getFocusableElements(container: HTMLElement): HTMLElement[] {
-  return Array.from(container.querySelectorAll(FOCUSABLE_SELECTOR));
+  return Array.from(container.querySelectorAll(FOCUSABLE_SELECTOR))
 }
 
 export function trapFocus(element: HTMLElement): () => void {
-  const focusableElements = getFocusableElements(element);
-  const firstElement = focusableElements[0];
-  const lastElement = focusableElements[focusableElements.length - 1];
+  const focusableElements = getFocusableElements(element)
+  const firstElement = focusableElements[0]
+  const lastElement = focusableElements[focusableElements.length - 1]
 
   const handleTabKey = (event: KeyboardEvent) => {
-    if (event.key !== 'Tab') return;
+    if (event.key !== 'Tab') return
 
     if (event.shiftKey) {
       if (document.activeElement === firstElement) {
-        lastElement?.focus();
-        event.preventDefault();
+        lastElement?.focus()
+        event.preventDefault()
       }
     } else {
       if (document.activeElement === lastElement) {
-        firstElement?.focus();
-        event.preventDefault();
+        firstElement?.focus()
+        event.preventDefault()
       }
     }
-  };
+  }
 
-  element.addEventListener('keydown', handleTabKey);
-  return () => element.removeEventListener('keydown', handleTabKey);
+  element.addEventListener('keydown', handleTabKey)
+  return () => element.removeEventListener('keydown', handleTabKey)
 }
 
 export function getInitialFocus(container: HTMLElement): HTMLElement | null {
-  const autoFocusElement = container.querySelector('[autofocus]') as HTMLElement;
-  if (autoFocusElement) return autoFocusElement;
+  const autoFocusElement = container.querySelector('[autofocus]') as HTMLElement
+  if (autoFocusElement) return autoFocusElement
 
-  const focusableElements = getFocusableElements(container);
-  return focusableElements[0] || null;
+  const focusableElements = getFocusableElements(container)
+  return focusableElements[0] || null
 }
 
 /**
@@ -676,40 +779,40 @@ export function createOverlayProps(
   isOpen: boolean,
   onClose: () => void,
   options: {
-    closeOnEsc?: boolean;
-    closeOnBackdropClick?: boolean;
-    dismissible?: boolean;
+    closeOnEsc?: boolean
+    closeOnBackdropClick?: boolean
+    dismissible?: boolean
   } = {}
 ) {
   const {
     closeOnEsc = true,
     closeOnBackdropClick = true,
-    dismissible = true
-  } = options;
+    dismissible = true,
+  } = options
 
   const handleBackdropClick = createClickHandler({
     isDisabled: !dismissible || !closeOnBackdropClick,
     onClick: onClose,
-  });
+  })
 
   const handleEscapeKey = (event: KeyboardEvent) => {
     if (event.key === 'Escape' && closeOnEsc && dismissible) {
-      event.preventDefault();
-      onClose();
+      event.preventDefault()
+      onClose()
     }
-  };
+  }
 
   const handleOverlayClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
-      handleBackdropClick();
+      handleBackdropClick()
     }
-  };
+  }
 
   return {
     handleBackdropClick,
     handleEscapeKey,
     overlayProps: {
       onClick: handleOverlayClick,
-    }
-  };
+    },
+  }
 }

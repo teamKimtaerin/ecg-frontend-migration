@@ -1,27 +1,28 @@
-'use client';
+'use client'
 
-import React, { useState } from 'react';
-import { 
-  cn, 
+import React, { useState } from 'react'
+import {
+  cn,
   SIZE_CLASSES,
   ALERT_BANNER_COLORS,
   TRANSITIONS,
   createClickHandler,
   logComponentWarning,
-  type BaseComponentProps
-} from '@/lib/utils';
-import { AlertIcon, InfoIcon, CloseIcon } from './icons';
+  type BaseComponentProps,
+} from '@/lib/utils'
+import { AlertIcon, InfoIcon, CloseIcon } from './icons'
 
-export type AlertBannerVariant = 'neutral' | 'informative' | 'negative';
+export type AlertBannerVariant = 'neutral' | 'informative' | 'negative'
 
-export interface AlertBannerProps extends Omit<BaseComponentProps, 'isDisabled'> {
-  text: string;
-  variant?: AlertBannerVariant;
-  actionLabel?: string;
-  onAction?: () => void;
-  isDismissible?: boolean;
-  onDismiss?: () => void;
-  id?: string;
+export interface AlertBannerProps
+  extends Omit<BaseComponentProps, 'isDisabled'> {
+  text: string
+  variant?: AlertBannerVariant
+  actionLabel?: string
+  onAction?: () => void
+  isDismissible?: boolean
+  onDismiss?: () => void
+  id?: string
 }
 
 const AlertBanner: React.FC<AlertBannerProps> = ({
@@ -33,47 +34,52 @@ const AlertBanner: React.FC<AlertBannerProps> = ({
   onDismiss,
   size = 'medium',
   className,
-  id
+  id,
 }) => {
   // Validation
   if (!text) {
-    logComponentWarning('AlertBanner', 'Text is required and cannot be empty.');
+    logComponentWarning('AlertBanner', 'Text is required and cannot be empty.')
   }
 
-  const [isVisible, setIsVisible] = useState(true);
-  const sizeClasses = SIZE_CLASSES.alertBanner[size];
-  const colorClasses = ALERT_BANNER_COLORS[variant];
+  const [isVisible, setIsVisible] = useState(true)
+  const sizeClasses = SIZE_CLASSES.alertBanner[size]
+  const colorClasses = ALERT_BANNER_COLORS[variant]
 
   // Handle dismiss
   const handleDismiss = createClickHandler({
     onClick: () => {
-      setIsVisible(false);
-      onDismiss?.();
-    }
-  });
+      setIsVisible(false)
+      onDismiss?.()
+    },
+  })
 
   // Handle action
   const handleAction = createClickHandler({
-    onClick: onAction
-  });
+    onClick: onAction,
+  })
 
   // Don't render if dismissed
-  if (!isVisible) return null;
+  if (!isVisible) return null
 
   // Get appropriate icon based on variant
   const renderIcon = () => {
-    const iconClasses = cn(sizeClasses.icon, colorClasses.iconColor, 'flex-shrink-0', 'mt-0.5');
-    
+    const iconClasses = cn(
+      sizeClasses.icon,
+      colorClasses.iconColor,
+      'flex-shrink-0',
+      'mt-0.5'
+    )
+
     switch (variant) {
       case 'informative':
-        return <InfoIcon className={iconClasses} />;
+        return <InfoIcon className={iconClasses} />
       case 'negative':
-        return <AlertIcon className={iconClasses} />;
+        return <AlertIcon className={iconClasses} />
       case 'neutral':
       default:
-        return <InfoIcon className={iconClasses} />;
+        return <InfoIcon className={iconClasses} />
     }
-  };
+  }
 
   // Container classes
   const containerClasses = cn(
@@ -87,7 +93,7 @@ const AlertBanner: React.FC<AlertBannerProps> = ({
     colorClasses.border,
     TRANSITIONS.colors,
     className
-  );
+  )
 
   // Content classes
   const contentClasses = cn(
@@ -97,7 +103,7 @@ const AlertBanner: React.FC<AlertBannerProps> = ({
     'justify-between',
     'gap-4',
     'min-w-0' // Prevent flex overflow
-  );
+  )
 
   // Text classes
   const textClasses = cn(
@@ -105,7 +111,7 @@ const AlertBanner: React.FC<AlertBannerProps> = ({
     'font-medium',
     colorClasses.text,
     'leading-relaxed'
-  );
+  )
 
   // Action button classes
   const actionButtonClasses = cn(
@@ -122,7 +128,7 @@ const AlertBanner: React.FC<AlertBannerProps> = ({
     'focus:ring-offset-2',
     'focus:ring-current',
     'rounded-sm'
-  );
+  )
 
   // Dismiss button classes
   const dismissButtonClasses = cn(
@@ -140,26 +146,19 @@ const AlertBanner: React.FC<AlertBannerProps> = ({
     'focus:ring-2',
     'focus:ring-offset-2',
     'focus:ring-current'
-  );
+  )
 
   return (
-    <div 
-      className={containerClasses}
-      role="alert"
-      aria-live="polite"
-      id={id}
-    >
+    <div className={containerClasses} role="alert" aria-live="polite" id={id}>
       {/* Icon */}
       {renderIcon()}
-      
+
       {/* Content */}
       <div className={contentClasses}>
         <div className="flex items-start flex-col gap-2 flex-1">
           {/* Alert Text */}
-          <p className={textClasses}>
-            {text}
-          </p>
-          
+          <p className={textClasses}>{text}</p>
+
           {/* Action Button */}
           {actionLabel && onAction && (
             <button
@@ -171,7 +170,7 @@ const AlertBanner: React.FC<AlertBannerProps> = ({
             </button>
           )}
         </div>
-        
+
         {/* Dismiss Button */}
         {isDismissible && (
           <button
@@ -185,7 +184,7 @@ const AlertBanner: React.FC<AlertBannerProps> = ({
         )}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default AlertBanner;
+export default AlertBanner

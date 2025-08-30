@@ -87,7 +87,7 @@ export const DESIGN_SYSTEM_CONSTANTS = {
     GRID_GAP: 'gap-4',
     PROGRESS_GRID_GAP: 'gap-6',
   },
-  
+
   GRID_CLASSES: {
     SMALL: 'grid-cols-1',
     MEDIUM: 'md:grid-cols-2',
@@ -98,27 +98,33 @@ export const DESIGN_SYSTEM_CONSTANTS = {
   CONTAINER_CLASSES: {
     MAIN_CONTENT: 'max-w-4xl',
   },
-} as const;
+} as const
 
 // Type for accessing constants
-export type DesignSystemConstants = typeof DESIGN_SYSTEM_CONSTANTS;
+export type DesignSystemConstants = typeof DESIGN_SYSTEM_CONSTANTS
 
 // Helper functions for common patterns
-export const getSpacingClass = (type: keyof typeof DESIGN_SYSTEM_CONSTANTS.SPACING_CLASSES) => {
-  return DESIGN_SYSTEM_CONSTANTS.SPACING_CLASSES[type];
-};
+export const getSpacingClass = (
+  type: keyof typeof DESIGN_SYSTEM_CONSTANTS.SPACING_CLASSES
+) => {
+  return DESIGN_SYSTEM_CONSTANTS.SPACING_CLASSES[type]
+}
 
-export const getGridClass = (type: keyof typeof DESIGN_SYSTEM_CONSTANTS.GRID_CLASSES) => {
-  return DESIGN_SYSTEM_CONSTANTS.GRID_CLASSES[type];
-};
+export const getGridClass = (
+  type: keyof typeof DESIGN_SYSTEM_CONSTANTS.GRID_CLASSES
+) => {
+  return DESIGN_SYSTEM_CONSTANTS.GRID_CLASSES[type]
+}
 
-export const getProgressValue = (type: 'basic' | 'download' | 'upload' | 'processing' | 'loading') => {
+export const getProgressValue = (
+  type: 'basic' | 'download' | 'upload' | 'processing' | 'loading'
+) => {
   const valueMap = {
     basic: DESIGN_SYSTEM_CONSTANTS.DEMO_PROGRESS_BASIC,
     download: DESIGN_SYSTEM_CONSTANTS.DEMO_PROGRESS_DOWNLOAD,
     upload: DESIGN_SYSTEM_CONSTANTS.DEMO_PROGRESS_UPLOAD,
     processing: DESIGN_SYSTEM_CONSTANTS.DEMO_PROGRESS_PROCESSING,
     loading: DESIGN_SYSTEM_CONSTANTS.DEMO_PROGRESS_LOADING,
-  };
-  return valueMap[type];
-};
+  }
+  return valueMap[type]
+}

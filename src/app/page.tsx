@@ -14,9 +14,24 @@ export default function Home() {
               <h1 className="text-h3 text-text-primary">Design System</h1>
             </div>
             <nav className="flex space-x-6">
-              <a href="#colors" className="text-body text-text-secondary hover:text-text-accent transition-colors">Colors</a>
-              <a href="#typography" className="text-body text-text-secondary hover:text-text-accent transition-colors">Typography</a>
-              <a href="#components" className="text-body text-text-secondary hover:text-text-accent transition-colors">Components</a>
+              <a
+                href="#colors"
+                className="text-body text-text-secondary hover:text-text-accent transition-colors"
+              >
+                Colors
+              </a>
+              <a
+                href="#typography"
+                className="text-body text-text-secondary hover:text-text-accent transition-colors"
+              >
+                Typography
+              </a>
+              <a
+                href="#components"
+                className="text-body text-text-secondary hover:text-text-accent transition-colors"
+              >
+                Components
+              </a>
             </nav>
           </div>
         </div>
@@ -51,17 +66,21 @@ export default function Home() {
               <div className="w-8 h-8 bg-primary rounded-small"></div>
             </div>
             <h3 className="text-h3 text-text-primary mb-3">Color System</h3>
-            <p className="text-body text-text-secondary">Primary, Support, Variation 컬러로 구성된 체계적인 색상 시스템</p>
+            <p className="text-body text-text-secondary">
+              Primary, Support, Variation 컬러로 구성된 체계적인 색상 시스템
+            </p>
           </div>
-          
+
           <div className="bg-surface p-8 rounded-small border-2 border-border text-center">
             <div className="w-16 h-16 bg-primary-very-light rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="text-h3 text-primary font-bold">Aa</span>
             </div>
             <h3 className="text-h3 text-text-primary mb-3">Typography</h3>
-            <p className="text-body text-text-secondary">Inter 폰트 기반의 반응형 타이포그래피와 웨이트 시스템</p>
+            <p className="text-body text-text-secondary">
+              Inter 폰트 기반의 반응형 타이포그래피와 웨이트 시스템
+            </p>
           </div>
-          
+
           <div className="bg-surface p-8 rounded-small border-2 border-border text-center">
             <div className="w-16 h-16 bg-primary-very-light rounded-full flex items-center justify-center mx-auto mb-4">
               <div className="grid grid-cols-2 gap-1">
@@ -72,7 +91,9 @@ export default function Home() {
               </div>
             </div>
             <h3 className="text-h3 text-text-primary mb-3">Components</h3>
-            <p className="text-body text-text-secondary">일관된 스타일의 재사용 가능한 UI 컴포넌트 라이브러리</p>
+            <p className="text-body text-text-secondary">
+              일관된 스타일의 재사용 가능한 UI 컴포넌트 라이브러리
+            </p>
           </div>
         </section>
 
@@ -80,9 +101,11 @@ export default function Home() {
         <section className="mb-16" id="colors">
           <div className="text-center mb-12">
             <h2 className="text-h2 text-text-primary mb-4">Color Palette</h2>
-            <p className="text-body text-text-secondary">브랜드 아이덴티티를 반영한 컬러 시스템</p>
+            <p className="text-body text-text-secondary">
+              브랜드 아이덴티티를 반영한 컬러 시스템
+            </p>
           </div>
-          
+
           {/* Color Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
             <div className="text-center">
@@ -112,26 +135,36 @@ export default function Home() {
         <section className="mb-16" id="typography">
           <div className="text-center mb-12">
             <h2 className="text-h2 text-text-primary mb-4">Typography</h2>
-            <p className="text-body text-text-secondary">Inter 폰트 기반의 확장 가능한 타이포그래피 시스템</p>
+            <p className="text-body text-text-secondary">
+              Inter 폰트 기반의 확장 가능한 타이포그래피 시스템
+            </p>
           </div>
-          
+
           <div className="bg-surface p-8 rounded-small border-2 border-border">
             <div className="space-y-6">
               <div>
                 <h1 className="text-h1 text-text-primary mb-2">Heading 1</h1>
-                <p className="text-caption text-text-secondary">56px / Bold (700) - 메인 헤드라인용</p>
+                <p className="text-caption text-text-secondary">
+                  56px / Bold (700) - 메인 헤드라인용
+                </p>
               </div>
               <div>
                 <h2 className="text-h2 text-text-primary mb-2">Heading 2</h2>
-                <p className="text-caption text-text-secondary">36px / Semibold (600) - 섹션 제목용</p>
+                <p className="text-caption text-text-secondary">
+                  36px / Semibold (600) - 섹션 제목용
+                </p>
               </div>
               <div>
                 <h3 className="text-h3 text-text-primary mb-2">Heading 3</h3>
-                <p className="text-caption text-text-secondary">24px / Medium (500) - 서브 제목용</p>
+                <p className="text-caption text-text-secondary">
+                  24px / Medium (500) - 서브 제목용
+                </p>
               </div>
               <div>
                 <p className="text-body text-text-primary mb-2">Body Text</p>
-                <p className="text-caption text-text-secondary">18px / Regular (400) - 본문 텍스트용</p>
+                <p className="text-caption text-text-secondary">
+                  18px / Regular (400) - 본문 텍스트용
+                </p>
               </div>
             </div>
           </div>
@@ -141,9 +174,11 @@ export default function Home() {
         <section className="mb-16" id="components">
           <div className="text-center mb-12">
             <h2 className="text-h2 text-text-primary mb-4">Components</h2>
-            <p className="text-body text-text-secondary">재사용 가능한 UI 컴포넌트들</p>
+            <p className="text-body text-text-secondary">
+              재사용 가능한 UI 컴포넌트들
+            </p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Buttons */}
             <div className="bg-surface p-8 rounded-small border-2 border-border">
@@ -166,12 +201,21 @@ export default function Home() {
               <h3 className="text-h3 text-text-primary mb-6">Cards</h3>
               <div className="space-y-4">
                 <div className="bg-gray-light p-4 rounded-small border-1 border-border">
-                  <h4 className="font-semibold text-text-primary mb-2">Card Title</h4>
-                  <p className="text-body text-text-secondary">카드 컴포넌트의 예시입니다. 다양한 라운딩과 테두리 스타일을 적용할 수 있습니다.</p>
+                  <h4 className="font-semibold text-text-primary mb-2">
+                    Card Title
+                  </h4>
+                  <p className="text-body text-text-secondary">
+                    카드 컴포넌트의 예시입니다. 다양한 라운딩과 테두리 스타일을
+                    적용할 수 있습니다.
+                  </p>
                 </div>
                 <div className="bg-white p-4 rounded-default border-2 border-border">
-                  <h4 className="font-semibold text-text-primary mb-2">White Card</h4>
-                  <p className="text-body text-text-secondary">흰색 배경의 카드 컴포넌트입니다.</p>
+                  <h4 className="font-semibold text-text-primary mb-2">
+                    White Card
+                  </h4>
+                  <p className="text-body text-text-secondary">
+                    흰색 배경의 카드 컴포넌트입니다.
+                  </p>
                 </div>
               </div>
             </div>
@@ -193,14 +237,28 @@ export default function Home() {
               TailwindCSS 기반의 Modern Design System
             </p>
             <div className="flex justify-center space-x-6">
-              <a href="#" className="text-body text-text-secondary hover:text-text-accent transition-colors">GitHub</a>
-              <a href="#" className="text-body text-text-secondary hover:text-text-accent transition-colors">Documentation</a>
-              <a href="#" className="text-body text-text-secondary hover:text-text-accent transition-colors">Examples</a>
+              <a
+                href="#"
+                className="text-body text-text-secondary hover:text-text-accent transition-colors"
+              >
+                GitHub
+              </a>
+              <a
+                href="#"
+                className="text-body text-text-secondary hover:text-text-accent transition-colors"
+              >
+                Documentation
+              </a>
+              <a
+                href="#"
+                className="text-body text-text-secondary hover:text-text-accent transition-colors"
+              >
+                Examples
+              </a>
             </div>
           </div>
         </div>
       </footer>
     </div>
-
-  );
+  )
 }
