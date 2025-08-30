@@ -64,6 +64,13 @@ export const SIZE_CLASSES = {
     large: 'gap-2',
     'extra-large': 'gap-2',
   },
+  // 공통 프로그레스 유틸리티
+  progress: {
+    small: { height: 'h-1', fontSize: 'text-xs' },
+    medium: { height: 'h-2', fontSize: 'text-sm' },
+    large: { height: 'h-3', fontSize: 'text-base' },
+    'extra-large': { height: 'h-4', fontSize: 'text-lg' },
+  },
 } as const;
 
 /**
@@ -209,4 +216,15 @@ export function clamp(value: number, min: number, max: number): number {
  */
 export function isDefined<T>(value: T | null | undefined): value is T {
   return value !== null && value !== undefined;
+}
+
+/**
+ * Calculate progress percentage from value and range
+ */
+export function calculateProgress(
+  value: number = 0,
+  minValue: number = 0,
+  maxValue: number = 100
+): number {
+  return Math.min(100, Math.max(0, ((value - minValue) / (maxValue - minValue)) * 100));
 }

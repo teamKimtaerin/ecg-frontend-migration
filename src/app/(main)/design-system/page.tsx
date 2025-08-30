@@ -11,6 +11,7 @@ import Switch from '@/components/Switch';
 import Dropdown from '@/components/Dropdown';
 import HelpText from '@/components/HelpText';
 import ProgressBar from '@/components/ProgressBar';
+import ProgressCircle from '@/components/ProgressCircle';
 import { StarIcon, HeartIcon, PlusIcon, HomeIcon, UserIcon, SettingsIcon } from '@/components/icons';
 
 export default function Home() {
@@ -2897,6 +2898,428 @@ export default function Home() {
                       <p className="text-sm text-text-secondary">
                         Clean progress bars without any text labels
                       </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Progress Circle Components */}
+        <section className="mb-8">
+          <h2 className="text-h2 mb-4 text-text-primary">Progress Circle Components</h2>
+          <p className="text-body text-text-secondary mb-8">원형 진행률 표시를 위한 프로그레스 써클 컴포넌트 - 컴팩트한 공간에서의 진행률 시각화</p>
+
+          {/* Progress Circle Variants */}
+          <div className="mb-8">
+            <h3 className="text-h3 mb-6 text-text-primary">Progress Circle Variants</h3>
+            <div className="bg-surface p-8 rounded-default border border-border">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Default Variant</h4>
+                    <div className="flex items-center gap-6 flex-wrap">
+                      <ProgressCircle 
+                        value={progressValues.upload}
+                        size="small"
+                      />
+                      <ProgressCircle 
+                        value={progressValues.processing}
+                        size="medium"
+                      />
+                      <ProgressCircle 
+                        value={progressValues.loading}
+                        size="large"
+                      />
+                    </div>
+                    <p className="text-sm text-text-secondary mt-3">
+                      Small (48px), Medium (64px), Large (80px) sizes
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">With Custom Content</h4>
+                    <div className="flex items-center gap-6 flex-wrap">
+                      <ProgressCircle 
+                        value={progressValues.upload}
+                        size="medium"
+                      >
+                        <div className="text-center">
+                          <div className="text-xs font-bold">{Math.round(progressValues.upload)}</div>
+                          <div className="text-xs opacity-70">%</div>
+                        </div>
+                      </ProgressCircle>
+                      <ProgressCircle 
+                        value={75}
+                        size="medium"
+                      >
+                        <div className="text-center">
+                          <div className="text-xs font-bold">3</div>
+                          <div className="text-xs opacity-70">of 4</div>
+                        </div>
+                      </ProgressCircle>
+                      <ProgressCircle 
+                        value={60}
+                        size="medium"
+                      >
+                        <StarIcon className="w-4 h-4" />
+                      </ProgressCircle>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Indeterminate State</h4>
+                    <div className="flex items-center gap-6 flex-wrap">
+                      <ProgressCircle 
+                        isIndeterminate={true}
+                        size="small"
+                      />
+                      <ProgressCircle 
+                        isIndeterminate={true}
+                        size="medium"
+                      />
+                      <ProgressCircle 
+                        isIndeterminate={true}
+                        size="large"
+                      />
+                    </div>
+                    <p className="text-sm text-text-secondary mt-3">
+                      Spinning animation for loading states
+                    </p>
+                  </div>
+                </div>
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Over Background Variant</h4>
+                    <div className="bg-primary p-6 rounded-default">
+                      <div className="flex items-center gap-6 flex-wrap">
+                        <ProgressCircle 
+                          variant="over-background"
+                          value={progressValues.download}
+                          size="small"
+                        />
+                        <ProgressCircle 
+                          variant="over-background"
+                          value={progressValues.processing}
+                          size="medium"
+                        />
+                        <ProgressCircle 
+                          variant="over-background"
+                          value={progressValues.loading}
+                          size="large"
+                        />
+                      </div>
+                      <p className="text-sm text-white opacity-80 mt-3">
+                        White progress on colored backgrounds
+                      </p>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Over Background with Content</h4>
+                    <div className="bg-primary p-6 rounded-default">
+                      <div className="flex items-center gap-6 flex-wrap">
+                        <ProgressCircle 
+                          variant="over-background"
+                          value={progressValues.upload}
+                          size="medium"
+                        >
+                          <div className="text-center text-white">
+                            <div className="text-xs font-bold">{Math.round(progressValues.upload)}</div>
+                            <div className="text-xs opacity-70">%</div>
+                          </div>
+                        </ProgressCircle>
+                        <ProgressCircle 
+                          variant="over-background"
+                          value={85}
+                          size="medium"
+                        >
+                          <div className="text-center text-white">
+                            <div className="text-xs font-bold">17</div>
+                            <div className="text-xs opacity-70">files</div>
+                          </div>
+                        </ProgressCircle>
+                        <ProgressCircle 
+                          variant="over-background"
+                          isIndeterminate={true}
+                          size="medium"
+                        >
+                          <div className="text-white">
+                            <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          </div>
+                        </ProgressCircle>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Progress Circle Sizes */}
+          <div className="mb-8">
+            <h3 className="text-h3 mb-6 text-text-primary">Progress Circle Sizes</h3>
+            <div className="bg-surface p-8 rounded-default border border-border">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Size Comparison</h4>
+                    <div className="flex items-end gap-6">
+                      <div className="text-center">
+                        <ProgressCircle 
+                          value={65}
+                          size="small"
+                        />
+                        <p className="text-xs text-text-secondary mt-2">Small<br />48×48px</p>
+                      </div>
+                      <div className="text-center">
+                        <ProgressCircle 
+                          value={65}
+                          size="medium"
+                        />
+                        <p className="text-xs text-text-secondary mt-2">Medium<br />64×64px</p>
+                      </div>
+                      <div className="text-center">
+                        <ProgressCircle 
+                          value={65}
+                          size="large"
+                        />
+                        <p className="text-xs text-text-secondary mt-2">Large<br />80×80px</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Different Values</h4>
+                    <div className="flex items-center gap-6 flex-wrap">
+                      <ProgressCircle value={0} size="medium" />
+                      <ProgressCircle value={25} size="medium" />
+                      <ProgressCircle value={50} size="medium" />
+                      <ProgressCircle value={75} size="medium" />
+                      <ProgressCircle value={100} size="medium" />
+                    </div>
+                    <p className="text-sm text-text-secondary mt-3">
+                      0%, 25%, 50%, 75%, 100% completion states
+                    </p>
+                  </div>
+                </div>
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Custom Range Example</h4>
+                    <div className="flex items-center gap-6 flex-wrap">
+                      <ProgressCircle 
+                        value={25}
+                        minValue={-10}
+                        maxValue={50}
+                        size="medium"
+                      >
+                        <div className="text-center">
+                          <div className="text-xs font-bold">25</div>
+                          <div className="text-xs opacity-70">°C</div>
+                        </div>
+                      </ProgressCircle>
+                      <ProgressCircle 
+                        value={750}
+                        minValue={0}
+                        maxValue={1000}
+                        size="medium"
+                      >
+                        <div className="text-center">
+                          <div className="text-xs font-bold">750</div>
+                          <div className="text-xs opacity-70">pts</div>
+                        </div>
+                      </ProgressCircle>
+                    </div>
+                    <p className="text-sm text-text-secondary mt-3">
+                      Temperature (-10°C to 50°C) and Score (0 to 1000 points)
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Icon Integration</h4>
+                    <div className="flex items-center gap-6 flex-wrap">
+                      <ProgressCircle 
+                        value={80}
+                        size="large"
+                      >
+                        <div className="flex flex-col items-center">
+                          <HomeIcon className="w-5 h-5" />
+                          <div className="text-xs mt-1">80%</div>
+                        </div>
+                      </ProgressCircle>
+                      <ProgressCircle 
+                        value={60}
+                        size="large"
+                      >
+                        <div className="flex flex-col items-center">
+                          <UserIcon className="w-5 h-5" />
+                          <div className="text-xs mt-1">3/5</div>
+                        </div>
+                      </ProgressCircle>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Progress Circle Usage Examples */}
+          <div className="mb-8">
+            <h3 className="text-h3 mb-6 text-text-primary">Usage Examples</h3>
+            <div className="bg-surface p-8 rounded-default border border-border">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Dashboard Metrics</h4>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="text-center p-4 bg-white rounded-default border">
+                        <ProgressCircle 
+                          value={85}
+                          size="medium"
+                        >
+                          <div className="text-center">
+                            <div className="text-xs font-bold">85</div>
+                            <div className="text-xs opacity-70">%</div>
+                          </div>
+                        </ProgressCircle>
+                        <p className="text-xs text-text-secondary mt-2">CPU Usage</p>
+                      </div>
+                      <div className="text-center p-4 bg-white rounded-default border">
+                        <ProgressCircle 
+                          value={progressValues.processing}
+                          size="medium"
+                        >
+                          <div className="text-center">
+                            <div className="text-xs font-bold">{Math.round(progressValues.processing)}</div>
+                            <div className="text-xs opacity-70">%</div>
+                          </div>
+                        </ProgressCircle>
+                        <p className="text-xs text-text-secondary mt-2">Memory</p>
+                      </div>
+                      <div className="text-center p-4 bg-white rounded-default border">
+                        <ProgressCircle 
+                          value={60}
+                          size="medium"
+                        >
+                          <div className="text-center">
+                            <div className="text-xs font-bold">60</div>
+                            <div className="text-xs opacity-70">%</div>
+                          </div>
+                        </ProgressCircle>
+                        <p className="text-xs text-text-secondary mt-2">Storage</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Task Progress</h4>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3 p-3 bg-white rounded-default border">
+                        <ProgressCircle 
+                          value={progressValues.download}
+                          size="small"
+                        />
+                        <div>
+                          <p className="text-sm font-medium">File Download</p>
+                          <p className="text-xs text-text-secondary">{Math.round(progressValues.download)}% completed</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 bg-white rounded-default border">
+                        <ProgressCircle 
+                          value={75}
+                          size="small"
+                        />
+                        <div>
+                          <p className="text-sm font-medium">Project Setup</p>
+                          <p className="text-xs text-text-secondary">3 of 4 steps done</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 bg-white rounded-default border">
+                        <ProgressCircle 
+                          isIndeterminate={true}
+                          size="small"
+                        />
+                        <div>
+                          <p className="text-sm font-medium">Processing...</p>
+                          <p className="text-xs text-text-secondary">Please wait</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Skills & Proficiency</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="text-center p-4 bg-white rounded-default border">
+                        <ProgressCircle 
+                          value={90}
+                          size="medium"
+                        >
+                          <div className="flex flex-col items-center">
+                            <div className="text-xs font-bold">90</div>
+                            <div className="text-xs opacity-70">%</div>
+                          </div>
+                        </ProgressCircle>
+                        <p className="text-xs text-text-secondary mt-2">JavaScript</p>
+                      </div>
+                      <div className="text-center p-4 bg-white rounded-default border">
+                        <ProgressCircle 
+                          value={75}
+                          size="medium"
+                        >
+                          <div className="flex flex-col items-center">
+                            <div className="text-xs font-bold">75</div>
+                            <div className="text-xs opacity-70">%</div>
+                          </div>
+                        </ProgressCircle>
+                        <p className="text-xs text-text-secondary mt-2">React</p>
+                      </div>
+                      <div className="text-center p-4 bg-white rounded-default border">
+                        <ProgressCircle 
+                          value={60}
+                          size="medium"
+                        >
+                          <div className="flex flex-col items-center">
+                            <div className="text-xs font-bold">60</div>
+                            <div className="text-xs opacity-70">%</div>
+                          </div>
+                        </ProgressCircle>
+                        <p className="text-xs text-text-secondary mt-2">TypeScript</p>
+                      </div>
+                      <div className="text-center p-4 bg-white rounded-default border">
+                        <ProgressCircle 
+                          value={45}
+                          size="medium"
+                        >
+                          <div className="flex flex-col items-center">
+                            <div className="text-xs font-bold">45</div>
+                            <div className="text-xs opacity-70">%</div>
+                          </div>
+                        </ProgressCircle>
+                        <p className="text-xs text-text-secondary mt-2">Node.js</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Loading States</h4>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between p-4 bg-white rounded-default border">
+                        <span className="text-sm text-text-secondary">Uploading files...</span>
+                        <ProgressCircle 
+                          value={progressValues.upload}
+                          size="small"
+                        />
+                      </div>
+                      <div className="flex items-center justify-between p-4 bg-white rounded-default border">
+                        <span className="text-sm text-text-secondary">Syncing data...</span>
+                        <ProgressCircle 
+                          isIndeterminate={true}
+                          size="small"
+                        />
+                      </div>
+                      <div className="flex items-center justify-between p-4 bg-white rounded-default border">
+                        <span className="text-sm text-text-secondary">Backup complete</span>
+                        <ProgressCircle 
+                          value={100}
+                          size="small"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>

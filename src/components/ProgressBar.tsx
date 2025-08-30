@@ -4,6 +4,7 @@ import React from 'react';
 import { 
   cn, 
   SIZE_CLASSES,
+  calculateProgress,
   type ComponentSize
 } from '@/lib/utils';
 
@@ -21,27 +22,12 @@ export interface ProgressBarProps {
   id?: string;
 }
 
-const PROGRESS_SIZE_CLASSES = {
-  small: {
-    bar: 'h-1',
-    label: 'text-xs',
-    valueLabel: 'text-xs',
-  },
-  medium: {
-    bar: 'h-2',
-    label: 'text-sm',
-    valueLabel: 'text-sm',
-  },
-  large: {
-    bar: 'h-3',
-    label: 'text-base',
-    valueLabel: 'text-base',
-  },
-  'extra-large': {
-    bar: 'h-4',
-    label: 'text-lg',
-    valueLabel: 'text-lg',
-  }
+// Progress Bar만의 고유한 사이즈 클래스 (공통 클래스는 SIZE_CLASSES 사용)
+const PROGRESS_BAR_SPECIFIC_CLASSES = {
+  small: { bar: SIZE_CLASSES.progress.small.height },
+  medium: { bar: SIZE_CLASSES.progress.medium.height },
+  large: { bar: SIZE_CLASSES.progress.large.height },
+  'extra-large': { bar: SIZE_CLASSES.progress['extra-large'].height },
 } as const;
 
 const ProgressBar: React.FC<ProgressBarProps> = ({
@@ -57,10 +43,10 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
   className,
   id
 }) => {
-  const sizeClasses = PROGRESS_SIZE_CLASSES[size];
+  const sizeClasses = PROGRESS_BAR_SPECIFIC_CLASSES[size];
   
   // 진행률 계산 (indeterminate가 아닐 때만)
-  const percentage = isIndeterminate ? 0 : Math.min(100, Math.max(0, ((value || 0) - minValue) / (maxValue - minValue) * 100));
+  const percentage = isIndeterminate ? 0 : calculateProgress(value, minValue, maxValue);
 
   // 컨테이너 스타일 (width 설정)
   const containerStyle = width ? { width: `${width}px` } : {};
@@ -99,7 +85,7 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
   // 값 라벨 클래스
   const valueLabelClasses = cn(
     'font-medium',
-    sizeClasses.valueLabel,
+    SIZE_CLASSES.progress[size].fontSize,
     variant === 'over-background' ? 'text-white' : 'text-text-secondary'
   );
 
