@@ -123,6 +123,29 @@ export const SIZE_CLASSES = {
     large: 'px-3 py-1.5 text-sm',
     'extra-large': 'px-4 py-2 text-base',
   },
+  // Status Light 전용 크기 클래스
+  statusLight: {
+    small: {
+      dot: 'w-2 h-2',
+      container: 'gap-1.5',
+      text: 'text-xs'
+    },
+    medium: {
+      dot: 'w-3 h-3',
+      container: 'gap-2',
+      text: 'text-sm'
+    },
+    large: {
+      dot: 'w-4 h-4',
+      container: 'gap-2.5',
+      text: 'text-base'
+    },
+    'extra-large': {
+      dot: 'w-5 h-5',
+      container: 'gap-3',
+      text: 'text-lg'
+    },
+  },
 } as const;
 
 /**
@@ -150,6 +173,25 @@ export const VARIANT_STYLES = {
 /**
  * 시맨틱 컬러 스타일 (에러, 성공, 경고 등)
  */
+/**
+ * Status Light variant colors
+ */
+export const STATUS_LIGHT_COLORS = {
+  informative: 'bg-status-informative',
+  neutral: 'bg-status-neutral',
+  positive: 'bg-status-positive',
+  notice: 'bg-status-notice',
+  negative: 'bg-status-negative',
+  indigo: 'bg-status-indigo',
+  celery: 'bg-status-celery',
+  chartreuse: 'bg-status-chartreuse',
+  yellow: 'bg-status-yellow',
+  magenta: 'bg-status-magenta',
+  fuchsia: 'bg-status-fuchsia',
+  purple: 'bg-status-purple',
+  seafoam: 'bg-status-seafoam',
+} as const;
+
 export const SEMANTIC_COLORS = {
   error: {
     fill: ['bg-red-50', 'text-red-700', 'border', 'border-red-200'],

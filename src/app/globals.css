@@ -25,6 +25,21 @@
   --color-red-600: #DC2626;
   --color-red-700: #B91C1C;
   
+  /* Status Light Colors */
+  --color-informative: #146EF5;
+  --color-neutral: #76797d;
+  --color-positive: #10B981;
+  --color-notice: #F59E0B;
+  --color-negative: #DC2626;
+  --color-indigo: #6366F1;
+  --color-celery: #84CC16;
+  --color-chartreuse: #A3E635;
+  --color-yellow: #EAB308;
+  --color-magenta: #EC4899;
+  --color-fuchsia: #D946EF;
+  --color-purple: #8B5CF6;
+  --color-seafoam: #14B8A6;
+  
   /* Theme Variables */
   --background: var(--color-black);
   --foreground: var(--color-white);
@@ -230,6 +245,21 @@ body {
 .text-black { color: var(--color-black); }
 .text-red-600 { color: var(--color-red-600); }
 .text-red-700 { color: var(--color-red-700); }
+
+/* Status Light Color Classes */
+.bg-status-informative { background-color: var(--color-informative); }
+.bg-status-neutral { background-color: var(--color-neutral); }
+.bg-status-positive { background-color: var(--color-positive); }
+.bg-status-notice { background-color: var(--color-notice); }
+.bg-status-negative { background-color: var(--color-negative); }
+.bg-status-indigo { background-color: var(--color-indigo); }
+.bg-status-celery { background-color: var(--color-celery); }
+.bg-status-chartreuse { background-color: var(--color-chartreuse); }
+.bg-status-yellow { background-color: var(--color-yellow); }
+.bg-status-magenta { background-color: var(--color-magenta); }
+.bg-status-fuchsia { background-color: var(--color-fuchsia); }
+.bg-status-purple { background-color: var(--color-purple); }
+.bg-status-seafoam { background-color: var(--color-seafoam); }
 
 /* Contextual Text Colors (for light backgrounds) */
 .bg-white .text-text-primary,

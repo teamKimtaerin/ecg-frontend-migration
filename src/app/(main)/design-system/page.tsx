@@ -12,6 +12,7 @@ import Dropdown from '@/components/Dropdown';
 import HelpText from '@/components/HelpText';
 import ProgressBar from '@/components/ProgressBar';
 import ProgressCircle from '@/components/ProgressCircle';
+import StatusLight from '@/components/StatusLight';
 import { StarIcon, HeartIcon, PlusIcon, HomeIcon, UserIcon, SettingsIcon } from '@/components/icons';
 
 export default function Home() {
@@ -3320,6 +3321,93 @@ export default function Home() {
                           size="small"
                         />
                       </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Status Light Section */}
+        <section className="space-y-8">
+          <div>
+            <h2 className="text-h2 text-text-primary mb-6">Status Light</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              
+              {/* Variants */}
+              <div>
+                <h3 className="text-h3 text-text-primary mb-4">Variants</h3>
+                <div className="grid grid-cols-1 gap-6">
+                  
+                  {/* Semantic Variants */}
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Semantic Colors</h4>
+                    <div className="space-y-3 p-6 bg-white rounded-default border">
+                      <StatusLight label="Informative status" variant="informative" />
+                      <StatusLight label="Neutral status" variant="neutral" />
+                      <StatusLight label="Positive status" variant="positive" />
+                      <StatusLight label="Notice status" variant="notice" />
+                      <StatusLight label="Negative status" variant="negative" />
+                    </div>
+                  </div>
+
+                  {/* Brand Variants */}
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Brand Colors</h4>
+                    <div className="space-y-3 p-6 bg-white rounded-default border">
+                      <StatusLight label="Indigo status" variant="indigo" />
+                      <StatusLight label="Celery status" variant="celery" />
+                      <StatusLight label="Chartreuse status" variant="chartreuse" />
+                      <StatusLight label="Yellow status" variant="yellow" />
+                      <StatusLight label="Magenta status" variant="magenta" />
+                      <StatusLight label="Fuchsia status" variant="fuchsia" />
+                      <StatusLight label="Purple status" variant="purple" />
+                      <StatusLight label="Seafoam status" variant="seafoam" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sizes & States */}
+              <div className="space-y-6">
+                
+                {/* Sizes */}
+                <div>
+                  <h4 className="font-semibold text-text-primary mb-3">Sizes</h4>
+                  <div className="space-y-3 p-6 bg-white rounded-default border">
+                    <StatusLight label="Small status light" size="small" variant="positive" />
+                    <StatusLight label="Medium status light" size="medium" variant="positive" />
+                    <StatusLight label="Large status light" size="large" variant="positive" />
+                    <StatusLight label="Extra large status light" size="extra-large" variant="positive" />
+                  </div>
+                </div>
+
+                {/* Disabled State */}
+                <div>
+                  <h4 className="font-semibold text-text-primary mb-3">Disabled</h4>
+                  <div className="space-y-3 p-6 bg-white rounded-default border">
+                    <StatusLight label="Disabled informative" variant="informative" isDisabled />
+                    <StatusLight label="Disabled positive" variant="positive" isDisabled />
+                    <StatusLight label="Disabled negative" variant="negative" isDisabled />
+                  </div>
+                </div>
+
+                {/* Usage Examples */}
+                <div>
+                  <h4 className="font-semibold text-text-primary mb-3">Usage Examples</h4>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-4 bg-white rounded-default border">
+                      <span className="text-sm text-text-secondary">System Status</span>
+                      <StatusLight label="All systems operational" variant="positive" size="small" />
+                    </div>
+                    <div className="flex items-center justify-between p-4 bg-white rounded-default border">
+                      <span className="text-sm text-text-secondary">Build Status</span>
+                      <StatusLight label="Build in progress" variant="notice" size="small" />
+                    </div>
+                    <div className="flex items-center justify-between p-4 bg-white rounded-default border">
+                      <span className="text-sm text-text-secondary">Connection</span>
+                      <StatusLight label="Connection lost" variant="negative" size="small" />
                     </div>
                   </div>
                 </div>
