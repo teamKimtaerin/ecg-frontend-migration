@@ -1,38 +1,40 @@
 'use client';
 
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { 
   cn, 
   SIZE_CLASSES,
-  TRANSITIONS,
-  MODAL_ANIMATIONS,
-  MODAL_VARIANTS,
-  getModalAnimationClasses,
-  getModalVariantClasses,
   preventBodyScroll,
-  createModalHandler,
+  createOverlayProps,
   trapFocus,
   getInitialFocus,
   logComponentWarning,
+  type ComponentSize,
   type BaseComponentProps 
 } from '@/lib/utils';
 import { CloseIcon } from './icons';
 import Button from './Button';
 
-export type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | 'full';
-export type ModalAnimation = keyof typeof MODAL_ANIMATIONS;
-export type ModalVariant = keyof typeof MODAL_VARIANTS;
-export type ModalPlacement = 'center' | 'top' | 'bottom' | 'left' | 'right';
+// Types
+// Constants
+const DEFAULT_Z_INDEX = 1050;
+const MODAL_TAB_INDEX = -1;
+
+export type ModalSize = 'sm' | 'md' | 'lg';
+
+export interface ModalActionConfig {
+  label: string;
+  onClick: () => void;
+  variant?: 'primary' | 'secondary' | 'accent' | 'negative';
+  disabled?: boolean;
+  closeModal?: boolean; // 모달을 자동으로 닫을지 여부
+}
 
 export interface ModalProps extends Omit<BaseComponentProps, 'size'> {
-  // State
-  open?: boolean;
-  isOpen?: boolean;
-  onClose?: () => void;
-  onOpen?: () => void;
-  onShow?: () => void;
-  onHide?: () => void;
+  // Core state
+  isOpen: boolean;
+  onClose: () => void;
   
   // Content
   title?: string;
@@ -44,87 +46,40 @@ export interface ModalProps extends Omit<BaseComponentProps, 'size'> {
   
   // Appearance
   size?: ModalSize;
-  variant?: ModalVariant;
-  centered?: boolean;
-  placement?: ModalPlacement;
-  backdrop?: boolean | 'static';
-  backdropClassName?: string;
-  overlayClassName?: string;
   
   // Behavior
   closeOnEsc?: boolean;
   closeOnBackdropClick?: boolean;
-  showCloseButton?: boolean;
-  closeButton?: boolean;
   dismissible?: boolean;
   
-  // Animation
-  animation?: ModalAnimation;
-  animationDuration?: number;
-  fade?: boolean;
-  
   // Layout
-  fullScreen?: boolean;
   scrollable?: boolean;
-  verticallyScrollable?: boolean;
-  
-  // Focus & Accessibility
-  keyboard?: boolean;
-  autoFocus?: boolean;
-  enforceFocus?: boolean;
-  restoreFocus?: boolean;
   
   // Advanced
-  container?: HTMLElement;
+  container?: HTMLElement | null;
   preventScroll?: boolean;
   zIndex?: number;
-  tabIndex?: number;
   
-  // Events
-  onEnter?: () => void;
-  onEntering?: () => void;
-  onEntered?: () => void;
-  onExit?: () => void;
-  onExiting?: () => void;
-  onExited?: () => void;
   
   // ARIA
-  role?: string;
+  'aria-label'?: string;
   'aria-labelledby'?: string;
   'aria-describedby'?: string;
-  'aria-label'?: string;
   
-  // Custom
-  id?: string;
+  // Actions (simplified)
+  primaryAction?: ModalActionConfig;
+  secondaryAction?: ModalActionConfig;
+  cancelAction?: Pick<ModalActionConfig, 'label' | 'onClick'>;
+  
+  // Test support
   'data-testid'?: string;
-  
-  // Actions
-  primaryAction?: {
-    label: string;
-    onClick: () => void;
-    variant?: 'primary' | 'secondary' | 'accent' | 'negative';
-    disabled?: boolean;
-  };
-  secondaryAction?: {
-    label: string;
-    onClick: () => void;
-    variant?: 'primary' | 'secondary' | 'accent' | 'negative';
-    disabled?: boolean;
-  };
-  cancelAction?: {
-    label?: string;
-    onClick?: () => void;
-  };
+  id?: string;
 }
 
 const Modal: React.FC<ModalProps> = ({
-  // State
-  open,
+  // Core
   isOpen,
   onClose,
-  onOpen,
-  onShow,
-  onHide,
   
   // Content
   title,
@@ -136,138 +91,70 @@ const Modal: React.FC<ModalProps> = ({
   
   // Appearance
   size = 'md',
-  variant = 'default',
-  centered = true,
-  placement = 'center',
-  backdrop = true,
-  backdropClassName,
-  overlayClassName,
   
   // Behavior
   closeOnEsc = true,
   closeOnBackdropClick = true,
-  showCloseButton = true,
-  closeButton = true,
   dismissible = true,
   
-  // Animation
-  animation = 'zoom',
-  animationDuration = 300,
-  fade = true,
-  
   // Layout
-  fullScreen = false,
   scrollable = true,
-  verticallyScrollable = true,
-  
-  // Focus & Accessibility
-  keyboard = true,
-  autoFocus = true,
-  enforceFocus = true,
-  restoreFocus = true,
   
   // Advanced
   container,
   preventScroll = true,
-  zIndex = 1050,
-  tabIndex = -1,
+  zIndex = DEFAULT_Z_INDEX,
   
-  // Events
-  onEnter,
-  onEntering,
-  onEntered,
-  onExit,
-  onExiting,
-  onExited,
   
   // ARIA
-  role = 'dialog',
+  'aria-label': ariaLabel,
   'aria-labelledby': ariaLabelledBy,
   'aria-describedby': ariaDescribedBy,
-  'aria-label': ariaLabel,
-  
-  // Custom
-  className,
-  id,
-  'data-testid': dataTestId,
   
   // Actions
   primaryAction,
   secondaryAction,
   cancelAction,
+  
+  // Props
+  className,
+  id,
+  'data-testid': dataTestId,
 }) => {
   const [isMounted, setIsMounted] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
-  const backdropRef = useRef<HTMLDivElement>(null);
-  const previousActiveElement = useRef<HTMLElement | null>(null);
+  const previousActiveElement = useRef<Element | null>(null);
   const focusTrap = useRef<(() => void) | null>(null);
-  
-  // Resolve open state - prefer isOpen over open
-  const modalIsOpen = isOpen ?? open ?? false;
-  const actualShowCloseButton = showCloseButton && closeButton && dismissible;
-  
-  // Validation
+
+  // Enhanced validation
   if (!children && !content && !title && !header) {
-    logComponentWarning('Modal', 'Modal should have content (children, content, title, or header).');
+    logComponentWarning('Modal', 'Modal should have content.');
+  }
+  
+  if (!ariaLabel && !ariaLabelledBy && !title) {
+    logComponentWarning('Modal', 'Modal should have accessible name via aria-label, aria-labelledby, or title.');
   }
 
-  if (backdrop === 'static' && closeOnBackdropClick) {
-    logComponentWarning('Modal', 'closeOnBackdropClick is ignored when backdrop is "static".');
-  }
-
-  // Handle mounting for SSR
+  // Mount handling for SSR
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  // Animation lifecycle callbacks
-  const handleEnter = useCallback(() => {
-    setIsAnimating(true);
-    onEnter?.();
-    onEntering?.();
-    
-    const timer = setTimeout(() => {
-      onEntered?.();
-      setIsAnimating(false);
-    }, animationDuration);
-    
-    return () => clearTimeout(timer);
-  }, [onEnter, onEntering, onEntered, animationDuration]);
-
-  const handleExit = useCallback(() => {
-    setIsAnimating(true);
-    onExit?.();
-    onExiting?.();
-    
-    const timer = setTimeout(() => {
-      onExited?.();
-      setIsAnimating(false);
-    }, animationDuration);
-    
-    return () => clearTimeout(timer);
-  }, [onExit, onExiting, onExited, animationDuration]);
-
-  // Handle modal state changes
+  // Modal lifecycle management
   useEffect(() => {
-    if (modalIsOpen) {
-      // Store previously focused element for restoration
-      if (restoreFocus) {
-        previousActiveElement.current = document.activeElement as HTMLElement;
-      }
+    if (isOpen) {
+      // Store focus for restoration
+      previousActiveElement.current = document.activeElement;
       
       // Prevent body scroll
       if (preventScroll) {
         preventBodyScroll(true);
       }
 
-      // Setup focus trap
-      if (enforceFocus && modalRef.current) {
+      // Setup focus management
+      if (modalRef.current) {
         focusTrap.current = trapFocus(modalRef.current);
-      }
-
-      // Auto focus modal
-      if (autoFocus && modalRef.current) {
+        
         const initialFocusElement = getInitialFocus(modalRef.current);
         if (initialFocusElement) {
           initialFocusElement.focus();
@@ -275,257 +162,178 @@ const Modal: React.FC<ModalProps> = ({
           modalRef.current.focus();
         }
       }
-
-      // Show callback
-      onShow?.();
-      onOpen?.();
-      handleEnter();
     } else {
-      // Handle exit
-      handleExit();
-      
-      // Cleanup focus trap
+      // Cleanup
       if (focusTrap.current) {
         focusTrap.current();
         focusTrap.current = null;
       }
       
-      // Restore scroll
       if (preventScroll) {
         preventBodyScroll(false);
       }
 
       // Restore focus
-      if (restoreFocus && previousActiveElement.current) {
-        previousActiveElement.current.focus();
+      if (previousActiveElement.current && 'focus' in previousActiveElement.current) {
+        (previousActiveElement.current as HTMLElement).focus();
         previousActiveElement.current = null;
       }
-
-      // Hide callback
-      onHide?.();
     }
 
     return () => {
-      if (preventScroll) {
-        preventBodyScroll(false);
-      }
-      if (focusTrap.current) {
-        focusTrap.current();
-      }
+      if (preventScroll) preventBodyScroll(false);
+      if (focusTrap.current) focusTrap.current();
     };
-  }, [modalIsOpen, autoFocus, preventScroll, restoreFocus, enforceFocus, onShow, onOpen, onHide, handleEnter, handleExit]);
+  }, [isOpen, preventScroll]);
 
-  // Handle keyboard events
-  useEffect(() => {
-    if (!keyboard || !modalIsOpen) return;
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && closeOnEsc && dismissible) {
-        event.preventDefault();
-        onClose?.();
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [modalIsOpen, keyboard, closeOnEsc, dismissible, onClose]);
-
-  // Event handlers
-  const { handleBackdropClick } = createModalHandler(
-    modalIsOpen,
-    onClose,
-    closeOnEsc,
-    closeOnBackdropClick && backdrop !== 'static' && dismissible
+  // Create overlay handlers using shared utilities
+  const { handleEscapeKey, overlayProps } = createOverlayProps(
+    isOpen, 
+    onClose, 
+    { closeOnEsc, closeOnBackdropClick, dismissible }
   );
 
-  const handleCloseClick = () => {
-    if (dismissible) {
-      onClose?.();
-    }
-  };
+  // Keyboard handling
+  useEffect(() => {
+    if (!isOpen) return;
+    document.addEventListener('keydown', handleEscapeKey);
+    return () => document.removeEventListener('keydown', handleEscapeKey);
+  }, [isOpen, handleEscapeKey]);
 
-  const handlePrimaryAction = () => {
+  // Memoized event handlers for performance
+  const handleCloseClick = useCallback(() => {
+    onClose();
+  }, [onClose]);
+
+  const handlePrimaryAction = useCallback(() => {
+    if (primaryAction?.disabled) return;
+    
     primaryAction?.onClick();
-    if (!primaryAction?.onClick.toString().includes('onClose')) {
-      onClose?.();
+    
+    // closeModal이 명시적으로 false가 아니면 모달을 닫음
+    if (primaryAction?.closeModal !== false) {
+      onClose();
     }
-  };
+  }, [primaryAction, onClose]);
 
-  const handleSecondaryAction = () => {
+  const handleSecondaryAction = useCallback(() => {
+    if (secondaryAction?.disabled) return;
+    
     secondaryAction?.onClick();
-    if (!secondaryAction?.onClick.toString().includes('onClose')) {
-      onClose?.();
+    
+    // closeModal이 명시적으로 false가 아니면 모달을 닫음
+    if (secondaryAction?.closeModal !== false) {
+      onClose();
     }
-  };
+  }, [secondaryAction, onClose]);
 
-  const handleCancelAction = () => {
+  const handleCancelAction = useCallback(() => {
     if (cancelAction?.onClick) {
       cancelAction.onClick();
     } else {
-      onClose?.();
+      onClose();
     }
-  };
+  }, [cancelAction, onClose]);
 
-  // Get size classes
+  // Computed values
   const sizeClasses = SIZE_CLASSES.modal[size];
-  const isFullScreen = fullScreen || size === 'full';
+  const showCloseButton = true;
+  const hasActions = Boolean(primaryAction || secondaryAction || cancelAction);
+  const buttonSize = getButtonSize(size);
 
-  // Get variant classes
-  const variantClasses = getModalVariantClasses(variant);
-
-  // Animation classes
-  const overlayAnimationClasses = getModalAnimationClasses(animation, modalIsOpen, 'overlay');
-  const modalAnimationClasses = getModalAnimationClasses(animation, modalIsOpen, 'modal');
-
-  // Placement classes
-  const placementClasses = {
-    center: 'items-center justify-center',
-    top: 'items-start justify-center pt-20',
-    bottom: 'items-end justify-center pb-20',
-    left: 'items-center justify-start pl-20',
-    right: 'items-center justify-end pr-20',
-  }[placement];
-
-  // Overlay classes
+  // Overlay classes with simple fade animation
   const overlayClasses = cn(
-    'fixed inset-0',
+    'fixed inset-0 flex p-4 items-center justify-center',
     `z-[${zIndex}]`,
-    'flex',
-    placementClasses,
-    backdrop && 'bg-black bg-opacity-50',
-    'p-4',
-    overlayAnimationClasses,
-    modalIsOpen ? 'opacity-100' : 'opacity-0 pointer-events-none',
-    backdropClassName,
-    overlayClassName
+    'bg-black bg-opacity-50',
+    'transition-opacity duration-300 ease-out',
+    isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
   );
 
-  // Modal container classes
   const modalClasses = cn(
-    'relative',
-    'outline-none',
-    'max-w-full',
-    'max-h-full',
-    
-    // Variant styles
-    variantClasses,
-    
-    // Size handling
-    isFullScreen 
-      ? 'w-full h-full rounded-none'
-      : cn('w-full rounded-small', sizeClasses.container),
-    
-    // Scrolling
-    scrollable && !isFullScreen && 'max-h-[90vh]',
-    verticallyScrollable && scrollable && 'overflow-y-auto',
-    isFullScreen && scrollable && 'overflow-auto',
-    
-    // Animation
-    modalAnimationClasses,
-    
+    'relative outline-none bg-surface rounded-small shadow-lg',
+    sizeClasses.container,
+    scrollable && 'max-h-[90vh] overflow-y-auto',
+    'transition-all duration-300 ease-out',
+    isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95',
     className
   );
 
-  // Header classes
+  // Simple class definitions
   const headerClasses = cn(
-    'flex items-start justify-between',
-    'border-b border-gray-medium',
-    isFullScreen ? 'p-6' : 'p-4',
-    'min-h-[60px]'
+    'flex items-start justify-between border-b border-gray-medium min-h-[60px]',
+    'p-4'
   );
 
-  // Title classes
-  const titleClasses = cn(
-    'font-semibold text-black leading-tight flex-1',
-    sizeClasses.title
-  );
-
-  // Subtitle classes
-  const subtitleClasses = cn(
-    'text-text-secondary mt-1',
-    'text-sm'
-  );
-
-  // Content classes
   const contentClasses = cn(
     'flex-1',
-    isFullScreen ? 'p-6' : 'p-4',
-    sizeClasses.content,
+    'p-4',
     !scrollable && 'overflow-hidden'
   );
 
-  // Footer classes
   const footerClasses = cn(
-    'border-t border-gray-medium',
-    'flex items-center justify-end gap-3',
-    isFullScreen ? 'p-6' : 'p-4'
+    'border-t border-gray-medium flex items-center justify-end gap-3',
+    'p-4'
   );
 
-  // Close button classes
-  const closeButtonClasses = cn(
-    'p-1 ml-4',
-    'rounded-default',
-    'text-gray-slate',
-    'hover:text-black',
-    'hover:bg-gray-light',
-    'transition-colors',
-    'duration-200',
-    'flex-shrink-0'
-  );
+  // Memoize target container check - 항상 훅스 규칙을 위해 early return 전에 배치
+  const targetContainer = useMemo(() => {
+    return container || (typeof document !== 'undefined' ? document.body : null);
+  }, [container]);
 
-  if (!isMounted) return null;
-
-  // Don't render if not open and not animating
-  if (!modalIsOpen && !isAnimating) return null;
+  // Don't render if not mounted or not open
+  if (!isMounted || !isOpen) return null;
+  
+  if (!targetContainer) return null;
 
   const modalContent = (
     <div 
-      ref={backdropRef}
       className={overlayClasses}
-      onClick={handleBackdropClick}
-      style={{ 
-        zIndex,
-        animationDuration: `${animationDuration}ms`
-      }}
+      {...overlayProps}
       data-testid={dataTestId ? `${dataTestId}-backdrop` : undefined}
     >
       <div
         ref={modalRef}
         className={modalClasses}
-        role={role}
+        role="dialog"
         aria-modal="true"
         aria-labelledby={ariaLabelledBy || (title && id ? `${id}-title` : undefined)}
         aria-describedby={ariaDescribedBy || (id ? `${id}-content` : undefined)}
         aria-label={ariaLabel}
-        tabIndex={tabIndex}
+        tabIndex={MODAL_TAB_INDEX}
         id={id}
         data-testid={dataTestId}
       >
         {/* Header */}
-        {(title || subtitle || header || actualShowCloseButton) && (
+        {(title || subtitle || header || showCloseButton) && (
           <div className={headerClasses}>
             {header || (
               <div className="flex-1 min-w-0">
                 {title && (
                   <h2 
-                    className={titleClasses}
+                    className={cn('font-semibold text-black leading-tight flex-1', sizeClasses.title)}
                     id={id ? `${id}-title` : undefined}
                   >
                     {title}
                   </h2>
                 )}
                 {subtitle && (
-                  <p className={subtitleClasses}>
+                  <p className="text-text-secondary mt-1 text-sm">
                     {subtitle}
                   </p>
                 )}
               </div>
             )}
             
-            {actualShowCloseButton && (
+            {showCloseButton && (
               <button
                 type="button"
-                className={closeButtonClasses}
+                className={cn(
+                  'p-1 ml-4 flex-shrink-0',
+                  'rounded-default text-gray-600',
+                  'hover:text-gray-900 hover:bg-gray-100',
+                  'transition-colors duration-200'
+                )}
                 onClick={handleCloseClick}
                 aria-label="Close modal"
                 data-testid={dataTestId ? `${dataTestId}-close` : undefined}
@@ -538,14 +346,14 @@ const Modal: React.FC<ModalProps> = ({
 
         {/* Content */}
         <div 
-          className={contentClasses}
+          className={cn(contentClasses, sizeClasses.content)}
           id={id ? `${id}-content` : undefined}
         >
           {content || children}
         </div>
 
         {/* Footer */}
-        {(footer || primaryAction || secondaryAction || cancelAction) && (
+        {(footer || hasActions) && (
           <div className={footerClasses}>
             {footer || (
               <>
@@ -554,8 +362,9 @@ const Modal: React.FC<ModalProps> = ({
                     label={cancelAction.label || 'Cancel'}
                     variant="secondary"
                     style="outline"
-                    size={size === 'sm' ? 'small' : size === 'lg' || size === 'xl' ? 'large' : 'medium'}
+                    size={buttonSize}
                     onClick={handleCancelAction}
+                    data-testid={dataTestId ? `${dataTestId}-cancel` : undefined}
                   />
                 )}
                 
@@ -564,9 +373,10 @@ const Modal: React.FC<ModalProps> = ({
                     label={secondaryAction.label}
                     variant={secondaryAction.variant || 'secondary'}
                     style="fill"
-                    size={size === 'sm' ? 'small' : size === 'lg' || size === 'xl' ? 'large' : 'medium'}
+                    size={buttonSize}
                     onClick={handleSecondaryAction}
                     isDisabled={secondaryAction.disabled}
+                    data-testid={dataTestId ? `${dataTestId}-secondary` : undefined}
                   />
                 )}
 
@@ -575,9 +385,10 @@ const Modal: React.FC<ModalProps> = ({
                     label={primaryAction.label}
                     variant={primaryAction.variant || 'primary'}
                     style="fill"
-                    size={size === 'sm' ? 'small' : size === 'lg' || size === 'xl' ? 'large' : 'medium'}
+                    size={buttonSize}
                     onClick={handlePrimaryAction}
                     isDisabled={primaryAction.disabled}
+                    data-testid={dataTestId ? `${dataTestId}-primary` : undefined}
                   />
                 )}
               </>
@@ -588,12 +399,17 @@ const Modal: React.FC<ModalProps> = ({
     </div>
   );
 
-  // Render in portal if container is provided, otherwise render normally
-  const targetContainer = container || (typeof document !== 'undefined' ? document.body : null);
-  
-  if (!targetContainer) return null;
-
   return createPortal(modalContent, targetContainer);
 };
 
-export default Modal;
+// Helper functions - moved outside component to prevent re-creation
+function getButtonSize(modalSize: ModalSize): ComponentSize {
+  const sizeMap: Record<ModalSize, ComponentSize> = {
+    sm: 'small',
+    md: 'medium',
+    lg: 'large',
+  };
+  return sizeMap[modalSize];
+}
+
+export default React.memo(Modal);
