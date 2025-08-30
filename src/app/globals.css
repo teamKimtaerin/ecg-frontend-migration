@@ -1,26 +1,687 @@
 @import 'tailwindcss';
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+  /* ========================================
+     COLOR SYSTEM
+     ======================================== */
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  /* Primary Colors */
+  --color-primary: #146ef5;
+  --color-primary-dark: #0a57d4;
+  --color-primary-light: #3bb2f6;
+  --color-primary-very-light: #dbeafe;
+
+  /* Neutral Colors */
+  --color-black: #080808;
+  --color-white: #ffffff;
+  --color-gray-slate: #76797d;
+  --color-gray-medium: #e2e8f0;
+  --color-gray-light: #f8fafc;
+
+  /* Error Colors */
+  --color-red-50: #fef2f2;
+  --color-red-100: #fee2e2;
+  --color-red-200: #fecaca;
+  --color-red-600: #dc2626;
+  --color-red-700: #b91c1c;
+
+  /* Status Light Colors - reusing existing colors where possible */
+  --color-informative: var(--color-primary); /* #146EF5 - reuse primary */
+  --color-neutral: var(--color-gray-slate); /* #76797d - reuse gray-slate */
+  --color-positive: #10b981;
+  --color-notice: #f59e0b;
+  --color-negative: var(--color-red-600); /* #DC2626 - reuse red-600 */
+  --color-indigo: #6366f1;
+  --color-celery: #84cc16;
+  --color-chartreuse: #a3e635;
+  --color-yellow: #eab308;
+  --color-magenta: #ec4899;
+  --color-fuchsia: #d946ef;
+  --color-purple: #8b5cf6;
+  --color-seafoam: #14b8a6;
+
+  /* Badge Colors - additional colors for extended palette */
+  --color-gray: var(--color-gray-slate);
+  --color-red: var(--color-red-600);
+  --color-orange: #ea580c;
+  --color-cyan: #0891b2;
+  --color-blue: var(--color-primary);
+
+  /* Alert Banner Colors - reusing existing color system */
+  --color-alert-neutral-bg: var(--color-gray-light); /* #F8FAFC */
+  --color-alert-informative-bg: var(--color-primary-very-light); /* #DBEAFE */
+  --color-alert-negative-bg: var(--color-red-50); /* #FEF2F2 */
+  --color-alert-neutral-text: #374151;
+  --color-alert-informative-text: #1e40af;
+  --color-alert-negative-text: var(
+    --color-red-700
+  ); /* #991B1B -> use existing red-700 */
+  --color-alert-neutral-border: var(
+    --color-gray-medium
+  ); /* #E5E7EB -> similar to gray-medium */
+  --color-alert-informative-border: #93c5fd;
+  --color-alert-negative-border: var(
+    --color-red-200
+  ); /* #FECACA -> use existing red-200 */
+
+  /* Theme Variables */
+  --background: var(--color-black);
+  --foreground: var(--color-white);
+
+  /* ========================================
+     LAYOUT SYSTEM
+     ======================================== */
+
+  /* Spacing & Sizing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+
+  /* Border Radius */
+  --radius-default: 3px;
+  --radius-small: 8px;
+  --radius-full: 30px;
+
+  /* Border Width */
+  --border-thin: 1px;
+  --border-medium: 2px;
+  --border-thick: 4px;
+
+  /* ========================================
+     TYPOGRAPHY SYSTEM
+     ======================================== */
+
+  /* Font Families */
+  --font-primary:
+    var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Font Sizes */
+  --font-size-h1: clamp(2.5rem, 5vw, 3.5rem);
+  --font-size-h2: clamp(1.75rem, 3vw, 2.25rem);
+  --font-size-h3: clamp(1.25rem, 2vw, 1.5rem);
+  --font-size-body: clamp(1rem, 1.5vw, 1.125rem);
+  --font-size-caption: clamp(0.75rem, 1vw, 0.875rem);
+
+  /* Font Weights */
+  --font-weight-light: 300;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-black: 900;
+
+  /* Line Heights & Letter Spacing */
+  --line-height-tight: 1.4;
+  --line-height-normal: 1.6;
+  --line-height-long: 1.8;
+  --letter-spacing-tight: -0.02em;
+  --letter-spacing-normal: 0em;
+  --letter-spacing-long: 0.01em;
+
+  /* ========================================
+     COMPONENT SYSTEM
+     ======================================== */
+
+  /* Icon Sizes */
+  --icon-size-small: 16px;
+  --icon-size-medium: 24px;
+  --icon-size-large: 32px;
+  --icon-size-social: 40px;
+  --icon-size-decorative: 64px;
+  --icon-size-favicon: 32px;
+  --icon-size-touch: 256px;
+
+  /* Transitions */
+  --transition-fast: 150ms ease-in-out;
+  --transition-normal: 200ms ease-in-out;
+  --transition-slow: 300ms ease-in-out;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg:
+    0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-primary);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+  letter-spacing: var(--letter-spacing-normal);
+}
+
+/* Typography Classes */
+.text-h1 {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+.text-h2 {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+.text-h3 {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-normal);
+  letter-spacing: var(--letter-spacing-normal);
+}
+
+.text-body {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-long);
+  letter-spacing: var(--letter-spacing-long);
+}
+
+.text-caption {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-light);
+  line-height: var(--line-height-normal);
+  letter-spacing: var(--letter-spacing-normal);
+}
+
+/* Font Weight Classes */
+.font-light {
+  font-weight: var(--font-weight-light);
+}
+.font-regular {
+  font-weight: var(--font-weight-regular);
+}
+.font-medium {
+  font-weight: var(--font-weight-medium);
+}
+.font-semibold {
+  font-weight: var(--font-weight-semibold);
+}
+.font-bold {
+  font-weight: var(--font-weight-bold);
+}
+.font-black {
+  font-weight: var(--font-weight-black);
+}
+
+/* ========================================
+   BACKGROUND COLOR UTILITIES
+   ======================================== */
+
+.bg-background {
+  background-color: var(--color-black);
+}
+.bg-surface {
+  background-color: var(--color-white);
+}
+.bg-surface-secondary {
+  background-color: var(--color-gray-light);
+}
+
+/* Primary Colors */
+.bg-primary {
+  background-color: var(--color-primary);
+}
+.bg-primary-dark {
+  background-color: var(--color-primary-dark);
+}
+.bg-primary-light {
+  background-color: var(--color-primary-light);
+}
+.bg-primary-very-light {
+  background-color: var(--color-primary-very-light);
+}
+.bg-accent {
+  background-color: var(--color-positive);
+}
+.bg-secondary {
+  background-color: var(--color-gray-slate);
+}
+.bg-negative {
+  background-color: var(--color-negative);
+}
+
+/* Neutral Colors */
+.bg-white {
+  background-color: var(--color-white);
+}
+.bg-black {
+  background-color: var(--color-black);
+}
+.bg-gray-light {
+  background-color: var(--color-gray-light);
+}
+.bg-gray-medium {
+  background-color: var(--color-gray-medium);
+}
+.bg-gray-slate {
+  background-color: var(--color-gray-slate);
+}
+
+/* Error Colors */
+.bg-red-50 {
+  background-color: var(--color-red-50);
+}
+.bg-red-100 {
+  background-color: var(--color-red-100);
+}
+.bg-red-200 {
+  background-color: var(--color-red-200);
+}
+
+/* ========================================
+   HOVER UTILITIES
+   ======================================== */
+
+/* Hover Background Colors */
+.hover\:bg-primary:hover {
+  background-color: var(--color-primary);
+}
+.hover\:bg-primary-dark:hover {
+  background-color: var(--color-primary-dark);
+}
+.hover\:bg-primary-light:hover {
+  background-color: var(--color-primary-light);
+}
+.hover\:bg-surface-secondary:hover {
+  background-color: var(--color-gray-light);
+}
+.hover\:bg-gray-light:hover {
+  background-color: var(--color-gray-light);
+}
+.hover\:bg-gray-medium:hover {
+  background-color: var(--color-gray-medium);
+}
+.hover\:bg-gray-slate:hover {
+  background-color: var(--color-gray-slate);
+}
+.hover\:bg-black:hover {
+  background-color: var(--color-black);
+}
+.hover\:bg-white:hover {
+  background-color: var(--color-white);
+}
+.hover\:bg-red-100:hover {
+  background-color: var(--color-red-100);
+}
+.hover\:bg-red-200:hover {
+  background-color: var(--color-red-200);
+}
+
+/* Hover Text Colors */
+.hover\:text-white:hover {
+  color: var(--color-white);
+}
+.hover\:text-black:hover {
+  color: var(--color-black);
+}
+.hover\:text-primary:hover {
+  color: var(--color-primary);
+}
+
+/* ========================================
+   TEXT COLOR UTILITIES
+   ======================================== */
+
+/* Default Text Colors (for black background) */
+.text-text-primary {
+  color: var(--color-white);
+}
+.text-text-secondary {
+  color: var(--color-gray-medium);
+}
+.text-text-accent {
+  color: var(--color-primary-light);
+}
+
+/* Direct Color Classes */
+.text-primary {
+  color: var(--color-primary);
+}
+.text-white {
+  color: var(--color-white);
+}
+.text-black {
+  color: var(--color-black);
+}
+.text-red-600 {
+  color: var(--color-red-600);
+}
+.text-red-700 {
+  color: var(--color-red-700);
+}
+
+/* Status Color Text Classes (for semantic consistency) */
+.text-status-informative {
+  color: var(--color-informative);
+}
+.text-status-neutral {
+  color: var(--color-neutral);
+}
+.text-status-positive {
+  color: var(--color-positive);
+}
+.text-status-notice {
+  color: var(--color-notice);
+}
+.text-status-negative {
+  color: var(--color-negative);
+}
+
+/* Status Light Color Classes */
+.bg-status-informative {
+  background-color: var(--color-informative);
+}
+.bg-status-neutral {
+  background-color: var(--color-neutral);
+}
+.bg-status-positive {
+  background-color: var(--color-positive);
+}
+.bg-status-notice {
+  background-color: var(--color-notice);
+}
+.bg-status-negative {
+  background-color: var(--color-negative);
+}
+.bg-status-indigo {
+  background-color: var(--color-indigo);
+}
+.bg-status-celery {
+  background-color: var(--color-celery);
+}
+.bg-status-chartreuse {
+  background-color: var(--color-chartreuse);
+}
+.bg-status-yellow {
+  background-color: var(--color-yellow);
+}
+.bg-status-magenta {
+  background-color: var(--color-magenta);
+}
+.bg-status-fuchsia {
+  background-color: var(--color-fuchsia);
+}
+.bg-status-purple {
+  background-color: var(--color-purple);
+}
+.bg-status-seafoam {
+  background-color: var(--color-seafoam);
+}
+
+/* Badge Color Classes - extended color palette */
+.bg-badge-gray {
+  background-color: var(--color-gray);
+}
+.bg-badge-red {
+  background-color: var(--color-red);
+}
+.bg-badge-orange {
+  background-color: var(--color-orange);
+}
+.bg-badge-cyan {
+  background-color: var(--color-cyan);
+}
+.bg-badge-blue {
+  background-color: var(--color-blue);
+}
+
+.text-badge-gray {
+  color: var(--color-white);
+}
+.text-badge-red {
+  color: var(--color-white);
+}
+.text-badge-orange {
+  color: var(--color-white);
+}
+.text-badge-cyan {
+  color: var(--color-white);
+}
+.text-badge-blue {
+  color: var(--color-white);
+}
+
+/* Alert Banner Color Classes - using CSS variables */
+.bg-alert-neutral {
+  background-color: var(--color-alert-neutral-bg);
+}
+.bg-alert-informative {
+  background-color: var(--color-alert-informative-bg);
+}
+.bg-alert-negative {
+  background-color: var(--color-alert-negative-bg);
+}
+
+.text-alert-neutral {
+  color: var(--color-alert-neutral-text);
+}
+.text-alert-informative {
+  color: var(--color-alert-informative-text);
+}
+.text-alert-negative {
+  color: var(--color-alert-negative-text);
+}
+
+.border-alert-neutral {
+  border-color: var(--color-alert-neutral-border);
+}
+.border-alert-informative {
+  border-color: var(--color-alert-informative-border);
+}
+.border-alert-negative {
+  border-color: var(--color-alert-negative-border);
+}
+
+/* Contextual Text Colors (for light backgrounds) */
+.bg-white .text-text-primary,
+.bg-surface .text-text-primary,
+.bg-surface-secondary .text-text-primary,
+.bg-gray-light .text-text-primary {
+  color: var(--color-black);
+}
+
+.bg-white .text-text-secondary,
+.bg-surface .text-text-secondary,
+.bg-surface-secondary .text-text-secondary,
+.bg-gray-light .text-text-secondary {
+  color: var(--color-gray-slate);
+}
+
+/* ========================================
+   SHADOW UTILITIES
+   ======================================== */
+
+/* TailwindCSS provides basic shadow classes, we just ensure our variables work */
+.shadow-sm {
+  box-shadow: var(--shadow-sm);
+}
+.shadow-md {
+  box-shadow: var(--shadow-md);
+}
+.shadow-lg {
+  box-shadow: var(--shadow-lg);
+}
+.shadow-none {
+  box-shadow: none;
+}
+
+.hover\:shadow-md:hover {
+  box-shadow: var(--shadow-md);
+}
+.active\:shadow-none:active {
+  box-shadow: none;
+}
+
+/* ========================================
+   TRANSFORM UTILITIES
+   ======================================== */
+
+.translate-y-px {
+  transform: translateY(1px);
+}
+.translate-y-0 {
+  transform: translateY(0);
+}
+
+/* Active Transform Classes */
+.active\:translate-y-px:active {
+  transform: translateY(1px);
+}
+.active\:translate-y-0:active {
+  transform: translateY(0);
+}
+
+/* ========================================
+   TRANSITION UTILITIES
+   ======================================== */
+
+.transition-all {
+  transition: all var(--transition-normal);
+}
+.transition-colors {
+  transition:
+    color,
+    background-color,
+    border-color var(--transition-normal);
+}
+.duration-200 {
+  transition-duration: 200ms;
+}
+.transform-none {
+  transform: none;
+}
+
+/* ========================================
+   LAYOUT UTILITIES
+   ======================================== */
+
+/* Border Colors */
+.border-border {
+  border-color: var(--color-gray-slate);
+}
+.border-primary {
+  border-color: var(--color-primary);
+}
+.border-white {
+  border-color: var(--color-white);
+}
+.border-black {
+  border-color: var(--color-black);
+}
+.border-red-200 {
+  border-color: var(--color-red-200);
+}
+
+/* Status Color Borders (for semantic consistency) */
+.border-status-informative {
+  border-color: var(--color-informative);
+}
+.border-status-neutral {
+  border-color: var(--color-neutral);
+}
+.border-status-positive {
+  border-color: var(--color-positive);
+}
+.border-status-notice {
+  border-color: var(--color-notice);
+}
+.border-status-negative {
+  border-color: var(--color-negative);
+}
+
+/* Border Radius */
+.rounded-default {
+  border-radius: var(--radius-default);
+}
+.rounded-small {
+  border-radius: var(--radius-small);
+}
+.rounded-full {
+  border-radius: var(--radius-full);
+}
+
+/* Border Width */
+.border-1 {
+  border-width: var(--border-thin);
+}
+.border-2 {
+  border-width: var(--border-medium);
+}
+.border-4 {
+  border-width: var(--border-thick);
+}
+
+/* ========================================
+   ICON UTILITIES
+   ======================================== */
+
+.icon-favicon {
+  width: var(--icon-size-favicon);
+  height: var(--icon-size-favicon);
+  color: var(--color-black);
+}
+.icon-touch {
+  width: var(--icon-size-touch);
+  height: var(--icon-size-touch);
+  color: var(--color-black);
+}
+.icon-ui-small {
+  width: var(--icon-size-small);
+  height: var(--icon-size-small);
+  color: var(--color-black);
+}
+.icon-ui-medium {
+  width: var(--icon-size-medium);
+  height: var(--icon-size-medium);
+  color: var(--color-black);
+}
+.icon-ui-large {
+  width: var(--icon-size-large);
+  height: var(--icon-size-large);
+  color: var(--color-black);
+}
+.icon-social {
+  width: var(--icon-size-social);
+  height: var(--icon-size-social);
+  color: var(--color-black);
+}
+.icon-decorative {
+  width: var(--icon-size-decorative);
+  height: var(--icon-size-decorative);
+  color: var(--color-black);
+}
+
+/* Icon Grid Helper */
+.icon-grid {
+  background-image:
+    linear-gradient(to right, rgba(20, 110, 245, 0.1) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(20, 110, 245, 0.1) 1px, transparent 1px);
+  background-size: 6px 6px;
+}
+
+/* Icon Container */
+.icon-container {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-white);
+  border: 1px solid var(--color-gray-slate);
+  border-radius: var(--radius-default);
 }
