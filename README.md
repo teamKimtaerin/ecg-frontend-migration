@@ -132,7 +132,7 @@ Server:
 docker build --target dev --build-arg MODE=dev -t ecg-backend:dev .
 
 # 개발 컨테이너 실행 (포트 매핑)
-docker run -d -p 8000:8000 --name ecg-backend-dev ecg-backend:dev
+docker run -d -p 8000:3000 --name ecg-backend-dev ecg-backend:dev
 ```
 
 #### 프로덕션 버전 (아직 안 해도 됨!!)
@@ -142,7 +142,7 @@ docker run -d -p 8000:8000 --name ecg-backend-dev ecg-backend:dev
 docker build --target prod --build-arg MODE=prod -t ecg-backend:prod .
 
 # 프로덕션 컨테이너 실행
-docker run -d -p 8001:8000 --name ecg-backend-prod ecg-backend:prod
+docker run -d -p 8001:3000 --name ecg-backend-prod ecg-backend:prod
 ```
 
 #### API 테스트
