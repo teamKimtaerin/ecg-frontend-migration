@@ -196,6 +196,34 @@ export const SIZE_CLASSES = {
       onlyIcon: 'w-7 h-7 p-1.5',
     },
   },
+  // Modal 전용 크기 클래스
+  modal: {
+    sm: {
+      container: 'max-w-sm p-4',
+      title: 'text-base',
+      content: 'text-sm',
+    },
+    md: {
+      container: 'max-w-md p-6',
+      title: 'text-lg',
+      content: 'text-base',
+    },
+    lg: {
+      container: 'max-w-lg p-8',
+      title: 'text-xl',
+      content: 'text-base',
+    },
+    xl: {
+      container: 'max-w-2xl p-10',
+      title: 'text-2xl',
+      content: 'text-lg',
+    },
+    full: {
+      container: 'w-full h-full max-w-none p-0',
+      title: 'text-2xl',
+      content: 'text-lg',
+    },
+  },
 } as const;
 
 /**
@@ -395,6 +423,101 @@ export const TRANSITIONS = {
 } as const;
 
 /**
+ * Modal animation variants
+ */
+export const MODAL_ANIMATIONS = {
+  fade: {
+    enter: 'opacity-100',
+    exit: 'opacity-0',
+    overlay: 'transition-opacity duration-300 ease-out',
+    modal: 'transition-opacity duration-300 ease-out',
+  },
+  slide: {
+    enter: 'opacity-100 translate-y-0',
+    exit: 'opacity-0 translate-y-4',
+    overlay: 'transition-opacity duration-300 ease-out',
+    modal: 'transition-all duration-300 ease-out',
+  },
+  zoom: {
+    enter: 'opacity-100 scale-100',
+    exit: 'opacity-0 scale-95',
+    overlay: 'transition-opacity duration-300 ease-out', 
+    modal: 'transition-all duration-300 ease-out',
+  },
+  slideUp: {
+    enter: 'opacity-100 translate-y-0',
+    exit: 'opacity-0 translate-y-full',
+    overlay: 'transition-opacity duration-300 ease-out',
+    modal: 'transition-all duration-300 ease-out',
+  },
+  slideDown: {
+    enter: 'opacity-100 translate-y-0',
+    exit: 'opacity-0 -translate-y-4',
+    overlay: 'transition-opacity duration-300 ease-out',
+    modal: 'transition-all duration-300 ease-out',
+  },
+  slideLeft: {
+    enter: 'opacity-100 translate-x-0',
+    exit: 'opacity-0 -translate-x-4',
+    overlay: 'transition-opacity duration-300 ease-out',
+    modal: 'transition-all duration-300 ease-out',
+  },
+  slideRight: {
+    enter: 'opacity-100 translate-x-0', 
+    exit: 'opacity-0 translate-x-4',
+    overlay: 'transition-opacity duration-300 ease-out',
+    modal: 'transition-all duration-300 ease-out',
+  },
+  none: {
+    enter: '',
+    exit: '',
+    overlay: '',
+    modal: '',
+  },
+} as const;
+
+/**
+ * Modal variant types and colors
+ */
+export const MODAL_VARIANTS = {
+  default: {
+    background: 'bg-surface',
+    border: 'border-gray-medium',
+    shadow: 'shadow-lg',
+  },
+  success: {
+    background: 'bg-surface',
+    border: 'border-status-positive',
+    shadow: 'shadow-lg',
+    accent: 'border-l-4 border-l-status-positive',
+  },
+  warning: {
+    background: 'bg-surface',
+    border: 'border-status-notice',
+    shadow: 'shadow-lg',
+    accent: 'border-l-4 border-l-status-notice',
+  },
+  error: {
+    background: 'bg-surface',
+    border: 'border-status-negative',
+    shadow: 'shadow-lg',
+    accent: 'border-l-4 border-l-status-negative',
+  },
+  info: {
+    background: 'bg-surface',
+    border: 'border-status-informative',
+    shadow: 'shadow-lg',
+    accent: 'border-l-4 border-l-status-informative',
+  },
+  confirmation: {
+    background: 'bg-surface',
+    border: 'border-primary',
+    shadow: 'shadow-lg',
+    accent: 'border-l-4 border-l-primary',
+  },
+} as const;
+
+/**
  * Generate base interactive element classes
  */
 export function getBaseInteractiveClasses() {
@@ -577,4 +700,106 @@ export function logComponentWarning(component: string, message: string) {
   if (process.env.NODE_ENV === 'development') {
     console.warn(`${component}: ${message}`);
   }
+}
+
+/**
+ * Modal utility functions
+ */
+export function getModalAnimationClasses(
+  animation: keyof typeof MODAL_ANIMATIONS,
+  isOpen: boolean,
+  type: 'modal' | 'overlay' = 'modal'
+): string {
+  const animations = MODAL_ANIMATIONS[animation];
+  const stateClass = isOpen ? animations.enter : animations.exit;
+  const transitionClass = animations[type];
+  return cn(stateClass, transitionClass);
+}
+
+export function getModalVariantClasses(variant: keyof typeof MODAL_VARIANTS): string {
+  const variantClasses = MODAL_VARIANTS[variant];
+  return cn(
+    variantClasses.background,
+    variantClasses.border && `border ${variantClasses.border}`,
+    variantClasses.shadow,
+    'accent' in variantClasses ? variantClasses.accent : ''
+  );
+}
+
+export function preventBodyScroll(prevent: boolean) {
+  if (typeof document !== 'undefined') {
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    
+    if (prevent) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
+    }
+  }
+}
+
+export function createModalHandler(
+  isOpen: boolean,
+  onClose?: () => void,
+  closeOnEsc: boolean = true,
+  closeOnBackdrop: boolean = true
+) {
+  const handleEscape = (event: KeyboardEvent) => {
+    if (event.key === 'Escape' && closeOnEsc && isOpen) {
+      event.preventDefault();
+      onClose?.();
+    }
+  };
+
+  const handleBackdropClick = (event: React.MouseEvent) => {
+    if (event.target === event.currentTarget && closeOnBackdrop) {
+      onClose?.();
+    }
+  };
+
+  return { handleEscape, handleBackdropClick };
+}
+
+export function trapFocus(element: HTMLElement): () => void {
+  const focusableElements = element.querySelectorAll(
+    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+  ) as NodeListOf<HTMLElement>;
+
+  const firstElement = focusableElements[0];
+  const lastElement = focusableElements[focusableElements.length - 1];
+
+  const handleTabKey = (event: KeyboardEvent) => {
+    if (event.key !== 'Tab') return;
+
+    if (event.shiftKey) {
+      if (document.activeElement === firstElement) {
+        lastElement?.focus();
+        event.preventDefault();
+      }
+    } else {
+      if (document.activeElement === lastElement) {
+        firstElement?.focus();
+        event.preventDefault();
+      }
+    }
+  };
+
+  element.addEventListener('keydown', handleTabKey);
+
+  return () => {
+    element.removeEventListener('keydown', handleTabKey);
+  };
+}
+
+export function getInitialFocus(container: HTMLElement): HTMLElement | null {
+  const autoFocusElement = container.querySelector('[autofocus]') as HTMLElement;
+  if (autoFocusElement) return autoFocusElement;
+
+  const focusableElements = container.querySelectorAll(
+    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+  ) as NodeListOf<HTMLElement>;
+
+  return focusableElements[0] || null;
 }

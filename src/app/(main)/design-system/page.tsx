@@ -16,6 +16,7 @@ import StatusLight from '@/components/StatusLight';
 import AlertBanner from '@/components/AlertBanner';
 import AlertDialog from '@/components/AlertDialog';
 import Badge from '@/components/Badge';
+import Modal from '@/components/Modal';
 import { StarIcon, HeartIcon, PlusIcon, HomeIcon, UserIcon, SettingsIcon } from '@/components/icons';
 
 export default function Home() {
@@ -113,6 +114,32 @@ export default function Home() {
 
   const handleAlertDialogClose = (type: keyof typeof alertDialogs) => {
     setAlertDialogs(prev => ({ ...prev, [type]: false }));
+  };
+
+  // Modal states
+  const [modals, setModals] = useState({
+    basic: false,
+    withHeader: false,
+    withFooter: false,
+    fullScreen: false,
+    sizes: false,
+    animations: false,
+    variants: false,
+    placements: false,
+    advanced: false,
+    actions: false,
+    scrollable: false,
+    nonDismissible: false,
+    staticBackdrop: false,
+    lifecycle: false,
+  });
+
+  const handleModalOpen = (type: keyof typeof modals) => {
+    setModals(prev => ({ ...prev, [type]: true }));
+  };
+
+  const handleModalClose = (type: keyof typeof modals) => {
+    setModals(prev => ({ ...prev, [type]: false }));
   };
 
   // 프로그레스 애니메이션을 위한 useEffect 예제
@@ -3963,6 +3990,734 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        {/* Modal */}
+        <section className="space-y-8">
+          <div>
+            <h2 className="text-h2 text-text-primary">Modal</h2>
+            <p className="text-body text-text-secondary mt-2">
+              Comprehensive overlay dialogs with extensive customization options for displaying content and capturing user interactions.
+            </p>
+          </div>
+
+          <div className="space-y-8">
+            {/* Basic Modal */}
+            <div className="space-y-4">
+              <h3 className="text-h3 text-text-primary">Basic Modals</h3>
+              <div className="flex gap-3 flex-wrap">
+                <Button 
+                  label="Basic Modal" 
+                  onClick={() => handleModalOpen('basic')}
+                />
+                <Button 
+                  label="With Custom Header" 
+                  onClick={() => handleModalOpen('withHeader')}
+                />
+                <Button 
+                  label="With Action Footer" 
+                  onClick={() => handleModalOpen('withFooter')}
+                />
+                <Button 
+                  label="Full Screen" 
+                  onClick={() => handleModalOpen('fullScreen')}
+                />
+              </div>
+            </div>
+
+            {/* Size Variants */}
+            <div className="space-y-4">
+              <h3 className="text-h3 text-text-primary">Size Variants</h3>
+              <div className="flex gap-3 flex-wrap">
+                <Button 
+                  label="Small (sm)" 
+                  onClick={() => handleModalOpen('sizes')}
+                  size="small"
+                />
+                <Button 
+                  label="Medium (md)" 
+                  onClick={() => handleModalOpen('sizes')}
+                />
+                <Button 
+                  label="Large (lg)" 
+                  onClick={() => handleModalOpen('sizes')}
+                  size="large"
+                />
+                <Button 
+                  label="Extra Large (xl)" 
+                  onClick={() => handleModalOpen('sizes')}
+                  size="extra-large"
+                />
+              </div>
+            </div>
+
+            {/* Variants */}
+            <div className="space-y-4">
+              <h3 className="text-h3 text-text-primary">Visual Variants</h3>
+              <div className="flex gap-3 flex-wrap">
+                <Button 
+                  label="Success Modal" 
+                  onClick={() => handleModalOpen('variants')}
+                  variant="primary"
+                />
+                <Button 
+                  label="Warning Modal" 
+                  onClick={() => handleModalOpen('variants')}
+                  variant="accent"
+                />
+                <Button 
+                  label="Error Modal" 
+                  onClick={() => handleModalOpen('variants')}
+                  variant="negative"
+                />
+                <Button 
+                  label="Info Modal" 
+                  onClick={() => handleModalOpen('variants')}
+                  variant="secondary"
+                />
+              </div>
+            </div>
+
+            {/* Animation Variants */}
+            <div className="space-y-4">
+              <h3 className="text-h3 text-text-primary">Animation Variants</h3>
+              <div className="flex gap-3 flex-wrap">
+                <Button 
+                  label="Fade" 
+                  onClick={() => handleModalOpen('animations')}
+                />
+                <Button 
+                  label="Slide Up" 
+                  onClick={() => handleModalOpen('animations')}
+                />
+                <Button 
+                  label="Slide Down" 
+                  onClick={() => handleModalOpen('animations')}
+                />
+                <Button 
+                  label="Zoom" 
+                  onClick={() => handleModalOpen('animations')}
+                />
+              </div>
+            </div>
+
+            {/* Placement Options */}
+            <div className="space-y-4">
+              <h3 className="text-h3 text-text-primary">Placement Options</h3>
+              <div className="flex gap-3 flex-wrap">
+                <Button 
+                  label="Center" 
+                  onClick={() => handleModalOpen('placements')}
+                />
+                <Button 
+                  label="Top" 
+                  onClick={() => handleModalOpen('placements')}
+                />
+                <Button 
+                  label="Bottom" 
+                  onClick={() => handleModalOpen('placements')}
+                />
+                <Button 
+                  label="Left" 
+                  onClick={() => handleModalOpen('placements')}
+                />
+                <Button 
+                  label="Right" 
+                  onClick={() => handleModalOpen('placements')}
+                />
+              </div>
+            </div>
+
+            {/* Advanced Features */}
+            <div className="space-y-4">
+              <h3 className="text-h3 text-text-primary">Advanced Features</h3>
+              <div className="flex gap-3 flex-wrap">
+                <Button 
+                  label="With Actions" 
+                  onClick={() => handleModalOpen('actions')}
+                />
+                <Button 
+                  label="Scrollable Content" 
+                  onClick={() => handleModalOpen('scrollable')}
+                />
+                <Button 
+                  label="Non-Dismissible" 
+                  onClick={() => handleModalOpen('nonDismissible')}
+                />
+                <Button 
+                  label="Static Backdrop" 
+                  onClick={() => handleModalOpen('staticBackdrop')}
+                />
+                <Button 
+                  label="Lifecycle Events" 
+                  onClick={() => handleModalOpen('lifecycle')}
+                />
+                <Button 
+                  label="Advanced Options" 
+                  onClick={() => handleModalOpen('advanced')}
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Modal Components - Basic */}
+        <Modal
+          isOpen={modals.basic}
+          onClose={() => handleModalClose('basic')}
+          title="Basic Modal"
+          subtitle="Simple modal with standard features"
+          size="md"
+          data-testid="basic-modal"
+        >
+          <div className="space-y-4">
+            <p className="text-body text-text-secondary">
+              This is a basic modal with default settings. It includes a title, subtitle, content area, and close button.
+              The modal can be closed by clicking the close button, pressing escape, or clicking outside the modal.
+            </p>
+            <div className="bg-gray-light p-4 rounded-default">
+              <p className="text-caption text-text-secondary">
+                ✨ Features: Responsive design, keyboard navigation, focus management, and accessibility support.
+              </p>
+            </div>
+          </div>
+        </Modal>
+
+        <Modal
+          isOpen={modals.withHeader}
+          onClose={() => handleModalClose('withHeader')}
+          size="md"
+          header={
+            <div className="flex items-center gap-3">
+              <SettingsIcon className="w-6 h-6 text-primary" />
+              <div>
+                <h2 className="text-lg font-semibold text-black">Custom Header</h2>
+                <p className="text-sm text-text-secondary">Enhanced modal with custom header</p>
+              </div>
+            </div>
+          }
+        >
+          <div className="space-y-4">
+            <p className="text-body text-text-secondary">
+              This modal demonstrates a custom header with an icon, title, and description.
+            </p>
+            <div className="bg-gray-light p-4 rounded-default">
+              <p className="text-caption text-text-secondary">
+                Custom headers provide complete flexibility in modal branding and layout.
+              </p>
+            </div>
+          </div>
+        </Modal>
+
+        <Modal
+          isOpen={modals.withFooter}
+          onClose={() => handleModalClose('withFooter')}
+          title="Modal with Action Footer"
+          size="md"
+          primaryAction={{
+            label: "Save Changes",
+            onClick: () => {
+              alert('Changes saved!');
+              handleModalClose('withFooter');
+            }
+          }}
+          secondaryAction={{
+            label: "Save Draft",
+            onClick: () => {
+              alert('Draft saved!');
+            },
+            variant: "secondary"
+          }}
+          cancelAction={{
+            label: "Cancel"
+          }}
+        >
+          <div className="space-y-4">
+            <p className="text-body text-text-secondary">
+              This modal includes action buttons in the footer using the new action props.
+            </p>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-text-primary mb-1">
+                  Setting Name
+                </label>
+                <input 
+                  type="text" 
+                  className="w-full p-2 border border-gray-medium rounded-default"
+                  placeholder="Enter setting name"
+                  autoFocus
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-text-primary mb-1">
+                  Description
+                </label>
+                <textarea 
+                  className="w-full p-2 border border-gray-medium rounded-default h-20"
+                  placeholder="Enter description"
+                />
+              </div>
+            </div>
+          </div>
+        </Modal>
+
+        <Modal
+          isOpen={modals.fullScreen}
+          onClose={() => handleModalClose('fullScreen')}
+          title="Full Screen Experience"
+          subtitle="Immersive full-screen modal for complex interfaces"
+          fullScreen={true}
+          animation="slideUp"
+        >
+          <div className="space-y-8">
+            <div className="bg-gradient-to-r from-primary to-primary-light p-6 rounded-small text-white">
+              <h3 className="text-xl font-bold mb-2">Full Screen Modal</h3>
+              <p>Maximum space for complex content and immersive experiences.</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="bg-gray-light p-6 rounded-default">
+                <h4 className="text-lg font-semibold text-text-primary mb-3">📱 Mobile First</h4>
+                <p className="text-body text-text-secondary mb-4">
+                  Optimized for mobile experiences with touch-friendly interactions.
+                </p>
+                <ul className="list-disc list-inside space-y-1 text-text-secondary text-sm">
+                  <li>Touch gestures support</li>
+                  <li>Responsive breakpoints</li>
+                  <li>Mobile-optimized animations</li>
+                </ul>
+              </div>
+              
+              <div className="bg-gray-light p-6 rounded-default">
+                <h4 className="text-lg font-semibold text-text-primary mb-3">🎯 Focus Management</h4>
+                <p className="text-body text-text-secondary mb-4">
+                  Advanced focus trapping and restoration for accessibility.
+                </p>
+                <div className="space-y-2">
+                  <Button label="Focus Test 1" size="small" />
+                  <Button label="Focus Test 2" size="small" variant="secondary" />
+                </div>
+              </div>
+
+              <div className="bg-gray-light p-6 rounded-default">
+                <h4 className="text-lg font-semibold text-text-primary mb-3">⚡ Performance</h4>
+                <p className="text-body text-text-secondary mb-4">
+                  Optimized rendering with portal-based architecture.
+                </p>
+                <ul className="list-disc list-inside space-y-1 text-text-secondary text-sm">
+                  <li>Lazy loading support</li>
+                  <li>Efficient DOM updates</li>
+                  <li>Memory leak prevention</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </Modal>
+
+        <Modal
+          isOpen={modals.sizes}
+          onClose={() => handleModalClose('sizes')}
+          title="Size Variants Showcase"
+          size="xl"
+          animation="zoom"
+        >
+          <div className="space-y-6">
+            <p className="text-body text-text-secondary">
+              This extra-large modal demonstrates all available size options with detailed specifications.
+            </p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[
+                { size: 'sm', label: 'Small', desc: 'Compact modals for simple confirmations', maxWidth: '384px' },
+                { size: 'md', label: 'Medium', desc: 'Default size for most use cases', maxWidth: '512px' },
+                { size: 'lg', label: 'Large', desc: 'Larger modals for more content', maxWidth: '768px' },
+                { size: 'xl', label: 'Extra Large', desc: 'Maximum width for complex interfaces', maxWidth: '1024px' },
+                { size: 'full', label: 'Full Screen', desc: 'Full viewport coverage', maxWidth: '100vw × 100vh' }
+              ].map((sizeInfo, index) => (
+                <div key={index} className="p-4 border border-gray-medium rounded-default">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-semibold text-text-primary">{sizeInfo.label} ({sizeInfo.size})</h4>
+                    <Badge label={sizeInfo.maxWidth} variant="neutral" size="small" />
+                  </div>
+                  <p className="text-sm text-text-secondary">{sizeInfo.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Modal>
+
+        <Modal
+          isOpen={modals.animations}
+          onClose={() => handleModalClose('animations')}
+          title="Animation Showcase"
+          size="md"
+          animation="slideDown"
+          animationDuration={500}
+        >
+          <div className="space-y-6">
+            <p className="text-body text-text-secondary">
+              This modal uses the slideDown animation with extended duration. Available animations:
+            </p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[
+                { name: 'fade', desc: 'Simple opacity transition' },
+                { name: 'slide', desc: 'Slides in from the top' },
+                { name: 'slideUp', desc: 'Slides up from the bottom' },
+                { name: 'slideDown', desc: 'Slides down from the top' },
+                { name: 'slideLeft', desc: 'Slides in from the left' },
+                { name: 'slideRight', desc: 'Slides in from the right' },
+                { name: 'zoom', desc: 'Scales from small to full size' },
+                { name: 'none', desc: 'No animation, instant appearance' }
+              ].map((anim, index) => (
+                <div key={index} className="p-3 bg-gray-light rounded-default">
+                  <div className="flex items-center justify-between">
+                    <strong className="text-text-primary capitalize">{anim.name}:</strong>
+                    <StatusLight text="" variant="positive" size="small" />
+                  </div>
+                  <span className="text-text-secondary text-sm">{anim.desc}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Modal>
+
+        <Modal
+          isOpen={modals.variants}
+          onClose={() => handleModalClose('variants')}
+          title="Visual Variants"
+          variant="success"
+          size="md"
+        >
+          <div className="space-y-4">
+            <div className="p-4 bg-green-50 border border-green-200 rounded-default">
+              <p className="text-green-800">
+                ✅ This is a success variant modal with colored accent border and styling.
+              </p>
+            </div>
+            <p className="text-body text-text-secondary">
+              Visual variants provide contextual styling for different modal purposes:
+            </p>
+            <ul className="space-y-2 text-text-secondary">
+              <li className="flex items-center gap-2">
+                <StatusLight text="" variant="positive" size="small" />
+                <strong>Success:</strong> Confirmation messages, completed actions
+              </li>
+              <li className="flex items-center gap-2">
+                <StatusLight text="" variant="notice" size="small" />
+                <strong>Warning:</strong> Caution messages, destructive actions
+              </li>
+              <li className="flex items-center gap-2">
+                <StatusLight text="" variant="negative" size="small" />
+                <strong>Error:</strong> Error messages, critical issues
+              </li>
+              <li className="flex items-center gap-2">
+                <StatusLight text="" variant="informative" size="small" />
+                <strong>Info:</strong> Information messages, tips
+              </li>
+            </ul>
+          </div>
+        </Modal>
+
+        {/* Advanced Modal Features */}
+        <Modal
+          isOpen={modals.placements}
+          onClose={() => handleModalClose('placements')}
+          title="Placement Variations"
+          placement="top"
+          size="md"
+          animation="slideDown"
+        >
+          <div className="space-y-4">
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-default">
+              <p className="text-blue-800">
+                📍 This modal is positioned at the top of the screen with slideDown animation.
+              </p>
+            </div>
+            <p className="text-body text-text-secondary">
+              Modal placement options allow flexible positioning:
+            </p>
+            <ul className="space-y-2 text-text-secondary">
+              <li><strong>Center:</strong> Default centered position</li>
+              <li><strong>Top:</strong> Aligned to top with padding</li>
+              <li><strong>Bottom:</strong> Aligned to bottom with padding</li>
+              <li><strong>Left:</strong> Aligned to left side</li>
+              <li><strong>Right:</strong> Aligned to right side</li>
+            </ul>
+          </div>
+        </Modal>
+
+        <Modal
+          isOpen={modals.actions}
+          onClose={() => handleModalClose('actions')}
+          title="Action Buttons Demo"
+          size="md"
+          primaryAction={{
+            label: "Primary Action",
+            onClick: () => alert('Primary action clicked!'),
+            variant: "primary"
+          }}
+          secondaryAction={{
+            label: "Secondary Action", 
+            onClick: () => alert('Secondary action clicked!'),
+            variant: "secondary"
+          }}
+          cancelAction={{
+            label: "Custom Cancel",
+            onClick: () => {
+              alert('Custom cancel logic!');
+              handleModalClose('actions');
+            }
+          }}
+        >
+          <div className="space-y-4">
+            <p className="text-body text-text-secondary">
+              This modal demonstrates the built-in action button system with primary, secondary, and cancel actions.
+            </p>
+            <div className="space-y-3">
+              <div className="p-3 bg-gray-light rounded-default">
+                <strong>Primary Action:</strong> Main call-to-action button
+              </div>
+              <div className="p-3 bg-gray-light rounded-default">
+                <strong>Secondary Action:</strong> Alternative action option
+              </div>
+              <div className="p-3 bg-gray-light rounded-default">
+                <strong>Cancel Action:</strong> Cancel/close button with custom behavior
+              </div>
+            </div>
+          </div>
+        </Modal>
+
+        <Modal
+          isOpen={modals.scrollable}
+          onClose={() => handleModalClose('scrollable')}
+          title="Scrollable Content Demo"
+          size="md"
+          verticallyScrollable={true}
+          scrollable={true}
+        >
+          <div className="space-y-6">
+            <p className="text-body text-text-secondary">
+              This modal demonstrates scrollable content with proper overflow handling.
+            </p>
+            
+            {/* Generate long content */}
+            {Array.from({ length: 20 }, (_, i) => (
+              <div key={i} className="p-4 bg-gray-light rounded-default">
+                <h4 className="font-semibold text-text-primary mb-2">
+                  Section {i + 1}: Content Block
+                </h4>
+                <p className="text-text-secondary">
+                  This is scrollable content section {i + 1}. The modal maintains proper scrolling behavior 
+                  while keeping the header and footer fixed. Lorem ipsum dolor sit amet, consectetur 
+                  adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                </p>
+                {i === 10 && (
+                  <div className="mt-4 p-3 bg-primary-very-light rounded-default">
+                    <p className="text-primary text-sm">
+                      🎯 Halfway through! Notice how the header stays fixed while content scrolls.
+                    </p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </Modal>
+
+        <Modal
+          isOpen={modals.nonDismissible}
+          onClose={() => handleModalClose('nonDismissible')}
+          title="Non-Dismissible Modal"
+          size="md"
+          dismissible={false}
+          closeOnEsc={false}
+          closeOnBackdropClick={false}
+          showCloseButton={false}
+          primaryAction={{
+            label: "Complete Action",
+            onClick: () => {
+              alert('Action completed!');
+              handleModalClose('nonDismissible');
+            }
+          }}
+        >
+          <div className="space-y-4">
+            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-default">
+              <p className="text-yellow-800">
+                ⚠️ This modal cannot be dismissed by ESC key, backdrop click, or close button.
+              </p>
+            </div>
+            <p className="text-body text-text-secondary">
+              Non-dismissible modals are useful for critical processes that must be completed:
+            </p>
+            <ul className="space-y-1 text-text-secondary text-sm list-disc list-inside">
+              <li>Important confirmations</li>
+              <li>Multi-step processes</li>
+              <li>Critical data entry</li>
+              <li>System updates</li>
+            </ul>
+            <p className="text-body text-text-secondary">
+              You must click the "Complete Action" button to close this modal.
+            </p>
+          </div>
+        </Modal>
+
+        <Modal
+          isOpen={modals.staticBackdrop}
+          onClose={() => handleModalClose('staticBackdrop')}
+          title="Static Backdrop Demo"
+          backdrop="static"
+          size="md"
+        >
+          <div className="space-y-4">
+            <div className="p-4 bg-purple-50 border border-purple-200 rounded-default">
+              <p className="text-purple-800">
+                🛡️ This modal has a static backdrop - clicking outside won't close it.
+              </p>
+            </div>
+            <p className="text-body text-text-secondary">
+              Static backdrop prevents accidental dismissal while still allowing ESC key and close button.
+              Perfect for forms where you don't want to lose user input accidentally.
+            </p>
+            <div className="space-y-3">
+              <input 
+                type="text" 
+                className="w-full p-2 border border-gray-medium rounded-default"
+                placeholder="Try typing something here..."
+              />
+              <textarea 
+                className="w-full p-2 border border-gray-medium rounded-default h-20"
+                placeholder="Your input is protected from accidental loss"
+              />
+            </div>
+          </div>
+        </Modal>
+
+        <Modal
+          isOpen={modals.lifecycle}
+          onClose={() => handleModalClose('lifecycle')}
+          title="Lifecycle Events Demo"
+          size="md"
+          onEnter={() => console.log('Modal: onEnter called')}
+          onEntering={() => console.log('Modal: onEntering called')}
+          onEntered={() => console.log('Modal: onEntered called')}
+          onExit={() => console.log('Modal: onExit called')}
+          onExiting={() => console.log('Modal: onExiting called')}
+          onExited={() => console.log('Modal: onExited called')}
+          onShow={() => console.log('Modal: onShow called')}
+          onHide={() => console.log('Modal: onHide called')}
+        >
+          <div className="space-y-4">
+            <div className="p-4 bg-indigo-50 border border-indigo-200 rounded-default">
+              <p className="text-indigo-800">
+                🔄 This modal logs all lifecycle events to the browser console.
+              </p>
+            </div>
+            <p className="text-body text-text-secondary">
+              Open your browser's developer console to see the lifecycle events in action:
+            </p>
+            <ul className="space-y-1 text-text-secondary text-sm list-disc list-inside">
+              <li><strong>onEnter:</strong> Called when modal starts to open</li>
+              <li><strong>onEntering:</strong> Called during opening transition</li>
+              <li><strong>onEntered:</strong> Called when modal is fully open</li>
+              <li><strong>onExit:</strong> Called when modal starts to close</li>
+              <li><strong>onExiting:</strong> Called during closing transition</li>
+              <li><strong>onExited:</strong> Called when modal is fully closed</li>
+              <li><strong>onShow/onHide:</strong> Called on visibility changes</li>
+            </ul>
+            <p className="text-caption text-text-secondary">
+              💡 These events are useful for analytics, cleanup, and custom animations.
+            </p>
+          </div>
+        </Modal>
+
+        <Modal
+          isOpen={modals.advanced}
+          onClose={() => handleModalClose('advanced')}
+          title="Advanced Features Showcase"
+          size="lg"
+          variant="info"
+          animation="zoom"
+          animationDuration={400}
+          autoFocus={true}
+          enforceFocus={true}
+          restoreFocus={true}
+          keyboard={true}
+          zIndex={1100}
+          data-testid="advanced-modal"
+          aria-label="Advanced modal demonstration"
+        >
+          <div className="space-y-6">
+            <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-default">
+              <p className="text-blue-800">
+                🚀 This modal showcases all advanced features working together.
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <h4 className="font-semibold text-text-primary">🎯 Focus Management</h4>
+                <div className="space-y-2">
+                  <input 
+                    type="text" 
+                    className="w-full p-2 border border-gray-medium rounded-default"
+                    placeholder="Auto-focused input"
+                    autoFocus
+                  />
+                  <input 
+                    type="text" 
+                    className="w-full p-2 border border-gray-medium rounded-default"
+                    placeholder="Second input"
+                  />
+                  <Button label="Focusable Button" size="small" />
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="font-semibold text-text-primary">⚙️ Configuration</h4>
+                <ul className="space-y-1 text-sm text-text-secondary">
+                  <li>✅ Custom z-index: 1100</li>
+                  <li>✅ Zoom animation (400ms)</li>
+                  <li>✅ Info variant styling</li>
+                  <li>✅ Focus trap enabled</li>
+                  <li>✅ Keyboard navigation</li>
+                  <li>✅ Auto focus on open</li>
+                  <li>✅ Focus restoration</li>
+                  <li>✅ Data attributes</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="p-4 bg-gray-light rounded-default">
+              <h4 className="font-semibold text-text-primary mb-3">🔧 Technical Features</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div>
+                  <strong>Performance:</strong>
+                  <ul className="text-text-secondary mt-1">
+                    <li>• Portal rendering</li>
+                    <li>• Lazy mounting</li>
+                    <li>• Memory cleanup</li>
+                  </ul>
+                </div>
+                <div>
+                  <strong>Accessibility:</strong>
+                  <ul className="text-text-secondary mt-1">
+                    <li>• ARIA attributes</li>
+                    <li>• Screen reader support</li>
+                    <li>• Keyboard navigation</li>
+                  </ul>
+                </div>
+                <div>
+                  <strong>Customization:</strong>
+                  <ul className="text-text-secondary mt-1">
+                    <li>• Theme variants</li>
+                    <li>• Custom animations</li>
+                    <li>• Flexible layouts</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Modal>
 
       </main>
     </div>
