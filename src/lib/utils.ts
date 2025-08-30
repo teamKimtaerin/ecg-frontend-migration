@@ -146,6 +146,33 @@ export const SIZE_CLASSES = {
       text: 'text-lg'
     },
   },
+  // Alert Banner 전용 크기 클래스
+  alertBanner: {
+    small: {
+      container: 'p-3',
+      text: 'text-sm',
+      icon: 'w-4 h-4',
+      button: 'w-6 h-6'
+    },
+    medium: {
+      container: 'p-4',
+      text: 'text-base',
+      icon: 'w-5 h-5',
+      button: 'w-7 h-7'
+    },
+    large: {
+      container: 'p-5',
+      text: 'text-lg',
+      icon: 'w-6 h-6',
+      button: 'w-8 h-8'
+    },
+    'extra-large': {
+      container: 'p-6',
+      text: 'text-xl',
+      icon: 'w-7 h-7',
+      button: 'w-9 h-9'
+    },
+  },
 } as const;
 
 /**
@@ -171,10 +198,7 @@ export const VARIANT_STYLES = {
 } as const;
 
 /**
- * 시맨틱 컬러 스타일 (에러, 성공, 경고 등)
- */
-/**
- * Status Light variant colors
+ * Unified Color System - leveraging existing semantic colors and CSS variables
  */
 export const STATUS_LIGHT_COLORS = {
   informative: 'bg-status-informative',
@@ -192,6 +216,34 @@ export const STATUS_LIGHT_COLORS = {
   seafoam: 'bg-status-seafoam',
 } as const;
 
+/**
+ * Alert Banner variant colors - simplified to reuse existing color classes
+ */
+export const ALERT_BANNER_COLORS = {
+  neutral: {
+    background: 'bg-alert-neutral',
+    text: 'text-alert-neutral',
+    border: 'border-alert-neutral',
+    iconColor: 'text-alert-neutral'
+  },
+  informative: {
+    background: 'bg-alert-informative',
+    text: 'text-alert-informative',
+    border: 'border-alert-informative',
+    iconColor: 'text-alert-informative'
+  },
+  negative: {
+    background: 'bg-alert-negative',
+    text: 'text-alert-negative',
+    border: 'border-alert-negative',
+    iconColor: 'text-alert-negative'
+  },
+} as const;
+
+/**
+ * Semantic color system - consolidated with existing color variables
+ * Leverages existing CSS classes for consistency
+ */
 export const SEMANTIC_COLORS = {
   error: {
     fill: ['bg-red-50', 'text-red-700', 'border', 'border-red-200'],
@@ -202,28 +254,31 @@ export const SEMANTIC_COLORS = {
     hover: 'hover:bg-red-100'
   },
   success: {
-    fill: ['bg-green-50', 'text-green-700', 'border', 'border-green-200'],
-    outline: ['border', 'border-green-200', 'text-green-700', 'hover:bg-green-50'],
-    background: 'bg-green-50',
-    text: 'text-green-700',
-    border: 'border-green-200',
-    hover: 'hover:bg-green-100'
+    // Using positive status color for consistency with StatusLight
+    fill: ['bg-status-positive', 'text-white', 'border', 'border-status-positive'],
+    outline: ['border', 'border-status-positive', 'text-status-positive', 'hover:bg-status-positive'],
+    background: 'bg-status-positive',
+    text: 'text-white',
+    border: 'border-status-positive',
+    hover: 'hover:bg-status-positive'
   },
   warning: {
-    fill: ['bg-yellow-50', 'text-yellow-700', 'border', 'border-yellow-200'],
-    outline: ['border', 'border-yellow-200', 'text-yellow-700', 'hover:bg-yellow-50'],
-    background: 'bg-yellow-50',
-    text: 'text-yellow-700',
-    border: 'border-yellow-200',
-    hover: 'hover:bg-yellow-100'
+    // Using notice status color for consistency with StatusLight
+    fill: ['bg-status-notice', 'text-white', 'border', 'border-status-notice'],
+    outline: ['border', 'border-status-notice', 'text-status-notice', 'hover:bg-status-notice'],
+    background: 'bg-status-notice',
+    text: 'text-white',
+    border: 'border-status-notice',
+    hover: 'hover:bg-status-notice'
   },
   info: {
-    fill: ['bg-blue-50', 'text-blue-700', 'border', 'border-blue-200'],
-    outline: ['border', 'border-blue-200', 'text-blue-700', 'hover:bg-blue-50'],
-    background: 'bg-blue-50',
-    text: 'text-blue-700',
-    border: 'border-blue-200',
-    hover: 'hover:bg-blue-100'
+    // Using informative status color for consistency with StatusLight
+    fill: ['bg-status-informative', 'text-white', 'border', 'border-status-informative'],
+    outline: ['border', 'border-status-informative', 'text-status-informative', 'hover:bg-status-informative'],
+    background: 'bg-status-informative',
+    text: 'text-white',
+    border: 'border-status-informative',
+    hover: 'hover:bg-status-informative'
   },
   neutral: {
     fill: ['bg-surface-secondary', 'text-text-primary', 'border', 'border-border'],

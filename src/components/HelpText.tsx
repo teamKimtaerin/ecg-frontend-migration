@@ -19,20 +19,6 @@ export interface HelpTextProps {
   id?: string;
 }
 
-const HELP_TEXT_SIZE_CLASSES = {
-  small: {
-    container: 'text-xs',
-  },
-  medium: {
-    container: 'text-sm',
-  },
-  large: {
-    container: 'text-base',
-  },
-  'extra-large': {
-    container: 'text-lg',
-  }
-} as const;
 
 const HelpText: React.FC<HelpTextProps> = ({
   text,
@@ -43,7 +29,13 @@ const HelpText: React.FC<HelpTextProps> = ({
   className,
   id
 }) => {
-  const sizeClasses = HELP_TEXT_SIZE_CLASSES[size];
+  // Typography 크기 클래스 매핑 (기존 SIZE_CLASSES 활용)
+  const textSizeMapping = {
+    small: 'text-xs',
+    medium: 'text-sm',
+    large: 'text-base',
+    'extra-large': 'text-lg',
+  } as const;
 
   // 아이콘 표시 여부 결정
   const shouldShowIcon = !hideIcon && (variant === 'negative' || variant === 'neutral');
@@ -51,7 +43,7 @@ const HelpText: React.FC<HelpTextProps> = ({
   // 컨테이너 클래스
   const containerClasses = cn(
     'inline-flex items-start',
-    sizeClasses.container,
+    textSizeMapping[size],
     SIZE_CLASSES.gap[size],
     
     // Variant별 색상

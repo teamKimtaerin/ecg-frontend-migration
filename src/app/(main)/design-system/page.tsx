@@ -13,6 +13,7 @@ import HelpText from '@/components/HelpText';
 import ProgressBar from '@/components/ProgressBar';
 import ProgressCircle from '@/components/ProgressCircle';
 import StatusLight from '@/components/StatusLight';
+import AlertBanner from '@/components/AlertBanner';
 import { StarIcon, HeartIcon, PlusIcon, HomeIcon, UserIcon, SettingsIcon } from '@/components/icons';
 
 export default function Home() {
@@ -3409,6 +3410,134 @@ export default function Home() {
                       <span className="text-sm text-text-secondary">Connection</span>
                       <StatusLight label="Connection lost" variant="negative" size="small" />
                     </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Alert Banner Section */}
+        <section className="space-y-8">
+          <div>
+            <h2 className="text-h2 text-text-primary mb-6">Alert Banner</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              
+              {/* Variants */}
+              <div>
+                <h3 className="text-h3 text-text-primary mb-4">Variants</h3>
+                <div className="space-y-6">
+                  
+                  {/* Basic Variants */}
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Basic Variants</h4>
+                    <div className="space-y-4">
+                      <AlertBanner 
+                        text="This is a neutral alert message." 
+                        variant="neutral"
+                      />
+                      <AlertBanner 
+                        text="This is an informative alert with important information." 
+                        variant="informative"
+                      />
+                      <AlertBanner 
+                        text="This is a negative alert indicating an error or warning." 
+                        variant="negative"
+                      />
+                    </div>
+                  </div>
+
+                  {/* With Action Button */}
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">With Action Button</h4>
+                    <div className="space-y-4">
+                      <AlertBanner 
+                        text="Your account needs verification." 
+                        variant="informative"
+                        actionLabel="Verify Now"
+                        onAction={() => alert('Verify action clicked!')}
+                      />
+                      <AlertBanner 
+                        text="There was an issue processing your request." 
+                        variant="negative"
+                        actionLabel="Try Again"
+                        onAction={() => alert('Try Again clicked!')}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sizes & Features */}
+              <div className="space-y-6">
+                
+                {/* Sizes */}
+                <div>
+                  <h4 className="font-semibold text-text-primary mb-3">Sizes</h4>
+                  <div className="space-y-4">
+                    <AlertBanner 
+                      text="Small alert banner" 
+                      variant="informative" 
+                      size="small" 
+                    />
+                    <AlertBanner 
+                      text="Medium alert banner (default)" 
+                      variant="informative" 
+                      size="medium" 
+                    />
+                    <AlertBanner 
+                      text="Large alert banner" 
+                      variant="informative" 
+                      size="large" 
+                    />
+                    <AlertBanner 
+                      text="Extra large alert banner" 
+                      variant="informative" 
+                      size="extra-large" 
+                    />
+                  </div>
+                </div>
+
+                {/* Dismissible */}
+                <div>
+                  <h4 className="font-semibold text-text-primary mb-3">Dismissible</h4>
+                  <div className="space-y-4">
+                    <AlertBanner 
+                      text="This alert can be dismissed by clicking the X button." 
+                      variant="neutral"
+                      isDismissible
+                      onDismiss={() => console.log('Alert dismissed')}
+                    />
+                    <AlertBanner 
+                      text="Important notification that can be closed." 
+                      variant="informative"
+                      isDismissible
+                      onDismiss={() => console.log('Alert dismissed')}
+                    />
+                  </div>
+                </div>
+
+                {/* Complex Examples */}
+                <div>
+                  <h4 className="font-semibold text-text-primary mb-3">Complete Examples</h4>
+                  <div className="space-y-4">
+                    <AlertBanner 
+                      text="Your subscription expires in 3 days. Renew now to avoid service interruption." 
+                      variant="informative"
+                      actionLabel="Renew Subscription"
+                      onAction={() => alert('Renew clicked!')}
+                      isDismissible
+                      onDismiss={() => console.log('Subscription alert dismissed')}
+                    />
+                    <AlertBanner 
+                      text="Failed to save changes. Please check your connection and try again." 
+                      variant="negative"
+                      actionLabel="Retry"
+                      onAction={() => alert('Retry clicked!')}
+                      isDismissible
+                      onDismiss={() => console.log('Error alert dismissed')}
+                      size="large"
+                    />
                   </div>
                 </div>
               </div>

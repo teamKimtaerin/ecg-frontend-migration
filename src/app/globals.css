@@ -25,12 +25,12 @@
   --color-red-600: #DC2626;
   --color-red-700: #B91C1C;
   
-  /* Status Light Colors */
-  --color-informative: #146EF5;
-  --color-neutral: #76797d;
+  /* Status Light Colors - reusing existing colors where possible */
+  --color-informative: var(--color-primary); /* #146EF5 - reuse primary */
+  --color-neutral: var(--color-gray-slate); /* #76797d - reuse gray-slate */
   --color-positive: #10B981;
   --color-notice: #F59E0B;
-  --color-negative: #DC2626;
+  --color-negative: var(--color-red-600); /* #DC2626 - reuse red-600 */
   --color-indigo: #6366F1;
   --color-celery: #84CC16;
   --color-chartreuse: #A3E635;
@@ -39,6 +39,17 @@
   --color-fuchsia: #D946EF;
   --color-purple: #8B5CF6;
   --color-seafoam: #14B8A6;
+  
+  /* Alert Banner Colors - reusing existing color system */
+  --color-alert-neutral-bg: var(--color-gray-light); /* #F8FAFC */
+  --color-alert-informative-bg: var(--color-primary-very-light); /* #DBEAFE */
+  --color-alert-negative-bg: var(--color-red-50); /* #FEF2F2 */
+  --color-alert-neutral-text: #374151;
+  --color-alert-informative-text: #1E40AF;
+  --color-alert-negative-text: var(--color-red-700); /* #991B1B -> use existing red-700 */
+  --color-alert-neutral-border: var(--color-gray-medium); /* #E5E7EB -> similar to gray-medium */
+  --color-alert-informative-border: #93C5FD;
+  --color-alert-negative-border: var(--color-red-200); /* #FECACA -> use existing red-200 */
   
   /* Theme Variables */
   --background: var(--color-black);
@@ -246,6 +257,13 @@ body {
 .text-red-600 { color: var(--color-red-600); }
 .text-red-700 { color: var(--color-red-700); }
 
+/* Status Color Text Classes (for semantic consistency) */
+.text-status-informative { color: var(--color-informative); }
+.text-status-neutral { color: var(--color-neutral); }
+.text-status-positive { color: var(--color-positive); }
+.text-status-notice { color: var(--color-notice); }
+.text-status-negative { color: var(--color-negative); }
+
 /* Status Light Color Classes */
 .bg-status-informative { background-color: var(--color-informative); }
 .bg-status-neutral { background-color: var(--color-neutral); }
@@ -260,6 +278,19 @@ body {
 .bg-status-fuchsia { background-color: var(--color-fuchsia); }
 .bg-status-purple { background-color: var(--color-purple); }
 .bg-status-seafoam { background-color: var(--color-seafoam); }
+
+/* Alert Banner Color Classes - using CSS variables */
+.bg-alert-neutral { background-color: var(--color-alert-neutral-bg); }
+.bg-alert-informative { background-color: var(--color-alert-informative-bg); }
+.bg-alert-negative { background-color: var(--color-alert-negative-bg); }
+
+.text-alert-neutral { color: var(--color-alert-neutral-text); }
+.text-alert-informative { color: var(--color-alert-informative-text); }
+.text-alert-negative { color: var(--color-alert-negative-text); }
+
+.border-alert-neutral { border-color: var(--color-alert-neutral-border); }
+.border-alert-informative { border-color: var(--color-alert-informative-border); }
+.border-alert-negative { border-color: var(--color-alert-negative-border); }
 
 /* Contextual Text Colors (for light backgrounds) */
 .bg-white .text-text-primary,
@@ -319,6 +350,13 @@ body {
 .border-white { border-color: var(--color-white); }
 .border-black { border-color: var(--color-black); }
 .border-red-200 { border-color: var(--color-red-200); }
+
+/* Status Color Borders (for semantic consistency) */
+.border-status-informative { border-color: var(--color-informative); }
+.border-status-neutral { border-color: var(--color-neutral); }
+.border-status-positive { border-color: var(--color-positive); }
+.border-status-notice { border-color: var(--color-notice); }
+.border-status-negative { border-color: var(--color-negative); }
 
 /* Border Radius */
 .rounded-default { border-radius: var(--radius-default); }
