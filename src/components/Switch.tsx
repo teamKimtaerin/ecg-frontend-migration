@@ -5,47 +5,20 @@ import {
   cn, 
   getDisabledClasses,
   SIZE_CLASSES,
-  type ComponentSize
+  TRANSITIONS,
+  createClickHandler,
+  createKeyboardHandler,
+  type InteractiveComponentProps
 } from '@/lib/utils';
 
-export interface SwitchProps {
+export interface SwitchProps extends InteractiveComponentProps {
   label?: string;
   isSelected?: boolean;
-  size?: ComponentSize;
   isEmphasized?: boolean;
-  isDisabled?: boolean;
-  isReadOnly?: boolean;
   onChange?: (selected: boolean) => void;
-  className?: string;
   id?: string;
 }
 
-const SWITCH_SIZE_CLASSES = {
-  small: {
-    track: 'w-9 h-5',
-    thumb: 'w-4 h-4',
-    thumbTransform: 'translate-x-4',
-    thumbPosition: 'top-1/2 -translate-y-1/2 left-0.2'
-  },
-  medium: {
-    track: 'w-11 h-6', 
-    thumb: 'w-5 h-5',
-    thumbTransform: 'translate-x-5',
-    thumbPosition: 'top-1/2 -translate-y-1/2 left-0.2'
-  },
-  large: {
-    track: 'w-13 h-7',
-    thumb: 'w-6 h-6', 
-    thumbTransform: 'translate-x-6',
-    thumbPosition: 'top-1/2 -translate-y-1/2 left-0.2'
-  },
-  'extra-large': {
-    track: 'w-15 h-8',
-    thumb: 'w-7 h-7',
-    thumbTransform: 'translate-x-7',
-    thumbPosition: 'top-1/2 -translate-y-1/2 left-0.2'
-  }
-} as const;
 
 const Switch: React.FC<SwitchProps> = ({
   label,
@@ -58,25 +31,24 @@ const Switch: React.FC<SwitchProps> = ({
   className,
   id
 }) => {
-  const sizeClasses = SWITCH_SIZE_CLASSES[size];
+  const sizeClasses = SIZE_CLASSES.switch[size];
   
-  const handleClick = () => {
-    if (isDisabled || isReadOnly) return;
-    onChange?.(!isSelected);
-  };
+  const handleClick = createClickHandler({
+    isDisabled,
+    isReadOnly,
+    onClick: () => onChange?.(!isSelected)
+  });
 
-  const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (isDisabled || isReadOnly) return;
-    if (event.key === ' ' || event.key === 'Enter') {
-      event.preventDefault();
-      onChange?.(!isSelected);
-    }
-  };
+  const handleKeyDown = createKeyboardHandler({
+    isDisabled,
+    isReadOnly,
+    onActivate: () => onChange?.(!isSelected)
+  });
 
   const trackClasses = cn(
     'relative inline-flex items-center shrink-0 cursor-pointer',
     'rounded-full',
-    'transition-all duration-300 ease-in-out',
+    TRANSITIONS.normal,
     'border-2 border-transparent',
     sizeClasses.track,
     
@@ -112,7 +84,7 @@ const Switch: React.FC<SwitchProps> = ({
     'bg-white',
     'rounded-full',
     'shadow-md',
-    'transition-transform duration-300 ease-out',
+    TRANSITIONS.transform,
     'pointer-events-none',
     sizeClasses.thumb,
     

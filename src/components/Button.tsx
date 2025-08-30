@@ -7,27 +7,25 @@ import {
   getSizeClasses,
   getVariantClasses,
   getDisabledClasses,
-  type ComponentSize,
+  logComponentWarning,
+  SIZE_CLASSES,
   type ComponentVariant, 
   type ComponentStyle,
   type StaticColor,
-  SIZE_CLASSES
+  type BaseComponentProps
 } from '@/lib/utils';
 
-export interface ButtonProps {
+export interface ButtonProps extends BaseComponentProps {
   label?: string;
   hideLabel?: string;
   icon?: React.ReactNode;
   variant?: ComponentVariant;
   staticColor?: StaticColor;
   style?: ComponentStyle;
-  size?: ComponentSize;
   justified?: boolean;
   isPending?: boolean;
-  isDisabled?: boolean;
   onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
   type?: 'button' | 'submit' | 'reset';
-  className?: string;
   children?: React.ReactNode;
 }
 
@@ -49,7 +47,7 @@ const Button: React.FC<ButtonProps> = ({
 }) => {
   // Validation
   if (!label && !icon && !children) {
-    console.warn('Button: Either label, icon, or children must be provided.');
+    logComponentWarning('Button', 'Either label, icon, or children must be provided.');
   }
 
   // Build button classes
@@ -71,7 +69,7 @@ const Button: React.FC<ButtonProps> = ({
     className
   );
 
-  // Event handlers
+  // Event handlers - 기존 onClick 시그니처 유지를 위해 직접 구현
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     if (isPending || isDisabled) {
       event.preventDefault();
@@ -91,7 +89,7 @@ const Button: React.FC<ButtonProps> = ({
       <>
         {/* Loading Spinner */}
         {showSpinner && (
-          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2" />
+          <div className={cn("animate-spin rounded-full border-b-2 border-current", SIZE_CLASSES.iconClasses[size], hasLabel && 'mr-2')} />
         )}
         
         {/* Icon */}

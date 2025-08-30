@@ -1,19 +1,25 @@
 'use client';
 
 import React from 'react';
-import { cn } from '@/lib/utils';
+import { 
+  cn, 
+  SIZE_CLASSES,
+  SEMANTIC_COLORS,
+  TRANSITIONS,
+  createClickHandler,
+  createKeyboardHandler,
+  logComponentWarning,
+  type InteractiveComponentProps
+} from '@/lib/utils';
 
-export interface TagProps {
+export interface TagProps extends Omit<InteractiveComponentProps, 'size'> {
   label: string;
   hasAvatar?: boolean;
   avatar?: React.ReactNode;
   isRemovable?: boolean;
   isError?: boolean;
-  isDisabled?: boolean;
-  isReadOnly?: boolean;
   onRemove?: () => void;
-  onClick?: () => void;
-  className?: string;
+  size?: keyof typeof SIZE_CLASSES.tag;
 }
 
 const Tag: React.FC<TagProps> = ({
@@ -22,6 +28,7 @@ const Tag: React.FC<TagProps> = ({
   avatar,
   isRemovable = false,
   isError = false,
+  size = 'medium',
   isDisabled = false,
   isReadOnly = false,
   onRemove,
@@ -30,78 +37,56 @@ const Tag: React.FC<TagProps> = ({
 }) => {
   // Validation
   if (hasAvatar && !avatar) {
-    console.warn('Tag: Avatar content must be provided when hasAvatar is true.');
+    logComponentWarning('Tag', 'Avatar content must be provided when hasAvatar is true.');
   }
 
-  // Base tag classes
+  // Base tag classes 
   const baseClasses = [
     'inline-flex',
     'items-center',
     'gap-1.5',
-    'px-2',
-    'py-1',
-    'text-caption',
     'font-medium',
     'rounded-small',
-    'transition-colors',
-    'duration-200',
+    TRANSITIONS.colors,
+    SIZE_CLASSES.tag[size || 'medium'],
   ];
 
   // State-based styling
   const getStateClasses = () => {
     const classes = [];
-
-    // Error state (highest priority)
-    if (isError) {
-      classes.push(
-        'bg-red-50',
-        'text-red-700',
-        'border',
-        'border-red-200'
-      );
-    } 
-    // Normal state
-    else {
-      classes.push(
-        'bg-surface-secondary',
-        'text-text-primary',
-        'border',
-        'border-border'
-      );
-    }
+    
+    // Semantic color styling
+    const semantic = isError ? 'error' : 'neutral';
+    classes.push(...SEMANTIC_COLORS[semantic].fill);
 
     // Disabled state
     if (isDisabled) {
       classes.push('opacity-50', 'cursor-not-allowed');
     } 
     // Interactive states (when not disabled)
-    else if (!isReadOnly) {
-      if (onClick) {
-        classes.push('cursor-pointer');
-        if (isError) {
-          classes.push('hover:bg-red-100');
-        } else {
-          classes.push('hover:bg-gray-medium');
-        }
-      }
+    else if (!isReadOnly && onClick) {
+      classes.push('cursor-pointer');
+      classes.push(SEMANTIC_COLORS[semantic].hover);
     }
 
     return classes;
   };
 
   // Handle tag click
-  const handleTagClick = () => {
-    if (!isDisabled && !isReadOnly && onClick) {
-      onClick();
-    }
-  };
+  const handleTagClick = createClickHandler({
+    isDisabled,
+    isReadOnly,
+    onClick
+  });
 
   // Handle remove click
   const handleRemoveClick = (event: React.MouseEvent) => {
     event.stopPropagation();
-    if (!isDisabled && !isReadOnly && onRemove) {
-      onRemove();
-    }
+    createClickHandler({
+      isDisabled,
+      isReadOnly,
+      onClick: onRemove
+    })(event);
   };
 
   // Remove button classes
@@ -114,8 +99,7 @@ const Tag: React.FC<TagProps> = ({
       'flex',
       'items-center',
       'justify-center',
-      'transition-colors',
-      'duration-200',
+      TRANSITIONS.colors,
     ];
 
     if (isDisabled || isReadOnly) {
@@ -171,12 +155,11 @@ const Tag: React.FC<TagProps> = ({
       tabIndex={!isDisabled && !isReadOnly && onClick ? 0 : undefined}
       aria-disabled={isDisabled}
       aria-readonly={isReadOnly}
-      onKeyDown={(e) => {
-        if ((e.key === 'Enter' || e.key === ' ') && onClick) {
-          e.preventDefault();
-          handleTagClick();
-        }
-      }}
+      onKeyDown={createKeyboardHandler({
+        isDisabled,
+        isReadOnly,
+        onActivate: onClick ? () => onClick() : undefined
+      })}
     >
       {/* Avatar */}
       {renderAvatar()}

@@ -4,11 +4,12 @@ import React from 'react';
 import { 
   cn, 
   SIZE_CLASSES,
+  TRANSITIONS,
   calculateProgress,
-  type ComponentSize
+  type BaseComponentProps
 } from '@/lib/utils';
 
-export interface ProgressBarProps {
+export interface ProgressBarProps extends BaseComponentProps {
   variant?: 'default' | 'over-background';
   label?: string;
   value?: number;
@@ -16,9 +17,7 @@ export interface ProgressBarProps {
   maxValue?: number;
   valueLabel?: string;
   width?: number;
-  size?: ComponentSize;
   isIndeterminate?: boolean;
-  className?: string;
   id?: string;
 }
 
@@ -64,7 +63,8 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
 
   // 프로그레스 바 클래스 (진행 부분)
   const progressClasses = cn(
-    'h-full rounded-full transition-all duration-300 ease-out',
+    'h-full rounded-full',
+    TRANSITIONS.normal,
     
     // Variant별 색상
     variant === 'over-background'
@@ -91,13 +91,19 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
 
   // Indeterminate 애니메이션을 위한 스타일
   const indeterminateStyle = isIndeterminate ? {
-    background: variant === 'over-background' 
+    backgroundImage: variant === 'over-background' 
       ? 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.6) 50%, transparent 100%)'
       : 'linear-gradient(90deg, transparent 0%, var(--color-primary) 50%, transparent 100%)',
     backgroundSize: '50% 100%',
+    backgroundRepeat: 'no-repeat',
     animation: 'indeterminate 2s infinite linear',
     width: '100%'
   } : {
+    // 명시적으로 background 속성들 리셋
+    backgroundImage: 'none',
+    backgroundSize: 'auto',
+    backgroundRepeat: 'repeat',
+    animation: 'none',
     width: `${percentage}%`
   };
 

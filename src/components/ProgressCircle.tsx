@@ -3,17 +3,17 @@
 import React from 'react';
 import { 
   cn,
-  calculateProgress
+  TRANSITIONS,
+  calculateProgress,
+  type BaseComponentProps
 } from '@/lib/utils';
 
-export interface ProgressCircleProps {
+export interface ProgressCircleProps extends BaseComponentProps {
   variant?: 'default' | 'over-background';
   value?: number;
   minValue?: number;
   maxValue?: number;
-  size?: 'small' | 'medium' | 'large';
   isIndeterminate?: boolean;
-  className?: string;
   id?: string;
   children?: React.ReactNode; // 써클 중앙에 표시할 내용
 }
@@ -56,7 +56,7 @@ const ProgressCircle: React.FC<ProgressCircleProps> = ({
   id,
   children
 }) => {
-  const sizeClasses = PROGRESS_CIRCLE_SIZE_CLASSES[size];
+  const sizeClasses = PROGRESS_CIRCLE_SIZE_CLASSES[size as keyof typeof PROGRESS_CIRCLE_SIZE_CLASSES];
   
   // 진행률 계산 (indeterminate가 아닐 때만)
   const percentage = isIndeterminate ? 0 : calculateProgress(value, minValue, maxValue);
@@ -78,7 +78,7 @@ const ProgressCircle: React.FC<ProgressCircleProps> = ({
 
   // SVG 트랙 클래스 (배경 원) - Color System 사용
   const trackClasses = cn(
-    'transition-all duration-300',
+    TRANSITIONS.normal,
     variant === 'over-background' 
       ? 'stroke-white opacity-30'
       : 'stroke-gray-medium'
@@ -86,7 +86,7 @@ const ProgressCircle: React.FC<ProgressCircleProps> = ({
 
   // SVG 프로그레스 클래스 (진행 원) - Color System 사용
   const progressClasses = cn(
-    'transition-all duration-500 ease-out'
+    TRANSITIONS.slow
   );
   
   // SVG stroke 색상 스타일 (CSS 변수 직접 사용)

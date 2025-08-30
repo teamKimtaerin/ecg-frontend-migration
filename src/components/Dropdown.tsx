@@ -4,7 +4,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   cn, 
   getDisabledClasses,
-  getSizeClasses,
   SIZE_CLASSES,
   type ComponentSize
 } from '@/lib/utils';

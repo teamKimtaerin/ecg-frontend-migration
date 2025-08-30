@@ -2,7 +2,7 @@
 
 import React, { Children, cloneElement, isValidElement } from 'react';
 import { ButtonProps } from './Button';
-import { cn, type ComponentSize } from '@/lib/utils';
+import { type ComponentSize } from '@/lib/utils';
 
 export interface ButtonGroupProps {
   orientation?: 'horizontal' | 'vertical';
