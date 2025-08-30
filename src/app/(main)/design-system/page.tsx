@@ -10,6 +10,7 @@ import Tag from '@/components/Tag';
 import Switch from '@/components/Switch';
 import Dropdown from '@/components/Dropdown';
 import HelpText from '@/components/HelpText';
+import ProgressBar from '@/components/ProgressBar';
 import { StarIcon, HeartIcon, PlusIcon, HomeIcon, UserIcon, SettingsIcon } from '@/components/icons';
 
 export default function Home() {
@@ -82,6 +83,28 @@ export default function Home() {
       icon: <SettingsIcon className="w-full h-full" />
     },
   ];
+
+  // Progress Bar states  
+  const [progressValues, setProgressValues] = useState({
+    basic: 65,
+    download: 45,
+    upload: 80,
+    processing: 25,
+    loading: 90,
+  });
+
+  // 프로그레스 애니메이션을 위한 useEffect 예제
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setProgressValues(prev => ({
+        ...prev,
+        download: prev.download == 100 ? 0 : Math.min(100, prev.download + Math.random() * 10),
+        processing: prev.processing == 100 ? 0 : Math.min(100, prev.processing + Math.random() * 5),
+      }));
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const UserAvatar = () => (
     <div className="w-full h-full bg-primary text-white flex items-center justify-center text-xs font-bold">
@@ -2493,6 +2516,387 @@ export default function Home() {
                         variant="negative"
                         size="small"
                       />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Progress Bar Components */}
+        <section className="mb-8">
+          <h2 className="text-h2 mb-4 text-text-primary">Progress Bar Components</h2>
+          <p className="text-body text-text-secondary mb-8">작업 진행률 표시를 위한 프로그레스 바 컴포넌트 - 로딩, 업로드, 다운로드 상태 표시</p>
+
+          {/* Progress Bar Variants */}
+          <div className="mb-8">
+            <h3 className="text-h3 mb-6 text-text-primary">Progress Bar Variants</h3>
+            <div className="bg-surface p-8 rounded-default border border-border">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Default Variant</h4>
+                    <div className="space-y-4">
+                      <ProgressBar 
+                        label="File Upload"
+                        value={progressValues.upload}
+                        valueLabel={`${Math.round(progressValues.upload)}%`}
+                        width={300}
+                      />
+                      <ProgressBar 
+                        label="Data Processing"
+                        value={progressValues.processing}
+                        valueLabel={`${Math.round(progressValues.processing)}%`}
+                        width={300}
+                      />
+                      <ProgressBar 
+                        label="System Loading"
+                        value={progressValues.loading}
+                        valueLabel="90%"
+                        width={300}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">With Custom Range</h4>
+                    <div className="space-y-4">
+                      <ProgressBar 
+                        label="Temperature"
+                        value={25}
+                        minValue={-10}
+                        maxValue={50}
+                        valueLabel="25°C"
+                        width={300}
+                      />
+                      <ProgressBar 
+                        label="Score"
+                        value={850}
+                        minValue={0}
+                        maxValue={1000}
+                        valueLabel="850/1000"
+                        width={300}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Over Background Variant</h4>
+                    <div className="bg-primary p-6 rounded-default space-y-4">
+                      <ProgressBar 
+                        variant="over-background"
+                        label="Download Progress"
+                        value={progressValues.download}
+                        valueLabel={`${Math.round(progressValues.download)}%`}
+                        width={280}
+                      />
+                      <ProgressBar 
+                        variant="over-background"
+                        label="Installation"
+                        value={75}
+                        valueLabel="75%"
+                        width={280}
+                      />
+                      <ProgressBar 
+                        variant="over-background"
+                        label="Sync Status"
+                        value={60}
+                        valueLabel="3 of 5 files"
+                        width={280}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Indeterminate State</h4>
+                    <div className="space-y-4">
+                      <ProgressBar 
+                        label="Loading..."
+                        isIndeterminate={true}
+                        width={300}
+                      />
+                      <div className="bg-primary p-4 rounded-default">
+                        <ProgressBar 
+                          variant="over-background"
+                          label="Please wait..."
+                          isIndeterminate={true}
+                          width={280}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Progress Bar Sizes */}
+          <div className="mb-8">
+            <h3 className="text-h3 mb-6 text-text-primary">Progress Bar Sizes</h3>
+            <div className="bg-surface p-8 rounded-default border border-border">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Default Variant Sizes</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-sm text-text-secondary mb-2">Small</p>
+                        <ProgressBar 
+                          size="small"
+                          label="Small Progress"
+                          value={40}
+                          valueLabel="40%"
+                          width={250}
+                        />
+                      </div>
+                      <div>
+                        <p className="text-sm text-text-secondary mb-2">Medium (Default)</p>
+                        <ProgressBar 
+                          size="medium"
+                          label="Medium Progress"
+                          value={60}
+                          valueLabel="60%"
+                          width={250}
+                        />
+                      </div>
+                      <div>
+                        <p className="text-sm text-text-secondary mb-2">Large</p>
+                        <ProgressBar 
+                          size="large"
+                          label="Large Progress"
+                          value={80}
+                          valueLabel="80%"
+                          width={250}
+                        />
+                      </div>
+                      <div>
+                        <p className="text-sm text-text-secondary mb-2">Extra Large</p>
+                        <ProgressBar 
+                          size="extra-large"
+                          label="Extra Large Progress"
+                          value={90}
+                          valueLabel="90%"
+                          width={250}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Over Background Sizes</h4>
+                    <div className="bg-primary p-6 rounded-default space-y-4">
+                      <div>
+                        <p className="text-sm text-white opacity-80 mb-2">Small</p>
+                        <ProgressBar 
+                          variant="over-background"
+                          size="small"
+                          label="Small Progress"
+                          value={40}
+                          valueLabel="40%"
+                          width={220}
+                        />
+                      </div>
+                      <div>
+                        <p className="text-sm text-white opacity-80 mb-2">Medium</p>
+                        <ProgressBar 
+                          variant="over-background"
+                          size="medium"
+                          label="Medium Progress"
+                          value={60}
+                          valueLabel="60%"
+                          width={220}
+                        />
+                      </div>
+                      <div>
+                        <p className="text-sm text-white opacity-80 mb-2">Large</p>
+                        <ProgressBar 
+                          variant="over-background"
+                          size="large"
+                          label="Large Progress"
+                          value={80}
+                          valueLabel="80%"
+                          width={220}
+                        />
+                      </div>
+                      <div>
+                        <p className="text-sm text-white opacity-80 mb-2">Extra Large</p>
+                        <ProgressBar 
+                          variant="over-background"
+                          size="extra-large"
+                          label="Extra Large Progress"
+                          value={90}
+                          valueLabel="90%"
+                          width={220}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Progress Bar Usage Examples */}
+          <div className="mb-8">
+            <h3 className="text-h3 mb-6 text-text-primary">Usage Examples</h3>
+            <div className="bg-surface p-8 rounded-default border border-border">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">File Operations</h4>
+                    <div className="space-y-4">
+                      <ProgressBar 
+                        label="document.pdf"
+                        value={progressValues.download}
+                        valueLabel={`${Math.round(progressValues.download)}% • ${Math.round(progressValues.download * 2.5)}MB of 250MB`}
+                        width={320}
+                        size="small"
+                      />
+                      <ProgressBar 
+                        label="Uploading photos..."
+                        value={75}
+                        valueLabel="15 of 20 files"
+                        width={320}
+                        size="small"
+                      />
+                      <ProgressBar 
+                        label="Backup in progress"
+                        isIndeterminate={true}
+                        width={320}
+                        size="small"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">System Status</h4>
+                    <div className="space-y-4">
+                      <ProgressBar 
+                        label="Memory Usage"
+                        value={65}
+                        valueLabel="6.5GB of 10GB"
+                        width={320}
+                        size="small"
+                      />
+                      <ProgressBar 
+                        label="Storage"
+                        value={85}
+                        valueLabel="850GB of 1TB"
+                        width={320}
+                        size="small"
+                      />
+                      <ProgressBar 
+                        label="CPU Usage"
+                        value={45}
+                        valueLabel="45%"
+                        width={320}
+                        size="small"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Learning Progress</h4>
+                    <div className="space-y-4">
+                      <ProgressBar 
+                        label="JavaScript Course"
+                        value={80}
+                        valueLabel="8 of 10 lessons"
+                        width={320}
+                      />
+                      <ProgressBar 
+                        label="React Fundamentals"
+                        value={60}
+                        valueLabel="12 of 20 lessons"
+                        width={320}
+                      />
+                      <ProgressBar 
+                        label="TypeScript Basics"
+                        value={30}
+                        valueLabel="3 of 10 lessons"
+                        width={320}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Project Completion</h4>
+                    <div className="space-y-4">
+                      <ProgressBar 
+                        label="Website Redesign"
+                        value={90}
+                        valueLabel="9 of 10 tasks"
+                        width={320}
+                      />
+                      <ProgressBar 
+                        label="Mobile App Development"
+                        value={45}
+                        valueLabel="Phase 2 of 4"
+                        width={320}
+                      />
+                      <ProgressBar 
+                        label="Quality Assurance"
+                        value={15}
+                        valueLabel="Getting started..."
+                        width={320}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Interactive Progress Examples */}
+          <div className="mb-8">
+            <h3 className="text-h3 mb-6 text-text-primary">Interactive Examples</h3>
+            <div className="bg-surface p-8 rounded-default border border-border">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Dynamic Progress</h4>
+                    <div className="space-y-4">
+                      <ProgressBar 
+                        label="Auto-updating Download"
+                        value={progressValues.download}
+                        valueLabel={`${Math.round(progressValues.download)}%`}
+                        width={300}
+                      />
+                      <ProgressBar 
+                        label="Processing Data"
+                        value={progressValues.processing}
+                        valueLabel={`${Math.round(progressValues.processing)}%`}
+                        width={300}
+                      />
+                      <p className="text-sm text-text-secondary">
+                        These progress bars update automatically every second
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-text-primary mb-3">Without Labels</h4>
+                    <div className="space-y-4">
+                      <ProgressBar 
+                        value={25}
+                        width={300}
+                      />
+                      <ProgressBar 
+                        value={50}
+                        width={300}
+                      />
+                      <ProgressBar 
+                        value={75}
+                        width={300}
+                      />
+                      <ProgressBar 
+                        value={100}
+                        width={300}
+                      />
+                      <p className="text-sm text-text-secondary">
+                        Clean progress bars without any text labels
+                      </p>
                     </div>
                   </div>
                 </div>
