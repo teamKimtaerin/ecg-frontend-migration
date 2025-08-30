@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Dropdown from '@/components/Dropdown';
 import { HomeIcon, UserIcon, SettingsIcon } from '@/components/icons';
+import { DESIGN_SYSTEM_CONSTANTS, getSpacingClass } from './constants';
 
 const DropdownDemo: React.FC = () => {
   const [dropdowns, setDropdowns] = useState({
@@ -51,19 +52,19 @@ const DropdownDemo: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-8">
+    <div className={getSpacingClass('DEMO_SECTIONS')}>
       <div>
-        <h2 className="text-h2 mb-6 text-text-primary">Dropdown Components</h2>
-        <p className="text-body text-text-secondary mb-8">
+        <h2 className={`text-h2 mb-${DESIGN_SYSTEM_CONSTANTS.DEMO_HEADER_MARGIN} text-text-primary`}>Dropdown Components</h2>
+        <p className={`text-body text-text-secondary mb-${DESIGN_SYSTEM_CONSTANTS.DEMO_DESCRIPTION_MARGIN}`}>
           다양한 옵션을 선택할 수 있는 드롭다운 컴포넌트들입니다.
         </p>
       </div>
 
       {/* Basic Dropdowns */}
-      <div className="space-y-6">
-        <div className="p-6 bg-surface-secondary rounded-small">
-          <h3 className="text-h3 text-text-primary mb-4">Basic Dropdowns</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className={getSpacingClass('DEMO_SECTIONS')}>
+        <div className={`${getSpacingClass('CARD')} bg-surface-secondary rounded-small`}>
+          <h3 className={`text-h3 text-text-primary mb-${DESIGN_SYSTEM_CONSTANTS.SECTION_TITLE_MARGIN}`}>Basic Dropdowns</h3>
+          <div className={`grid grid-cols-${DESIGN_SYSTEM_CONSTANTS.GRID_COLS_SMALL} md:grid-cols-${DESIGN_SYSTEM_CONSTANTS.GRID_COLS_MEDIUM} ${getSpacingClass('GRID_GAP')}`}>
             <Dropdown
               label="Basic Dropdown"
               placeholder="Choose an option"
@@ -82,9 +83,9 @@ const DropdownDemo: React.FC = () => {
         </div>
 
         {/* Dropdown with Icons */}
-        <div className="p-6 bg-surface-secondary rounded-small">
+        <div className={`${getSpacingClass('CARD')} bg-surface-secondary rounded-small`}>
           <h3 className="text-h3 text-text-primary mb-4">Dropdown with Icons</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className={`grid grid-cols-${DESIGN_SYSTEM_CONSTANTS.GRID_COLS_SMALL} md:grid-cols-${DESIGN_SYSTEM_CONSTANTS.GRID_COLS_MEDIUM} ${getSpacingClass('GRID_GAP')}`}>
             <Dropdown
               label="With Icon Options"
               placeholder="Select with icon"
@@ -96,9 +97,9 @@ const DropdownDemo: React.FC = () => {
         </div>
 
         {/* Dropdown States */}
-        <div className="p-6 bg-surface-secondary rounded-small">
-          <h3 className="text-h3 text-text-primary mb-4">Dropdown States</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className={`${getSpacingClass('CARD')} bg-surface-secondary rounded-small`}>
+          <h3 className={`text-h3 text-text-primary mb-${DESIGN_SYSTEM_CONSTANTS.SECTION_TITLE_MARGIN}`}>Dropdown States</h3>
+          <div className={`grid grid-cols-${DESIGN_SYSTEM_CONSTANTS.GRID_COLS_SMALL} md:grid-cols-${DESIGN_SYSTEM_CONSTANTS.GRID_COLS_MEDIUM} ${getSpacingClass('GRID_GAP')}`}>
             <Dropdown
               label="Error State"
               placeholder="Select option"
@@ -136,8 +137,8 @@ const DropdownDemo: React.FC = () => {
         </div>
 
         {/* Dropdown Sizes */}
-        <div className="p-6 bg-surface-secondary rounded-small">
-          <h3 className="text-h3 text-text-primary mb-4">Dropdown Sizes</h3>
+        <div className={`${getSpacingClass('CARD')} bg-surface-secondary rounded-small`}>
+          <h3 className={`text-h3 text-text-primary mb-${DESIGN_SYSTEM_CONSTANTS.SECTION_TITLE_MARGIN}`}>Dropdown Sizes</h3>
           <div className="space-y-4">
             <Dropdown
               label="Small Size"
@@ -175,7 +176,7 @@ const DropdownDemo: React.FC = () => {
         </div>
 
         {/* Side Label Dropdown */}
-        <div className="p-6 bg-surface-secondary rounded-small">
+        <div className={`${getSpacingClass('CARD')} bg-surface-secondary rounded-small`}>
           <h3 className="text-h3 text-text-primary mb-4">Side Label Layout</h3>
           <Dropdown
             label="Category"

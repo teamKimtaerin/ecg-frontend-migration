@@ -119,7 +119,7 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
         `}</style>
       )}
       
-      <div className={cn('flex flex-col', SIZE_CLASSES.gap[size], className)} style={containerStyle}>
+      <div className={cn('flex flex-col max-w-48', SIZE_CLASSES.gap[size], className)} style={containerStyle}>
         {/* 라벨과 값 라벨 */}
         {(label || valueLabel) && (
           <div className="flex justify-between items-center">

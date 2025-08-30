@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Switch from '@/components/Switch';
+import { DESIGN_SYSTEM_CONSTANTS, getSpacingClass } from './constants';
 
 const SwitchDemo: React.FC = () => {
   const [switches, setSwitches] = useState({
@@ -28,19 +29,19 @@ const SwitchDemo: React.FC = () => {
   };
 
   return (
-    <div className="space-y-8">
+    <div className={getSpacingClass('DEMO_SECTIONS')}>
       <div>
-        <h2 className="text-h2 mb-6 text-text-primary">Switch Components</h2>
-        <p className="text-body text-text-secondary mb-8">
+        <h2 className={`text-h2 mb-${DESIGN_SYSTEM_CONSTANTS.DEMO_HEADER_MARGIN} text-text-primary`}>Switch Components</h2>
+        <p className={`text-body text-text-secondary mb-${DESIGN_SYSTEM_CONSTANTS.DEMO_DESCRIPTION_MARGIN}`}>
           토글 기능을 제공하는 스위치 컴포넌트들입니다.
         </p>
       </div>
 
       {/* Basic Switches */}
-      <div className="space-y-6">
-        <div className="p-6 bg-surface-secondary rounded-small">
-          <h3 className="text-h3 text-text-primary mb-4">Basic Switches</h3>
-          <div className="space-y-3">
+      <div className={getSpacingClass('DEMO_SECTIONS')}>
+        <div className={`${getSpacingClass('CARD')} bg-surface-secondary rounded-small`}>
+          <h3 className={`text-h3 text-text-primary mb-${DESIGN_SYSTEM_CONSTANTS.SECTION_TITLE_MARGIN}`}>Basic Switches</h3>
+          <div className={getSpacingClass('SWITCH_LIST')}>
             <Switch
               label="WiFi"
               isSelected={switches.wifi}
@@ -60,10 +61,10 @@ const SwitchDemo: React.FC = () => {
         </div>
 
         {/* Switch Variants */}
-        <div className="p-6 bg-surface-secondary rounded-small">
-          <h3 className="text-h3 text-text-primary mb-4">Switch Variants</h3>
-          <div className="space-y-4">
-            <div className="space-y-3">
+        <div className={`${getSpacingClass('CARD')} bg-surface-secondary rounded-small`}>
+          <h3 className={`text-h3 text-text-primary mb-${DESIGN_SYSTEM_CONSTANTS.SECTION_TITLE_MARGIN}`}>Switch Variants</h3>
+          <div className={getSpacingClass('DEMO_SUBSECTIONS')}>
+            <div className={getSpacingClass('SWITCH_LIST')}>
               <h4 className="text-sm font-medium text-text-primary">Enhanced Switch</h4>
               <Switch
                 label="Enhanced Features"
@@ -71,7 +72,7 @@ const SwitchDemo: React.FC = () => {
                 onChange={handleSwitchChange('enhanced')}
               />
             </div>
-            <div className="space-y-3">
+            <div className={getSpacingClass('SWITCH_LIST')}>
               <h4 className="text-sm font-medium text-text-primary">Premium Switch</h4>
               <Switch
                 label="Premium Access"
@@ -83,9 +84,9 @@ const SwitchDemo: React.FC = () => {
         </div>
 
         {/* Switch States */}
-        <div className="p-6 bg-surface-secondary rounded-small">
-          <h3 className="text-h3 text-text-primary mb-4">Switch States</h3>
-          <div className="space-y-3">
+        <div className={`${getSpacingClass('CARD')} bg-surface-secondary rounded-small`}>
+          <h3 className={`text-h3 text-text-primary mb-${DESIGN_SYSTEM_CONSTANTS.SECTION_TITLE_MARGIN}`}>Switch States</h3>
+          <div className={getSpacingClass('SWITCH_LIST')}>
             <Switch
               label="Advanced Settings"
               isSelected={switches.advanced}
@@ -117,10 +118,10 @@ const SwitchDemo: React.FC = () => {
         </div>
 
         {/* Switch Sizes */}
-        <div className="p-6 bg-surface-secondary rounded-small">
-          <h3 className="text-h3 text-text-primary mb-4">Switch Sizes</h3>
-          <div className="space-y-4">
-            <div className="space-y-3">
+        <div className={`${getSpacingClass('CARD')} bg-surface-secondary rounded-small`}>
+          <h3 className={`text-h3 text-text-primary mb-${DESIGN_SYSTEM_CONSTANTS.SECTION_TITLE_MARGIN}`}>Switch Sizes</h3>
+          <div className={getSpacingClass('DEMO_SUBSECTIONS')}>
+            <div className={getSpacingClass('SWITCH_LIST')}>
               <h4 className="text-sm font-medium text-text-primary">With Labels</h4>
               <Switch
                 label="Small Switch"
@@ -147,9 +148,9 @@ const SwitchDemo: React.FC = () => {
                 onChange={handleSwitchChange('extraLarge')}
               />
             </div>
-            <div className="space-y-3">
+            <div className={getSpacingClass('SWITCH_LIST')}>
               <h4 className="text-sm font-medium text-text-primary">Without Labels</h4>
-              <div className="flex gap-4 items-center">
+              <div className={`flex gap-${DESIGN_SYSTEM_CONSTANTS.SWITCH_COMPONENTS_GAP} items-center`}>
                 <Switch
                   size="small"
                   isSelected={switches.smallNoLabel}

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Modal from '@/components/Modal';
 import Button from '@/components/Button';
+import { DESIGN_SYSTEM_CONSTANTS, getSpacingClass } from './constants';
 
 const SimpleModalDemo: React.FC = () => {
   const [modals, setModals] = useState({
@@ -26,19 +27,19 @@ const SimpleModalDemo: React.FC = () => {
   };
 
   return (
-    <div className="space-y-8">
+    <div className={getSpacingClass('DEMO_SECTIONS')}>
       <div>
-        <h2 className="text-h2 mb-6 text-text-primary">Modal Component (Simplified)</h2>
-        <p className="text-body text-text-secondary mb-8">
+        <h2 className={`text-h2 mb-${DESIGN_SYSTEM_CONSTANTS.DEMO_HEADER_MARGIN} text-text-primary`}>Modal Component (Simplified)</h2>
+        <p className={`text-body text-text-secondary mb-${DESIGN_SYSTEM_CONSTANTS.DEMO_DESCRIPTION_MARGIN}`}>
           간소화된 Modal 컴포넌트: 기본 기능 중심으로 최적화되었습니다.
         </p>
       </div>
 
       {/* Basic Examples */}
-      <div className="space-y-6">
-        <div className="p-6 bg-surface-secondary rounded-small">
-          <h3 className="text-h3 text-text-primary mb-4">Basic Examples</h3>
-          <div className="flex gap-3 flex-wrap">
+      <div className={getSpacingClass('DEMO_SECTIONS')}>
+        <div className={`${getSpacingClass('CARD')} bg-surface-secondary rounded-small`}>
+          <h3 className={`text-h3 text-text-primary mb-${DESIGN_SYSTEM_CONSTANTS.SECTION_TITLE_MARGIN}`}>Basic Examples</h3>
+          <div className={`flex ${getSpacingClass('BUTTON_GROUP')} flex-wrap`}>
             <Button 
               label="Basic Modal" 
               onClick={() => handleModalOpen('basic')}
@@ -55,9 +56,9 @@ const SimpleModalDemo: React.FC = () => {
         </div>
 
         {/* Size Variants */}
-        <div className="p-6 bg-surface-secondary rounded-small">
-          <h3 className="text-h3 text-text-primary mb-4">Size Variants</h3>
-          <div className="flex gap-3 flex-wrap">
+        <div className={`${getSpacingClass('CARD')} bg-surface-secondary rounded-small`}>
+          <h3 className={`text-h3 text-text-primary mb-${DESIGN_SYSTEM_CONSTANTS.SECTION_TITLE_MARGIN}`}>Size Variants</h3>
+          <div className={`flex ${getSpacingClass('BUTTON_GROUP')} flex-wrap`}>
             <Button 
               label="Small (sm)" 
               onClick={() => handleModalOpen('sizeSmall')}
@@ -77,9 +78,9 @@ const SimpleModalDemo: React.FC = () => {
         </div>
 
         {/* Behavior Options */}
-        <div className="p-6 bg-surface-secondary rounded-small">
-          <h3 className="text-h3 text-text-primary mb-4">Behavior Options</h3>
-          <div className="flex gap-3 flex-wrap">
+        <div className={`${getSpacingClass('CARD')} bg-surface-secondary rounded-small`}>
+          <h3 className={`text-h3 text-text-primary mb-${DESIGN_SYSTEM_CONSTANTS.SECTION_TITLE_MARGIN}`}>Behavior Options</h3>
+          <div className={`flex ${getSpacingClass('BUTTON_GROUP')} flex-wrap`}>
             <Button 
               label="Action Buttons" 
               onClick={() => handleModalOpen('actions')}
@@ -143,7 +144,7 @@ const SimpleModalDemo: React.FC = () => {
           }
         }}
       >
-        <div className="space-y-4">
+        <div className={getSpacingClass('DEMO_SUBSECTIONS')}>
           <p className="text-body text-text-secondary">
             This modal includes action buttons in the footer.
           </p>
@@ -154,7 +155,7 @@ const SimpleModalDemo: React.FC = () => {
               </label>
               <input 
                 type="text" 
-                className="w-full p-2 border border-gray-medium rounded-default"
+                className={`w-full p-${DESIGN_SYSTEM_CONSTANTS.INPUT_PADDING} border border-gray-medium rounded-default`}
                 placeholder="Enter setting name"
                 autoFocus
               />
@@ -170,11 +171,11 @@ const SimpleModalDemo: React.FC = () => {
         title="Small Modal (sm)"
         size="sm"
       >
-        <div className="space-y-4">
+        <div className={getSpacingClass('DEMO_SUBSECTIONS')}>
           <p className="text-body text-text-secondary">
             This is a small modal (max-width: 384px). Perfect for simple confirmations and alerts.
           </p>
-          <div className="p-3 bg-blue-50 border border-blue-200 rounded">
+          <div className={`p-${DESIGN_SYSTEM_CONSTANTS.BUTTON_GROUP_GAP} bg-blue-50 border border-blue-200 rounded`}>
             <p className="text-blue-800 text-sm">📏 Small size modal demonstration</p>
           </div>
         </div>
@@ -186,11 +187,11 @@ const SimpleModalDemo: React.FC = () => {
         title="Medium Modal (md)"
         size="md"
       >
-        <div className="space-y-4">
+        <div className={getSpacingClass('DEMO_SUBSECTIONS')}>
           <p className="text-body text-text-secondary">
             This is a medium modal (max-width: 448px). The default size for most use cases.
           </p>
-          <div className="p-3 bg-green-50 border border-green-200 rounded">
+          <div className={`p-${DESIGN_SYSTEM_CONSTANTS.BUTTON_GROUP_GAP} bg-green-50 border border-green-200 rounded`}>
             <p className="text-green-800 text-sm">📏 Medium size modal demonstration</p>
           </div>
           <p className="text-sm text-text-secondary">
@@ -205,19 +206,19 @@ const SimpleModalDemo: React.FC = () => {
         title="Large Modal (lg)"
         size="lg"
       >
-        <div className="space-y-4">
+        <div className={getSpacingClass('DEMO_SUBSECTIONS')}>
           <p className="text-body text-text-secondary">
             This is a large modal (max-width: 512px). Great for forms and complex content.
           </p>
-          <div className="p-3 bg-purple-50 border border-purple-200 rounded">
+          <div className={`p-${DESIGN_SYSTEM_CONSTANTS.BUTTON_GROUP_GAP} bg-purple-50 border border-purple-200 rounded`}>
             <p className="text-purple-800 text-sm">📏 Large size modal demonstration</p>
           </div>
-          <div className="grid grid-cols-2 gap-4 mt-4">
-            <div className="p-3 bg-gray-50 rounded">
+          <div className={`grid grid-cols-${DESIGN_SYSTEM_CONSTANTS.MODAL_CONTENT_GRID_COLS} ${getSpacingClass('GRID_GAP')} mt-${DESIGN_SYSTEM_CONSTANTS.SECTION_TITLE_MARGIN}`}>
+            <div className={`p-${DESIGN_SYSTEM_CONSTANTS.BUTTON_GROUP_GAP} bg-gray-50 rounded`}>
               <h4 className="font-medium mb-1">Feature 1</h4>
               <p className="text-sm text-gray-600">Large modals can accommodate more detailed content.</p>
             </div>
-            <div className="p-3 bg-gray-50 rounded">
+            <div className={`p-${DESIGN_SYSTEM_CONSTANTS.BUTTON_GROUP_GAP} bg-gray-50 rounded`}>
               <h4 className="font-medium mb-1">Feature 2</h4>
               <p className="text-sm text-gray-600">Perfect for complex forms and data presentation.</p>
             </div>
@@ -245,7 +246,7 @@ const SimpleModalDemo: React.FC = () => {
           onClick: () => handleModalClose('actions')
         }}
       >
-        <div className="space-y-4">
+        <div className={getSpacingClass('DEMO_SUBSECTIONS')}>
           <p className="text-body text-text-secondary">
             Modal with customizable action buttons in the footer.
           </p>
@@ -270,13 +271,13 @@ const SimpleModalDemo: React.FC = () => {
           </p>
           
           {/* Generate long content */}
-          {Array.from({ length: 15 }, (_, i) => (
-            <div key={i} className="p-4 bg-gray-light rounded-default">
+          {Array.from({ length: DESIGN_SYSTEM_CONSTANTS.SCROLLABLE_CONTENT_ITEMS }, (_, i) => (
+            <div key={i} className={`p-${DESIGN_SYSTEM_CONSTANTS.SECTION_TITLE_MARGIN} bg-gray-light rounded-default`}>
               <h4 className="font-semibold text-text-primary mb-2">
-                Section {i + 1}: Content Block
+                Section {i + DESIGN_SYSTEM_CONSTANTS.SECTION_INDEX_OFFSET}: Content Block
               </h4>
               <p className="text-text-secondary">
-                This is scrollable content section {i + 1}. The modal maintains proper scrolling behavior 
+                This is scrollable content section {i + DESIGN_SYSTEM_CONSTANTS.SECTION_INDEX_OFFSET}. The modal maintains proper scrolling behavior 
                 while keeping the header and footer fixed. Lorem ipsum dolor sit amet, consectetur 
                 adipiscing elit.
               </p>
@@ -301,8 +302,8 @@ const SimpleModalDemo: React.FC = () => {
           }
         }}
       >
-        <div className="space-y-4">
-          <div className="p-4 bg-red-50 border border-red-200 rounded-default">
+        <div className={getSpacingClass('DEMO_SUBSECTIONS')}>
+          <div className={`p-${DESIGN_SYSTEM_CONSTANTS.SECTION_TITLE_MARGIN} bg-red-50 border border-red-200 rounded-default`}>
             <p className="text-red-800">
               ⚠️ This modal cannot be dismissed by clicking outside or pressing ESC.
             </p>

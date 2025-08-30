@@ -213,6 +213,9 @@ body {
 .bg-primary-dark { background-color: var(--color-primary-dark); }
 .bg-primary-light { background-color: var(--color-primary-light); }
 .bg-primary-very-light { background-color: var(--color-primary-very-light); }
+.bg-accent { background-color: var(--color-positive); }
+.bg-secondary { background-color: var(--color-gray-slate); }
+.bg-negative { background-color: var(--color-negative); }
 
 /* Neutral Colors */
 .bg-white { background-color: var(--color-white); }
