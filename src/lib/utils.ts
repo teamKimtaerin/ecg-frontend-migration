@@ -173,6 +173,29 @@ export const SIZE_CLASSES = {
       button: 'w-9 h-9'
     },
   },
+  // Badge 전용 크기 클래스
+  badge: {
+    small: {
+      container: 'px-2 py-0.5 text-xs min-h-[16px]',
+      icon: 'w-3 h-3',
+      onlyIcon: 'w-4 h-4 p-0.5',
+    },
+    medium: {
+      container: 'px-2.5 py-1 text-sm min-h-[20px]',
+      icon: 'w-3.5 h-3.5',
+      onlyIcon: 'w-5 h-5 p-1',
+    },
+    large: {
+      container: 'px-3 py-1.5 text-base min-h-[24px]',
+      icon: 'w-4 h-4',
+      onlyIcon: 'w-6 h-6 p-1',
+    },
+    'extra-large': {
+      container: 'px-4 py-2 text-lg min-h-[28px]',
+      icon: 'w-5 h-5',
+      onlyIcon: 'w-7 h-7 p-1.5',
+    },
+  },
 } as const;
 
 /**
@@ -288,6 +311,62 @@ export const SEMANTIC_COLORS = {
     border: 'border-border',
     hover: 'hover:bg-gray-medium'
   }
+} as const;
+
+/**
+ * Alert Dialog variant colors - leveraging existing semantic color system
+ */
+export const ALERT_DIALOG_COLORS = {
+  confirmation: {
+    iconColor: 'text-status-positive',
+    titleColor: 'text-black',
+    primaryButton: 'primary',
+  },
+  information: {
+    iconColor: 'text-status-informative',
+    titleColor: 'text-black',
+    primaryButton: 'primary',
+  },
+  warning: {
+    iconColor: 'text-status-notice',
+    titleColor: 'text-black',
+    primaryButton: 'primary',
+  },
+  destructive: {
+    iconColor: 'text-status-negative',
+    titleColor: 'text-black',
+    primaryButton: 'negative',
+  },
+  error: {
+    iconColor: 'text-status-negative',
+    titleColor: 'text-black',
+    primaryButton: 'negative',
+  },
+} as const;
+
+/**
+ * Badge variant colors - comprehensive color palette
+ */
+export const BADGE_COLORS = {
+  positive: { bg: 'bg-status-positive', text: 'text-white' },
+  informative: { bg: 'bg-status-informative', text: 'text-white' },
+  negative: { bg: 'bg-status-negative', text: 'text-white' },
+  notice: { bg: 'bg-status-notice', text: 'text-white' },
+  neutral: { bg: 'bg-status-neutral', text: 'text-white' },
+  gray: { bg: 'bg-badge-gray', text: 'text-badge-gray' },
+  red: { bg: 'bg-badge-red', text: 'text-badge-red' },
+  orange: { bg: 'bg-badge-orange', text: 'text-badge-orange' },
+  yellow: { bg: 'bg-status-yellow', text: 'text-white' },
+  chartreuse: { bg: 'bg-status-chartreuse', text: 'text-white' },
+  celery: { bg: 'bg-status-celery', text: 'text-white' },
+  green: { bg: 'bg-status-positive', text: 'text-white' },
+  seafoam: { bg: 'bg-status-seafoam', text: 'text-white' },
+  cyan: { bg: 'bg-badge-cyan', text: 'text-badge-cyan' },
+  blue: { bg: 'bg-badge-blue', text: 'text-badge-blue' },
+  indigo: { bg: 'bg-status-indigo', text: 'text-white' },
+  purple: { bg: 'bg-status-purple', text: 'text-white' },
+  fuchsia: { bg: 'bg-status-fuchsia', text: 'text-white' },
+  magenta: { bg: 'bg-status-magenta', text: 'text-white' },
 } as const;
 
 /**

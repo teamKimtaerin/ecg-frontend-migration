@@ -14,6 +14,8 @@ import ProgressBar from '@/components/ProgressBar';
 import ProgressCircle from '@/components/ProgressCircle';
 import StatusLight from '@/components/StatusLight';
 import AlertBanner from '@/components/AlertBanner';
+import AlertDialog from '@/components/AlertDialog';
+import Badge from '@/components/Badge';
 import { StarIcon, HeartIcon, PlusIcon, HomeIcon, UserIcon, SettingsIcon } from '@/components/icons';
 
 export default function Home() {
@@ -95,6 +97,23 @@ export default function Home() {
     processing: 25,
     loading: 90,
   });
+
+  // AlertDialog states
+  const [alertDialogs, setAlertDialogs] = useState({
+    confirmation: false,
+    information: false,
+    warning: false,
+    destructive: false,
+    error: false,
+  });
+
+  const handleAlertDialogOpen = (type: keyof typeof alertDialogs) => {
+    setAlertDialogs(prev => ({ ...prev, [type]: true }));
+  };
+
+  const handleAlertDialogClose = (type: keyof typeof alertDialogs) => {
+    setAlertDialogs(prev => ({ ...prev, [type]: false }));
+  };
 
   // 프로그레스 애니메이션을 위한 useEffect 예제
   React.useEffect(() => {
@@ -3544,6 +3563,380 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        {/* Alert Dialog Section */}
+        <section className="mb-8">
+          <h2 className="text-h2 mb-4 text-text-primary">Alert Dialog</h2>
+          <div className="bg-surface p-6 rounded-default border border-border">
+            <div className="space-y-6">
+              
+              {/* Basic Usage */}
+              <div>
+                <h3 className="text-h3 mb-4 text-text-primary">Basic Usage</h3>
+                <p className="text-body text-text-secondary mb-4">
+                  Alert Dialog provides modal notifications for critical user decisions.
+                </p>
+                
+                {/* Variants */}
+                <div className="mb-6">
+                  <h4 className="font-semibold text-text-primary mb-3">Variants</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                    <Button 
+                      label="Confirmation" 
+                      variant="primary"
+                      size="medium"
+                      onClick={() => handleAlertDialogOpen('confirmation')}
+                    />
+                    <Button 
+                      label="Information" 
+                      variant="primary"
+                      size="medium"
+                      onClick={() => handleAlertDialogOpen('information')}
+                    />
+                    <Button 
+                      label="Warning" 
+                      variant="primary"
+                      size="medium"
+                      onClick={() => handleAlertDialogOpen('warning')}
+                    />
+                    <Button 
+                      label="Destructive" 
+                      variant="negative"
+                      size="medium"
+                      onClick={() => handleAlertDialogOpen('destructive')}
+                    />
+                    <Button 
+                      label="Error" 
+                      variant="negative"
+                      size="medium"
+                      onClick={() => handleAlertDialogOpen('error')}
+                    />
+                  </div>
+                </div>
+
+                {/* Sizes */}
+                <div>
+                  <h4 className="font-semibold text-text-primary mb-3">Sizes</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <Button 
+                      label="Small Dialog" 
+                      variant="secondary"
+                      size="small"
+                      onClick={() => handleAlertDialogOpen('confirmation')}
+                    />
+                    <Button 
+                      label="Medium Dialog" 
+                      variant="secondary"
+                      size="medium"
+                      onClick={() => handleAlertDialogOpen('information')}
+                    />
+                    <Button 
+                      label="Large Dialog" 
+                      variant="secondary"
+                      size="large"
+                      onClick={() => handleAlertDialogOpen('warning')}
+                    />
+                    <Button 
+                      label="Extra Large Dialog" 
+                      variant="secondary"
+                      size="extra-large"
+                      onClick={() => handleAlertDialogOpen('error')}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Alert Dialog Components */}
+        {alertDialogs.confirmation && (
+          <AlertDialog
+            title="Confirm Action"
+            description="Are you sure you want to proceed? This action cannot be undone."
+            variant="confirmation"
+            primaryActionLabel="Confirm"
+            secondaryActionLabel="Review"
+            isOpen={alertDialogs.confirmation}
+            onPrimaryAction={() => {
+              alert('Confirmed!');
+              handleAlertDialogClose('confirmation');
+            }}
+            onSecondaryAction={() => {
+              alert('Review action!');
+              handleAlertDialogClose('confirmation');
+            }}
+            onCancel={() => handleAlertDialogClose('confirmation')}
+            size="medium"
+          />
+        )}
+
+        {alertDialogs.information && (
+          <AlertDialog
+            title="Information"
+            description="This is an informational dialog with important details about the current process. Please read carefully before continuing."
+            variant="information"
+            primaryActionLabel="Got it"
+            isOpen={alertDialogs.information}
+            onPrimaryAction={() => handleAlertDialogClose('information')}
+            onCancel={() => handleAlertDialogClose('information')}
+            size="medium"
+          />
+        )}
+
+        {alertDialogs.warning && (
+          <AlertDialog
+            title="Warning: Potential Data Loss"
+            description="You have unsaved changes that will be lost if you continue. We recommend saving your work before proceeding with this action."
+            variant="warning"
+            primaryActionLabel="Continue Anyway"
+            secondaryActionLabel="Save & Continue"
+            isOpen={alertDialogs.warning}
+            onPrimaryAction={() => {
+              alert('Continued without saving!');
+              handleAlertDialogClose('warning');
+            }}
+            onSecondaryAction={() => {
+              alert('Saved and continued!');
+              handleAlertDialogClose('warning');
+            }}
+            onCancel={() => handleAlertDialogClose('warning')}
+            size="large"
+          />
+        )}
+
+        {alertDialogs.destructive && (
+          <AlertDialog
+            title="Delete Account"
+            description="This will permanently delete your account and all associated data. This action cannot be undone and you will lose access to all your content."
+            variant="destructive"
+            primaryActionLabel="Delete Account"
+            isOpen={alertDialogs.destructive}
+            onPrimaryAction={() => {
+              alert('Account deleted!');
+              handleAlertDialogClose('destructive');
+            }}
+            onCancel={() => handleAlertDialogClose('destructive')}
+            cancelActionLabel="Keep Account"
+            size="medium"
+          />
+        )}
+
+        {alertDialogs.error && (
+          <AlertDialog
+            title="Critical System Error"
+            description="A critical error has occurred that prevents the system from functioning properly. Immediate action is required to prevent data corruption."
+            variant="error"
+            primaryActionLabel="Force Restart"
+            secondaryActionLabel="Safe Mode"
+            isOpen={alertDialogs.error}
+            onPrimaryAction={() => {
+              alert('Force restart initiated!');
+              handleAlertDialogClose('error');
+            }}
+            onSecondaryAction={() => {
+              alert('Entering safe mode!');
+              handleAlertDialogClose('error');
+            }}
+            onCancel={() => handleAlertDialogClose('error')}
+            cancelActionLabel="Ignore"
+            size="extra-large"
+          />
+        )}
+
+        {/* Badge Section */}
+        <section className="mb-8">
+          <h2 className="text-h2 mb-4 text-text-primary">Badge</h2>
+          <div className="bg-surface p-6 rounded-default border border-border">
+            <div className="space-y-6">
+              
+              {/* Basic Usage */}
+              <div>
+                <h3 className="text-h3 mb-4 text-text-primary">Basic Usage</h3>
+                <p className="text-body text-text-secondary mb-4">
+                  Badge components provide visual indicators for status, counts, or categories.
+                </p>
+                
+                {/* Basic Examples */}
+                <div className="mb-6">
+                  <h4 className="font-semibold text-text-primary mb-3">Basic Examples</h4>
+                  <div className="flex flex-wrap items-center gap-4">
+                    <Badge label="New" />
+                    <Badge label="Popular" variant="positive" />
+                    <Badge label="Hot" variant="negative" />
+                    <Badge label="Sale" variant="notice" />
+                    <Badge icon={<StarIcon className="w-full h-full" />} />
+                    <Badge 
+                      label="Featured" 
+                      icon={<HeartIcon className="w-full h-full" />} 
+                      variant="informative" 
+                    />
+                  </div>
+                </div>
+
+                {/* Variants */}
+                <div className="mb-6">
+                  <h4 className="font-semibold text-text-primary mb-3">Color Variants</h4>
+                  <div className="space-y-4">
+                    {/* Semantic Colors */}
+                    <div>
+                      <h5 className="font-medium text-text-primary mb-2">Semantic Colors</h5>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <Badge label="Positive" variant="positive" />
+                        <Badge label="Informative" variant="informative" />
+                        <Badge label="Negative" variant="negative" />
+                        <Badge label="Notice" variant="notice" />
+                        <Badge label="Neutral" variant="neutral" />
+                      </div>
+                    </div>
+
+                    {/* Extended Palette */}
+                    <div>
+                      <h5 className="font-medium text-text-primary mb-2">Extended Palette</h5>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <Badge label="Gray" variant="gray" />
+                        <Badge label="Red" variant="red" />
+                        <Badge label="Orange" variant="orange" />
+                        <Badge label="Yellow" variant="yellow" />
+                        <Badge label="Chartreuse" variant="chartreuse" />
+                        <Badge label="Celery" variant="celery" />
+                        <Badge label="Green" variant="green" />
+                        <Badge label="Seafoam" variant="seafoam" />
+                        <Badge label="Cyan" variant="cyan" />
+                        <Badge label="Blue" variant="blue" />
+                        <Badge label="Indigo" variant="indigo" />
+                        <Badge label="Purple" variant="purple" />
+                        <Badge label="Fuchsia" variant="fuchsia" />
+                        <Badge label="Magenta" variant="magenta" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sizes */}
+                <div className="mb-6">
+                  <h4 className="font-semibold text-text-primary mb-3">Sizes</h4>
+                  <div className="flex flex-wrap items-center gap-4">
+                    <Badge label="Small" size="small" variant="informative" />
+                    <Badge label="Medium" size="medium" variant="informative" />
+                    <Badge label="Large" size="large" variant="informative" />
+                    <Badge label="Extra Large" size="extra-large" variant="informative" />
+                  </div>
+                </div>
+
+                {/* Icon Only */}
+                <div className="mb-6">
+                  <h4 className="font-semibold text-text-primary mb-3">Icon Only</h4>
+                  <div className="flex flex-wrap items-center gap-4">
+                    <Badge 
+                      icon={<StarIcon className="w-full h-full" />} 
+                      size="small" 
+                      variant="positive" 
+                    />
+                    <Badge 
+                      icon={<HeartIcon className="w-full h-full" />} 
+                      size="medium" 
+                      variant="negative" 
+                    />
+                    <Badge 
+                      icon={<PlusIcon className="w-full h-full" />} 
+                      size="large" 
+                      variant="notice" 
+                    />
+                    <Badge 
+                      icon={<SettingsIcon className="w-full h-full" />} 
+                      size="extra-large" 
+                      variant="informative" 
+                    />
+                  </div>
+                </div>
+
+                {/* Fixed Positioning */}
+                <div className="mb-6">
+                  <h4 className="font-semibold text-text-primary mb-3">Fixed Positioning</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-4">
+                    {/* Top */}
+                    <div className="relative bg-gray-light p-4 rounded-default flex items-center justify-center">
+                      <div className="w-12 h-12 bg-gray-medium rounded-default flex items-center justify-center">
+                        <HomeIcon className="w-6 h-6 text-gray-slate" />
+                      </div>
+                      <Badge label="3" variant="negative" fixed="top" />
+                    </div>
+
+                    {/* Right */}
+                    <div className="relative bg-gray-light p-4 rounded-default flex items-center justify-center">
+                      <div className="w-12 h-12 bg-gray-medium rounded-default flex items-center justify-center">
+                        <UserIcon className="w-6 h-6 text-gray-slate" />
+                      </div>
+                      <Badge label="New" variant="positive" fixed="right" />
+                    </div>
+
+                    {/* Bottom */}
+                    <div className="relative bg-gray-light p-4 rounded-default flex items-center justify-center">
+                      <div className="w-12 h-12 bg-gray-medium rounded-default flex items-center justify-center">
+                        <SettingsIcon className="w-6 h-6 text-gray-slate" />
+                      </div>
+                      <Badge 
+                        icon={<StarIcon className="w-full h-full" />} 
+                        variant="notice" 
+                        fixed="bottom" 
+                      />
+                    </div>
+
+                    {/* Left */}
+                    <div className="relative bg-gray-light p-4 rounded-default flex items-center justify-center">
+                      <div className="w-12 h-12 bg-gray-medium rounded-default flex items-center justify-center">
+                        <HeartIcon className="w-6 h-6 text-gray-slate" />
+                      </div>
+                      <Badge label="!" variant="negative" fixed="left" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Use Cases */}
+                <div>
+                  <h4 className="font-semibold text-text-primary mb-3">Common Use Cases</h4>
+                  <div className="space-y-4">
+                    {/* Notification Badge */}
+                    <div className="flex items-center gap-4">
+                      <span className="text-text-primary font-medium">Notifications:</span>
+                      <div className="relative">
+                        <Button label="Messages" variant="secondary" />
+                        <Badge label="5" variant="negative" fixed="right" />
+                      </div>
+                    </div>
+
+                    {/* Status Indicators */}
+                    <div className="flex items-center gap-4">
+                      <span className="text-text-primary font-medium">Status:</span>
+                      <Badge label="Online" variant="positive" />
+                      <Badge label="Away" variant="notice" />
+                      <Badge label="Offline" variant="neutral" />
+                    </div>
+
+                    {/* Category Tags */}
+                    <div className="flex items-center gap-4">
+                      <span className="text-text-primary font-medium">Categories:</span>
+                      <Badge label="Frontend" variant="blue" />
+                      <Badge label="React" variant="cyan" />
+                      <Badge label="TypeScript" variant="indigo" />
+                      <Badge label="Design" variant="purple" />
+                    </div>
+
+                    {/* Priority Levels */}
+                    <div className="flex items-center gap-4">
+                      <span className="text-text-primary font-medium">Priority:</span>
+                      <Badge label="High" variant="negative" />
+                      <Badge label="Medium" variant="notice" />
+                      <Badge label="Low" variant="neutral" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
       </main>
     </div>
   );

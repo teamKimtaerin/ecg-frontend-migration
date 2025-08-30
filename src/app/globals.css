@@ -40,6 +40,13 @@
   --color-purple: #8B5CF6;
   --color-seafoam: #14B8A6;
   
+  /* Badge Colors - additional colors for extended palette */
+  --color-gray: var(--color-gray-slate);
+  --color-red: var(--color-red-600);
+  --color-orange: #EA580C;
+  --color-cyan: #0891B2;
+  --color-blue: var(--color-primary);
+  
   /* Alert Banner Colors - reusing existing color system */
   --color-alert-neutral-bg: var(--color-gray-light); /* #F8FAFC */
   --color-alert-informative-bg: var(--color-primary-very-light); /* #DBEAFE */
@@ -278,6 +285,19 @@ body {
 .bg-status-fuchsia { background-color: var(--color-fuchsia); }
 .bg-status-purple { background-color: var(--color-purple); }
 .bg-status-seafoam { background-color: var(--color-seafoam); }
+
+/* Badge Color Classes - extended color palette */
+.bg-badge-gray { background-color: var(--color-gray); }
+.bg-badge-red { background-color: var(--color-red); }
+.bg-badge-orange { background-color: var(--color-orange); }
+.bg-badge-cyan { background-color: var(--color-cyan); }
+.bg-badge-blue { background-color: var(--color-blue); }
+
+.text-badge-gray { color: var(--color-white); }
+.text-badge-red { color: var(--color-white); }
+.text-badge-orange { color: var(--color-white); }
+.text-badge-cyan { color: var(--color-white); }
+.text-badge-blue { color: var(--color-white); }
 
 /* Alert Banner Color Classes - using CSS variables */
 .bg-alert-neutral { background-color: var(--color-alert-neutral-bg); }
