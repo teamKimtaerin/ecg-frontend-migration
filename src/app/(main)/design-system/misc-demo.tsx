@@ -12,6 +12,7 @@ import AlertDialog from '@/components/AlertDialog';
 import Badge from '@/components/Badge';
 import { StarIcon } from '@/components/icons';
 
+// 탭 , 슬라이더, 태그, Status light, 배지, 알림 배너, 알림 dialog
 const MiscDemo: React.FC = () => {
   const [sliderValue, setSliderValue] = useState(50);
   const [showAlert, setShowAlert] = useState(false);
