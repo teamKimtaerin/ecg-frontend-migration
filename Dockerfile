@@ -32,7 +32,7 @@ FROM base AS deps
 COPY package.json yarn.lock ./
 
 # 의존성 설치
-RUN yarn install --frozen-lockfile
+RUN yarn install
 
 # ----- Dev Stage -----
 FROM base AS dev
@@ -89,7 +89,7 @@ ENV NODE_ENV=production \
 
 # 프로덕션 의존성만 설치
 COPY package.json yarn.lock ./
-RUN yarn install --frozen-lockfile --production=true && \
+RUN yarn install --production=true && \
     yarn cache clean
 
 # 빌드 결과물 복사

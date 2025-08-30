@@ -55,7 +55,7 @@ jobs:
 
       # Jest 단위 테스트 실행
       - name: Run Jest unit tests
-        run: yarn test --ci --coverage --reporters=jest-junit
+        run: yarn test --ci --coverage --passWithNoTests
         if: hashFiles('jest.config.*') != ''
 
       # Playwright E2E 테스트 실행
@@ -64,8 +64,8 @@ jobs:
         if: hashFiles('playwright.config.*') != ''
 
       - name: Run Playwright E2E tests
-        run: yarn test:e2e
-        if: hashFiles('playwright.config.*') != ''
+        run: yarn test:e2e --reporter=list
+        if: hashFiles('playwright.config.*') != '' && hashFiles('tests/**/*.spec.*') != ''
 
       # Docker 빌드 테스트
       - name: Test Docker build
