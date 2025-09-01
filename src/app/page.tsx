@@ -313,10 +313,7 @@ export default function Home() {
         </section>
 
         {/* Edit Transcription Section */}
-        <section
-          ref={editRef}
-          className="py-24 px-6 fade-in-section delay-1"
-        >
+        <section ref={editRef} className="py-24 px-6 fade-in-section delay-1">
           <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="order-2 lg:order-1 relative">
               <div className="bg-black rounded-2xl p-6 border border-gray-slate">
