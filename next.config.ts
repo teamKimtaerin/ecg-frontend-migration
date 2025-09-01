@@ -1,38 +1,33 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-  // Docker 컨테이너에서 실행 시 필수 설정
-  output: 'standalone', // 독립 실행 가능한 빌드 생성
-
-  // 이미지 최적화 설정
+  // S3 정적 호스팅을 위한 설정
+  output: 'export', // 정적 파일로 빌드
+  trailingSlash: true, // S3용 URL 형식
+  
+  // 이미지 최적화 비활성화 (정적 호스팅용)
   images: {
-    // 외부 이미지 도메인 허용 (필요에 따라 추가)
+    unoptimized: true, // S3에서는 이미지 최적화 불가
+    // 외부 이미지 도메인 허용
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'localhost',
       },
-      // 추후 프로덕션 도메인 추가
+      // CloudFront 도메인 추가
+      {
+        protocol: 'https',
+        hostname: '*.cloudfront.net',
+      },
     ],
-    // Docker 컨테이너에서 이미지 최적화 설정
-    unoptimized:
-      process.env.NODE_ENV === 'production' && process.env.DOCKER === 'true',
   },
 
   // 환경변수 설정
   env: {
-    DOCKER: process.env.DOCKER || 'false',
+    STATIC_EXPORT: 'true',
   },
 
-  // CORS 및 API 설정 (백엔드와 통신용)
-  async rewrites() {
-    return [
-      {
-        source: '/api/backend/:path*',
-        destination: `${process.env.BACKEND_URL || 'http://localhost:8000'}/:path*`,
-      },
-    ]
-  },
+  // CloudFront에서 /api/* 라우팅을 처리하므로 rewrites 제거
 
   // 보안 헤더 설정
   async headers() {
