@@ -13,18 +13,12 @@ interface SubtitleAsset {
   }>
   created: string
   edited: string
+  [key: string]: unknown
 }
 
 interface SubtitlesClientProps {
   initialSubtitles: SubtitleAsset[]
 }
-
-const tableColumns = [
-  { key: 'name', label: 'NAME' },
-  { key: 'tags', label: 'Tags', width: 'w-80' },
-  { key: 'created', label: 'CREATED', width: 'w-32' },
-  { key: 'edited', label: 'EDITED', width: 'w-32' },
-]
 
 const tableActions = [
   {
@@ -86,13 +80,11 @@ export function SubtitlesClient({ initialSubtitles }: SubtitlesClientProps) {
         onSortChange={setSortValue}
         actionButtonText="New Subtitle"
         onActionClick={handleCreateNew}
-        actionButtonStyle="secondary"
       />
 
       {/* Data Table */}
       <DataTable<SubtitleAsset>
         title="My Assets"
-        columns={tableColumns}
         rows={filteredSubtitles}
         actions={tableActions}
         onRowClick={handleRowClick}

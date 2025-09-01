@@ -78,7 +78,7 @@ export function DataTable<T extends TableRow = TableRow>({
       )
     }
 
-    return <span className="text-[#b3b3b3] text-sm">{value}</span>
+    return <span className="text-[#b3b3b3] text-sm">{String(value)}</span>
   }
 
   return (
@@ -96,7 +96,7 @@ export function DataTable<T extends TableRow = TableRow>({
                 onClick={() => action.onClick('')}
                 variant={action.variant === 'negative' ? 'negative' : 'primary'}
                 size="medium"
-                hideLabel={true}
+                hideLabel={action.label}
                 icon={action.icon}
                 aria-label={action.label}
               />
@@ -160,21 +160,21 @@ export function DataTable<T extends TableRow = TableRow>({
                 <div className="flex-1 grid grid-cols-5 gap-4">
                   <div className="flex items-center">
                     <span className="text-white text-sm font-medium">
-                      {row.name}
+                      {String(row.name)}
                     </span>
                   </div>
                   <div className="flex items-center justify-center">
                     <span className="text-[#b3b3b3] text-sm">
-                      {row.duration}
+                      {String(row.duration)}
                     </span>
                   </div>
                   <div className="flex items-center justify-center">
                     <span className="text-[#b3b3b3] text-sm">
-                      {row.created}
+                      {String(row.created)}
                     </span>
                   </div>
                   <div className="flex items-center justify-center">
-                    <span className="text-[#b3b3b3] text-sm">{row.edited}</span>
+                    <span className="text-[#b3b3b3] text-sm">{String(row.edited)}</span>
                   </div>
                   <div className="flex items-center justify-center">
                     {renderCellContent(row, 'status')}

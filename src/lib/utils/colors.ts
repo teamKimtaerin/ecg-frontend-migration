@@ -90,6 +90,7 @@ export const SEMANTIC_COLORS = {
     background: 'bg-red-50',
     text: 'text-red-700',
     border: 'border-red-200',
+    hover: 'hover:bg-red-100',
   },
   success: {
     fill: ['bg-green-50', 'text-green-700', 'border', 'border-green-200'],
@@ -121,6 +122,14 @@ export const SEMANTIC_COLORS = {
     background: 'bg-blue-50',
     text: 'text-blue-700',
     border: 'border-blue-200',
+  },
+  neutral: {
+    fill: ['bg-gray-50', 'text-gray-700', 'border', 'border-gray-200'],
+    outline: ['border', 'border-gray-200', 'text-gray-700', 'hover:bg-gray-50'],
+    background: 'bg-gray-50',
+    text: 'text-gray-700',
+    border: 'border-gray-200',
+    hover: 'hover:bg-gray-100',
   },
 } as const
 

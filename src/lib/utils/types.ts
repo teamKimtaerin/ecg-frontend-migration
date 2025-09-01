@@ -73,16 +73,52 @@ export const SIZE_CLASSES = {
     'extra-large': 'w-8 h-8',
   },
   badge: {
-    small: 'px-2 py-0.5 text-xs',
-    medium: 'px-2.5 py-0.5 text-sm',
-    large: 'px-3 py-1 text-base',
-    'extra-large': 'px-4 py-1.5 text-lg',
+    small: {
+      container: 'px-2 py-0.5 text-xs',
+      icon: 'w-3 h-3',
+      onlyIcon: 'p-1',
+    },
+    medium: {
+      container: 'px-2.5 py-0.5 text-sm',
+      icon: 'w-4 h-4',
+      onlyIcon: 'p-1.5',
+    },
+    large: {
+      container: 'px-3 py-1 text-base',
+      icon: 'w-5 h-5',
+      onlyIcon: 'p-2',
+    },
+    'extra-large': {
+      container: 'px-4 py-1.5 text-lg',
+      icon: 'w-6 h-6',
+      onlyIcon: 'p-2.5',
+    },
   },
   alertBanner: {
-    small: 'px-3 py-2',
-    medium: 'px-4 py-3',
-    large: 'px-6 py-4',
-    'extra-large': 'px-8 py-6',
+    small: {
+      container: 'px-3 py-2',
+      icon: 'w-4 h-4',
+      text: 'text-sm',
+      button: 'px-2 py-1 text-xs',
+    },
+    medium: {
+      container: 'px-4 py-3',
+      icon: 'w-5 h-5',
+      text: 'text-base',
+      button: 'px-3 py-1.5 text-sm',
+    },
+    large: {
+      container: 'px-6 py-4',
+      icon: 'w-6 h-6',
+      text: 'text-lg',
+      button: 'px-4 py-2 text-base',
+    },
+    'extra-large': {
+      container: 'px-8 py-6',
+      icon: 'w-7 h-7',
+      text: 'text-xl',
+      button: 'px-5 py-2.5 text-lg',
+    },
   },
   alertDialog: {
     small: 'p-4',
@@ -96,6 +132,24 @@ export const SIZE_CLASSES = {
     large: 'h-4',
     'extra-large': 'h-6',
   },
+  progress: {
+    small: {
+      height: 'h-2',
+      fontSize: 'text-xs',
+    },
+    medium: {
+      height: 'h-3',
+      fontSize: 'text-sm',
+    },
+    large: {
+      height: 'h-4',
+      fontSize: 'text-base',
+    },
+    'extra-large': {
+      height: 'h-6',
+      fontSize: 'text-lg',
+    },
+  },
   progressCircle: {
     small: 'w-8 h-8',
     medium: 'w-12 h-12',
@@ -103,9 +157,21 @@ export const SIZE_CLASSES = {
     'extra-large': 'w-24 h-24',
   },
   modal: {
-    sm: 'max-w-sm',
-    md: 'max-w-md',
-    lg: 'max-w-lg',
+    sm: {
+      container: 'max-w-sm',
+      title: 'text-lg',
+      content: 'text-sm',
+    },
+    md: {
+      container: 'max-w-md',
+      title: 'text-xl',
+      content: 'text-base',
+    },
+    lg: {
+      container: 'max-w-lg',
+      title: 'text-2xl',
+      content: 'text-lg',
+    },
   },
   typography: {
     small: 'text-sm',
@@ -114,10 +180,30 @@ export const SIZE_CLASSES = {
     'extra-large': 'text-xl',
   },
   switch: {
-    small: 'w-8 h-5',
-    medium: 'w-10 h-6',
-    large: 'w-12 h-7',
-    'extra-large': 'w-14 h-8',
+    small: {
+      track: 'w-8 h-5',
+      thumb: 'w-4 h-4',
+      thumbPosition: 'translate-x-0',
+      thumbTransform: 'translate-x-3',
+    },
+    medium: {
+      track: 'w-10 h-6',
+      thumb: 'w-5 h-5',
+      thumbPosition: 'translate-x-0',
+      thumbTransform: 'translate-x-4',
+    },
+    large: {
+      track: 'w-12 h-7',
+      thumb: 'w-6 h-6',
+      thumbPosition: 'translate-x-0',
+      thumbTransform: 'translate-x-5',
+    },
+    'extra-large': {
+      track: 'w-14 h-8',
+      thumb: 'w-7 h-7',
+      thumbPosition: 'translate-x-0',
+      thumbTransform: 'translate-x-6',
+    },
   },
   statusLight: {
     small: {
@@ -139,6 +225,24 @@ export const SIZE_CLASSES = {
       container: 'gap-3',
       text: 'text-lg',
       dot: 'w-5 h-5',
+    },
+  },
+  tag: {
+    small: {
+      container: 'px-2 py-0.5 text-xs',
+      icon: 'w-3 h-3',
+    },
+    medium: {
+      container: 'px-2.5 py-0.5 text-sm',
+      icon: 'w-4 h-4',
+    },
+    large: {
+      container: 'px-3 py-1 text-base',
+      icon: 'w-5 h-5',
+    },
+    'extra-large': {
+      container: 'px-4 py-1.5 text-lg',
+      icon: 'w-6 h-6',
     },
   },
 } as const

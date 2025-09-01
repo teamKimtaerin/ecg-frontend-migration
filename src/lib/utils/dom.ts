@@ -170,61 +170,43 @@ export function throttle<T extends (...args: never[]) => unknown>(
 /**
  * Create a click handler with proper event handling
  */
-export function createClickHandler(
-  handler: () => void,
-  isDisabled?: boolean,
-  isPending?: boolean
-): (event: React.MouseEvent<HTMLElement>) => void
 export function createClickHandler(options: {
-  onClick: () => void
+  onClick?: () => void
   isDisabled?: boolean
   isPending?: boolean
-}): () => void
-export function createClickHandler(
-  handlerOrOptions:
-    | (() => void)
-    | {
-        onClick: () => void
-        isDisabled?: boolean
-        isPending?: boolean
-      },
-  isDisabled?: boolean,
-  isPending?: boolean
-): ((event: React.MouseEvent<HTMLElement>) => void) | (() => void) {
-  if (typeof handlerOrOptions === 'function') {
-    // Original signature
-    return (event: React.MouseEvent<HTMLElement>) => {
-      if (isDisabled || isPending) {
-        event.preventDefault()
-        event.stopPropagation()
-        return
-      }
-      handlerOrOptions()
-    }
-  } else {
-    // Options signature for modal overlay
-    const {
-      onClick,
-      isDisabled: disabled,
-      isPending: pending,
-    } = handlerOrOptions
-    return () => {
-      if (disabled || pending) return
-      onClick()
-    }
+  isReadOnly?: boolean
+}): () => void {
+  const {
+    onClick,
+    isDisabled = false,
+    isPending = false,
+    isReadOnly = false,
+  } = options
+  
+  return () => {
+    if (isDisabled || isPending || isReadOnly || !onClick) return
+    onClick()
   }
 }
 
 /**
  * Create a keyboard handler for interactive elements
  */
-export function createKeyboardHandler(
-  handler: () => void,
-  isDisabled?: boolean,
+export function createKeyboardHandler(options: {
+  onActivate?: () => void
+  isDisabled?: boolean
   isPending?: boolean
-): (event: React.KeyboardEvent<HTMLElement>) => void {
+  isReadOnly?: boolean
+}): (event: React.KeyboardEvent<HTMLElement>) => void {
+  const {
+    onActivate,
+    isDisabled = false,
+    isPending = false,
+    isReadOnly = false,
+  } = options
+  
   return (event: React.KeyboardEvent<HTMLElement>) => {
-    if (isDisabled || isPending) {
+    if (isDisabled || isPending || isReadOnly || !onActivate) {
       event.preventDefault()
       event.stopPropagation()
       return
@@ -233,7 +215,7 @@ export function createKeyboardHandler(
     // Trigger on Enter or Space key
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault()
-      handler()
+      onActivate()
     }
   }
 }

@@ -12,6 +12,7 @@ interface TranscriptionFile {
   created: string
   edited: string
   status: string
+  [key: string]: unknown
 }
 
 const sampleTranscriptions: TranscriptionFile[] = [
@@ -31,14 +32,6 @@ const sampleTranscriptions: TranscriptionFile[] = [
     edited: 'Jan 1, 25',
     status: 'ready',
   },
-]
-
-const tableColumns = [
-  { key: 'name', label: 'NAME' },
-  { key: 'duration', label: 'DURATION', width: 'w-32' },
-  { key: 'created', label: 'CREATED', width: 'w-32' },
-  { key: 'edited', label: 'EDITED', width: 'w-32' },
-  { key: 'status', label: 'STATUS', width: 'w-32' },
 ]
 
 const tableActions = [
@@ -102,13 +95,11 @@ export default function TranscriptionsPage() {
           onSortChange={setSortValue}
           actionButtonText="Create"
           onActionClick={handleCreateNew}
-          actionButtonStyle="primary"
         />
 
         {/* Data Table */}
         <DataTable<TranscriptionFile>
           title="My Files"
-          columns={tableColumns}
           rows={filteredTranscriptions}
           actions={tableActions}
           onRowClick={handleRowClick}
