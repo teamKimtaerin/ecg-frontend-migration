@@ -1,7 +1,6 @@
 'use client'
 
 import React from 'react'
-import { cn } from '@/lib/utils'
 import Button from '@/components/Button'
 import Dropdown from '@/components/Dropdown'
 
@@ -13,7 +12,6 @@ interface HeaderProps {
   onSortChange?: (value: string) => void
   actionButtonText: string
   onActionClick: () => void
-  actionButtonStyle?: 'primary' | 'secondary'
 }
 
 export function Header({
@@ -24,7 +22,6 @@ export function Header({
   onSortChange,
   actionButtonText,
   onActionClick,
-  actionButtonStyle = 'primary',
 }: HeaderProps) {
   return (
     <div className="px-8 py-6 border-b border-[#404040]">

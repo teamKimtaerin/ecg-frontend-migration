@@ -94,7 +94,7 @@ export function validateFiles(
 /**
  * Validate required fields in an object
  */
-export function validateRequiredFields<T extends Record<string, any>>(
+export function validateRequiredFields<T extends Record<string, unknown>>(
   obj: T,
   requiredFields: (keyof T)[]
 ): { valid: boolean; missingFields: (keyof T)[] } {

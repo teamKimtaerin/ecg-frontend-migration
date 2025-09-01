@@ -13,20 +13,13 @@ interface TableAction {
   variant?: 'primary' | 'secondary' | 'negative'
 }
 
-interface TableColumn {
-  key: string
-  label: string
-  width?: string
-}
-
 interface TableRow {
   id: string
-  [key: string]: any
+  [key: string]: unknown
 }
 
 interface DataTableProps<T extends TableRow = TableRow> {
   title: string
-  columns: TableColumn[]
   rows: T[]
   actions?: TableAction[]
   onRowClick?: (row: T) => void
@@ -34,7 +27,6 @@ interface DataTableProps<T extends TableRow = TableRow> {
 
 export function DataTable<T extends TableRow = TableRow>({
   title,
-  columns,
   rows,
   actions,
   onRowClick,
@@ -149,7 +141,7 @@ export function DataTable<T extends TableRow = TableRow>({
 
         {/* Table Body */}
         <div className="divide-y divide-[#404040]">
-          {rows.map((row, index) => (
+          {rows.map((row) => (
             <div
               key={row.id}
               className={cn(
