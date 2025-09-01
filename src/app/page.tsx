@@ -95,12 +95,86 @@ export default function Home() {
         type: file.type,
       }))
     )
+    // Files are now stored in the modal state, modal stays open
+  }
 
-    // Handle file upload logic here
-    // For example: upload to server, show progress, etc.
+  const handleStartTranscription = async (data: {
+    files?: FileList
+    url?: string
+    language: string
+    useDictionary: boolean
+    autoSubmit: boolean
+    method: 'file' | 'link'
+  }) => {
+    try {
+      console.log('Starting transcription with data:', data)
 
-    // Close modal after successful file selection
-    setIsTranscriptionModalOpen(false)
+      if (data.method === 'file' && data.files) {
+        // Create FormData for file upload
+        const formData = new FormData()
+
+        // Add files to FormData
+        Array.from(data.files).forEach((file, index) => {
+          formData.append(`file_${index}`, file)
+        })
+
+        // Add configuration
+        formData.append('language', data.language)
+        formData.append('useDictionary', data.useDictionary.toString())
+        formData.append('autoSubmit', data.autoSubmit.toString())
+        formData.append('method', data.method)
+
+        // TODO: Replace with actual API endpoint
+        const response = await fetch('/api/transcription/upload', {
+          method: 'POST',
+          body: formData,
+        })
+
+        if (response.ok) {
+          const result = await response.json()
+          console.log('Transcription started successfully:', result)
+
+          // Close modal after successful submission
+          setIsTranscriptionModalOpen(false)
+
+          // Show success message or redirect to transcription status page
+          alert('Transcription started successfully!')
+        } else {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+      } else if (data.method === 'link' && data.url) {
+        // Send URL data as JSON
+        const response = await fetch('/api/transcription/url', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            url: data.url,
+            language: data.language,
+            useDictionary: data.useDictionary,
+            autoSubmit: data.autoSubmit,
+            method: data.method,
+          }),
+        })
+
+        if (response.ok) {
+          const result = await response.json()
+          console.log('Transcription started successfully:', result)
+
+          // Close modal after successful submission
+          setIsTranscriptionModalOpen(false)
+
+          // Show success message or redirect to transcription status page
+          alert('Transcription started successfully!')
+        } else {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+      }
+    } catch (error) {
+      console.error('Error starting transcription:', error)
+      alert('Failed to start transcription. Please try again.')
+    }
   }
 
   return (
@@ -668,6 +742,7 @@ export default function Home() {
         isOpen={isTranscriptionModalOpen}
         onClose={() => setIsTranscriptionModalOpen(false)}
         onFileSelect={handleFileSelect}
+        onStartTranscription={handleStartTranscription}
         acceptedTypes={['audio/*', 'video/*']}
         maxFileSize={100 * 1024 * 1024} // 100MB
         multiple={true}

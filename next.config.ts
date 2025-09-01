@@ -4,6 +4,13 @@ const nextConfig: NextConfig = {
   // Docker 컨테이너에서 실행 시 필수 설정
   output: 'standalone', // 독립 실행 가능한 빌드 생성
 
+  // 서버 액션 및 API 라우트 설정 (Next.js 15 방식)
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '100MB', // 파일 업로드를 위한 크기 제한 증가
+    },
+  },
+
   // 이미지 최적화 설정
   images: {
     // 외부 이미지 도메인 허용 (필요에 따라 추가)
@@ -29,7 +36,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/api/backend/:path*',
-        destination: `${process.env.BACKEND_URL || 'http://localhost:8000'}/:path*`,
+        destination: `${process.env.BACKEND_URL || 'http://localhost:3000'}/:path*`,
       },
     ]
   },

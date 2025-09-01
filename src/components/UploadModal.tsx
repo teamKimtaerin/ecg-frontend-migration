@@ -11,6 +11,14 @@ import Switch from './Switch'
 export interface UploadModalProps
   extends Omit<ModalProps, 'children' | 'title' | 'size'> {
   onFileSelect: (files: FileList) => void
+  onStartTranscription: (data: {
+    files?: FileList
+    url?: string
+    language: string
+    useDictionary: boolean
+    autoSubmit: boolean
+    method: 'file' | 'link'
+  }) => void
   acceptedTypes?: string[]
   maxFileSize?: number
   multiple?: boolean
@@ -20,6 +28,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
   isOpen,
   onClose,
   onFileSelect,
+  onStartTranscription,
   acceptedTypes = ['audio/*', 'video/*'],
   maxFileSize = 100 * 1024 * 1024, // 100MB
   multiple = true,
@@ -34,6 +43,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
   const [submitAutomatically, setSubmitAutomatically] = useState(true)
   const [inputMethod, setInputMethod] = useState<'file' | 'link'>('file')
   const [videoUrl, setVideoUrl] = useState('')
+  const [uploadedFiles, setUploadedFiles] = useState<FileList | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleDragEnter = useCallback((e: React.DragEvent) => {
@@ -88,6 +98,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
           // Create new FileList-like object
           const dt = new DataTransfer()
           validFiles.forEach((file) => dt.items.add(file))
+          setUploadedFiles(dt.files)
           onFileSelect(dt.files)
         }
       }
@@ -99,6 +110,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const files = e.target.files
       if (files && files.length > 0) {
+        setUploadedFiles(files)
         onFileSelect(files)
       }
     },
@@ -110,21 +122,34 @@ const UploadModal: React.FC<UploadModalProps> = ({
   }, [])
 
   const handleSubmit = useCallback(() => {
-    console.log('Fast transcription started with:', {
+    const transcriptionData = {
       language: selectedLanguage,
       useDictionary: useTranscriptionDictionary,
       autoSubmit: submitAutomatically,
       method: inputMethod,
+      ...(inputMethod === 'file' && uploadedFiles && { files: uploadedFiles }),
       ...(inputMethod === 'link' && { url: videoUrl }),
-    })
-    onClose()
+    }
+
+    // Validate inputs
+    if (inputMethod === 'file' && !uploadedFiles) {
+      alert('Please select files first')
+      return
+    }
+    if (inputMethod === 'link' && !videoUrl.trim()) {
+      alert('Please enter a video URL')
+      return
+    }
+
+    onStartTranscription(transcriptionData)
   }, [
     selectedLanguage,
     useTranscriptionDictionary,
     submitAutomatically,
     inputMethod,
     videoUrl,
-    onClose,
+    uploadedFiles,
+    onStartTranscription,
   ])
 
   return (
@@ -186,57 +211,144 @@ const UploadModal: React.FC<UploadModalProps> = ({
                 Upload your files
               </h4>
 
-              <div
-                className={cn(
-                  'border-2 border-dashed rounded-small text-center cursor-pointer min-h-[200px] flex flex-col items-center justify-center',
-                  SIZE_CLASSES.padding['extra-large'],
-                  TRANSITIONS.colors,
-                  isDragOver
-                    ? 'border-primary bg-primary-opaque'
-                    : 'border-border bg-surface-secondary hover:border-primary hover:bg-primary-opaque'
-                )}
-                onDragEnter={handleDragEnter}
-                onDragLeave={handleDragLeave}
-                onDragOver={handleDragOver}
-                onDrop={handleDrop}
-                onClick={handleBrowseClick}
-              >
+              {!uploadedFiles ? (
                 <div
                   className={cn(
-                    'flex flex-col items-center',
-                    SIZE_CLASSES.gap.medium
+                    'border-2 border-dashed rounded-small text-center cursor-pointer min-h-[200px] flex flex-col items-center justify-center',
+                    SIZE_CLASSES.padding['extra-large'],
+                    TRANSITIONS.colors,
+                    isDragOver
+                      ? 'border-primary bg-primary-opaque'
+                      : 'border-border bg-surface-secondary hover:border-primary hover:bg-primary-opaque'
                   )}
+                  onDragEnter={handleDragEnter}
+                  onDragLeave={handleDragLeave}
+                  onDragOver={handleDragOver}
+                  onDrop={handleDrop}
+                  onClick={handleBrowseClick}
                 >
-                  <div className="w-16 h-16 mx-auto bg-primary rounded-full flex items-center justify-center">
-                    <svg
-                      className={cn(
-                        SIZE_CLASSES.iconClasses.large,
-                        'text-white'
-                      )}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                      />
-                    </svg>
-                  </div>
+                  <div
+                    className={cn(
+                      'flex flex-col items-center',
+                      SIZE_CLASSES.gap.medium
+                    )}
+                  >
+                    <div className="w-16 h-16 mx-auto bg-primary rounded-full flex items-center justify-center">
+                      <svg
+                        className={cn(
+                          SIZE_CLASSES.iconClasses.large,
+                          'text-white'
+                        )}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                        />
+                      </svg>
+                    </div>
 
-                  <div>
-                    <p className="text-body text-text-primary font-medium">
-                      Drop files here or click to browse
-                    </p>
-                    <p className="text-caption text-text-secondary mt-1">
-                      Supports audio and video files (max{' '}
-                      {Math.round(maxFileSize / 1024 / 1024)}MB)
-                    </p>
+                    <div>
+                      <p className="text-body text-text-primary font-medium">
+                        Drop files here or click to browse
+                      </p>
+                      <p className="text-caption text-text-secondary mt-1">
+                        Supports audio and video files (max{' '}
+                        {Math.round(maxFileSize / 1024 / 1024)}MB)
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <div className={cn('flex flex-col', SIZE_CLASSES.gap.medium)}>
+                  <div
+                    className={cn(
+                      'bg-primary-very-light border border-primary rounded-small',
+                      SIZE_CLASSES.padding.medium
+                    )}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <h5 className="text-body font-semibold text-text-primary">
+                        Uploaded files ({uploadedFiles.length})
+                      </h5>
+                      <Button
+                        variant="secondary"
+                        style="outline"
+                        size="small"
+                        onClick={() => {
+                          setUploadedFiles(null)
+                          if (fileInputRef.current) {
+                            fileInputRef.current.value = ''
+                          }
+                        }}
+                        className="text-xs"
+                      >
+                        Change Files
+                      </Button>
+                    </div>
+
+                    <div
+                      className={cn('flex flex-col', SIZE_CLASSES.gap.small)}
+                    >
+                      {Array.from(uploadedFiles).map((file, index) => (
+                        <div
+                          key={`${file.name}-${index}`}
+                          className={cn(
+                            'flex items-center justify-between bg-surface rounded-default',
+                            SIZE_CLASSES.padding.small
+                          )}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
+                              <svg
+                                className="w-4 h-4 text-white"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                {file.type.startsWith('video/') ? (
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                                  />
+                                ) : (
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M9 19V6l6 6-6 6z"
+                                  />
+                                )}
+                              </svg>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-body font-medium text-text-primary truncate">
+                                {file.name}
+                              </p>
+                              <p className="text-caption text-text-secondary">
+                                {(file.size / 1024 / 1024).toFixed(2)} MB •{' '}
+                                {file.type}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <span className="inline-flex items-center px-2 py-1 bg-status-positive text-white rounded-full text-xs font-medium">
+                              Ready
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
