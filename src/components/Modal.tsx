@@ -177,9 +177,10 @@ const Modal: React.FC<ModalProps> = ({
       // Restore focus
       if (
         previousActiveElement.current &&
-        'focus' in previousActiveElement.current
+        'focus' in previousActiveElement.current &&
+        typeof previousActiveElement.current.focus === 'function'
       ) {
-        ;(previousActiveElement.current as HTMLElement).focus()
+        previousActiveElement.current.focus()
         previousActiveElement.current = null
       }
     }

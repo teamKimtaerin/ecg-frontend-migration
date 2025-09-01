@@ -133,8 +133,10 @@ const Slider: React.FC<SliderProps> = ({
       setIsDragging(true)
 
       // Capture the pointer to ensure we get move events even if cursor leaves the element
-      const target = event.currentTarget as HTMLElement
-      target.setPointerCapture(event.pointerId)
+      const target = event.currentTarget
+      if (target instanceof HTMLElement) {
+        target.setPointerCapture(event.pointerId)
+      }
 
       const rect = sliderRef.current?.getBoundingClientRect()
       if (rect) {
@@ -170,8 +172,10 @@ const Slider: React.FC<SliderProps> = ({
       if (!isDragging) return
 
       setIsDragging(false)
-      const target = event.currentTarget as HTMLElement
-      target.releasePointerCapture(event.pointerId)
+      const target = event.currentTarget
+      if (target instanceof HTMLElement) {
+        target.releasePointerCapture(event.pointerId)
+      }
     },
     [isDragging]
   )
@@ -315,7 +319,7 @@ const Slider: React.FC<SliderProps> = ({
       {/* Label */}
       {label && (
         <label
-          className={`text-body text-text-primary ${
+          className={`text-sm font-medium text-slate-400 ${
             labelPosition === 'top' ? 'block mb-2' : 'flex-shrink-0'
           }`}
         >
@@ -363,9 +367,9 @@ const Slider: React.FC<SliderProps> = ({
         </div>
 
         {/* Value Display */}
-        <div className="flex justify-between mt-2 text-caption text-text-secondary">
+        <div className="flex justify-between mt-2 text-xs text-slate-400">
           <span>{valueFormat(minValue)}</span>
-          <span className="text-text-primary font-medium">
+          <span className="text-slate-200 font-semibold">
             {valueFormat(currentValue)}
           </span>
           <span>{valueFormat(maxValue)}</span>

@@ -22,6 +22,11 @@ export const metadata: Metadata = {
   title: 'ECG - Expressive Caption Generator',
   description:
     'Create vibrant, emotion-driven subtitles with ECG platform. Fast transcription, easy editing, and dynamic subtitle creation.',
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/favicon.ico',
+  },
 }
 
 export default function RootLayout({

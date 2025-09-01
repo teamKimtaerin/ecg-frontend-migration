@@ -794,10 +794,188 @@ body {
   transform: none; /* Avoid expensive transforms on hover */
 }
 
+/* Dark theme dropdown styles for dashboard */
+.dropdown-dark button {
+  background: linear-gradient(to right, #475569, #64748b) !important;
+  border-color: rgba(71, 85, 105, 0.7) !important;
+  color: #e2e8f0 !important;
+  backdrop-filter: blur(4px);
+  transition: all 0.2s ease !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.dropdown-dark button:hover {
+  background: linear-gradient(to right, #334155, #475569) !important;
+  border-color: rgba(148, 163, 184, 0.8) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+.dropdown-dark button:focus {
+  border-color: rgba(148, 163, 184, 0.9) !important;
+  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.2) !important;
+  outline: none !important;
+}
+
+.dropdown-dark ul {
+  background: linear-gradient(to bottom, #334155, #475569) !important;
+  border-color: rgba(71, 85, 105, 0.7) !important;
+  color: #e2e8f0 !important;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+}
+
+.dropdown-dark li {
+  color: #e2e8f0 !important;
+  transition: background-color 0.2s ease !important;
+}
+
+.dropdown-dark li:hover {
+  background: linear-gradient(to right, #475569, #64748b) !important;
+  color: white !important;
+}
+
+/* Custom dark theme checkbox */
+.custom-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #555555;
+  border-radius: 4px;
+  background-color: #2a2a2a;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.custom-checkbox:hover {
+  border-color: #4A90E2;
+  background-color: rgba(74, 144, 226, 0.1);
+}
+
+.custom-checkbox:checked {
+  background-color: #4A90E2;
+  border-color: #4A90E2;
+}
+
+.custom-checkbox:checked::before {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.custom-checkbox:focus {
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.3);
+}
+
+.custom-checkbox:indeterminate {
+  background-color: #4A90E2;
+  border-color: #4A90E2;
+}
+
+.custom-checkbox:indeterminate::before {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 7px;
+  width: 8px;
+  height: 2px;
+  background-color: white;
+  transform: none;
+}
+
+/* Dark theme slider styles for editor */
+.dropdown-dark .bg-surface {
+  background: linear-gradient(to right, #475569, #64748b) !important;
+}
+
+.dropdown-dark .bg-surface-secondary {
+  background: linear-gradient(to right, #334155, #475569) !important;
+}
+
+.dropdown-dark .text-text-primary {
+  color: #e2e8f0 !important;
+}
+
+.dropdown-dark .text-text-secondary {
+  color: #94a3b8 !important;
+}
+
+.dropdown-dark .border-border {
+  border-color: rgba(71, 85, 105, 0.7) !important;
+}
+
+/* Sidebar slide animations */
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.3s ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.3s ease-out;
+}
+
+/* Sidebar transition */
+.sidebar-transition {
+  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+}
+
+.sidebar-hidden-left {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+.sidebar-hidden-right {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+.sidebar-visible {
+  transform: translateX(0);
+  opacity: 1;
+}
+
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
   .animate-blob-optimized {
     animation: none;
+  }
+
+  .animate-slide-in-left,
+  .animate-slide-in-right,
+  .sidebar-transition {
+    animation: none !important;
+    transition: none !important;
   }
 
   * {

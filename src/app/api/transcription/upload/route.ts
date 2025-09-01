@@ -26,8 +26,8 @@ export async function POST(request: NextRequest) {
     )
     console.log('Received config:', config)
 
-    // TODO: 실제 파일 처리 로직 구현
-    // 예: 파일을 스토리지에 업로드, 트랜스크립션 서비스 호출 등
+    // File processing logic would be implemented here
+    // This would include: uploading files to storage, calling transcription service, etc.
 
     // 성공 응답
     return NextResponse.json({
