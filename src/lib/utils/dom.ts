@@ -182,7 +182,7 @@ export function createClickHandler(options: {
     isPending = false,
     isReadOnly = false,
   } = options
-  
+
   return () => {
     if (isDisabled || isPending || isReadOnly || !onClick) return
     onClick()
@@ -204,7 +204,7 @@ export function createKeyboardHandler(options: {
     isPending = false,
     isReadOnly = false,
   } = options
-  
+
   return (event: React.KeyboardEvent<HTMLElement>) => {
     if (isDisabled || isPending || isReadOnly || !onActivate) {
       event.preventDefault()

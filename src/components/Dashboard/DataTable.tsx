@@ -174,7 +174,9 @@ export function DataTable<T extends TableRow = TableRow>({
                     </span>
                   </div>
                   <div className="flex items-center justify-center">
-                    <span className="text-[#b3b3b3] text-sm">{String(row.edited)}</span>
+                    <span className="text-[#b3b3b3] text-sm">
+                      {String(row.edited)}
+                    </span>
                   </div>
                   <div className="flex items-center justify-center">
                     {renderCellContent(row, 'status')}
