@@ -48,29 +48,6 @@ export default function Home() {
     }
   }, [handleScroll])
 
-  // Intersection Observer for background animation optimization
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('animate-blob')
-          } else {
-            entry.target.classList.remove('animate-blob')
-          }
-        })
-      },
-      {
-        rootMargin: '100px',
-        threshold: 0.1,
-      }
-    )
-
-    const blobs = document.querySelectorAll('.bg-blob')
-    blobs.forEach((blob) => observer.observe(blob))
-
-    return () => observer.disconnect()
-  }, [])
 
   // Intersection Observer for section fade-in animations
   useEffect(() => {
