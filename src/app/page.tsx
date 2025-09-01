@@ -48,7 +48,6 @@ export default function Home() {
     }
   }, [handleScroll])
 
-
   // Intersection Observer for section fade-in animations
   useEffect(() => {
     const fadeObserver = new IntersectionObserver(
