@@ -20,7 +20,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: 'ECG - Expressive Caption Generator',
-  description: 'Create vibrant, emotion-driven subtitles with ECG platform. Fast transcription, easy editing, and dynamic subtitle creation.',
+  description:
+    'Create vibrant, emotion-driven subtitles with ECG platform. Fast transcription, easy editing, and dynamic subtitle creation.',
 }
 
 export default function RootLayout({

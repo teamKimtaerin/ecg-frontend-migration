@@ -711,7 +711,9 @@ body {
 .fade-in-section {
   opacity: 0;
   transform: translateY(50px);
-  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+  transition:
+    opacity 0.8s ease-out,
+    transform 0.8s ease-out;
   will-change: opacity, transform;
 }
 
@@ -737,8 +739,6 @@ body {
   opacity: 1;
   transform: translateY(0);
 }
-
-
 
 /* Icon Grid Helper */
 .icon-grid {
@@ -785,7 +785,9 @@ body {
 
 /* Performance optimized button hover states */
 .btn-hover-optimized {
-  transition: background-color 0.15s ease-out, color 0.15s ease-out;
+  transition:
+    background-color 0.15s ease-out,
+    color 0.15s ease-out;
 }
 
 .btn-hover-optimized:hover {
@@ -797,7 +799,7 @@ body {
   .animate-blob-optimized {
     animation: none;
   }
-  
+
   * {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
