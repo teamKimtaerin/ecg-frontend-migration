@@ -514,7 +514,7 @@ export const TRANSITIONS = {
 } as const
 
 /**
- * Generate base interactive element classes
+ * Generate base interactive element classes - Performance optimized
  */
 export function getBaseInteractiveClasses() {
   return [
@@ -522,12 +522,9 @@ export function getBaseInteractiveClasses() {
     'items-center',
     'justify-center',
     'font-medium',
-    'transition-all',
-    'duration-200',
-    'shadow-sm',
-    'hover:shadow-md',
-    'active:shadow-none',
-    'active:translate-y-px',
+    'transition-colors', // Only animate colors, not all properties
+    'duration-150', // Faster transitions feel more responsive
+    'will-change-auto', // Let browser optimize
     'focus:outline-none',
     'focus:ring-2',
     'focus:ring-offset-2',
