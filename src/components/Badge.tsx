@@ -7,7 +7,6 @@ import {
   BADGE_COLORS,
   TRANSITIONS,
   logComponentWarning,
-  type ComponentSize,
   type BaseComponentProps,
 } from '@/lib/utils'
 
