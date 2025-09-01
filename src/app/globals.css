@@ -238,7 +238,7 @@ body {
 .bg-primary {
   background-color: var(--color-primary);
 }
-.bg-primary-50 {
+.bg-primary-opaque {
   background-color: rgba(20, 110, 245, 0.1);
 }
 .bg-primary-dark {

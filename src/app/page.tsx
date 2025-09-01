@@ -263,7 +263,7 @@ export default function Home() {
         <section
           ref={featuresRef}
           id="features"
-          className="py-24 px-6 bg-primary-50 fade-in-section"
+          className="py-24 px-6 bg-primary-opaque fade-in-section"
         >
           <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
@@ -315,7 +315,7 @@ export default function Home() {
         {/* Edit Transcription Section */}
         <section
           ref={editRef}
-          className="py-24 px-6 bg-primary-50 fade-in-section delay-1"
+          className="py-24 px-6 fade-in-section delay-1"
         >
           <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="order-2 lg:order-1 relative">
@@ -369,7 +369,7 @@ export default function Home() {
         {/* Subtitle Editor Section */}
         <section
           ref={subtitleRef}
-          className="py-24 px-6 bg-primary-50 fade-in-section delay-2"
+          className="py-24 px-6 bg-primary-opaque fade-in-section delay-2"
         >
           <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
@@ -496,7 +496,7 @@ export default function Home() {
         <section
           ref={libraryRef}
           id="open-library"
-          className="py-24 px-6 fade-in-section delay-2"
+          className="py-24 px-6 bg-primary-opaque fade-in-section delay-2"
         >
           <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
