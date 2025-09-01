@@ -7,9 +7,7 @@ import {
   ALERT_DIALOG_COLORS,
   TRANSITIONS,
   createClickHandler,
-  createKeyboardHandler,
   logComponentWarning,
-  type ComponentSize,
   type BaseComponentProps,
 } from '@/lib/utils'
 import {
@@ -76,7 +74,7 @@ const AlertDialog: React.FC<AlertDialogProps> = ({
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && isOpen) {
         event.preventDefault()
-        onClose?.() || onCancel?.()
+        ;(onClose || onCancel)?.()
       }
     }
 
@@ -107,7 +105,7 @@ const AlertDialog: React.FC<AlertDialogProps> = ({
 
   const handleBackdropClick = (event: React.MouseEvent) => {
     if (event.target === event.currentTarget) {
-      onClose?.() || onCancel?.()
+      ;(onClose || onCancel)?.()
     }
   }
 

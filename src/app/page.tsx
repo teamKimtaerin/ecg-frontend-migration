@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import Button from '@/components/Button'
 
 export default function Home() {
@@ -131,7 +132,7 @@ export default function Home() {
         >
           <div className="max-w-7xl mx-auto px-6 py-4">
             <div className="flex items-center justify-between">
-              <a href="/" className="flex items-center space-x-3">
+              <Link href="/" className="flex items-center space-x-3">
                 <Image
                   src="/logo.svg"
                   alt="ECG Logo"
@@ -140,7 +141,7 @@ export default function Home() {
                   className="w-10 h-10 rounded-full"
                 />
                 <h1 className="text-h3 text-white font-bold">ECG</h1>
-              </a>
+              </Link>
               <nav className="hidden md:flex items-center space-x-8">
                 <a
                   href="#features"

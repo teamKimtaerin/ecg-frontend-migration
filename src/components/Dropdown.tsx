@@ -71,7 +71,6 @@ const Dropdown: React.FC<DropdownProps> = ({
   isQuiet = false,
   necessityIndicator = 'icon',
   isRequired = false,
-  menuContainer = 'popover',
   isError = false,
   isDisabled = false,
   isReadOnly = false,
