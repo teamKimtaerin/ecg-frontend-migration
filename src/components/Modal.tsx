@@ -245,12 +245,12 @@ const Modal: React.FC<ModalProps> = ({
   const hasActions = Boolean(primaryAction || secondaryAction || cancelAction)
   const buttonSize = getButtonSize(size)
 
-  // Overlay classes with simple fade animation
+  // Overlay classes with blur backdrop
   const overlayClasses = cn(
     'fixed inset-0 flex p-4 items-center justify-center',
-    `z-[${zIndex}]`,
     'bg-black bg-opacity-50',
-    'transition-opacity duration-300 ease-out',
+    'backdrop-blur-sm',
+    'transition-all duration-300 ease-out',
     isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
   )
 
@@ -289,6 +289,7 @@ const Modal: React.FC<ModalProps> = ({
   const modalContent = (
     <div
       className={overlayClasses}
+      style={{ zIndex }}
       {...overlayProps}
       data-testid={dataTestId ? `${dataTestId}-backdrop` : undefined}
     >
