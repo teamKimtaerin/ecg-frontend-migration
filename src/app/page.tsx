@@ -10,7 +10,8 @@ export default function Home() {
   const [email, setEmail] = useState('')
   const [isHeaderVisible, setIsHeaderVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
-  const [isTranscriptionModalOpen, setIsTranscriptionModalOpen] = useState(false)
+  const [isTranscriptionModalOpen, setIsTranscriptionModalOpen] =
+    useState(false)
 
   const heroRef = useRef<HTMLElement>(null)
   const featuresRef = useRef<HTMLElement>(null)
@@ -110,15 +111,18 @@ export default function Home() {
   }, [])
 
   const handleFileSelect = (files: FileList) => {
-    console.log('Selected files:', Array.from(files).map(file => ({
-      name: file.name,
-      size: file.size,
-      type: file.type
-    })))
-    
+    console.log(
+      'Selected files:',
+      Array.from(files).map((file) => ({
+        name: file.name,
+        size: file.size,
+        type: file.type,
+      }))
+    )
+
     // Handle file upload logic here
     // For example: upload to server, show progress, etc.
-    
+
     // Close modal after successful file selection
     setIsTranscriptionModalOpen(false)
   }
@@ -330,10 +334,7 @@ export default function Home() {
         </section>
 
         {/* Edit Transcription Section */}
-        <section
-          ref={editRef}
-          className="py-24 px-6 fade-in-section delay-1"
-        >
+        <section ref={editRef} className="py-24 px-6 fade-in-section delay-1">
           <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="order-2 lg:order-1 relative">
               <div className="bg-black rounded-2xl p-6 border border-gray-slate">
