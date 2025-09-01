@@ -41,44 +41,50 @@ const UploadModal: React.FC<UploadModalProps> = ({
 }) => {
   // Tab state
   const [inputMethod, setInputMethod] = useState<'file' | 'link'>('file')
-  
+
   // File upload state
   const [isDragOver, setIsDragOver] = useState(false)
   const [uploadedFiles, setUploadedFiles] = useState<FileList | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  
+
   // URL import state
   const [videoUrl, setVideoUrl] = useState('')
-  
+
   // Transcription settings state
-  const [selectedLanguage, setSelectedLanguage] = useState('Korean (South Korea)')
-  const [useTranscriptionDictionary, setUseTranscriptionDictionary] = useState(false)
+  const [selectedLanguage, setSelectedLanguage] = useState(
+    'Korean (South Korea)'
+  )
+  const [useTranscriptionDictionary, setUseTranscriptionDictionary] =
+    useState(false)
   const [submitAutomatically, setSubmitAutomatically] = useState(true)
 
   // File validation utility
-  const validateFiles = useCallback((files: File[]) => {
-    return files.filter((file) => {
-      const isValidType = acceptedTypes.some((type) => {
-        if (type.endsWith('/*')) {
-          const baseType = type.replace('/*', '')
-          return file.type.startsWith(baseType)
+  const validateFiles = useCallback(
+    (files: File[]) => {
+      return files.filter((file) => {
+        const isValidType = acceptedTypes.some((type) => {
+          if (type.endsWith('/*')) {
+            const baseType = type.replace('/*', '')
+            return file.type.startsWith(baseType)
+          }
+          return file.type === type
+        })
+        const isValidSize = file.size <= maxFileSize
+
+        if (!isValidType && process.env.NODE_ENV === 'development') {
+          console.warn(`File ${file.name} has invalid type: ${file.type}`)
         }
-        return file.type === type
+        if (!isValidSize && process.env.NODE_ENV === 'development') {
+          console.warn(
+            `File ${file.name} exceeds size limit: ${(file.size / 1024 / 1024).toFixed(2)}MB`
+          )
+        }
+
+        return isValidType && isValidSize
       })
-      const isValidSize = file.size <= maxFileSize
-
-      if (!isValidType && process.env.NODE_ENV === 'development') {
-        console.warn(`File ${file.name} has invalid type: ${file.type}`)
-      }
-      if (!isValidSize && process.env.NODE_ENV === 'development') {
-        console.warn(
-          `File ${file.name} exceeds size limit: ${(file.size / 1024 / 1024).toFixed(2)}MB`
-        )
-      }
-
-      return isValidType && isValidSize
-    })
-  }, [acceptedTypes, maxFileSize])
+    },
+    [acceptedTypes, maxFileSize]
+  )
 
   // Drag and drop handlers
   const handleDragEnter = useCallback((e: React.DragEvent<HTMLDivElement>) => {
@@ -98,30 +104,36 @@ const UploadModal: React.FC<UploadModalProps> = ({
     e.stopPropagation()
   }, [])
 
-  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setIsDragOver(false)
+  const handleDrop = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault()
+      e.stopPropagation()
+      setIsDragOver(false)
 
-    const files = Array.from(e.dataTransfer.files)
-    const validFiles = validateFiles(files)
+      const files = Array.from(e.dataTransfer.files)
+      const validFiles = validateFiles(files)
 
-    if (validFiles.length > 0) {
-      const dt = new DataTransfer()
-      validFiles.forEach((file) => dt.items.add(file))
-      setUploadedFiles(dt.files)
-      onFileSelect(dt.files)
-    }
-  }, [validateFiles, onFileSelect])
+      if (validFiles.length > 0) {
+        const dt = new DataTransfer()
+        validFiles.forEach((file) => dt.items.add(file))
+        setUploadedFiles(dt.files)
+        onFileSelect(dt.files)
+      }
+    },
+    [validateFiles, onFileSelect]
+  )
 
   // File input change handler
-  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (files && files.length > 0) {
-      setUploadedFiles(files)
-      onFileSelect(files)
-    }
-  }, [onFileSelect])
+  const handleFileChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = e.target.files
+      if (files && files.length > 0) {
+        setUploadedFiles(files)
+        onFileSelect(files)
+      }
+    },
+    [onFileSelect]
+  )
 
   // URL validation
   const isValidUrl = useMemo(() => {
@@ -277,7 +289,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
             <h3 className="text-h3 font-semibold text-text-primary">
               2. Configure transcription settings
             </h3>
-            
+
             <TranscriptionSettings
               language={selectedLanguage}
               setLanguage={setSelectedLanguage}
@@ -291,10 +303,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
 
         {/* Modal Actions */}
         <div
-          className={cn(
-            'flex justify-end border-t border-border',
-            'mt-6 pt-6'
-          )}
+          className={cn('flex justify-end border-t border-border', 'mt-6 pt-6')}
         >
           <ButtonGroup orientation="horizontal" spacing="small">
             <Button

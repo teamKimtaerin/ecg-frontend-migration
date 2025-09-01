@@ -49,9 +49,7 @@ const OpenLibrarySection: React.FC<OpenLibrarySectionProps> = ({
                   </span>
                 </div>
                 <div className="bg-status-notice rounded-lg p-3 aspect-square flex items-center justify-center">
-                  <span className="text-black font-bold text-sm">
-                    गायत्री
-                  </span>
+                  <span className="text-black font-bold text-sm">गायत्री</span>
                 </div>
               </div>
               <div className="space-y-3">
@@ -61,21 +59,15 @@ const OpenLibrarySection: React.FC<OpenLibrarySectionProps> = ({
                   </span>
                 </div>
                 <div className="bg-gradient-to-br from-status-celery to-status-chartreuse rounded-lg p-3 aspect-square flex items-center justify-center">
-                  <span className="text-black font-bold text-sm">
-                    Nature
-                  </span>
+                  <span className="text-black font-bold text-sm">Nature</span>
                 </div>
               </div>
               <div className="space-y-3">
                 <div className="bg-status-fuchsia rounded-lg p-3 aspect-square flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">
-                    BC Ludva
-                  </span>
+                  <span className="text-white font-bold text-sm">BC Ludva</span>
                 </div>
                 <div className="bg-status-cyan rounded-lg p-3 aspect-square flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">
-                    BAUBOT
-                  </span>
+                  <span className="text-white font-bold text-sm">BAUBOT</span>
                 </div>
               </div>
             </div>

@@ -16,9 +16,10 @@ export function focusElement(element: HTMLElement | null): void {
  */
 export function isInViewport(element: HTMLElement): boolean {
   const rect = element.getBoundingClientRect()
-  const windowHeight = window.innerHeight || document.documentElement.clientHeight
+  const windowHeight =
+    window.innerHeight || document.documentElement.clientHeight
   const windowWidth = window.innerWidth || document.documentElement.clientWidth
-  
+
   return (
     rect.top >= 0 &&
     rect.left >= 0 &&
@@ -38,7 +39,7 @@ export function scrollToElement(
     behavior: 'smooth',
     block: 'start',
     inline: 'nearest',
-    ...options
+    ...options,
   })
 }
 
@@ -47,8 +48,16 @@ export function scrollToElement(
  */
 export function getScrollPosition(): { x: number; y: number } {
   return {
-    x: window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft || 0,
-    y: window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0
+    x:
+      window.pageXOffset ||
+      document.documentElement.scrollLeft ||
+      document.body.scrollLeft ||
+      0,
+    y:
+      window.pageYOffset ||
+      document.documentElement.scrollTop ||
+      document.body.scrollTop ||
+      0,
   }
 }
 
@@ -73,7 +82,7 @@ export function getElementDimensions(element: HTMLElement): {
     width: rect.width,
     height: rect.height,
     top: rect.top,
-    left: rect.left
+    left: rect.left,
   }
 }
 
@@ -95,7 +104,7 @@ export async function copyToClipboard(text: string): Promise<boolean> {
       document.body.appendChild(textArea)
       textArea.focus()
       textArea.select()
-      
+
       const result = document.execCommand('copy')
       document.body.removeChild(textArea)
       return result
@@ -116,7 +125,7 @@ export function addEventListenerWithCleanup(
   options?: boolean | AddEventListenerOptions
 ): () => void {
   element.addEventListener(event, handler, options)
-  
+
   return () => {
     element.removeEventListener(event, handler, options)
   }
@@ -130,7 +139,7 @@ export function debounce<T extends (...args: any[]) => any>(
   delay: number
 ): (...args: Parameters<T>) => void {
   let timeoutId: NodeJS.Timeout
-  
+
   return (...args: Parameters<T>) => {
     clearTimeout(timeoutId)
     timeoutId = setTimeout(() => func(...args), delay)
@@ -145,13 +154,13 @@ export function throttle<T extends (...args: any[]) => any>(
   delay: number
 ): (...args: Parameters<T>) => void {
   let isThrottled = false
-  
+
   return (...args: Parameters<T>) => {
     if (isThrottled) return
-    
+
     func(...args)
     isThrottled = true
-    
+
     setTimeout(() => {
       isThrottled = false
     }, delay)
@@ -165,18 +174,20 @@ export function createClickHandler(
   handler: () => void,
   isDisabled?: boolean,
   isPending?: boolean
-): (event: React.MouseEvent<HTMLElement>) => void;
+): (event: React.MouseEvent<HTMLElement>) => void
 export function createClickHandler(options: {
   onClick: () => void
   isDisabled?: boolean
   isPending?: boolean
-}): () => void;
+}): () => void
 export function createClickHandler(
-  handlerOrOptions: (() => void) | {
-    onClick: () => void
-    isDisabled?: boolean
-    isPending?: boolean
-  },
+  handlerOrOptions:
+    | (() => void)
+    | {
+        onClick: () => void
+        isDisabled?: boolean
+        isPending?: boolean
+      },
   isDisabled?: boolean,
   isPending?: boolean
 ): ((event: React.MouseEvent<HTMLElement>) => void) | (() => void) {
@@ -192,7 +203,11 @@ export function createClickHandler(
     }
   } else {
     // Options signature for modal overlay
-    const { onClick, isDisabled: disabled, isPending: pending } = handlerOrOptions
+    const {
+      onClick,
+      isDisabled: disabled,
+      isPending: pending,
+    } = handlerOrOptions
     return () => {
       if (disabled || pending) return
       onClick()
@@ -214,7 +229,7 @@ export function createKeyboardHandler(
       event.stopPropagation()
       return
     }
-    
+
     // Trigger on Enter or Space key
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault()
@@ -234,10 +249,12 @@ export function getFocusableElements(container: HTMLElement): HTMLElement[] {
     'select:not([disabled])',
     'a[href]',
     '[tabindex]:not([tabindex="-1"])',
-    '[contenteditable="true"]'
+    '[contenteditable="true"]',
   ].join(', ')
-  
-  return Array.from(container.querySelectorAll(focusableSelectors)) as HTMLElement[]
+
+  return Array.from(
+    container.querySelectorAll(focusableSelectors)
+  ) as HTMLElement[]
 }
 
 /**
@@ -247,10 +264,10 @@ export function trapFocus(element: HTMLElement): () => void {
   const focusableElements = getFocusableElements(element)
   const firstElement = focusableElements[0]
   const lastElement = focusableElements[focusableElements.length - 1]
-  
+
   const handleTabKey = (event: KeyboardEvent) => {
     if (event.key !== 'Tab') return
-    
+
     if (event.shiftKey) {
       if (document.activeElement === firstElement) {
         lastElement?.focus()
@@ -263,9 +280,9 @@ export function trapFocus(element: HTMLElement): () => void {
       }
     }
   }
-  
+
   document.addEventListener('keydown', handleTabKey)
-  
+
   return () => {
     document.removeEventListener('keydown', handleTabKey)
   }
@@ -277,7 +294,7 @@ export function trapFocus(element: HTMLElement): () => void {
 export function getInitialFocus(container: HTMLElement): HTMLElement | null {
   const autoFocusElement = container.querySelector('[autofocus]') as HTMLElement
   if (autoFocusElement) return autoFocusElement
-  
+
   const focusableElements = getFocusableElements(container)
   return focusableElements[0] || null
 }
@@ -332,7 +349,7 @@ export function createOverlayProps(
  */
 export function preventBodyScroll(prevent: boolean): void {
   if (typeof document === 'undefined') return
-  
+
   if (prevent) {
     document.body.style.overflow = 'hidden'
   } else {

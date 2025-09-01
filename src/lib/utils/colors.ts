@@ -2,22 +2,30 @@
  * Color utility functions for consistent color management
  */
 
-export type ColorVariant = 
-  | 'primary' 
-  | 'secondary' 
-  | 'accent' 
-  | 'neutral' 
-  | 'positive' 
-  | 'negative' 
-  | 'notice' 
+export type ColorVariant =
+  | 'primary'
+  | 'secondary'
+  | 'accent'
+  | 'neutral'
+  | 'positive'
+  | 'negative'
+  | 'notice'
   | 'informative'
 
-export type ColorIntensity = 'light' | 'medium' | 'dark' | 'very-light' | 'very-dark'
+export type ColorIntensity =
+  | 'light'
+  | 'medium'
+  | 'dark'
+  | 'very-light'
+  | 'very-dark'
 
 /**
  * Get CSS variable name for a color
  */
-export function getColorVar(variant: ColorVariant, intensity?: ColorIntensity): string {
+export function getColorVar(
+  variant: ColorVariant,
+  intensity?: ColorIntensity
+): string {
   const baseVar = `--color-${variant}`
   if (!intensity || intensity === 'medium') {
     return baseVar
@@ -28,7 +36,10 @@ export function getColorVar(variant: ColorVariant, intensity?: ColorIntensity): 
 /**
  * Get CSS color value using CSS variables
  */
-export function getCSSColor(variant: ColorVariant, intensity?: ColorIntensity): string {
+export function getCSSColor(
+  variant: ColorVariant,
+  intensity?: ColorIntensity
+): string {
   return `var(${getColorVar(variant, intensity)})`
 }
 
@@ -40,9 +51,8 @@ export function getTailwindColor(
   variant: ColorVariant,
   intensity?: ColorIntensity
 ): string {
-  const colorName = intensity && intensity !== 'medium' 
-    ? `${variant}-${intensity}` 
-    : variant
+  const colorName =
+    intensity && intensity !== 'medium' ? `${variant}-${intensity}` : variant
   return `${property}-${colorName}`
 }
 
@@ -54,16 +64,16 @@ export const colorPalette = {
   'primary-dark': '#0a57d4',
   'primary-light': '#3bb2f6',
   'primary-very-light': '#dbeafe',
-  
+
   secondary: '#76797d',
   accent: '#10b981',
-  
+
   neutral: '#76797d',
   positive: '#10b981',
   negative: '#dc2626',
   notice: '#f59e0b',
   informative: '#146ef5',
-  
+
   white: '#ffffff',
   black: '#080808',
   'gray-slate': '#76797d',
@@ -79,29 +89,39 @@ export const SEMANTIC_COLORS = {
     outline: ['border', 'border-red-200', 'text-red-700', 'hover:bg-red-50'],
     background: 'bg-red-50',
     text: 'text-red-700',
-    border: 'border-red-200'
+    border: 'border-red-200',
   },
   success: {
     fill: ['bg-green-50', 'text-green-700', 'border', 'border-green-200'],
-    outline: ['border', 'border-green-200', 'text-green-700', 'hover:bg-green-50'],
+    outline: [
+      'border',
+      'border-green-200',
+      'text-green-700',
+      'hover:bg-green-50',
+    ],
     background: 'bg-green-50',
     text: 'text-green-700',
-    border: 'border-green-200'
+    border: 'border-green-200',
   },
   warning: {
     fill: ['bg-yellow-50', 'text-yellow-700', 'border', 'border-yellow-200'],
-    outline: ['border', 'border-yellow-200', 'text-yellow-700', 'hover:bg-yellow-50'],
+    outline: [
+      'border',
+      'border-yellow-200',
+      'text-yellow-700',
+      'hover:bg-yellow-50',
+    ],
     background: 'bg-yellow-50',
     text: 'text-yellow-700',
-    border: 'border-yellow-200'
+    border: 'border-yellow-200',
   },
   info: {
     fill: ['bg-blue-50', 'text-blue-700', 'border', 'border-blue-200'],
     outline: ['border', 'border-blue-200', 'text-blue-700', 'hover:bg-blue-50'],
     background: 'bg-blue-50',
     text: 'text-blue-700',
-    border: 'border-blue-200'
-  }
+    border: 'border-blue-200',
+  },
 } as const
 
 export const TRANSITIONS = {
@@ -110,7 +130,7 @@ export const TRANSITIONS = {
   slow: 'transition-all duration-500 ease-in-out',
   colors: 'transition-colors duration-200',
   transform: 'transition-transform duration-300 ease-out',
-  opacity: 'transition-opacity duration-300'
+  opacity: 'transition-opacity duration-300',
 } as const
 
 export type SemanticColor = keyof typeof SEMANTIC_COLORS
@@ -146,7 +166,7 @@ export const ALERT_BANNER_COLORS = {
     text: 'text-alert-notice',
     border: 'border-alert-notice',
     iconColor: 'text-alert-notice',
-  }
+  },
 } as const
 
 export const ALERT_DIALOG_COLORS = {
@@ -174,7 +194,7 @@ export const ALERT_DIALOG_COLORS = {
     iconColor: 'text-status-negative',
     titleColor: 'text-black',
     primaryButton: 'negative',
-  }
+  },
 } as const
 
 export const BADGE_COLORS = {

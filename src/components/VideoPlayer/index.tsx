@@ -29,7 +29,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ className = '' }) => {
         console.log('Video readyState:', video.readyState)
         console.log('Video src:', video.currentSrc || video.src)
       }
-      
+
       // 비디오가 이미 로드된 경우 즉시 duration 설정
       if (video.readyState >= 1 && video.duration) {
         if (process.env.NODE_ENV === 'development') {
@@ -37,7 +37,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ className = '' }) => {
         }
         setDuration(video.duration)
       }
-      
+
       // 비디오 이벤트 리스너들
       const handleLoadStart = () => {
         if (process.env.NODE_ENV === 'development') {
@@ -50,11 +50,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ className = '' }) => {
         }
       }
       const handleError = (e: Event) => console.error('Video error:', e)
-      
+
       video.addEventListener('loadstart', handleLoadStart)
       video.addEventListener('canplay', handleCanPlay)
       video.addEventListener('error', handleError)
-      
+
       return () => {
         video.removeEventListener('loadstart', handleLoadStart)
         video.removeEventListener('canplay', handleCanPlay)
@@ -86,14 +86,20 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ className = '' }) => {
   // 10초 뒤로
   const skipBackward = () => {
     if (videoRef.current) {
-      videoRef.current.currentTime = Math.max(0, videoRef.current.currentTime - 10)
+      videoRef.current.currentTime = Math.max(
+        0,
+        videoRef.current.currentTime - 10
+      )
     }
   }
 
   // 10초 앞으로
   const skipForward = () => {
     if (videoRef.current) {
-      videoRef.current.currentTime = Math.min(duration, videoRef.current.currentTime + 10)
+      videoRef.current.currentTime = Math.min(
+        duration,
+        videoRef.current.currentTime + 10
+      )
     }
   }
 
@@ -109,35 +115,38 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ className = '' }) => {
   }
 
   // 볼륨 변경 (부드러운 조절을 위한 최적화)
-  const changeVolume = useCallback((newVolume: number) => {
-    // NaN, Infinity, -Infinity 체크
-    if (!Number.isFinite(newVolume)) {
-      if (process.env.NODE_ENV === 'development') {
-        console.warn('Invalid volume value:', newVolume)
+  const changeVolume = useCallback(
+    (newVolume: number) => {
+      // NaN, Infinity, -Infinity 체크
+      if (!Number.isFinite(newVolume)) {
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('Invalid volume value:', newVolume)
+        }
+        return
       }
-      return
-    }
-    
-    const clampedVolume = Math.max(0, Math.min(1, newVolume))
-    
-    // 추가 안전성 체크
-    if (!Number.isFinite(clampedVolume)) {
-      if (process.env.NODE_ENV === 'development') {
-        console.warn('Clamped volume is not finite:', clampedVolume)
+
+      const clampedVolume = Math.max(0, Math.min(1, newVolume))
+
+      // 추가 안전성 체크
+      if (!Number.isFinite(clampedVolume)) {
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('Clamped volume is not finite:', clampedVolume)
+        }
+        return
       }
-      return
-    }
-    
-    setVolume(clampedVolume)
-    if (videoRef.current) {
-      videoRef.current.volume = clampedVolume
-    }
-    if (clampedVolume === 0 && !isMuted) {
-      setIsMuted(true)
-    } else if (clampedVolume > 0 && isMuted) {
-      setIsMuted(false)
-    }
-  }, [isMuted])
+
+      setVolume(clampedVolume)
+      if (videoRef.current) {
+        videoRef.current.volume = clampedVolume
+      }
+      if (clampedVolume === 0 && !isMuted) {
+        setIsMuted(true)
+      } else if (clampedVolume > 0 && isMuted) {
+        setIsMuted(false)
+      }
+    },
+    [isMuted]
+  )
 
   // 음소거 토글
   const toggleMute = () => {
@@ -168,7 +177,14 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ className = '' }) => {
       const clickPosition = (e.clientX - rect.left) / rect.width
       const newTime = clickPosition * duration
       if (process.env.NODE_ENV === 'development') {
-        console.log('Progress click:', clickPosition, 'New time:', newTime, 'Duration:', duration)
+        console.log(
+          'Progress click:',
+          clickPosition,
+          'New time:',
+          newTime,
+          'Duration:',
+          duration
+        )
       }
       videoRef.current.currentTime = newTime
     }
@@ -210,7 +226,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ className = '' }) => {
   }
 
   return (
-    <div className={`flex-1 bg-slate-800/80 backdrop-blur-sm border border-slate-600/40 rounded-lg mx-2 my-4 shadow-xl ${className}`}>
+    <div
+      className={`flex-1 bg-slate-800/80 backdrop-blur-sm border border-slate-600/40 rounded-lg mx-2 my-4 shadow-xl ${className}`}
+    >
       <div className="p-4 h-full flex flex-col">
         {/* Template and Action Bar */}
         <div className="flex items-center justify-between mb-4">
@@ -220,7 +238,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ className = '' }) => {
               options={[
                 { value: 'Basic', label: 'Basic' },
                 { value: 'Advanced', label: 'Advanced' },
-                { value: 'Custom', label: 'Custom' }
+                { value: 'Custom', label: 'Custom' },
               ]}
               size="small"
               className="dropdown-dark"
@@ -228,8 +246,18 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ className = '' }) => {
           </div>
           <div className="flex items-center space-x-3">
             <button className="flex items-center text-slate-300 hover:text-white border border-transparent hover:border-slate-500/50 rounded-full px-3 py-1 transition-all duration-200">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"
+                />
               </svg>
               <span className="text-xs ml-1">Share</span>
             </button>
@@ -254,11 +282,17 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ className = '' }) => {
             onPause={() => setIsPlaying(false)}
             crossOrigin="anonymous"
           >
-            <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4" />
-            <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" type="video/mp4" />
+            <source
+              src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+              type="video/mp4"
+            />
+            <source
+              src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4"
+              type="video/mp4"
+            />
             비디오를 지원하지 않는 브라우저입니다.
           </video>
-          
+
           {/* Subtitle Overlay */}
           <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-3 py-1 rounded text-sm">
             {/* 자막이 여기에 표시됩니다 */}
@@ -267,13 +301,15 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ className = '' }) => {
 
         {/* Progress Bar */}
         <div className="relative mb-4">
-          <div 
+          <div
             className="w-full h-2 bg-slate-700 rounded-full shadow-inner cursor-pointer"
             onClick={handleProgressClick}
           >
-            <div 
-              className="h-full bg-gradient-to-r from-slate-400 to-gray-400 rounded-full shadow-sm transition-all duration-150" 
-              style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
+            <div
+              className="h-full bg-gradient-to-r from-slate-400 to-gray-400 rounded-full shadow-sm transition-all duration-150"
+              style={{
+                width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%`,
+              }}
             />
           </div>
           <div className="flex justify-between text-xs text-slate-400 mt-1">
@@ -285,75 +321,95 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ className = '' }) => {
         {/* Player Controls */}
         <div className="flex items-center justify-center space-x-3 mb-3">
           <div className="bg-gradient-to-r from-slate-600 to-gray-600 rounded-lg p-2 flex items-center space-x-3 shadow-md">
-            <button 
+            <button
               onClick={skipBackward}
               className="text-white hover:text-slate-300 transition-colors"
               title="10초 뒤로"
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
+                <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" />
               </svg>
             </button>
-            
-            <button 
+
+            <button
               onClick={togglePlay}
               className="text-white hover:text-slate-300 transition-colors"
-              title={isPlaying ? "일시정지" : "재생"}
+              title={isPlaying ? '일시정지' : '재생'}
             >
               {isPlaying ? (
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+                <svg
+                  className="w-6 h-6"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
                 </svg>
               ) : (
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M8 5v14l11-7z"/>
+                <svg
+                  className="w-6 h-6"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M8 5v14l11-7z" />
                 </svg>
               )}
             </button>
-            
-            <button 
+
+            <button
               onClick={skipForward}
               className="text-white hover:text-slate-300 transition-colors"
               title="10초 앞으로"
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/>
+                <path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z" />
               </svg>
             </button>
-            
-            <button 
+
+            <button
               onClick={changePlaybackRate}
               className="text-white hover:text-slate-300 transition-colors text-sm font-bold px-2"
               title="재생 속도 변경"
             >
               {playbackRate}x
             </button>
-            
+
             <div className="relative flex items-center">
-              <button 
+              <button
                 onClick={toggleMute}
                 onMouseEnter={() => setShowVolumeSlider(true)}
                 className="text-white hover:text-slate-300 transition-colors"
-                title={isMuted ? "음소거 해제" : "음소거"}
+                title={isMuted ? '음소거 해제' : '음소거'}
               >
                 {isMuted || volume === 0 ? (
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
+                  <svg
+                    className="w-5 h-5"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z" />
                   </svg>
                 ) : volume > 0.5 ? (
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                  <svg
+                    className="w-5 h-5"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
                   </svg>
                 ) : (
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M7 9v6h4l5 5V4l-5 5H7z"/>
+                  <svg
+                    className="w-5 h-5"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M7 9v6h4l5 5V4l-5 5H7z" />
                   </svg>
                 )}
               </button>
 
               {/* Volume Slider */}
               {showVolumeSlider && (
-                <div 
+                <div
                   className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-slate-800/95 backdrop-blur-sm border border-slate-600/50 rounded-lg p-3 shadow-xl z-50"
                   onMouseLeave={() => setShowVolumeSlider(false)}
                   onMouseEnter={() => setShowVolumeSlider(true)}
@@ -362,44 +418,55 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ className = '' }) => {
                     <div className="text-xs text-slate-300 font-medium">
                       {Math.round((isMuted ? 0 : volume) * 100)}%
                     </div>
-                    <div 
+                    <div
                       className="h-20 w-6 flex items-center justify-center cursor-pointer"
                       onMouseDown={(e) => {
                         e.preventDefault()
                         setIsDraggingVolume(true)
-                        
-                        const sliderTrack = e.currentTarget.querySelector('.w-1\\.5')
-                        if (!sliderTrack || !(sliderTrack instanceof HTMLElement)) return
-                        
+
+                        const sliderTrack =
+                          e.currentTarget.querySelector('.w-1\\.5')
+                        if (
+                          !sliderTrack ||
+                          !(sliderTrack instanceof HTMLElement)
+                        )
+                          return
+
                         const updateVolume = (clientY: number) => {
                           const rect = sliderTrack.getBoundingClientRect()
-                          
+
                           // 안전성 체크
                           if (!rect || rect.height === 0) return
-                          
-                          const y = Math.max(0, Math.min(rect.height, rect.bottom - clientY))
+
+                          const y = Math.max(
+                            0,
+                            Math.min(rect.height, rect.bottom - clientY)
+                          )
                           const newVolume = y / rect.height
-                          
+
                           // 추가 검증
                           if (Number.isFinite(newVolume)) {
                             changeVolume(newVolume)
                           }
                         }
-                        
+
                         // 초기 클릭 위치에서 볼륨 설정
                         updateVolume(e.clientY)
-                        
+
                         const handleMouseMove = (e: MouseEvent) => {
                           e.preventDefault()
                           updateVolume(e.clientY)
                         }
-                        
+
                         const handleMouseUp = () => {
                           setIsDraggingVolume(false)
-                          document.removeEventListener('mousemove', handleMouseMove)
+                          document.removeEventListener(
+                            'mousemove',
+                            handleMouseMove
+                          )
                           document.removeEventListener('mouseup', handleMouseUp)
                         }
-                        
+
                         document.addEventListener('mousemove', handleMouseMove)
                         document.addEventListener('mouseup', handleMouseUp)
                       }}
@@ -407,22 +474,24 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ className = '' }) => {
                       {/* Volume Track */}
                       <div className="h-20 w-1.5 bg-slate-600 rounded-full relative">
                         {/* Volume Fill */}
-                        <div 
+                        <div
                           className={`absolute bottom-0 left-0 w-full bg-gradient-to-t from-slate-300 to-gray-400 rounded-full ${
-                            isDraggingVolume ? '' : 'transition-all duration-100'
+                            isDraggingVolume
+                              ? ''
+                              : 'transition-all duration-100'
                           }`}
                           style={{ height: `${(isMuted ? 0 : volume) * 100}%` }}
                         />
                         {/* Volume Handle */}
-                        <div 
+                        <div
                           className={`absolute w-3 h-3 bg-white border border-slate-400 rounded-full shadow-sm cursor-grab transform -translate-x-1/2 -translate-y-1/2 ${
-                            isDraggingVolume 
-                              ? 'scale-125 shadow-lg border-slate-300' 
+                            isDraggingVolume
+                              ? 'scale-125 shadow-lg border-slate-300'
                               : 'hover:scale-110 transition-transform'
                           } active:cursor-grabbing`}
-                          style={{ 
+                          style={{
                             bottom: `${(isMuted ? 0 : volume) * 100}%`,
-                            left: '50%'
+                            left: '50%',
                           }}
                         />
                       </div>

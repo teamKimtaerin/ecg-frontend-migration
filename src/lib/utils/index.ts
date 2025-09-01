@@ -11,7 +11,7 @@ export * from './types'
 // Color utilities
 export * from './colors'
 
-// Formatting utilities  
+// Formatting utilities
 export * from './formatting'
 
 // Validation utilities

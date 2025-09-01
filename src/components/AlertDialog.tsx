@@ -105,11 +105,10 @@ const AlertDialog: React.FC<AlertDialogProps> = ({
 
   const handleBackdropClick = (event: React.MouseEvent) => {
     if (event.target === event.currentTarget) {
-      if(onClose){
-        onClose();
-      }
-      else if(onCancel){
-        onCancel();
+      if (onClose) {
+        onClose()
+      } else if (onCancel) {
+        onCancel()
       }
       // ;(onClose || onCancel)?.()
     }

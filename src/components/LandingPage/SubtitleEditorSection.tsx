@@ -54,12 +54,9 @@ const SubtitleEditorSection: React.FC<SubtitleEditorSectionProps> = ({
                 <div className="text-center">
                   <p className="text-white font-semibold">
                     Put that{' '}
-                    <span className="text-status-fuchsia">
-                      coffee dOWn!
-                    </span>{' '}
+                    <span className="text-status-fuchsia">coffee dOWn!</span>{' '}
                     Coffee&apos;s for{' '}
-                    <span className="text-status-fuchsia">closers</span>{' '}
-                    only!
+                    <span className="text-status-fuchsia">closers</span> only!
                   </p>
                 </div>
               </div>

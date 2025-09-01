@@ -7,7 +7,10 @@ import { DataTable } from './DataTable'
 interface SubtitleAsset {
   id: string
   name: string
-  tags: Array<{ label: string; variant: 'positive' | 'informative' | 'negative' | 'notice' | 'neutral' }>
+  tags: Array<{
+    label: string
+    variant: 'positive' | 'informative' | 'negative' | 'notice' | 'neutral'
+  }>
   created: string
   edited: string
 }
@@ -20,7 +23,7 @@ const tableColumns = [
   { key: 'name', label: 'NAME' },
   { key: 'tags', label: 'Tags', width: 'w-80' },
   { key: 'created', label: 'CREATED', width: 'w-32' },
-  { key: 'edited', label: 'EDITED', width: 'w-32' }
+  { key: 'edited', label: 'EDITED', width: 'w-32' },
 ]
 
 const tableActions = [
@@ -28,32 +31,32 @@ const tableActions = [
     label: 'Move',
     icon: <span>📁</span>,
     onClick: (id: string) => console.log('Move', id),
-    variant: 'secondary' as const
+    variant: 'secondary' as const,
   },
   {
     label: 'Rename',
     icon: <span>✏️</span>,
     onClick: (id: string) => console.log('Rename', id),
-    variant: 'secondary' as const
+    variant: 'secondary' as const,
   },
   {
     label: 'Remove',
     icon: <span>🗑️</span>,
     onClick: (id: string) => console.log('Remove', id),
-    variant: 'negative' as const
+    variant: 'negative' as const,
   },
   {
     label: 'Duplicate',
     icon: <span>📄</span>,
     onClick: (id: string) => console.log('Duplicate', id),
-    variant: 'secondary' as const
+    variant: 'secondary' as const,
   },
   {
     label: 'Export',
     icon: <span>📤</span>,
     onClick: (id: string) => console.log('Export', id),
-    variant: 'primary' as const
-  }
+    variant: 'primary' as const,
+  },
 ]
 
 export function SubtitlesClient({ initialSubtitles }: SubtitlesClientProps) {
@@ -68,7 +71,7 @@ export function SubtitlesClient({ initialSubtitles }: SubtitlesClientProps) {
     console.log('Row clicked:', row)
   }
 
-  const filteredSubtitles = initialSubtitles.filter(subtitle =>
+  const filteredSubtitles = initialSubtitles.filter((subtitle) =>
     subtitle.name.toLowerCase().includes(searchValue.toLowerCase())
   )
 

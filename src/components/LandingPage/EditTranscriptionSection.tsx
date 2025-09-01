@@ -21,9 +21,7 @@ const EditTranscriptionSection: React.FC<EditTranscriptionSectionProps> = ({
                   <div className="w-3 h-3 bg-red-600 rounded-full"></div>
                   <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
                   <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  <span className="text-gray-medium text-sm ml-4">
-                    편집기
-                  </span>
+                  <span className="text-gray-medium text-sm ml-4">편집기</span>
                 </div>
                 <div className="space-y-2">
                   <div className="h-2 bg-primary rounded w-3/4"></div>

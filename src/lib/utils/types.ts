@@ -148,20 +148,36 @@ export const getSizeClasses = (size: ComponentSize = 'medium') => {
   return SIZE_CLASSES.padding[size]
 }
 
-export const getVariantClasses = (variant: ComponentVariant = 'primary', style: ComponentStyle = 'fill', staticColor: StaticColor = 'none') => {
+export const getVariantClasses = (
+  variant: ComponentVariant = 'primary',
+  style: ComponentStyle = 'fill',
+  staticColor: StaticColor = 'none'
+) => {
   const baseVariants = {
-    accent: style === 'fill' ? 'bg-accent text-white border-accent' : 'border-accent text-accent',
-    primary: style === 'fill' ? 'bg-primary text-white border-primary' : 'border-primary text-primary',
-    secondary: style === 'fill' ? 'bg-secondary text-text-primary border-border' : 'border-secondary text-secondary',
-    negative: style === 'fill' ? 'bg-negative text-white border-negative' : 'border-negative text-negative',
+    accent:
+      style === 'fill'
+        ? 'bg-accent text-white border-accent'
+        : 'border-accent text-accent',
+    primary:
+      style === 'fill'
+        ? 'bg-primary text-white border-primary'
+        : 'border-primary text-primary',
+    secondary:
+      style === 'fill'
+        ? 'bg-secondary text-text-primary border-border'
+        : 'border-secondary text-secondary',
+    negative:
+      style === 'fill'
+        ? 'bg-negative text-white border-negative'
+        : 'border-negative text-negative',
   }
-  
+
   const colorOverrides = {
     white: 'text-white border-white',
     black: 'text-black border-black',
-    none: ''
+    none: '',
   }
-  
+
   return `${baseVariants[variant]} ${staticColor !== 'none' ? colorOverrides[staticColor] : ''}`
 }
 

@@ -10,10 +10,10 @@ const sampleSubtitles = [
     tags: [
       { label: 'Dramatic', variant: 'informative' as const },
       { label: 'High Pitch', variant: 'negative' as const },
-      { label: 'Variety', variant: 'positive' as const }
+      { label: 'Variety', variant: 'positive' as const },
     ],
     created: '9h ago',
-    edited: '9h ago'
+    edited: '9h ago',
   },
   {
     id: '2',
@@ -21,10 +21,10 @@ const sampleSubtitles = [
     tags: [
       { label: 'Speedy', variant: 'notice' as const },
       { label: 'High Pitch', variant: 'negative' as const },
-      { label: 'Glowing', variant: 'informative' as const }
+      { label: 'Glowing', variant: 'informative' as const },
     ],
     created: '16h ago',
-    edited: '12h ago'
+    edited: '12h ago',
   },
   {
     id: '3',
@@ -32,11 +32,11 @@ const sampleSubtitles = [
     tags: [
       { label: 'Animated', variant: 'positive' as const },
       { label: 'Slow', variant: 'positive' as const },
-      { label: 'None Effect', variant: 'neutral' as const }
+      { label: 'None Effect', variant: 'neutral' as const },
     ],
     created: '2d ago',
-    edited: '1d ago'
-  }
+    edited: '1d ago',
+  },
 ]
 
 export default function SubtitlesPage() {

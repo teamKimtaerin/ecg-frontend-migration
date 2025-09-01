@@ -280,8 +280,8 @@ export default function Home() {
         <HeroSection heroRef={heroRef} />
 
         {/* Fast Transcription Section */}
-        <FastTranscriptionSection 
-          featuresRef={featuresRef} 
+        <FastTranscriptionSection
+          featuresRef={featuresRef}
           onTranscriptionClick={() => setIsTranscriptionModalOpen(true)}
         />
 
@@ -304,7 +304,9 @@ export default function Home() {
       {/* Upload Modal */}
       <UploadModal
         isOpen={isTranscriptionModalOpen}
-        onClose={() => !isTranscriptionLoading && setIsTranscriptionModalOpen(false)}
+        onClose={() =>
+          !isTranscriptionLoading && setIsTranscriptionModalOpen(false)
+        }
         onFileSelect={handleFileSelect}
         onStartTranscription={handleStartTranscription}
         acceptedTypes={['audio/*', 'video/*']}

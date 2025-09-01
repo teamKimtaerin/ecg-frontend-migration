@@ -26,15 +26,27 @@ function MyFilesSidebar({ isOpen, onToggle }: MyFilesSidebarProps) {
           isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'
         }`}
       >
-        <svg className="w-4 h-4 text-text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        <svg
+          className="w-4 h-4 text-text-primary"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M9 5l7 7-7 7"
+          />
         </svg>
       </button>
 
       {/* Sidebar */}
-      <div className={`fixed left-0 top-[100px] bottom-4 w-[280px] bg-slate-800/80 backdrop-blur-sm border border-slate-600/40 rounded-r-lg z-40 shadow-xl sidebar-transition ${
-        isOpen ? 'sidebar-visible' : 'sidebar-hidden-left'
-      }`}>
+      <div
+        className={`fixed left-0 top-[100px] bottom-4 w-[280px] bg-slate-800/80 backdrop-blur-sm border border-slate-600/40 rounded-r-lg z-40 shadow-xl sidebar-transition ${
+          isOpen ? 'sidebar-visible' : 'sidebar-hidden-left'
+        }`}
+      >
         <div className="p-4">
           <div className="relative flex items-center justify-center mb-4">
             <h2 className="text-text-primary text-lg font-bold">My Files</h2>
@@ -42,21 +54,35 @@ function MyFilesSidebar({ isOpen, onToggle }: MyFilesSidebarProps) {
               onClick={onToggle}
               className="absolute right-0 text-text-primary hover:text-text-secondary"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
               </svg>
             </button>
           </div>
-          
+
           <div className="text-center space-y-4 mt-16">
             <div className="space-y-2">
-              <h3 className="text-text-primary text-base font-bold">You must sign in to</h3>
-              <h3 className="text-text-primary text-base font-bold">access your archive</h3>
+              <h3 className="text-text-primary text-base font-bold">
+                You must sign in to
+              </h3>
+              <h3 className="text-text-primary text-base font-bold">
+                access your archive
+              </h3>
             </div>
-            
+
             <div className="space-y-3">
               <Button
-                variant="secondary" 
+                variant="secondary"
                 style="outline"
                 size="small"
                 className="w-full text-slate-300 border-slate-400/50 hover:bg-slate-500/20 hover:text-white transition-all duration-200"
@@ -78,7 +104,7 @@ function MyFilesSidebar({ isOpen, onToggle }: MyFilesSidebarProps) {
   )
 }
 
-// Edit Sidebar Component  
+// Edit Sidebar Component
 interface EditSidebarProps {
   isOpen: boolean
   onToggle: () => void
@@ -88,13 +114,13 @@ interface EditSidebarProps {
   setAnimationStrength: (value: number) => void
 }
 
-function EditSidebar({ 
-  isOpen, 
-  onToggle, 
-  animationSpeed, 
-  setAnimationSpeed, 
-  animationStrength, 
-  setAnimationStrength 
+function EditSidebar({
+  isOpen,
+  onToggle,
+  animationSpeed,
+  setAnimationSpeed,
+  animationStrength,
+  setAnimationStrength,
 }: EditSidebarProps) {
   return (
     <>
@@ -105,23 +131,45 @@ function EditSidebar({
           isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'
         }`}
       >
-        <svg className="w-4 h-4 text-text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        <svg
+          className="w-4 h-4 text-text-primary"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M15 19l-7-7 7-7"
+          />
         </svg>
       </button>
 
       {/* Sidebar */}
-      <div className={`fixed right-0 top-[100px] bottom-4 w-[280px] bg-slate-800/80 backdrop-blur-sm border border-slate-600/40 rounded-l-lg z-40 overflow-y-auto shadow-xl sidebar-transition ${
-        isOpen ? 'sidebar-visible' : 'sidebar-hidden-right'
-      }`}>
+      <div
+        className={`fixed right-0 top-[100px] bottom-4 w-[280px] bg-slate-800/80 backdrop-blur-sm border border-slate-600/40 rounded-l-lg z-40 overflow-y-auto shadow-xl sidebar-transition ${
+          isOpen ? 'sidebar-visible' : 'sidebar-hidden-right'
+        }`}
+      >
         <div className="p-3 leading-loose">
           <div className="relative flex items-center justify-center mb-3">
             <button
               onClick={onToggle}
               className="absolute left-0 text-text-primary hover:text-text-secondary"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
               </svg>
             </button>
             <h2 className="text-text-primary text-lg font-bold">Edit</h2>
@@ -138,11 +186,21 @@ function EditSidebar({
 
           {/* Text Formatting Tools */}
           <div className="bg-gradient-to-r from-slate-600 to-gray-600 border border-slate-400/50 rounded-full p-1 mb-4 flex items-center justify-center space-x-1 shadow-md">
-            <button className="text-slate-300 hover:text-white font-bold text-sm px-2 py-1 hover:bg-slate-500/30 rounded transition-colors">B</button>
-            <button className="text-slate-300 hover:text-white italic text-sm px-2 py-1 hover:bg-slate-500/30 rounded transition-colors">I</button>
-            <button className="text-slate-300 hover:text-white underline text-sm px-2 py-1 hover:bg-slate-500/30 rounded transition-colors">S</button>
-            <button className="text-slate-300 hover:text-white line-through text-sm px-2 py-1 hover:bg-slate-500/30 rounded transition-colors">U</button>
-            <button className="text-slate-300 hover:text-white text-sm px-2 py-1 hover:bg-slate-500/30 rounded transition-colors">H</button>
+            <button className="text-slate-300 hover:text-white font-bold text-sm px-2 py-1 hover:bg-slate-500/30 rounded transition-colors">
+              B
+            </button>
+            <button className="text-slate-300 hover:text-white italic text-sm px-2 py-1 hover:bg-slate-500/30 rounded transition-colors">
+              I
+            </button>
+            <button className="text-slate-300 hover:text-white underline text-sm px-2 py-1 hover:bg-slate-500/30 rounded transition-colors">
+              S
+            </button>
+            <button className="text-slate-300 hover:text-white line-through text-sm px-2 py-1 hover:bg-slate-500/30 rounded transition-colors">
+              U
+            </button>
+            <button className="text-slate-300 hover:text-white text-sm px-2 py-1 hover:bg-slate-500/30 rounded transition-colors">
+              H
+            </button>
           </div>
 
           {/* Color Controls */}
@@ -160,7 +218,7 @@ function EditSidebar({
                 options={[
                   { value: 'Font 1', label: 'Font 1' },
                   { value: 'Font 2', label: 'Font 2' },
-                  { value: 'Font 3', label: 'Font 3' }
+                  { value: 'Font 3', label: 'Font 3' },
                 ]}
                 size="small"
                 className="dropdown-dark"
@@ -182,7 +240,7 @@ function EditSidebar({
                   { value: '14', label: '14' },
                   { value: '16', label: '16' },
                   { value: '18', label: '18' },
-                  { value: '20', label: '20' }
+                  { value: '20', label: '20' },
                 ]}
                 size="small"
                 className="dropdown-dark flex-1"
@@ -193,7 +251,7 @@ function EditSidebar({
                   { value: '1', label: '1' },
                   { value: '2', label: '2' },
                   { value: '3', label: '3' },
-                  { value: '4', label: '4' }
+                  { value: '4', label: '4' },
                 ]}
                 size="small"
                 className="dropdown-dark flex-1"
@@ -209,9 +267,18 @@ function EditSidebar({
               <span className="text-center">최대 길이</span>
             </div>
             <div className="grid grid-cols-3 gap-2">
-              <input className="bg-slate-600/80 border border-slate-500/50 text-white text-xs px-1 py-1 rounded text-center focus:border-slate-400 focus:ring-1 focus:ring-slate-400/50" defaultValue="10" />
-              <input className="bg-slate-600/80 border border-slate-500/50 text-white text-xs px-1 py-1 rounded text-center focus:border-slate-400 focus:ring-1 focus:ring-slate-400/50" defaultValue="3%" />
-              <input className="bg-slate-600/80 border border-slate-500/50 text-white text-xs px-1 py-1 rounded text-center focus:border-slate-400 focus:ring-1 focus:ring-slate-400/50" defaultValue="20" />
+              <input
+                className="bg-slate-600/80 border border-slate-500/50 text-white text-xs px-1 py-1 rounded text-center focus:border-slate-400 focus:ring-1 focus:ring-slate-400/50"
+                defaultValue="10"
+              />
+              <input
+                className="bg-slate-600/80 border border-slate-500/50 text-white text-xs px-1 py-1 rounded text-center focus:border-slate-400 focus:ring-1 focus:ring-slate-400/50"
+                defaultValue="3%"
+              />
+              <input
+                className="bg-slate-600/80 border border-slate-500/50 text-white text-xs px-1 py-1 rounded text-center focus:border-slate-400 focus:ring-1 focus:ring-slate-400/50"
+                defaultValue="20"
+              />
             </div>
           </div>
 
@@ -272,7 +339,7 @@ export default function EditorPage() {
       {/* Main Content */}
       <div className="pt-[100px] pb-4 min-h-screen flex relative">
         {/* My Files Sidebar */}
-        <MyFilesSidebar 
+        <MyFilesSidebar
           isOpen={isMyFilesOpen}
           onToggle={() => setIsMyFilesOpen(!isMyFilesOpen)}
         />
@@ -283,7 +350,7 @@ export default function EditorPage() {
         </div>
 
         {/* Edit Sidebar */}
-        <EditSidebar 
+        <EditSidebar
           isOpen={isEditOpen}
           onToggle={() => setIsEditOpen(!isEditOpen)}
           animationSpeed={animationSpeed}
@@ -292,7 +359,6 @@ export default function EditorPage() {
           setAnimationStrength={setAnimationStrength}
         />
       </div>
-
     </div>
   )
 }

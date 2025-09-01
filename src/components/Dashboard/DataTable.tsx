@@ -32,17 +32,23 @@ interface DataTableProps<T extends TableRow = TableRow> {
   onRowClick?: (row: T) => void
 }
 
-export function DataTable<T extends TableRow = TableRow>({ title, columns, rows, actions, onRowClick }: DataTableProps<T>) {
+export function DataTable<T extends TableRow = TableRow>({
+  title,
+  columns,
+  rows,
+  actions,
+  onRowClick,
+}: DataTableProps<T>) {
   const [selectedRows, setSelectedRows] = React.useState<Set<string>>(new Set())
-  
+
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedRows(new Set(rows.map(row => row.id)))
+      setSelectedRows(new Set(rows.map((row) => row.id)))
     } else {
       setSelectedRows(new Set())
     }
   }
-  
+
   const handleSelectRow = (rowId: string, checked: boolean) => {
     const newSelectedRows = new Set(selectedRows)
     if (checked) {
@@ -52,24 +58,20 @@ export function DataTable<T extends TableRow = TableRow>({ title, columns, rows,
     }
     setSelectedRows(newSelectedRows)
   }
-  
+
   const isAllSelected = rows.length > 0 && selectedRows.size === rows.length
-  const isIndeterminate = selectedRows.size > 0 && selectedRows.size < rows.length
+  const isIndeterminate =
+    selectedRows.size > 0 && selectedRows.size < rows.length
 
   const renderCellContent = (row: T, columnKey: string) => {
     const value = row[columnKey]
-    
+
     // Handle tags specially
     if (columnKey === 'tags' && Array.isArray(value)) {
       return (
         <div className="flex flex-wrap gap-1">
           {value.map((tag, index) => (
-            <Tag
-              key={index}
-              label={tag.label}
-              size="small"
-              className="mr-1"
-            />
+            <Tag key={index} label={tag.label} size="small" className="mr-1" />
           ))}
         </div>
       )
@@ -79,15 +81,11 @@ export function DataTable<T extends TableRow = TableRow>({ title, columns, rows,
     if (columnKey === 'status') {
       return (
         <div className="flex items-center justify-center">
-          <StatusLight 
-            label="Ready" 
-            variant="positive" 
-            size="small"
-          />
+          <StatusLight label="Ready" variant="positive" size="small" />
         </div>
       )
     }
-    
+
     return <span className="text-[#b3b3b3] text-sm">{value}</span>
   }
 
@@ -96,7 +94,7 @@ export function DataTable<T extends TableRow = TableRow>({ title, columns, rows,
       {/* Section Header */}
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-white text-xl font-semibold">{title}</h2>
-        
+
         {/* Action Buttons */}
         {actions && actions.length > 0 && (
           <div className="flex items-center space-x-2">
@@ -120,8 +118,8 @@ export function DataTable<T extends TableRow = TableRow>({ title, columns, rows,
         {/* Table Header */}
         <div className="px-6 py-4 border-b border-[#404040] bg-[#333333]">
           <div className="flex items-center">
-            <input 
-              type="checkbox" 
+            <input
+              type="checkbox"
               className="custom-checkbox mr-4"
               checked={isAllSelected}
               ref={(el) => {
@@ -161,8 +159,8 @@ export function DataTable<T extends TableRow = TableRow>({ title, columns, rows,
               onClick={() => onRowClick?.(row)}
             >
               <div className="flex items-center">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   className="custom-checkbox mr-4"
                   checked={selectedRows.has(row.id)}
                   onChange={(e) => handleSelectRow(row.id, e.target.checked)}
@@ -184,9 +182,7 @@ export function DataTable<T extends TableRow = TableRow>({ title, columns, rows,
                     </span>
                   </div>
                   <div className="flex items-center justify-center">
-                    <span className="text-[#b3b3b3] text-sm">
-                      {row.edited}
-                    </span>
+                    <span className="text-[#b3b3b3] text-sm">{row.edited}</span>
                   </div>
                   <div className="flex items-center justify-center">
                     {renderCellContent(row, 'status')}

@@ -24,7 +24,7 @@ export function Header({
   onSortChange,
   actionButtonText,
   onActionClick,
-  actionButtonStyle = 'primary'
+  actionButtonStyle = 'primary',
 }: HeaderProps) {
   return (
     <div className="px-8 py-6 border-b border-[#404040]">
@@ -33,8 +33,12 @@ export function Header({
         <div className="flex items-center space-x-3">
           <h1 className="text-white text-3xl font-semibold">{title}</h1>
           <div className="w-6 h-6 bg-[#404040] rounded-full flex items-center justify-center">
-            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+            <svg
+              className="w-3 h-3 text-white"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
             </svg>
           </div>
         </div>
@@ -44,8 +48,18 @@ export function Header({
           {/* Search Bar */}
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <svg className="w-4 h-4 text-[#808080]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              <svg
+                className="w-4 h-4 text-[#808080]"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
               </svg>
             </div>
             <input
@@ -65,7 +79,7 @@ export function Header({
               { value: 'Default', label: 'Default' },
               { value: 'Name', label: 'Name' },
               { value: 'Created', label: 'Created' },
-              { value: 'Modified', label: 'Modified' }
+              { value: 'Modified', label: 'Modified' },
             ]}
             className="dropdown-dark"
           />
@@ -77,8 +91,18 @@ export function Header({
             variant="primary"
             size="medium"
             icon={
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 4v16m8-8H4"
+                />
               </svg>
             }
           />

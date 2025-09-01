@@ -852,13 +852,13 @@ body {
 }
 
 .custom-checkbox:hover {
-  border-color: #4A90E2;
+  border-color: #4a90e2;
   background-color: rgba(74, 144, 226, 0.1);
 }
 
 .custom-checkbox:checked {
-  background-color: #4A90E2;
-  border-color: #4A90E2;
+  background-color: #4a90e2;
+  border-color: #4a90e2;
 }
 
 .custom-checkbox:checked::before {
@@ -878,8 +878,8 @@ body {
 }
 
 .custom-checkbox:indeterminate {
-  background-color: #4A90E2;
-  border-color: #4A90E2;
+  background-color: #4a90e2;
+  border-color: #4a90e2;
 }
 
 .custom-checkbox:indeterminate::before {
@@ -947,7 +947,9 @@ body {
 
 /* Sidebar transition */
 .sidebar-transition {
-  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+  transition:
+    transform 0.3s ease-in-out,
+    opacity 0.3s ease-in-out;
 }
 
 .sidebar-hidden-left {

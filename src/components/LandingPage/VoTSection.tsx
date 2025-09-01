@@ -24,9 +24,7 @@ const VoTSection: React.FC<VoTSectionProps> = ({ votRef }) => {
                     <div className="w-8 h-8 bg-red-600 rounded flex items-center justify-center text-white text-xs font-bold">
                       LIVE
                     </div>
-                    <span className="text-white text-sm">
-                      Breaking News
-                    </span>
+                    <span className="text-white text-sm">Breaking News</span>
                   </div>
                   <div className="bg-red-600/20 rounded p-2">
                     <p className="text-white text-sm">BREAKING NEWS</p>

@@ -27,8 +27,8 @@ export function isValidUrl(url: string): boolean {
  */
 export function isValidFileType(file: File, allowedTypes: string[]): boolean {
   if (allowedTypes.length === 0) return true
-  
-  return allowedTypes.some(type => {
+
+  return allowedTypes.some((type) => {
     if (type.endsWith('/*')) {
       return file.type.startsWith(type.slice(0, -1))
     }
@@ -61,31 +61,33 @@ export function validateFiles(
 ): FileValidationResult {
   const fileArray = Array.from(files)
   const errors: string[] = []
-  
+
   // Check file count
   if (options.maxFiles && fileArray.length > options.maxFiles) {
     errors.push(`Maximum ${options.maxFiles} files allowed`)
   }
-  
+
   // Validate each file
   fileArray.forEach((file, index) => {
     const filePrefix = fileArray.length > 1 ? `File ${index + 1}: ` : ''
-    
+
     // Check file type
     if (options.allowedTypes && !isValidFileType(file, options.allowedTypes)) {
-      errors.push(`${filePrefix}Invalid file type. Allowed: ${options.allowedTypes.join(', ')}`)
+      errors.push(
+        `${filePrefix}Invalid file type. Allowed: ${options.allowedTypes.join(', ')}`
+      )
     }
-    
+
     // Check file size
     if (options.maxFileSize && !isValidFileSize(file, options.maxFileSize)) {
       const maxSize = formatFileSize(options.maxFileSize)
       errors.push(`${filePrefix}File too large. Maximum size: ${maxSize}`)
     }
   })
-  
+
   return {
     valid: errors.length === 0,
-    errors
+    errors,
   }
 }
 
@@ -96,14 +98,14 @@ export function validateRequiredFields<T extends Record<string, any>>(
   obj: T,
   requiredFields: (keyof T)[]
 ): { valid: boolean; missingFields: (keyof T)[] } {
-  const missingFields = requiredFields.filter(field => {
+  const missingFields = requiredFields.filter((field) => {
     const value = obj[field]
     return value === undefined || value === null || value === ''
   })
-  
+
   return {
     valid: missingFields.length === 0,
-    missingFields
+    missingFields,
   }
 }
 
