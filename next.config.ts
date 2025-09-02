@@ -27,6 +27,38 @@ const nextConfig: NextConfig = {
   },
 
   // rewrites, headers는 정적 export에서 작동 안함 - CloudFront가 처리
+  // // CORS 및 API 설정 (백엔드와 통신용)
+  // async rewrites() {
+  //   return [
+  //     {
+  //       source: '/api/backend/:path*',
+  //       destination: `${process.env.BACKEND_URL || 'http://localhost:8000'}/:path*`,
+  //     },
+  //   ]
+  // },
+
+  // // 보안 헤더 설정
+  // async headers() {
+  //   return [
+  //     {
+  //       source: '/(.*)',
+  //       headers: [
+  //         {
+  //           key: 'X-Frame-Options',
+  //           value: 'DENY',
+  //         },
+  //         {
+  //           key: 'X-Content-Type-Options',
+  //           value: 'nosniff',
+  //         },
+  //         {
+  //           key: 'Referrer-Policy',
+  //           value: 'origin-when-cross-origin',
+  //         },
+  //       ],
+  //     },
+  //   ]
+  // },
 
   // 웹팩 설정 최적화
   webpack: (config, { isServer, dev }) => {

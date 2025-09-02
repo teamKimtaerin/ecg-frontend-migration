@@ -94,10 +94,11 @@ const Dropdown: React.FC<DropdownProps> = ({
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
+        event.target instanceof Node &&
         triggerRef.current &&
-        !triggerRef.current.contains(event.target as Node) &&
+        !triggerRef.current.contains(event.target) &&
         menuRef.current &&
-        !menuRef.current.contains(event.target as Node)
+        !menuRef.current.contains(event.target)
       ) {
         setIsOpen(false)
         setFocusedIndex(-1)

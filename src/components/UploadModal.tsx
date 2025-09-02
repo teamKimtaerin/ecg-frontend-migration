@@ -1,12 +1,15 @@
 'use client'
 
-import React, { useState, useCallback, useRef } from 'react'
-import { cn, SIZE_CLASSES, TRANSITIONS } from '@/lib/utils'
+import React, { useState, useCallback, useMemo, useRef } from 'react'
+
+import { cn, SIZE_CLASSES } from '@/lib/utils'
+
 import Modal, { type ModalProps } from './Modal'
 import Button from './Button'
 import ButtonGroup from './ButtonGroup'
-import Dropdown from './Dropdown'
-import Switch from './Switch'
+import FileUploadTab from './UploadModal/FileUploadTab'
+import UrlImportTab from './UploadModal/UrlImportTab'
+import TranscriptionSettings from './UploadModal/TranscriptionSettings'
 
 export interface UploadModalProps
   extends Omit<ModalProps, 'children' | 'title' | 'size'> {
@@ -22,6 +25,7 @@ export interface UploadModalProps
   acceptedTypes?: string[]
   maxFileSize?: number
   multiple?: boolean
+  isLoading?: boolean
 }
 
 const UploadModal: React.FC<UploadModalProps> = ({
@@ -32,80 +36,94 @@ const UploadModal: React.FC<UploadModalProps> = ({
   acceptedTypes = ['audio/*', 'video/*'],
   maxFileSize = 100 * 1024 * 1024, // 100MB
   multiple = true,
+  isLoading = false,
   ...modalProps
 }) => {
+  // Tab state
+  const [inputMethod, setInputMethod] = useState<'file' | 'link'>('file')
+
+  // File upload state
   const [isDragOver, setIsDragOver] = useState(false)
+  const [uploadedFiles, setUploadedFiles] = useState<FileList | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // URL import state
+  const [videoUrl, setVideoUrl] = useState('')
+
+  // Transcription settings state
   const [selectedLanguage, setSelectedLanguage] = useState(
     'Korean (South Korea)'
   )
   const [useTranscriptionDictionary, setUseTranscriptionDictionary] =
     useState(false)
   const [submitAutomatically, setSubmitAutomatically] = useState(true)
-  const [inputMethod, setInputMethod] = useState<'file' | 'link'>('file')
-  const [videoUrl, setVideoUrl] = useState('')
-  const [uploadedFiles, setUploadedFiles] = useState<FileList | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const handleDragEnter = useCallback((e: React.DragEvent) => {
+  // File validation utility
+  const validateFiles = useCallback(
+    (files: File[]) => {
+      return files.filter((file) => {
+        const isValidType = acceptedTypes.some((type) => {
+          if (type.endsWith('/*')) {
+            const baseType = type.replace('/*', '')
+            return file.type.startsWith(baseType)
+          }
+          return file.type === type
+        })
+        const isValidSize = file.size <= maxFileSize
+
+        if (!isValidType && process.env.NODE_ENV === 'development') {
+          console.warn(`File ${file.name} has invalid type: ${file.type}`)
+        }
+        if (!isValidSize && process.env.NODE_ENV === 'development') {
+          console.warn(
+            `File ${file.name} exceeds size limit: ${(file.size / 1024 / 1024).toFixed(2)}MB`
+          )
+        }
+
+        return isValidType && isValidSize
+      })
+    },
+    [acceptedTypes, maxFileSize]
+  )
+
+  // Drag and drop handlers
+  const handleDragEnter = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
     e.stopPropagation()
     setIsDragOver(true)
   }, [])
 
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
+  const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
     e.stopPropagation()
     setIsDragOver(false)
   }, [])
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
+  const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
     e.stopPropagation()
   }, [])
 
   const handleDrop = useCallback(
-    (e: React.DragEvent) => {
+    (e: React.DragEvent<HTMLDivElement>) => {
       e.preventDefault()
       e.stopPropagation()
       setIsDragOver(false)
 
-      const files = e.dataTransfer.files
-      if (files.length > 0) {
-        // Validate dropped files
-        const validFiles = Array.from(files).filter((file) => {
-          const isValidType = acceptedTypes.some((type) => {
-            if (type.endsWith('/*')) {
-              const baseType = type.replace('/*', '')
-              return file.type.startsWith(baseType)
-            }
-            return file.type === type
-          })
-          const isValidSize = file.size <= maxFileSize
+      const files = Array.from(e.dataTransfer.files)
+      const validFiles = validateFiles(files)
 
-          if (!isValidType) {
-            console.warn(`File ${file.name} has invalid type: ${file.type}`)
-          }
-          if (!isValidSize) {
-            console.warn(
-              `File ${file.name} exceeds size limit: ${(file.size / 1024 / 1024).toFixed(2)}MB`
-            )
-          }
-
-          return isValidType && isValidSize
-        })
-
-        if (validFiles.length > 0) {
-          // Create new FileList-like object
-          const dt = new DataTransfer()
-          validFiles.forEach((file) => dt.items.add(file))
-          setUploadedFiles(dt.files)
-          onFileSelect(dt.files)
-        }
+      if (validFiles.length > 0) {
+        const dt = new DataTransfer()
+        validFiles.forEach((file) => dt.items.add(file))
+        setUploadedFiles(dt.files)
+        onFileSelect(dt.files)
       }
     },
-    [onFileSelect, acceptedTypes, maxFileSize]
+    [validateFiles, onFileSelect]
   )
 
+  // File input change handler
   const handleFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const files = e.target.files
@@ -117,10 +135,32 @@ const UploadModal: React.FC<UploadModalProps> = ({
     [onFileSelect]
   )
 
-  const handleBrowseClick = useCallback(() => {
-    fileInputRef.current?.click()
+  // URL validation
+  const isValidUrl = useMemo(() => {
+    if (!videoUrl) return true
+    try {
+      const urlObj = new URL(videoUrl)
+      return ['http:', 'https:'].includes(urlObj.protocol)
+    } catch {
+      return false
+    }
+  }, [videoUrl])
+
+  // Tab change handler
+  const handleTabChange = useCallback((method: 'file' | 'link') => {
+    setInputMethod(method)
+    // Reset state when switching tabs
+    if (method === 'file') {
+      setVideoUrl('')
+    } else {
+      setUploadedFiles(null)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
   }, [])
 
+  // Submit handler
   const handleSubmit = useCallback(() => {
     const transcriptionData = {
       language: selectedLanguage,
@@ -140,6 +180,10 @@ const UploadModal: React.FC<UploadModalProps> = ({
       alert('Please enter a video URL')
       return
     }
+    if (inputMethod === 'link' && !isValidUrl) {
+      alert('Please enter a valid URL')
+      return
+    }
 
     onStartTranscription(transcriptionData)
   }, [
@@ -149,8 +193,18 @@ const UploadModal: React.FC<UploadModalProps> = ({
     inputMethod,
     videoUrl,
     uploadedFiles,
+    isValidUrl,
     onStartTranscription,
   ])
+
+  // Check if form is ready for submission
+  const isFormReady = useMemo(() => {
+    if (inputMethod === 'file') {
+      return uploadedFiles && uploadedFiles.length > 0
+    } else {
+      return videoUrl.trim() && isValidUrl
+    }
+  }, [inputMethod, uploadedFiles, videoUrl, isValidUrl])
 
   return (
     <>
@@ -184,19 +238,19 @@ const UploadModal: React.FC<UploadModalProps> = ({
               className="bg-surface-secondary rounded-small p-1"
             >
               <Button
-                variant={inputMethod === 'file' ? 'primary' : 'secondary'}
+                variant={'primary'}
                 style={inputMethod === 'file' ? 'fill' : 'outline'}
                 size="medium"
-                onClick={() => setInputMethod('file')}
+                onClick={() => handleTabChange('file')}
                 className="flex-1 border-0 hover:shadow-none focus:shadow-none"
               >
                 Upload Files
               </Button>
               <Button
-                variant={inputMethod === 'link' ? 'primary' : 'secondary'}
+                variant={'primary'}
                 style={inputMethod === 'link' ? 'fill' : 'outline'}
                 size="medium"
-                onClick={() => setInputMethod('link')}
+                onClick={() => handleTabChange('link')}
                 className="flex-1 border-0 hover:shadow-none focus:shadow-none"
               >
                 Import Link
@@ -204,280 +258,52 @@ const UploadModal: React.FC<UploadModalProps> = ({
             </ButtonGroup>
           </div>
 
-          {/* File Upload Section */}
-          {inputMethod === 'file' && (
-            <div className={cn('flex flex-col', SIZE_CLASSES.gap.medium)}>
-              <h4 className="text-body font-semibold text-text-primary">
-                Upload your files
-              </h4>
+          {/* Tab Content */}
+          <div className={cn('flex flex-col', SIZE_CLASSES.gap.medium)}>
+            {inputMethod === 'file' && (
+              <FileUploadTab
+                dragActive={isDragOver}
+                onDrop={handleDrop}
+                onDragEnter={handleDragEnter}
+                onDragLeave={handleDragLeave}
+                onDragOver={handleDragOver}
+                onFileSelect={handleFileChange}
+                acceptedTypes={acceptedTypes}
+                maxFileSize={maxFileSize}
+                multiple={multiple}
+                files={uploadedFiles}
+              />
+            )}
 
-              {!uploadedFiles ? (
-                <div
-                  className={cn(
-                    'border-2 border-dashed rounded-small text-center cursor-pointer min-h-[200px] flex flex-col items-center justify-center',
-                    SIZE_CLASSES.padding['extra-large'],
-                    TRANSITIONS.colors,
-                    isDragOver
-                      ? 'border-primary bg-primary-opaque'
-                      : 'border-border bg-surface-secondary hover:border-primary hover:bg-primary-opaque'
-                  )}
-                  onDragEnter={handleDragEnter}
-                  onDragLeave={handleDragLeave}
-                  onDragOver={handleDragOver}
-                  onDrop={handleDrop}
-                  onClick={handleBrowseClick}
-                >
-                  <div
-                    className={cn(
-                      'flex flex-col items-center',
-                      SIZE_CLASSES.gap.medium
-                    )}
-                  >
-                    <div className="w-16 h-16 mx-auto bg-primary rounded-full flex items-center justify-center">
-                      <svg
-                        className={cn(
-                          SIZE_CLASSES.iconClasses.large,
-                          'text-white'
-                        )}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                        />
-                      </svg>
-                    </div>
+            {inputMethod === 'link' && (
+              <UrlImportTab
+                url={videoUrl}
+                setUrl={setVideoUrl}
+                isValidUrl={isValidUrl}
+              />
+            )}
+          </div>
 
-                    <div>
-                      <p className="text-body text-text-primary font-medium">
-                        Drop files here or click to browse
-                      </p>
-                      <p className="text-caption text-text-secondary mt-1">
-                        Supports audio and video files (max{' '}
-                        {Math.round(maxFileSize / 1024 / 1024)}MB)
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className={cn('flex flex-col', SIZE_CLASSES.gap.medium)}>
-                  <div
-                    className={cn(
-                      'bg-primary-very-light border border-primary rounded-small',
-                      SIZE_CLASSES.padding.medium
-                    )}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <h5 className="text-body font-semibold text-text-primary">
-                        Uploaded files ({uploadedFiles.length})
-                      </h5>
-                      <Button
-                        variant="secondary"
-                        style="outline"
-                        size="small"
-                        onClick={() => {
-                          setUploadedFiles(null)
-                          if (fileInputRef.current) {
-                            fileInputRef.current.value = ''
-                          }
-                        }}
-                        className="text-xs"
-                      >
-                        Change Files
-                      </Button>
-                    </div>
-
-                    <div
-                      className={cn('flex flex-col', SIZE_CLASSES.gap.small)}
-                    >
-                      {Array.from(uploadedFiles).map((file, index) => (
-                        <div
-                          key={`${file.name}-${index}`}
-                          className={cn(
-                            'flex items-center justify-between bg-surface rounded-default',
-                            SIZE_CLASSES.padding.small
-                          )}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
-                              <svg
-                                className="w-4 h-4 text-white"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                {file.type.startsWith('video/') ? (
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                                  />
-                                ) : (
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M9 19V6l6 6-6 6z"
-                                  />
-                                )}
-                              </svg>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-body font-medium text-text-primary truncate">
-                                {file.name}
-                              </p>
-                              <p className="text-caption text-text-secondary">
-                                {(file.size / 1024 / 1024).toFixed(2)} MB •{' '}
-                                {file.type}
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            <span className="inline-flex items-center px-2 py-1 bg-status-positive text-white rounded-full text-xs font-medium">
-                              Ready
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Link Import Section */}
-          {inputMethod === 'link' && (
-            <div className={cn('flex flex-col', SIZE_CLASSES.gap.medium)}>
-              <h4 className="text-body font-semibold text-text-primary">
-                Import from link
-              </h4>
-              <div className={cn('flex flex-col', SIZE_CLASSES.gap.medium)}>
-                <div>
-                  <label className="block text-body font-medium text-text-primary mb-2">
-                    Video URL
-                  </label>
-                  <input
-                    type="url"
-                    value={videoUrl}
-                    onChange={(e) => setVideoUrl(e.target.value)}
-                    placeholder="https://example.com/video.mp4 or YouTube/Vimeo URL"
-                    className={cn(
-                      'w-full bg-surface border border-border rounded-default text-text-primary placeholder-text-secondary',
-                      SIZE_CLASSES.padding.medium,
-                      'focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary',
-                      TRANSITIONS.colors
-                    )}
-                  />
-                </div>
-
-                <div
-                  className={cn(
-                    'bg-surface-secondary rounded-small',
-                    SIZE_CLASSES.padding.medium
-                  )}
-                >
-                  <div
-                    className={cn('flex items-start', SIZE_CLASSES.gap.medium)}
-                  >
-                    <div
-                      className={cn(
-                        'bg-primary rounded-full flex items-center justify-center flex-shrink-0 mt-0.5',
-                        SIZE_CLASSES.iconClasses.medium
-                      )}
-                    >
-                      <svg
-                        className={cn(
-                          SIZE_CLASSES.iconClasses.small,
-                          'text-white'
-                        )}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="text-caption font-semibold text-text-primary mb-1">
-                        Supported platforms:
-                      </p>
-                      <p className="text-caption text-text-secondary">
-                        YouTube, Vimeo, Direct video links (MP4, MOV, AVI, etc.)
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Language Selection Section */}
+          {/* Transcription Settings */}
           <div className={cn('flex flex-col', SIZE_CLASSES.gap.medium)}>
             <h3 className="text-h3 font-semibold text-text-primary">
               2. Configure transcription settings
             </h3>
 
-            <div className={cn('flex flex-col', SIZE_CLASSES.gap.medium)}>
-              <Dropdown
-                label="Audio Language"
-                value={selectedLanguage}
-                onChange={(value) => setSelectedLanguage(value)}
-                options={[
-                  {
-                    value: 'Korean (South Korea)',
-                    label: 'Korean (South Korea)',
-                  },
-                  { value: 'English (US)', label: 'English (US)' },
-                  { value: 'Japanese', label: 'Japanese' },
-                  {
-                    value: 'Chinese (Simplified)',
-                    label: 'Chinese (Simplified)',
-                  },
-                ]}
-                size="medium"
-                placeholder="Select language"
-              />
-
-              {/* Additional options */}
-              <div className={cn('flex flex-col', SIZE_CLASSES.gap.medium)}>
-                <Switch
-                  label="Use transcription dictionary"
-                  isSelected={useTranscriptionDictionary}
-                  onChange={setUseTranscriptionDictionary}
-                  size="medium"
-                  id="transcription-dictionary-switch"
-                />
-
-                <Switch
-                  label="Submit automatically after transcription"
-                  isSelected={submitAutomatically}
-                  onChange={setSubmitAutomatically}
-                  size="medium"
-                  id="auto-submit-switch"
-                />
-              </div>
-            </div>
+            <TranscriptionSettings
+              language={selectedLanguage}
+              setLanguage={setSelectedLanguage}
+              useDictionary={useTranscriptionDictionary}
+              setUseDictionary={setUseTranscriptionDictionary}
+              autoSubmit={submitAutomatically}
+              setAutoSubmit={setSubmitAutomatically}
+            />
           </div>
         </div>
 
         {/* Modal Actions */}
         <div
-          className={cn(
-            'flex justify-end border-t border-border',
-            'mt-6 pt-6' // Using consistent spacing pattern
-          )}
+          className={cn('flex justify-end border-t border-border', 'mt-6 pt-6')}
         >
           <ButtonGroup orientation="horizontal" spacing="small">
             <Button
@@ -485,6 +311,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
               style="outline"
               size="medium"
               onClick={onClose}
+              isDisabled={isLoading}
             >
               Cancel
             </Button>
@@ -493,8 +320,10 @@ const UploadModal: React.FC<UploadModalProps> = ({
               style="fill"
               size="medium"
               onClick={handleSubmit}
+              isDisabled={isLoading || !isFormReady}
+              isPending={isLoading}
             >
-              Start Transcription
+              {isLoading ? 'Starting...' : 'Start Transcription'}
             </Button>
           </ButtonGroup>
         </div>

@@ -85,11 +85,12 @@ const Tag: React.FC<TagProps> = ({
   // Handle remove click
   const handleRemoveClick = (event: React.MouseEvent) => {
     event.stopPropagation()
-    createClickHandler({
+    const handler = createClickHandler({
       isDisabled,
       isReadOnly,
       onClick: onRemove,
-    })(event)
+    })
+    handler()
   }
 
   // Remove button classes
