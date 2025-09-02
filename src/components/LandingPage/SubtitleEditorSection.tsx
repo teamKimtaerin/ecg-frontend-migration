@@ -28,7 +28,7 @@ const SubtitleEditorSection: React.FC<SubtitleEditorSectionProps> = ({
           <Button
             variant="accent"
             size="large"
-            className="bg-status-positive hover:opacity-80 rounded-full px-8"
+            className="bg-status-positive hover:opacity-80 rounded-full px-8 font-bold hover:scale-105"
           >
             Create Subtitles
           </Button>

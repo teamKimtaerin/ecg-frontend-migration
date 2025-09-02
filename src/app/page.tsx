@@ -257,7 +257,7 @@ export default function Home() {
                 >
                   Login
                 </a>
-                <Button variant="accent" size="medium" className="rounded-full">
+                <Button variant="accent" size="medium" className="font-bold rounded-full">
                   Sign up
                 </Button>
               </nav>

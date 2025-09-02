@@ -290,7 +290,7 @@ export const getDisabledClasses = () => {
 }
 
 export const getBaseInteractiveClasses = () => {
-  return 'transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary'
+  return 'cursor-pointer transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary'
 }
 
 // Component warning function
