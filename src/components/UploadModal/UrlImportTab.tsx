@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import AlertBanner from '@/components/AlertBanner'
 
 interface UrlImportTabProps {
   url: string
@@ -143,31 +144,11 @@ const UrlImportTab: React.FC<UrlImportTabProps> = ({
         </div>
       </div>
 
-      <div className="bg-status-informative/10 border border-status-informative/20 rounded-lg p-4">
-        <div className="flex items-start space-x-3">
-          <svg
-            className="w-5 h-5 text-status-informative mt-0.5 flex-shrink-0"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          <div>
-            <h4 className="text-sm font-medium text-status-informative">Import Tips</h4>
-            <ul className="mt-1 text-sm text-text-secondary space-y-1">
-              <li>• Make sure the video is publicly accessible</li>
-              <li>• Some platforms may require additional permissions</li>
-              <li>• Processing time varies based on video length</li>
-            </ul>
-          </div>
-        </div>
-      </div>
+      <AlertBanner
+        variant="informative"
+        text="Import Tips: Make sure the video is publicly accessible. Some platforms may require additional permissions. Processing time varies based on video length."
+        isDismissible={false}
+      />
     </div>
   )
 }

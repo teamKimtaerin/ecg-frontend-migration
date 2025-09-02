@@ -224,7 +224,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
         onClose={onClose}
         size="lg"
         title="Fast Transcription"
-        className="max-w-4xl"
+        className="max-w-4xl min-w-[600px] w-[700px]"
       >
 
         <div className={cn('flex flex-col', SIZE_CLASSES.gap['extra-large'])}>
@@ -244,7 +244,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
                 style={inputMethod === 'file' ? 'fill' : 'outline'}
                 size="medium"
                 onClick={() => handleTabChange('file')}
-                className="flex-1 border-0 hover:shadow-none focus:shadow-none"
+                className="flex-1 min-w-0 border-0 hover:shadow-none focus:shadow-none text-center"
               >
                 Upload Files
               </Button>
@@ -253,7 +253,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
                 style={inputMethod === 'link' ? 'fill' : 'outline'}
                 size="medium"
                 onClick={() => handleTabChange('link')}
-                className="flex-1 border-0 hover:shadow-none focus:shadow-none"
+                className="flex-1 min-w-0 border-0 hover:shadow-none focus:shadow-none text-center"
               >
                 Import Link
               </Button>
