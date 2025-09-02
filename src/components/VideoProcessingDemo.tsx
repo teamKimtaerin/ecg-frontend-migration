@@ -21,9 +21,11 @@ interface TranscriptionResult {
   speakers?: Record<string, unknown>
   metadata?: {
     duration: number
-    config: {
-      language?: string
-    } | string
+    config:
+      | {
+          language?: string
+        }
+      | string
     total_segments: number
   }
 }
@@ -40,25 +42,29 @@ const VideoProcessingDemo: React.FC = () => {
   const [processingStatus, setProcessingStatus] = useState<ProcessingStatus>({
     stage: 'idle',
     progress: 0,
-    message: ''
+    message: '',
   })
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [transcriptionResult, setTranscriptionResult] = useState<TranscriptionResult | null>(null)
+  const [transcriptionResult, setTranscriptionResult] =
+    useState<TranscriptionResult | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const pollInterval = useRef<NodeJS.Timeout | null>(null)
 
-  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      setSelectedFile(file)
-      setProcessingStatus({
-        stage: 'idle',
-        progress: 0,
-        message: `Selected: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`
-      })
-      setTranscriptionResult(null)
-    }
-  }, [])
+  const handleFileSelect = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0]
+      if (file) {
+        setSelectedFile(file)
+        setProcessingStatus({
+          stage: 'idle',
+          progress: 0,
+          message: `Selected: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`,
+        })
+        setTranscriptionResult(null)
+      }
+    },
+    []
+  )
 
   const startPolling = useCallback((jobId: string) => {
     // 기존 폴링 중단
@@ -69,8 +75,10 @@ const VideoProcessingDemo: React.FC = () => {
     // 1초마다 상태 확인
     pollInterval.current = setInterval(async () => {
       try {
-        const response = await fetch(`http://localhost:8000/api/upload-video/job-status/${jobId}`)
-        
+        const response = await fetch(
+          `http://localhost:8000/api/upload-video/job-status/${jobId}`
+        )
+
         if (!response.ok) {
           throw new Error(`Status check failed: ${response.statusText}`)
         }
@@ -81,7 +89,7 @@ const VideoProcessingDemo: React.FC = () => {
           stage: jobStatus.status === 'completed' ? 'completed' : 'processing',
           progress: jobStatus.progress,
           message: jobStatus.message,
-          jobId: jobStatus.jobId
+          jobId: jobStatus.jobId,
         })
 
         // 완료되면 결과 저장하고 폴링 중단
@@ -90,22 +98,21 @@ const VideoProcessingDemo: React.FC = () => {
             clearInterval(pollInterval.current)
             pollInterval.current = null
           }
-          
+
           if (jobStatus.transcriptionResult) {
             setTranscriptionResult(jobStatus.transcriptionResult)
           }
         }
-
       } catch (error) {
         console.error('[POLLING ERROR]:', error)
         if (pollInterval.current) {
           clearInterval(pollInterval.current)
           pollInterval.current = null
         }
-        setProcessingStatus(prev => ({
+        setProcessingStatus((prev) => ({
           ...prev,
           stage: 'error',
-          message: `Status check failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+          message: `Status check failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
         }))
       }
     }, 1000)
@@ -122,17 +129,20 @@ const VideoProcessingDemo: React.FC = () => {
       setProcessingStatus({
         stage: 'uploading',
         progress: 10,
-        message: 'Getting upload URL...'
+        message: 'Getting upload URL...',
       })
 
-      const urlResponse = await fetch('http://localhost:8000/api/upload-video/generate-url', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          filename: selectedFile.name,
-          filetype: selectedFile.type
-        })
-      })
+      const urlResponse = await fetch(
+        'http://localhost:8000/api/upload-video/generate-url',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            filename: selectedFile.name,
+            filetype: selectedFile.type,
+          }),
+        }
+      )
 
       if (!urlResponse.ok) {
         throw new Error(`Failed to get upload URL: ${urlResponse.statusText}`)
@@ -140,35 +150,38 @@ const VideoProcessingDemo: React.FC = () => {
 
       const { url, fileKey } = await urlResponse.json()
 
-      setProcessingStatus(prev => ({
+      setProcessingStatus((prev) => ({
         ...prev,
         progress: 30,
-        message: 'Uploading file to S3...'
+        message: 'Uploading file to S3...',
       }))
 
       // 2단계: S3에 파일 업로드
       const uploadResponse = await fetch(url, {
         method: 'PUT',
         headers: { 'Content-Type': selectedFile.type },
-        body: selectedFile
+        body: selectedFile,
       })
 
       if (!uploadResponse.ok) {
         throw new Error(`Upload failed: ${uploadResponse.statusText}`)
       }
 
-      setProcessingStatus(prev => ({
+      setProcessingStatus((prev) => ({
         ...prev,
         progress: 60,
-        message: 'Starting video processing...'
+        message: 'Starting video processing...',
       }))
 
       // 3단계: 처리 시작 요청
-      const processResponse = await fetch('http://localhost:8000/api/upload-video/request-process', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fileKey })
-      })
+      const processResponse = await fetch(
+        'http://localhost:8000/api/upload-video/request-process',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fileKey }),
+        }
+      )
 
       if (!processResponse.ok) {
         throw new Error(`Process request failed: ${processResponse.statusText}`)
@@ -180,18 +193,17 @@ const VideoProcessingDemo: React.FC = () => {
         stage: 'processing',
         progress: 70,
         message: 'Processing video... This may take a few moments.',
-        jobId
+        jobId,
       })
 
       // 4단계: 상태 폴링 시작
       startPolling(jobId)
-
     } catch (error) {
       console.error('[PROCESSING ERROR]:', error)
       setProcessingStatus({
         stage: 'error',
         progress: 0,
-        message: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
+        message: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
       })
     }
   }, [selectedFile, startPolling])
@@ -201,15 +213,15 @@ const VideoProcessingDemo: React.FC = () => {
       clearInterval(pollInterval.current)
       pollInterval.current = null
     }
-    
+
     setSelectedFile(null)
     setTranscriptionResult(null)
     setProcessingStatus({
       stage: 'idle',
       progress: 0,
-      message: ''
+      message: '',
     })
-    
+
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
@@ -227,7 +239,7 @@ const VideoProcessingDemo: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg">
       <h2 className="text-2xl font-bold mb-6">Video Processing Demo</h2>
-      
+
       {/* File Selection */}
       <div className="mb-6">
         <input
@@ -241,7 +253,10 @@ const VideoProcessingDemo: React.FC = () => {
           variant="primary"
           style="outline"
           onClick={() => fileInputRef.current?.click()}
-          isDisabled={processingStatus.stage === 'uploading' || processingStatus.stage === 'processing'}
+          isDisabled={
+            processingStatus.stage === 'uploading' ||
+            processingStatus.stage === 'processing'
+          }
         >
           Select Video/Audio File
         </Button>
@@ -250,9 +265,16 @@ const VideoProcessingDemo: React.FC = () => {
       {/* Selected File Info */}
       {selectedFile && (
         <div className="mb-4 p-3 bg-gray-50 rounded">
-          <p className="text-sm"><strong>File:</strong> {selectedFile.name}</p>
-          <p className="text-sm"><strong>Size:</strong> {(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
-          <p className="text-sm"><strong>Type:</strong> {selectedFile.type}</p>
+          <p className="text-sm">
+            <strong>File:</strong> {selectedFile.name}
+          </p>
+          <p className="text-sm">
+            <strong>Size:</strong>{' '}
+            {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+          </p>
+          <p className="text-sm">
+            <strong>Type:</strong> {selectedFile.type}
+          </p>
         </div>
       )}
 
@@ -266,16 +288,18 @@ const VideoProcessingDemo: React.FC = () => {
           <div className="w-full bg-gray-200 rounded-full h-3">
             <div
               className={`h-3 rounded-full transition-all ${
-                processingStatus.stage === 'completed' 
-                  ? 'bg-green-600' 
+                processingStatus.stage === 'completed'
+                  ? 'bg-green-600'
                   : processingStatus.stage === 'error'
-                  ? 'bg-red-600'
-                  : 'bg-blue-600'
+                    ? 'bg-red-600'
+                    : 'bg-blue-600'
               }`}
               style={{ width: `${processingStatus.progress}%` }}
             />
           </div>
-          <p className="text-sm mt-2 text-gray-600">{processingStatus.message}</p>
+          <p className="text-sm mt-2 text-gray-600">
+            {processingStatus.message}
+          </p>
         </div>
       )}
 
@@ -285,25 +309,34 @@ const VideoProcessingDemo: React.FC = () => {
           <h3 className="text-lg font-semibold mb-3 text-green-800">
             🎉 Transcription Results
           </h3>
-          
+
           {transcriptionResult.segments && (
             <div className="space-y-2">
               <h4 className="font-medium text-green-700">Segments:</h4>
               <div className="max-h-60 overflow-y-auto">
-                {transcriptionResult.segments.slice(0, 5).map((segment: Segment, index: number) => (
-                  <div key={index} className="p-2 bg-white rounded border text-sm">
-                    <div className="flex justify-between text-xs text-gray-500 mb-1">
-                      <span>{segment.start_time?.toFixed(2)}s - {segment.end_time?.toFixed(2)}s</span>
-                      <span>{segment.speaker?.speaker_id}</span>
+                {transcriptionResult.segments
+                  .slice(0, 5)
+                  .map((segment: Segment, index: number) => (
+                    <div
+                      key={index}
+                      className="p-2 bg-white rounded border text-sm"
+                    >
+                      <div className="flex justify-between text-xs text-gray-500 mb-1">
+                        <span>
+                          {segment.start_time?.toFixed(2)}s -{' '}
+                          {segment.end_time?.toFixed(2)}s
+                        </span>
+                        <span>{segment.speaker?.speaker_id}</span>
+                      </div>
+                      <p className="font-medium">{segment.text}</p>
+                      {segment.emotion && (
+                        <p className="text-xs text-blue-600">
+                          Emotion: {segment.emotion.emotion} (
+                          {(segment.emotion.confidence * 100).toFixed(0)}%)
+                        </p>
+                      )}
                     </div>
-                    <p className="font-medium">{segment.text}</p>
-                    {segment.emotion && (
-                      <p className="text-xs text-blue-600">
-                        Emotion: {segment.emotion.emotion} ({(segment.emotion.confidence * 100).toFixed(0)}%)
-                      </p>
-                    )}
-                  </div>
-                ))}
+                  ))}
               </div>
             </div>
           )}
@@ -312,10 +345,26 @@ const VideoProcessingDemo: React.FC = () => {
             <div className="mt-4 p-3 bg-white rounded border">
               <h4 className="font-medium text-green-700 mb-2">Summary:</h4>
               <div className="grid grid-cols-2 gap-2 text-sm">
-                <p><strong>Duration:</strong> {transcriptionResult.metadata.duration}s</p>
-                <p><strong>Speakers:</strong> {transcriptionResult.speakers ? Object.keys(transcriptionResult.speakers).length : 'N/A'}</p>
-                <p><strong>Language:</strong> {typeof transcriptionResult.metadata.config === 'object' ? transcriptionResult.metadata.config?.language || 'N/A' : 'N/A'}</p>
-                <p><strong>Segments:</strong> {transcriptionResult.metadata.total_segments || 'N/A'}</p>
+                <p>
+                  <strong>Duration:</strong>{' '}
+                  {transcriptionResult.metadata.duration}s
+                </p>
+                <p>
+                  <strong>Speakers:</strong>{' '}
+                  {transcriptionResult.speakers
+                    ? Object.keys(transcriptionResult.speakers).length
+                    : 'N/A'}
+                </p>
+                <p>
+                  <strong>Language:</strong>{' '}
+                  {typeof transcriptionResult.metadata.config === 'object'
+                    ? transcriptionResult.metadata.config?.language || 'N/A'
+                    : 'N/A'}
+                </p>
+                <p>
+                  <strong>Segments:</strong>{' '}
+                  {transcriptionResult.metadata.total_segments || 'N/A'}
+                </p>
               </div>
             </div>
           )}
@@ -326,27 +375,31 @@ const VideoProcessingDemo: React.FC = () => {
       <div className="flex gap-2">
         <Button
           onClick={startProcessing}
-          isDisabled={!selectedFile || processingStatus.stage === 'uploading' || processingStatus.stage === 'processing'}
+          isDisabled={
+            !selectedFile ||
+            processingStatus.stage === 'uploading' ||
+            processingStatus.stage === 'processing'
+          }
           variant="primary"
           style="fill"
         >
-          {processingStatus.stage === 'uploading' ? 'Uploading...' : 
-           processingStatus.stage === 'processing' ? 'Processing...' : 
-           'Start Processing'}
+          {processingStatus.stage === 'uploading'
+            ? 'Uploading...'
+            : processingStatus.stage === 'processing'
+              ? 'Processing...'
+              : 'Start Processing'}
         </Button>
 
-        <Button
-          onClick={reset}
-          variant="secondary"
-          style="outline"
-        >
+        <Button onClick={reset} variant="secondary" style="outline">
           Reset
         </Button>
       </div>
 
       {/* Instructions */}
       <div className="mt-8 p-4 bg-blue-50 rounded-lg">
-        <h3 className="font-semibold text-blue-900 mb-2">How it works (Demo):</h3>
+        <h3 className="font-semibold text-blue-900 mb-2">
+          How it works (Demo):
+        </h3>
         <ol className="text-sm text-blue-800 space-y-1">
           <li>1. Select a video or audio file</li>
           <li>2. Click &quot;Start Processing&quot; to upload and process</li>

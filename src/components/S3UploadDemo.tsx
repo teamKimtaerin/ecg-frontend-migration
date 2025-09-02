@@ -14,23 +14,26 @@ const S3UploadDemo: React.FC = () => {
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>({
     status: 'idle',
     progress: 0,
-    message: ''
+    message: '',
   })
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [fileKey, setFileKey] = useState<string>('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      setSelectedFile(file)
-      setUploadStatus({
-        status: 'idle',
-        progress: 0,
-        message: `Selected: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`
-      })
-    }
-  }, [])
+  const handleFileSelect = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0]
+      if (file) {
+        setSelectedFile(file)
+        setUploadStatus({
+          status: 'idle',
+          progress: 0,
+          message: `Selected: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`,
+        })
+      }
+    },
+    []
+  )
 
   const uploadToS3 = useCallback(async () => {
     if (!selectedFile) {
@@ -42,23 +45,28 @@ const S3UploadDemo: React.FC = () => {
       setUploadStatus({
         status: 'uploading',
         progress: 0,
-        message: 'Getting presigned URL...'
+        message: 'Getting presigned URL...',
       })
 
       // 1단계: 백엔드에서 presigned URL 요청
-      const urlResponse = await fetch('http://localhost:8000/api/upload-video/generate-url', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          filename: selectedFile.name,
-          filetype: selectedFile.type
-        })
-      })
+      const urlResponse = await fetch(
+        'http://localhost:8000/api/upload-video/generate-url',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            filename: selectedFile.name,
+            filetype: selectedFile.type,
+          }),
+        }
+      )
 
       if (!urlResponse.ok) {
-        throw new Error(`Failed to get presigned URL: ${urlResponse.statusText}`)
+        throw new Error(
+          `Failed to get presigned URL: ${urlResponse.statusText}`
+        )
       }
 
       const { url, fileKey } = await urlResponse.json()
@@ -67,16 +75,16 @@ const S3UploadDemo: React.FC = () => {
       setUploadStatus({
         status: 'uploading',
         progress: 25,
-        message: 'Uploading to S3...'
+        message: 'Uploading to S3...',
       })
 
       // 2단계: S3에 실제 파일 업로드
       const uploadResponse = await fetch(url, {
         method: 'PUT',
         headers: {
-          'Content-Type': selectedFile.type
+          'Content-Type': selectedFile.type,
         },
-        body: selectedFile
+        body: selectedFile,
       })
 
       if (!uploadResponse.ok) {
@@ -86,38 +94,39 @@ const S3UploadDemo: React.FC = () => {
       setUploadStatus({
         status: 'success',
         progress: 100,
-        message: 'Upload successful! Getting download URL...'
+        message: 'Upload successful! Getting download URL...',
       })
 
       // 다운로드용 presigned URL 요청
-      const downloadResponse = await fetch(`http://localhost:8000/api/upload-video/download-url/${encodeURIComponent(fileKey)}`)
-      
+      const downloadResponse = await fetch(
+        `http://localhost:8000/api/upload-video/download-url/${encodeURIComponent(fileKey)}`
+      )
+
       if (downloadResponse.ok) {
         const { downloadUrl } = await downloadResponse.json()
         setUploadStatus({
           status: 'success',
           progress: 100,
           message: 'Upload successful! File is now accessible.',
-          s3Url: downloadUrl
+          s3Url: downloadUrl,
         })
       } else {
         setUploadStatus({
           status: 'success',
           progress: 100,
           message: 'Upload successful! (Download URL generation failed)',
-          s3Url: url.split('?')[0] // fallback to direct S3 URL
+          s3Url: url.split('?')[0], // fallback to direct S3 URL
         })
       }
 
       console.log('[S3 UPLOAD SUCCESS]')
       console.log('File Key:', fileKey)
-
     } catch (error) {
       console.error('[S3 UPLOAD ERROR]:', error)
       setUploadStatus({
         status: 'error',
         progress: 0,
-        message: `Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+        message: `Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
       })
     }
   }, [selectedFile])
@@ -126,31 +135,31 @@ const S3UploadDemo: React.FC = () => {
     if (!uploadStatus.s3Url) return
 
     try {
-      setUploadStatus(prev => ({
+      setUploadStatus((prev) => ({
         ...prev,
-        message: 'Testing S3 file access...'
+        message: 'Testing S3 file access...',
       }))
 
       // S3 파일 접근 테스트
       const response = await fetch(uploadStatus.s3Url, {
-        method: 'HEAD' // HEAD 요청으로 파일 존재 확인
+        method: 'HEAD', // HEAD 요청으로 파일 존재 확인
       })
 
       if (response.ok) {
-        setUploadStatus(prev => ({
+        setUploadStatus((prev) => ({
           ...prev,
-          message: `✅ File is accessible! Size: ${response.headers.get('content-length')} bytes`
+          message: `✅ File is accessible! Size: ${response.headers.get('content-length')} bytes`,
         }))
       } else {
-        setUploadStatus(prev => ({
+        setUploadStatus((prev) => ({
           ...prev,
-          message: `❌ File not accessible: ${response.status} ${response.statusText}`
+          message: `❌ File not accessible: ${response.status} ${response.statusText}`,
         }))
       }
     } catch (error) {
-      setUploadStatus(prev => ({
+      setUploadStatus((prev) => ({
         ...prev,
-        message: `❌ Access test failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+        message: `❌ Access test failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
       }))
     }
   }, [uploadStatus.s3Url])
@@ -161,7 +170,7 @@ const S3UploadDemo: React.FC = () => {
     setUploadStatus({
       status: 'idle',
       progress: 0,
-      message: ''
+      message: '',
     })
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
@@ -171,7 +180,7 @@ const S3UploadDemo: React.FC = () => {
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-lg">
       <h2 className="text-2xl font-bold mb-6">S3 Upload Test</h2>
-      
+
       {/* File Selection */}
       <div className="mb-6">
         <input
@@ -198,7 +207,8 @@ const S3UploadDemo: React.FC = () => {
             <strong>File:</strong> {selectedFile.name}
           </p>
           <p className="text-sm">
-            <strong>Size:</strong> {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+            <strong>Size:</strong>{' '}
+            {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
           </p>
           <p className="text-sm">
             <strong>Type:</strong> {selectedFile.type}
@@ -216,11 +226,11 @@ const S3UploadDemo: React.FC = () => {
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div
               className={`h-2 rounded-full transition-all ${
-                uploadStatus.status === 'success' 
-                  ? 'bg-green-600' 
+                uploadStatus.status === 'success'
+                  ? 'bg-green-600'
                   : uploadStatus.status === 'error'
-                  ? 'bg-red-600'
-                  : 'bg-blue-600'
+                    ? 'bg-red-600'
+                    : 'bg-blue-600'
               }`}
               style={{ width: `${uploadStatus.progress}%` }}
             />
@@ -230,13 +240,15 @@ const S3UploadDemo: React.FC = () => {
 
       {/* Status Message */}
       {uploadStatus.message && (
-        <div className={`mb-4 p-3 rounded ${
-          uploadStatus.status === 'success' 
-            ? 'bg-green-50 text-green-800' 
-            : uploadStatus.status === 'error'
-            ? 'bg-red-50 text-red-800'
-            : 'bg-blue-50 text-blue-800'
-        }`}>
+        <div
+          className={`mb-4 p-3 rounded ${
+            uploadStatus.status === 'success'
+              ? 'bg-green-50 text-green-800'
+              : uploadStatus.status === 'error'
+                ? 'bg-red-50 text-red-800'
+                : 'bg-blue-50 text-blue-800'
+          }`}
+        >
           <p className="text-sm">{uploadStatus.message}</p>
         </div>
       )}
@@ -249,10 +261,10 @@ const S3UploadDemo: React.FC = () => {
           </p>
           {uploadStatus.s3Url && (
             <p className="text-sm break-all">
-              <strong>S3 URL:</strong> 
-              <a 
-                href={uploadStatus.s3Url} 
-                target="_blank" 
+              <strong>S3 URL:</strong>
+              <a
+                href={uploadStatus.s3Url}
+                target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-600 hover:underline ml-1"
               >
@@ -271,24 +283,18 @@ const S3UploadDemo: React.FC = () => {
           variant={uploadStatus.status === 'success' ? 'secondary' : 'primary'}
           style={uploadStatus.status === 'success' ? 'outline' : 'fill'}
         >
-          {uploadStatus.status === 'uploading' ? 'Uploading...' : 'Upload to S3'}
+          {uploadStatus.status === 'uploading'
+            ? 'Uploading...'
+            : 'Upload to S3'}
         </Button>
 
         {uploadStatus.status === 'success' && uploadStatus.s3Url && (
-          <Button
-            onClick={testS3Access}
-            variant="secondary"
-            style="outline"
-          >
+          <Button onClick={testS3Access} variant="secondary" style="outline">
             Test Access
           </Button>
         )}
 
-        <Button
-          onClick={reset}
-          variant="secondary"
-          style="outline"
-        >
+        <Button onClick={reset} variant="secondary" style="outline">
           Reset
         </Button>
       </div>
