@@ -124,21 +124,29 @@ export default function Home() {
         formData.append('autoSubmit', data.autoSubmit.toString())
         formData.append('method', data.method)
 
-        // TODO: Replace with actual API endpoint
-        const response = await fetch('/api/transcription/upload', {
+        // 시연용 백엔드 API 호출 - /results 엔드포인트
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+        const response = await fetch(`${apiUrl}/api/upload-video/results`, {
           method: 'POST',
-          body: formData,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            jobId: 'demo-job-id',
+            status: 'completed'
+          }),
         })
 
         if (response.ok) {
           const result = await response.json()
-          console.log('Transcription started successfully:', result)
+          console.log('Mock transcription result:', result)
 
           // Close modal after successful submission
           setIsTranscriptionModalOpen(false)
 
-          // Show success message or redirect to transcription status page
-          alert('Transcription started successfully!')
+          // Show mock transcription result in a formatted alert
+          alert(`Mock Transcription Result:\n\nDuration: ${result.metadata?.duration}s\nSegments: ${result.metadata?.total_segments}\nLanguage: ${result.metadata?.config?.language}\n\nFirst segment: "${result.segments?.[0]?.text || 'No segments available'}"`)
+        
         } else {
           throw new Error(`HTTP error! status: ${response.status}`)
         }
