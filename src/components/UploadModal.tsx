@@ -7,6 +7,7 @@ import { cn, SIZE_CLASSES } from '@/lib/utils'
 import Modal, { type ModalProps } from './Modal'
 import Button from './Button'
 import ButtonGroup from './ButtonGroup'
+import ProgressCircle from './ProgressCircle'
 import FileUploadTab from './UploadModal/FileUploadTab'
 import UrlImportTab from './UploadModal/UrlImportTab'
 import TranscriptionSettings from './UploadModal/TranscriptionSettings'
@@ -225,6 +226,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
         title="Fast Transcription"
         className="max-w-4xl"
       >
+
         <div className={cn('flex flex-col', SIZE_CLASSES.gap['extra-large'])}>
           {/* Input Method Selection */}
           <div className={cn('flex flex-col', SIZE_CLASSES.gap.medium)}>
@@ -307,24 +309,30 @@ const UploadModal: React.FC<UploadModalProps> = ({
         >
           <ButtonGroup orientation="horizontal" spacing="small">
             <Button
-              variant="secondary"
+              variant="accent"
               style="outline"
               size="medium"
               onClick={onClose}
               isDisabled={isLoading}
+              className="text-primary hover:text-primary-dark"
             >
               Cancel
             </Button>
-            <Button
-              variant="primary"
-              style="fill"
-              size="medium"
-              onClick={handleSubmit}
-              isDisabled={isLoading || !isFormReady}
-              isPending={isLoading}
-            >
-              {isLoading ? 'Starting...' : 'Start Transcription'}
-            </Button>
+              <Button
+                variant="primary"
+                style="fill"
+                size="medium"
+                onClick={handleSubmit}
+                isDisabled={isLoading || !isFormReady}
+                isPending={isLoading}
+                className="w-full justify-center hover:bg-primary-dark"
+              >
+                {isLoading ? (
+                  <ProgressCircle size="small" isIndeterminate />
+                ) : (
+                  'Start'
+                )}
+              </Button>
           </ButtonGroup>
         </div>
       </Modal>

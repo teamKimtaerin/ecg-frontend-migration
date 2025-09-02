@@ -193,10 +193,10 @@ function EditSidebar({
               I
             </button>
             <button className="text-slate-300 hover:text-white underline text-sm px-2 py-1 hover:bg-slate-500/30 rounded transition-colors">
-              S
+              U
             </button>
             <button className="text-slate-300 hover:text-white line-through text-sm px-2 py-1 hover:bg-slate-500/30 rounded transition-colors">
-              U
+              S
             </button>
             <button className="text-slate-300 hover:text-white text-sm px-2 py-1 hover:bg-slate-500/30 rounded transition-colors">
               H
