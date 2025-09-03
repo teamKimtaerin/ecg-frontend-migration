@@ -8,7 +8,8 @@ import Dropdown from '@/components/Dropdown'
 import Slider from '@/components/Slider'
 import Tab from '@/components/Tab'
 import TabItem from '@/components/TabItem'
-import VideoPlayer from '@/components/VideoPlayer'
+import ECGPlayer from '@/components/ECGPlayer'
+import { VideoProvider } from '@/contexts/VideoContext'
 
 // MyFiles Sidebar Component
 interface MyFilesSidebarProps {
@@ -332,33 +333,35 @@ export default function EditorPage() {
   const [animationStrength, setAnimationStrength] = useState(20)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-slate-950 to-black text-text-primary relative overflow-hidden">
-      {/* Header */}
-      <Header isVisible={true} />
+    <VideoProvider>
+      <div className="min-h-screen bg-gradient-to-br from-gray-950 via-slate-950 to-black text-text-primary relative overflow-hidden">
+        {/* Header */}
+        <Header isVisible={true} />
 
-      {/* Main Content */}
-      <div className="pt-[100px] pb-4 min-h-screen flex relative">
-        {/* My Files Sidebar */}
-        <MyFilesSidebar
-          isOpen={isMyFilesOpen}
-          onToggle={() => setIsMyFilesOpen(!isMyFilesOpen)}
-        />
+        {/* Main Content */}
+        <div className="pt-[100px] pb-4 min-h-screen flex relative">
+          {/* My Files Sidebar */}
+          <MyFilesSidebar
+            isOpen={isMyFilesOpen}
+            onToggle={() => setIsMyFilesOpen(!isMyFilesOpen)}
+          />
 
-        {/* Central Video Player */}
-        <div className="absolute left-1/2 transform -translate-x-1/2 top-[80px] w-[960px] h-[540px]">
-          <VideoPlayer />
+          {/* Central Video Player */}
+          <div className="absolute left-1/2 transform -translate-x-1/2 top-[80px] w-[960px] h-[540px]">
+            <ECGPlayer />
+          </div>
+
+          {/* Edit Sidebar */}
+          <EditSidebar
+            isOpen={isEditOpen}
+            onToggle={() => setIsEditOpen(!isEditOpen)}
+            animationSpeed={animationSpeed}
+            setAnimationSpeed={setAnimationSpeed}
+            animationStrength={animationStrength}
+            setAnimationStrength={setAnimationStrength}
+          />
         </div>
-
-        {/* Edit Sidebar */}
-        <EditSidebar
-          isOpen={isEditOpen}
-          onToggle={() => setIsEditOpen(!isEditOpen)}
-          animationSpeed={animationSpeed}
-          setAnimationSpeed={setAnimationSpeed}
-          animationStrength={animationStrength}
-          setAnimationStrength={setAnimationStrength}
-        />
       </div>
-    </div>
+    </VideoProvider>
   )
 }
