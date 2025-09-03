@@ -1,5 +1,4 @@
-'use client'
-
+// TODO : 진행도 임의값 -> 백엔드 요청값으로 변경
 import React from 'react'
 import {
   cn,

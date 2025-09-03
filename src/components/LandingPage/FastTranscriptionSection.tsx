@@ -34,7 +34,7 @@ const FastTranscriptionSection: React.FC<FastTranscriptionSectionProps> = ({
           <Button
             variant="accent"
             size="large"
-            className="bg-status-positive hover:opacity-80 rounded-full px-8"
+            className="bg-status-positive hover:opacity-70 hover:scale-105 rounded-full px-8 font-bold"
             onClick={onTranscriptionClick}
           >
             Fast Transcription

@@ -1,5 +1,3 @@
-'use client'
-
 import React from 'react'
 import Button from '@/components/Button'
 
@@ -65,7 +63,7 @@ const VoTSection: React.FC<VoTSectionProps> = ({ votRef }) => {
           <Button
             variant="accent"
             size="large"
-            className="bg-status-positive hover:opacity-80 rounded-full px-8"
+            className="bg-status-positive hover:opacity-80 rounded-full px-8 font-bold hover:scale-105"
           >
             Explore Videos
           </Button>

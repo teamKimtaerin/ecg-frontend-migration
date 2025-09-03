@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useVideo } from '@/contexts/VideoContext'
 
 import Button from '@/components/Button'
 import UploadModal from '@/components/UploadModal'
@@ -17,6 +18,7 @@ import Footer from '@/components/LandingPage/Footer'
 
 export default function Home() {
   const router = useRouter()
+  const { setVideoFile } = useVideo()
   const [isHeaderVisible, setIsHeaderVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
   const [isTranscriptionModalOpen, setIsTranscriptionModalOpen] =
@@ -113,7 +115,6 @@ export default function Home() {
     }
     // Files are now stored in the modal state, modal stays open
   }
-
   const handleStartTranscription = async (data: {
     files?: FileList
     url?: string
@@ -122,13 +123,34 @@ export default function Home() {
     autoSubmit: boolean
     method: 'file' | 'link'
   }) => {
+
+    const handleTranscriptionResponse = async (response : Response) =>{
+      if(response.ok){
+        const result = await response.json()
+        if(process.env.NODE_ENV === 'development'){
+          console.log("Transcription started successfully: ",result)
+        }
+        setIsTranscriptionModalOpen(false)
+        router.push('/editor')
+      }else{
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+    }
+
     try {
       setIsTranscriptionLoading(true)
       if (process.env.NODE_ENV === 'development') {
         console.log('Starting transcription with data:', data)
       }
 
+      let response : Response
+
       if (data.method === 'file' && data.files) {
+        // Save video file to VideoContext for editor page
+        if (data.files.length > 0) {
+          setVideoFile(data.files[0])
+        }
+
         // Create FormData for file upload
         const formData = new FormData()
 
@@ -144,28 +166,14 @@ export default function Home() {
         formData.append('method', data.method)
 
         // API endpoint for file upload transcription
-        const response = await fetch('/api/transcription/upload', {
+        response = await fetch('/api/transcription/upload', {
           method: 'POST',
           body: formData,
         })
 
-        if (response.ok) {
-          const result = await response.json()
-          if (process.env.NODE_ENV === 'development') {
-            console.log('Transcription started successfully:', result)
-          }
-
-          // Close modal after successful submission
-          setIsTranscriptionModalOpen(false)
-
-          // Redirect to transcriptions dashboard
-          router.push('/transcriptions')
-        } else {
-          throw new Error(`HTTP error! status: ${response.status}`)
-        }
       } else if (data.method === 'link' && data.url) {
         // Send URL data as JSON
-        const response = await fetch('/api/transcription/url', {
+        response = await fetch('/api/transcription/url', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -178,22 +186,10 @@ export default function Home() {
             method: data.method,
           }),
         })
-
-        if (response.ok) {
-          const result = await response.json()
-          if (process.env.NODE_ENV === 'development') {
-            console.log('Transcription started successfully:', result)
-          }
-
-          // Close modal after successful submission
-          setIsTranscriptionModalOpen(false)
-
-          // Redirect to transcriptions dashboard
-          router.push('/transcriptions')
-        } else {
-          throw new Error(`HTTP error! status: ${response.status}`)
-        }
+      }else{
+        return
       }
+      await handleTranscriptionResponse(response)
     } catch (error) {
       console.error('Error starting transcription:', error)
       alert('Failed to start transcription. Please try again.')
@@ -268,7 +264,7 @@ export default function Home() {
                 >
                   Login
                 </a>
-                <Button variant="accent" size="medium" className="rounded-full">
+                <Button variant="accent" size="medium" className="font-bold rounded-full">
                   Sign up
                 </Button>
               </nav>

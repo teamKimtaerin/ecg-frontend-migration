@@ -9,7 +9,6 @@ import Slider from '@/components/Slider'
 import Tab from '@/components/Tab'
 import TabItem from '@/components/TabItem'
 import ECGPlayer from '@/components/ECGPlayer'
-import { VideoProvider } from '@/contexts/VideoContext'
 
 // MyFiles Sidebar Component
 interface MyFilesSidebarProps {
@@ -194,10 +193,10 @@ function EditSidebar({
               I
             </button>
             <button className="text-slate-300 hover:text-white underline text-sm px-2 py-1 hover:bg-slate-500/30 rounded transition-colors">
-              S
+              U
             </button>
             <button className="text-slate-300 hover:text-white line-through text-sm px-2 py-1 hover:bg-slate-500/30 rounded transition-colors">
-              U
+              S
             </button>
             <button className="text-slate-300 hover:text-white text-sm px-2 py-1 hover:bg-slate-500/30 rounded transition-colors">
               H
@@ -327,41 +326,39 @@ function EditSidebar({
 
 // Main Editor Page
 export default function EditorPage() {
-  const [isMyFilesOpen, setIsMyFilesOpen] = useState(false)
-  const [isEditOpen, setIsEditOpen] = useState(true)
+  const [isMyFilesOpen, setIsMyFilesOpen] = useState(true)
+  const [isEditOpen, setIsEditOpen] = useState(false)
   const [animationSpeed, setAnimationSpeed] = useState(20)
   const [animationStrength, setAnimationStrength] = useState(20)
 
   return (
-    <VideoProvider>
-      <div className="min-h-screen bg-gradient-to-br from-gray-950 via-slate-950 to-black text-text-primary relative overflow-hidden">
-        {/* Header */}
-        <Header isVisible={true} />
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-slate-950 to-black text-text-primary relative overflow-hidden">
+      {/* Header */}
+      <Header isVisible={true} />
 
-        {/* Main Content */}
-        <div className="pt-[100px] pb-4 min-h-screen flex relative">
-          {/* My Files Sidebar */}
-          <MyFilesSidebar
-            isOpen={isMyFilesOpen}
-            onToggle={() => setIsMyFilesOpen(!isMyFilesOpen)}
-          />
+      {/* Main Content */}
+      <div className="pt-[100px] pb-4 min-h-screen flex relative">
+        {/* My Files Sidebar */}
+        <MyFilesSidebar
+          isOpen={isMyFilesOpen}
+          onToggle={() => setIsMyFilesOpen(!isMyFilesOpen)}
+        />
 
-          {/* Central Video Player */}
-          <div className="absolute left-1/2 transform -translate-x-1/2 top-[80px] w-[960px] h-[540px]">
-            <ECGPlayer />
-          </div>
-
-          {/* Edit Sidebar */}
-          <EditSidebar
-            isOpen={isEditOpen}
-            onToggle={() => setIsEditOpen(!isEditOpen)}
-            animationSpeed={animationSpeed}
-            setAnimationSpeed={setAnimationSpeed}
-            animationStrength={animationStrength}
-            setAnimationStrength={setAnimationStrength}
-          />
+        {/* Central Video Player */}
+        <div className="absolute left-1/2 transform -translate-x-1/2 top-[80px] w-[960px] h-[540px]">
+          <ECGPlayer />
         </div>
+
+        {/* Edit Sidebar */}
+        <EditSidebar
+          isOpen={isEditOpen}
+          onToggle={() => setIsEditOpen(!isEditOpen)}
+          animationSpeed={animationSpeed}
+          setAnimationSpeed={setAnimationSpeed}
+          animationStrength={animationStrength}
+          setAnimationStrength={setAnimationStrength}
+        />
       </div>
-    </VideoProvider>
+    </div>
   )
 }

@@ -1,5 +1,3 @@
-'use client'
-
 import React, { Children, cloneElement, isValidElement } from 'react'
 import { ButtonProps } from './Button'
 import { type ComponentSize } from '@/lib/utils'

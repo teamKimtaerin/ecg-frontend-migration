@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import Button from '@/components/Button'
 import UploadModal from '@/components/UploadModal'
 import { useVideo } from '@/contexts/VideoContext'
@@ -12,6 +13,7 @@ interface HeaderProps {
 }
 
 export default function Header({ isVisible = true }: HeaderProps) {
+  const router = useRouter()
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
   const { setVideoFile } = useVideo()
 
@@ -33,6 +35,7 @@ export default function Header({ isVisible = true }: HeaderProps) {
       setVideoFile(data.files[0])
     }
     setIsUploadModalOpen(false)
+    router.push('/editor')
   }
 
   return (

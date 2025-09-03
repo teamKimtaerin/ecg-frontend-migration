@@ -7,6 +7,7 @@ import { cn, SIZE_CLASSES } from '@/lib/utils'
 import Modal, { type ModalProps } from './Modal'
 import Button from './Button'
 import ButtonGroup from './ButtonGroup'
+import ProgressCircle from './ProgressCircle'
 import FileUploadTab from './UploadModal/FileUploadTab'
 import UrlImportTab from './UploadModal/UrlImportTab'
 import TranscriptionSettings from './UploadModal/TranscriptionSettings'
@@ -223,8 +224,9 @@ const UploadModal: React.FC<UploadModalProps> = ({
         onClose={onClose}
         size="lg"
         title="Fast Transcription"
-        className="max-w-4xl"
+        className="max-w-4xl min-w-[600px] w-[700px]"
       >
+
         <div className={cn('flex flex-col', SIZE_CLASSES.gap['extra-large'])}>
           {/* Input Method Selection */}
           <div className={cn('flex flex-col', SIZE_CLASSES.gap.medium)}>
@@ -242,7 +244,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
                 style={inputMethod === 'file' ? 'fill' : 'outline'}
                 size="medium"
                 onClick={() => handleTabChange('file')}
-                className="flex-1 border-0 hover:shadow-none focus:shadow-none"
+                className="flex-1 min-w-0 border-0 hover:shadow-none focus:shadow-none text-center"
               >
                 Upload Files
               </Button>
@@ -251,7 +253,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
                 style={inputMethod === 'link' ? 'fill' : 'outline'}
                 size="medium"
                 onClick={() => handleTabChange('link')}
-                className="flex-1 border-0 hover:shadow-none focus:shadow-none"
+                className="flex-1 min-w-0 border-0 hover:shadow-none focus:shadow-none text-center"
               >
                 Import Link
               </Button>
@@ -307,24 +309,30 @@ const UploadModal: React.FC<UploadModalProps> = ({
         >
           <ButtonGroup orientation="horizontal" spacing="small">
             <Button
-              variant="secondary"
+              variant="accent"
               style="outline"
               size="medium"
               onClick={onClose}
               isDisabled={isLoading}
+              className="text-primary hover:text-primary-dark"
             >
               Cancel
             </Button>
-            <Button
-              variant="primary"
-              style="fill"
-              size="medium"
-              onClick={handleSubmit}
-              isDisabled={isLoading || !isFormReady}
-              isPending={isLoading}
-            >
-              {isLoading ? 'Starting...' : 'Start Transcription'}
-            </Button>
+              <Button
+                variant="primary"
+                style="fill"
+                size="medium"
+                onClick={handleSubmit}
+                isDisabled={isLoading || !isFormReady}
+                isPending={isLoading}
+                className="w-full justify-center hover:bg-primary-dark"
+              >
+                {isLoading ? (
+                  <ProgressCircle size="small" isIndeterminate />
+                ) : (
+                  'Start'
+                )}
+              </Button>
           </ButtonGroup>
         </div>
       </Modal>
