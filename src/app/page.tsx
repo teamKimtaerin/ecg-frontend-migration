@@ -164,10 +164,8 @@ export default function Home() {
           // Close modal after successful submission
           setIsTranscriptionModalOpen(false)
 
-          // Show mock transcription result in a formatted alert
-          alert(
-            `Mock Transcription Result:\n\nDuration: ${result.metadata?.duration}s\nSegments: ${result.metadata?.total_segments}\nLanguage: ${result.metadata?.config?.language}\n\nFirst segment: "${result.segments?.[0]?.text || 'No segments available'}"`
-          )
+          // Redirect to transcriptions page after successful upload
+          router.push('/transcriptions')
         } else {
           throw new Error(`HTTP error! status: ${response.status}`)
         }
