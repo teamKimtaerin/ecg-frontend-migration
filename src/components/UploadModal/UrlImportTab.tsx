@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import AlertBanner from '@/components/AlertBanner'
 
 interface UrlImportTabProps {
   url: string
@@ -72,9 +73,9 @@ const UrlImportTab: React.FC<UrlImportTabProps> = ({
                 w-full px-4 py-3 pr-10 border rounded-lg transition-colors
                 ${
                   url && !isValidUrl
-                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+                    ? 'border-status-negative focus:border-status-negative focus:ring-status-negative/20'
                     : url && isValidUrl
-                      ? 'border-green-500 focus:border-green-500 focus:ring-green-500/20'
+                      ? 'border-status-positive focus:border-status-positive focus:ring-status-positive/20'
                       : 'border-border focus:border-primary focus:ring-primary/20'
                 }
                 focus:ring-2 focus:outline-none bg-surface text-text-primary
@@ -84,7 +85,7 @@ const UrlImportTab: React.FC<UrlImportTabProps> = ({
               {url &&
                 (isValidUrl ? (
                   <svg
-                    className="w-5 h-5 text-green-500"
+                    className="w-5 h-5 text-status-positive"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -98,7 +99,7 @@ const UrlImportTab: React.FC<UrlImportTabProps> = ({
                   </svg>
                 ) : (
                   <svg
-                    className="w-5 h-5 text-red-500"
+                    className="w-5 h-5 text-status-negative"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -114,7 +115,9 @@ const UrlImportTab: React.FC<UrlImportTabProps> = ({
             </div>
           </div>
           {url && !isValidUrl && (
-            <p className="text-sm text-red-600">Please enter a valid URL</p>
+            <p className="text-sm text-status-negative">
+              Please enter a valid URL
+            </p>
           )}
         </div>
       </div>
@@ -143,31 +146,11 @@ const UrlImportTab: React.FC<UrlImportTabProps> = ({
         </div>
       </div>
 
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <div className="flex items-start space-x-3">
-          <svg
-            className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          <div>
-            <h4 className="text-sm font-medium text-blue-800">Import Tips</h4>
-            <ul className="mt-1 text-sm text-blue-700 space-y-1">
-              <li>• Make sure the video is publicly accessible</li>
-              <li>• Some platforms may require additional permissions</li>
-              <li>• Processing time varies based on video length</li>
-            </ul>
-          </div>
-        </div>
-      </div>
+      <AlertBanner
+        variant="informative"
+        text="Import Tips: Make sure the video is publicly accessible. Some platforms may require additional permissions. Processing time varies based on video length."
+        isDismissible={false}
+      />
     </div>
   )
 }

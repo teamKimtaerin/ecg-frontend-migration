@@ -2,7 +2,7 @@ import React from 'react'
 import { DashboardLayout } from '@/components/Dashboard/DashboardLayout'
 import { SubtitlesClient } from '@/components/Dashboard/SubtitlesClient'
 
-// 이 데이터는 나중에 API에서 가져올 수 있습니다
+// TODO : 이 데이터는 나중에 API에서 가져올 수 있습니다, 삭제
 const sampleSubtitles = [
   {
     id: '1',
