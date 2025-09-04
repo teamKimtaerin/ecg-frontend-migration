@@ -81,9 +81,9 @@ export default function Header({ isVisible = true }: HeaderProps) {
             >
               <span>VoT</span>
             </a>
-            <Button 
-              variant="primary" 
-              size="medium" 
+            <Button
+              variant="primary"
+              size="medium"
               className="rounded-full mr-4"
               onClick={() => setIsUploadModalOpen(true)}
             >

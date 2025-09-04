@@ -40,9 +40,7 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <VideoProvider>
-          {children}
-        </VideoProvider>
+        <VideoProvider>{children}</VideoProvider>
       </body>
     </html>
   )

@@ -115,7 +115,9 @@ const UrlImportTab: React.FC<UrlImportTabProps> = ({
             </div>
           </div>
           {url && !isValidUrl && (
-            <p className="text-sm text-status-negative">Please enter a valid URL</p>
+            <p className="text-sm text-status-negative">
+              Please enter a valid URL
+            </p>
           )}
         </div>
       </div>

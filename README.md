@@ -36,11 +36,13 @@ npm run dev:local-player
 ### 설치 방법
 
 #### 1. GitHub 패키지 (기본)
+
 ```bash
 npm install
 ```
 
 #### 2. 로컬 개발 모드
+
 ```bash
 # ECG Player 로컬 경로: ../../../ass-generator/ecg-player/src
 npm run dev:local-player
@@ -54,7 +56,7 @@ import { VideoProvider, useVideo } from '@/contexts/VideoContext'
 
 function VideoPlayer() {
   const { videoUrl, captionData } = useVideo()
-  
+
   return (
     <CaptionWithIntention
       videoSrc={videoUrl}
@@ -136,6 +138,7 @@ GitHub 패키지를 사용하려면 `.npmrc` 파일이 설정되어 있어야 �
 ```
 
 개인 액세스 토큰이 필요한 경우:
+
 ```bash
 npm login --scope=@teamkimtaerin --registry=https://npm.pkg.github.com
 ```
@@ -143,28 +146,33 @@ npm login --scope=@teamkimtaerin --registry=https://npm.pkg.github.com
 ### 로컬 개발 환경
 
 로컬 개발 시 ECG Player 경로가 올바른지 확인하세요:
+
 - 예상 경로: `../../../ass-generator/ecg-player/src`
 - 실제 경로와 다를 경우 `next.config.ts`에서 수정
 
 ## 🔄 워크플로우
 
 ### 1. 비디오 업로드
+
 1. Header의 "Upload Video" 버튼 클릭
 2. 파일 선택 또는 드래그&드롭
 3. 비디오가 VideoContext에 저장
 
 ### 2. ECG Player 렌더링
+
 1. ECGPlayer 컴포넌트가 VideoContext에서 비디오 URL 읽기
 2. `/public/sample/real.json` 자막 데이터 로드
 3. CaptionWithIntention 컴포넌트 렌더링
 
 ### 3. 실시간 개발
+
 - 로컬 모드에서 ECG Player 소스 수정 시 HMR 동작
 - 타입 체크 및 빌드 오류 실시간 확인
 
 ## 🐛 문제 해결
 
 ### ECG Player 로드 실패
+
 ```bash
 # 모듈 설치 확인
 npm ls ecg-player
@@ -174,6 +182,7 @@ ls -la ../../../ass-generator/ecg-player/src
 ```
 
 ### 타입 오류
+
 ```bash
 # 타입 체크
 npm run type-check
@@ -183,6 +192,7 @@ npm ls @types/ecg-player
 ```
 
 ### 빌드 오류
+
 ```bash
 # 의존성 재설치
 rm -rf node_modules package-lock.json

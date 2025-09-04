@@ -47,31 +47,31 @@ export function VideoProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<VideoState>(initialState)
 
   const setVideoFile = (file: File | null) => {
-    setState(prev => ({ ...prev, videoFile: file }))
+    setState((prev) => ({ ...prev, videoFile: file }))
     if (file) {
       const url = URL.createObjectURL(file)
-      setState(prev => ({ ...prev, videoUrl: url }))
+      setState((prev) => ({ ...prev, videoUrl: url }))
     }
   }
 
   const setVideoUrl = (url: string | null) => {
-    setState(prev => ({ ...prev, videoUrl: url }))
+    setState((prev) => ({ ...prev, videoUrl: url }))
   }
 
   const setCaptionData = (data: TimingSyncData | null) => {
-    setState(prev => ({ ...prev, captionData: data }))
+    setState((prev) => ({ ...prev, captionData: data }))
   }
 
   const setIsPlaying = (playing: boolean) => {
-    setState(prev => ({ ...prev, isPlaying: playing }))
+    setState((prev) => ({ ...prev, isPlaying: playing }))
   }
 
   const setCurrentTime = (time: number) => {
-    setState(prev => ({ ...prev, currentTime: time }))
+    setState((prev) => ({ ...prev, currentTime: time }))
   }
 
   const setDuration = (duration: number) => {
-    setState(prev => ({ ...prev, duration }))
+    setState((prev) => ({ ...prev, duration }))
   }
 
   const resetVideo = () => {
