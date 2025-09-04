@@ -6,7 +6,14 @@ import { useVideo } from '@/contexts/VideoContext'
 // ECG Player 컴포넌트
 const ECGPlayer: React.FC = () => {
   const { videoUrl } = useVideo()
-  const [CaptionWithIntention, setCaptionWithIntention] = useState<any>(null)
+  const [CaptionWithIntention, setCaptionWithIntention] =
+    useState<React.ComponentType<{
+      videoSrc: string
+      timingSyncSrc: string
+      width: number
+      height: number
+      responsive: boolean
+    }> | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 

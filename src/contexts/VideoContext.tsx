@@ -8,7 +8,11 @@ interface TimingSyncData {
   created_at: string
   total_duration: number
   sync_precision_ms: number
-  sync_events: any[]
+  sync_events: Array<{
+    timestamp: number
+    event_type: string
+    content?: string
+  }>
 }
 
 interface VideoState {
