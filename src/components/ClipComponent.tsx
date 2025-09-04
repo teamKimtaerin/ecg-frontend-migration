@@ -29,7 +29,13 @@ export interface ClipComponentProps {
   onSpeakerChange?: (clipId: string, newSpeaker: string) => void
 }
 
-const ClipComponent: React.FC<ClipComponentProps> = ({ clip, isSelected, onSelect, onWordEdit, onSpeakerChange }) => {
+const ClipComponent: React.FC<ClipComponentProps> = ({
+  clip,
+  isSelected,
+  onSelect,
+  onWordEdit,
+  onSpeakerChange,
+}) => {
   const [speakers] = React.useState(['Speaker 1', 'Speaker 2', 'Speaker 3'])
 
   const handleSpeakerChange = (value: string) => {
@@ -68,7 +74,10 @@ const ClipComponent: React.FC<ClipComponentProps> = ({ clip, isSelected, onSelec
                 <Dropdown
                   value={clip.speaker}
                   options={[
-                    ...speakers.map(speaker => ({ value: speaker, label: speaker })),
+                    ...speakers.map((speaker) => ({
+                      value: speaker,
+                      label: speaker,
+                    })),
                     { value: 'add_new', label: '+ 새 Speaker 추가' },
                   ]}
                   size="small"

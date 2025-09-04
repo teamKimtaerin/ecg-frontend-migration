@@ -227,8 +227,12 @@ const Dropdown: React.FC<DropdownProps> = ({
 
     // 텍스트 색상
     variant === 'toolbar'
-      ? selectedOption ? 'text-white' : 'text-slate-300'
-      : selectedOption ? 'text-black' : 'text-gray-600'
+      ? selectedOption
+        ? 'text-white'
+        : 'text-slate-300'
+      : selectedOption
+        ? 'text-black'
+        : 'text-gray-600'
   )
 
   // 메뉴 클래스

@@ -19,10 +19,26 @@ export interface ColorPickerProps extends BaseComponentProps {
 }
 
 const DEFAULT_COLORS = [
-  '#FFFFFF', '#000000', '#FF0000', '#00FF00', '#0000FF',
-  '#FFFF00', '#FF00FF', '#00FFFF', '#FFA500', '#800080',
-  '#FFC0CB', '#A52A2A', '#808080', '#90EE90', '#FFB6C1',
-  '#8B4513', '#2E8B57', '#4682B4', '#D2691E', '#9ACD32',
+  '#FFFFFF',
+  '#000000',
+  '#FF0000',
+  '#00FF00',
+  '#0000FF',
+  '#FFFF00',
+  '#FF00FF',
+  '#00FFFF',
+  '#FFA500',
+  '#800080',
+  '#FFC0CB',
+  '#A52A2A',
+  '#808080',
+  '#90EE90',
+  '#FFB6C1',
+  '#8B4513',
+  '#2E8B57',
+  '#4682B4',
+  '#D2691E',
+  '#9ACD32',
 ]
 
 const ColorPicker: React.FC<ColorPickerProps> = ({
@@ -106,11 +122,13 @@ const ColorPicker: React.FC<ColorPickerProps> = ({
   // Variant-based classes
   const variantClasses = {
     default: {
-      trigger: 'bg-white border border-gray-300 text-gray-800 hover:bg-gray-50 hover:border-gray-400',
+      trigger:
+        'bg-white border border-gray-300 text-gray-800 hover:bg-gray-50 hover:border-gray-400',
       palette: 'bg-white border border-gray-300',
     },
     toolbar: {
-      trigger: 'bg-slate-700/90 border border-slate-500/70 text-white hover:bg-slate-600/90 hover:border-slate-400',
+      trigger:
+        'bg-slate-700/90 border border-slate-500/70 text-white hover:bg-slate-600/90 hover:border-slate-400',
       palette: 'bg-slate-800/95 border border-slate-600 backdrop-blur-sm',
     },
   }
@@ -145,14 +163,14 @@ const ColorPicker: React.FC<ColorPickerProps> = ({
             {placeholder}
           </span>
         )}
-        <div 
+        <div
           className={cn('rounded-sm mt-0.5', currentSize.colorBar)}
           style={{ backgroundColor: value }}
         />
       </button>
 
       {isOpen && (
-        <div 
+        <div
           ref={paletteRef}
           className={paletteClasses}
           onClick={(e) => e.stopPropagation()}
@@ -165,9 +183,10 @@ const ColorPicker: React.FC<ColorPickerProps> = ({
                   'rounded-lg border-2 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md',
                   currentSize.colorButton
                 )}
-                style={{ 
+                style={{
                   backgroundColor: color,
-                  borderColor: value === color ? '#60A5FA' : 'rgba(255, 255, 255, 0.2)'
+                  borderColor:
+                    value === color ? '#60A5FA' : 'rgba(255, 255, 255, 0.2)',
                 }}
                 onClick={() => handleColorSelect(color)}
                 aria-label={`Select color ${color}`}

@@ -8,7 +8,6 @@ import { ClipItem } from '@/components/ClipComponent'
 import EditorHeaderTabs from '@/components/EditorHeaderTabs'
 import Toolbar from '@/components/Toolbar'
 
-
 export default function EditorPage() {
   const [activeTab, setActiveTab] = useState('home')
   const [selectedClipId, setSelectedClipId] = useState<string | null>(null)

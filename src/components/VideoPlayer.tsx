@@ -15,7 +15,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   poster,
 }) => {
   return (
-    <div className={cn('relative bg-black rounded-lg overflow-hidden', className)}>
+    <div
+      className={cn('relative bg-black rounded-lg overflow-hidden', className)}
+    >
       {src ? (
         <video
           className="w-full h-full object-cover"

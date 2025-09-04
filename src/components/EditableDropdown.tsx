@@ -105,12 +105,14 @@ const EditableDropdown: React.FC<EditableDropdownProps> = ({
   // Variant-based classes
   const variantClasses = {
     default: {
-      input: 'bg-white border-2 border-slate-300 text-black hover:border-slate-400 hover:bg-gray-50 focus:border-slate-400',
+      input:
+        'bg-white border-2 border-slate-300 text-black hover:border-slate-400 hover:bg-gray-50 focus:border-slate-400',
       dropdown: 'bg-white border border-slate-300',
       option: 'text-black hover:bg-gray-100',
     },
     toolbar: {
-      input: 'bg-slate-700/90 border-2 border-slate-500/70 text-white hover:border-slate-400 hover:bg-slate-600/90 focus:border-slate-400',
+      input:
+        'bg-slate-700/90 border-2 border-slate-500/70 text-white hover:border-slate-400 hover:bg-slate-600/90 focus:border-slate-400',
       dropdown: 'bg-slate-700/95 border border-slate-500/70 backdrop-blur-sm',
       option: 'text-white hover:bg-slate-600/70',
     },
@@ -145,7 +147,7 @@ const EditableDropdown: React.FC<EditableDropdownProps> = ({
         disabled={isDisabled}
         onClick={(e) => e.stopPropagation()}
       />
-      
+
       {options.length > 0 && (
         <button
           type="button"
@@ -157,19 +159,27 @@ const EditableDropdown: React.FC<EditableDropdownProps> = ({
           disabled={isDisabled}
           aria-label="Show options"
         >
-          <svg 
-            className={cn(currentSize.icon, variant === 'toolbar' ? 'text-slate-300' : 'text-gray-600')} 
-            fill="none" 
-            viewBox="0 0 24 24" 
+          <svg
+            className={cn(
+              currentSize.icon,
+              variant === 'toolbar' ? 'text-slate-300' : 'text-gray-600'
+            )}
+            fill="none"
+            viewBox="0 0 24 24"
             stroke="currentColor"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 9l-7 7-7-7"
+            />
           </svg>
         </button>
       )}
 
       {showDropdown && options.length > 0 && (
-        <div 
+        <div
           ref={dropdownRef}
           className={dropdownClasses}
           onClick={(e) => e.stopPropagation()}

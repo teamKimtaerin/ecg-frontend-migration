@@ -63,21 +63,21 @@ const ToggleButton: React.FC<ToggleButtonProps> = ({
     // Base styles
     'inline-flex items-center justify-center rounded transition-colors',
     getBaseInteractiveClasses(),
-    
+
     // Size
     sizeClasses[size],
-    
+
     // Variant and state
     variantClasses[variant].base,
     isPressed ? variantClasses[variant].pressed : variantClasses[variant].hover,
     isPressed && variantClasses[variant].pressedHover,
-    
+
     // Icon font styles
     icon && !label && !children && 'font-bold',
-    
+
     // Disabled state
     isDisabled && 'opacity-50 cursor-not-allowed pointer-events-none',
-    
+
     className
   )
 
