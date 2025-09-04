@@ -2,7 +2,6 @@
 
 import React, { useState, useRef, useCallback, useEffect } from 'react'
 
-
 interface VideoPlayerProps {
   className?: string
 }
@@ -228,7 +227,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ className = '' }) => {
       className={`flex-1 bg-slate-800/80 backdrop-blur-sm border border-slate-600/40 rounded-lg mx-2 my-4 shadow-xl ${className}`}
     >
       <div className="p-4 h-full flex flex-col">
-
         {/* Video Screen */}
         <div className="relative aspect-video rounded-lg mb-4 flex-shrink-0 bg-black">
           <video

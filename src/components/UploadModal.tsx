@@ -226,7 +226,6 @@ const UploadModal: React.FC<UploadModalProps> = ({
         title="Fast Transcription"
         className="max-w-4xl min-w-[600px] w-[700px]"
       >
-
         <div className={cn('flex flex-col', SIZE_CLASSES.gap['extra-large'])}>
           {/* Input Method Selection */}
           <div className={cn('flex flex-col', SIZE_CLASSES.gap.medium)}>
@@ -318,21 +317,21 @@ const UploadModal: React.FC<UploadModalProps> = ({
             >
               Cancel
             </Button>
-              <Button
-                variant="primary"
-                style="fill"
-                size="medium"
-                onClick={handleSubmit}
-                isDisabled={isLoading || !isFormReady}
-                isPending={isLoading}
-                className="w-full justify-center hover:bg-primary-dark"
-              >
-                {isLoading ? (
-                  <ProgressCircle size="small" isIndeterminate />
-                ) : (
-                  'Start'
-                )}
-              </Button>
+            <Button
+              variant="primary"
+              style="fill"
+              size="medium"
+              onClick={handleSubmit}
+              isDisabled={isLoading || !isFormReady}
+              isPending={isLoading}
+              className="w-full justify-center hover:bg-primary-dark"
+            >
+              {isLoading ? (
+                <ProgressCircle size="small" isIndeterminate />
+              ) : (
+                'Start'
+              )}
+            </Button>
           </ButtonGroup>
         </div>
       </Modal>

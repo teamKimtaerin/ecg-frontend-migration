@@ -35,8 +35,8 @@ function EditorHeaderTabs({ activeTab, onTabChange }: EditorHeaderTabsProps) {
   return (
     <div className="bg-slate-800/80 backdrop-blur-sm border-b border-slate-600/40 relative">
       <div className="flex items-center px-6 py-2">
-        <Tab 
-          selectedItem={activeTab} 
+        <Tab
+          selectedItem={activeTab}
           onSelectionChange={onTabChange}
           size="small"
           isQuiet={true}
@@ -51,9 +51,9 @@ function EditorHeaderTabs({ activeTab, onTabChange }: EditorHeaderTabsProps) {
           <TabItem id="template" label="템플릿" />
           <TabItem id="effect" label="효과" />
         </Tab>
-        
-        <Button 
-          variant="accent" 
+
+        <Button
+          variant="accent"
           size="small"
           className="ml-4 px-3 py-1.5 text-xs bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-sm hover:shadow-md transition-all duration-200 hover:from-blue-600 hover:to-indigo-700"
         >
@@ -115,25 +115,43 @@ function Toolbar({ activeTab }: ToolbarProps) {
       case 'file':
         return (
           <div className="flex items-center space-x-2">
-            <Button size="small" variant="secondary" className="text-xs">파일 열기</Button>
-            <Button size="small" variant="secondary" className="text-xs">저장</Button>
-            <Button size="small" variant="secondary" className="text-xs">다른 이름으로 저장</Button>
+            <Button size="small" variant="secondary" className="text-xs">
+              파일 열기
+            </Button>
+            <Button size="small" variant="secondary" className="text-xs">
+              저장
+            </Button>
+            <Button size="small" variant="secondary" className="text-xs">
+              다른 이름으로 저장
+            </Button>
           </div>
         )
       case 'edit':
         return (
           <div className="flex items-center space-x-2">
-            <Button size="small" variant="secondary" className="text-xs">분할</Button>
-            <Button size="small" variant="secondary" className="text-xs">병합</Button>
-            <Button size="small" variant="secondary" className="text-xs">삭제</Button>
+            <Button size="small" variant="secondary" className="text-xs">
+              분할
+            </Button>
+            <Button size="small" variant="secondary" className="text-xs">
+              병합
+            </Button>
+            <Button size="small" variant="secondary" className="text-xs">
+              삭제
+            </Button>
           </div>
         )
       case 'subtitle':
         return (
           <div className="flex items-center space-x-2">
-            <Button size="small" variant="secondary" className="text-xs">자막 추가</Button>
-            <Button size="small" variant="secondary" className="text-xs">자막 삭제</Button>
-            <Button size="small" variant="secondary" className="text-xs">타이밍 조정</Button>
+            <Button size="small" variant="secondary" className="text-xs">
+              자막 추가
+            </Button>
+            <Button size="small" variant="secondary" className="text-xs">
+              자막 삭제
+            </Button>
+            <Button size="small" variant="secondary" className="text-xs">
+              타이밍 조정
+            </Button>
           </div>
         )
       default:
@@ -151,7 +169,10 @@ function Toolbar({ activeTab }: ToolbarProps) {
 function VideoSection() {
   return (
     <div className="w-[300px] bg-gray-900 p-4 border-r border-gray-700">
-      <div className="bg-black rounded-lg mb-4 relative" style={{ aspectRatio: '16/9' }}>
+      <div
+        className="bg-black rounded-lg mb-4 relative"
+        style={{ aspectRatio: '16/9' }}
+      >
         <VideoPlayer className="w-full h-full" />
       </div>
     </div>
@@ -167,11 +188,9 @@ interface ClipProps {
 
 function ClipComponent({ clip, isSelected, onSelect, onWordEdit }: ClipProps) {
   return (
-    <div 
+    <div
       className={`bg-gray-200 rounded-lg transition-all cursor-pointer ${
-        isSelected 
-          ? 'ring-2 ring-blue-500' 
-          : 'hover:bg-gray-300'
+        isSelected ? 'ring-2 ring-blue-500' : 'hover:bg-gray-300'
       }`}
       onClick={() => onSelect(clip.id)}
     >
@@ -184,7 +203,7 @@ function ClipComponent({ clip, isSelected, onSelect, onWordEdit }: ClipProps) {
             </span>
           </div>
         </div>
-        
+
         {/* Right side content */}
         <div className="flex-1 flex flex-col">
           {/* Upper section: Speaker and Word buttons */}
@@ -201,10 +220,10 @@ function ClipComponent({ clip, isSelected, onSelect, onWordEdit }: ClipProps) {
                   size="small"
                   className="text-sm flex-shrink-0"
                 />
-                
+
                 {/* 50px gap before word buttons */}
                 <div className="w-12"></div>
-                
+
                 {/* Word buttons */}
                 <div className="flex flex-wrap gap-1">
                   {clip.words.map((word) => (
@@ -221,7 +240,7 @@ function ClipComponent({ clip, isSelected, onSelect, onWordEdit }: ClipProps) {
                   ))}
                 </div>
               </div>
-              
+
               <div className="flex space-x-1 flex-shrink-0">
                 <button className="w-6 h-6 bg-gray-400 hover:bg-gray-500 rounded flex items-center justify-center text-xs text-white transition-colors">
                   ▶
@@ -235,10 +254,10 @@ function ClipComponent({ clip, isSelected, onSelect, onWordEdit }: ClipProps) {
               </div>
             </div>
           </div>
-          
+
           {/* Divider line - only in right section */}
           <div className="border-t border-gray-400"></div>
-          
+
           {/* Lower section: Full text display */}
           <div className="p-3">
             <div className="text-sm text-gray-800 text-center">
@@ -258,7 +277,12 @@ interface ClipTableProps {
   onWordEdit: (clipId: string, wordId: string, newText: string) => void
 }
 
-function SubtitleEditList({ clips, selectedClipId, onClipSelect, onWordEdit }: ClipTableProps) {
+function SubtitleEditList({
+  clips,
+  selectedClipId,
+  onClipSelect,
+  onWordEdit,
+}: ClipTableProps) {
   return (
     <div className="w-[800px] bg-gray-900 p-4">
       <div className="space-y-3">
@@ -291,10 +315,10 @@ export default function EditorPage() {
       words: [
         { id: '1-1', text: '이제', start: 15.0, end: 15.5, isEditable: true },
         { id: '1-2', text: '웹님', start: 15.5, end: 16.0, isEditable: true },
-      ]
+      ],
     },
     {
-      id: '2', 
+      id: '2',
       timeline: '0:00:24',
       speaker: 'Speaker 2',
       subtitle: '네시요',
@@ -303,11 +327,11 @@ export default function EditorPage() {
       thumbnail: '/placeholder-thumb.jpg',
       words: [
         { id: '2-1', text: '네시요', start: 24.0, end: 24.8, isEditable: true },
-      ]
+      ],
     },
     {
       id: '3',
-      timeline: '0:00:32', 
+      timeline: '0:00:32',
       speaker: 'Speaker 1',
       subtitle: '지금다',
       fullText: '지금다',
@@ -315,12 +339,12 @@ export default function EditorPage() {
       thumbnail: '/placeholder-thumb.jpg',
       words: [
         { id: '3-1', text: '지금다', start: 32.0, end: 32.8, isEditable: true },
-      ]
+      ],
     },
     {
       id: '4',
       timeline: '0:00:41',
-      speaker: 'Speaker 1', 
+      speaker: 'Speaker 1',
       subtitle: '이 지금 이는 한 공에',
       fullText: '이 지금 이는 한 공에',
       duration: '6.163초',
@@ -331,22 +355,22 @@ export default function EditorPage() {
         { id: '4-3', text: '이는', start: 41.6, end: 41.9, isEditable: true },
         { id: '4-4', text: '한', start: 41.9, end: 42.1, isEditable: true },
         { id: '4-5', text: '공에', start: 42.1, end: 42.5, isEditable: true },
-      ]
-    }
+      ],
+    },
   ])
 
   const handleWordEdit = (clipId: string, wordId: string, newText: string) => {
-    setClips(prevClips => 
-      prevClips.map(clip => 
-        clip.id === clipId 
+    setClips((prevClips) =>
+      prevClips.map((clip) =>
+        clip.id === clipId
           ? {
               ...clip,
-              words: clip.words.map(word => 
+              words: clip.words.map((word) =>
                 word.id === wordId ? { ...word, text: newText } : word
               ),
-              fullText: clip.words.map(word => 
-                word.id === wordId ? newText : word.text
-              ).join(' ')
+              fullText: clip.words
+                .map((word) => (word.id === wordId ? newText : word.text))
+                .join(' '),
             }
           : clip
       )
@@ -355,18 +379,15 @@ export default function EditorPage() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      <EditorHeaderTabs 
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-      />
-      
+      <EditorHeaderTabs activeTab={activeTab} onTabChange={setActiveTab} />
+
       <Toolbar activeTab={activeTab} />
-      
+
       <div className="flex h-[calc(100vh-120px)]">
         <VideoSection />
-        
+
         <div className="flex-1 flex justify-center">
-          <SubtitleEditList 
+          <SubtitleEditList
             clips={clips}
             selectedClipId={selectedClipId}
             onClipSelect={setSelectedClipId}

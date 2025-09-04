@@ -121,16 +121,15 @@ export default function Home() {
     autoSubmit: boolean
     method: 'file' | 'link'
   }) => {
-
-    const handleTranscriptionResponse = async (response : Response) =>{
-      if(response.ok){
+    const handleTranscriptionResponse = async (response: Response) => {
+      if (response.ok) {
         const result = await response.json()
-        if(process.env.NODE_ENV === 'development'){
-          console.log("Transcription started successfully: ",result)
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Transcription started successfully: ', result)
         }
         setIsTranscriptionModalOpen(false)
         router.push('/editor')
-      }else{
+      } else {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
     }
@@ -141,7 +140,7 @@ export default function Home() {
         console.log('Starting transcription with data:', data)
       }
 
-      let response : Response
+      let response: Response
 
       if (data.method === 'file' && data.files) {
         // Create FormData for file upload
@@ -163,7 +162,6 @@ export default function Home() {
           method: 'POST',
           body: formData,
         })
-
       } else if (data.method === 'link' && data.url) {
         // Send URL data as JSON
         response = await fetch('/api/transcription/url', {
@@ -179,7 +177,7 @@ export default function Home() {
             method: data.method,
           }),
         })
-      }else{
+      } else {
         return
       }
       await handleTranscriptionResponse(response)
@@ -257,7 +255,11 @@ export default function Home() {
                 >
                   Login
                 </a>
-                <Button variant="accent" size="medium" className="font-bold rounded-full">
+                <Button
+                  variant="accent"
+                  size="medium"
+                  className="font-bold rounded-full"
+                >
                   Sign up
                 </Button>
               </nav>
