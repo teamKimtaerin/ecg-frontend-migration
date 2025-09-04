@@ -2118,7 +2118,7 @@ dunder-proto@^1.0.0, dunder-proto@^1.0.1:
 
 "ecg-player@github:teamKimtaerin/ecg-player#main":
   version "1.0.0"
-  resolved "https://codeload.github.com/teamKimtaerin/ecg-player/tar.gz/7873d0c37ff60eb14e16973d1ba464c31cc417ae"
+  resolved "https://codeload.github.com/teamKimtaerin/ecg-player/tar.gz/58df12f712796a0c46a265ac5d6953bce602f3ac"
   dependencies:
     "@fontsource-variable/roboto-flex" "^5.2.6"
     gsap "^3.13.0"
