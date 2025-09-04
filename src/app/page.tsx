@@ -16,7 +16,7 @@ import OpenLibrarySection from '@/components/LandingPage/OpenLibrarySection'
 import Footer from '@/components/LandingPage/Footer'
 
 export default function Home() {
-  const router = useRouter() // test comment
+  const router = useRouter()
   const [isHeaderVisible, setIsHeaderVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
   const [isTranscriptionModalOpen, setIsTranscriptionModalOpen] =
