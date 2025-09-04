@@ -2,8 +2,6 @@
 
 import React, { useState, useRef, useCallback, useEffect } from 'react'
 
-import Dropdown from '@/components/Dropdown'
-import Button from '@/components/Button'
 
 interface VideoPlayerProps {
   className?: string
@@ -230,46 +228,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ className = '' }) => {
       className={`flex-1 bg-slate-800/80 backdrop-blur-sm border border-slate-600/40 rounded-lg mx-2 my-4 shadow-xl ${className}`}
     >
       <div className="p-4 h-full flex flex-col">
-        {/* Template and Action Bar */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="w-32">
-            <Dropdown
-              value="Basic"
-              options={[
-                { value: 'Basic', label: 'Basic' },
-                { value: 'Advanced', label: 'Advanced' },
-                { value: 'Custom', label: 'Custom' },
-              ]}
-              size="small"
-              className="dropdown-dark"
-            />
-          </div>
-          <div className="flex items-center space-x-3">
-            <button className="flex items-center text-slate-300 hover:text-white border border-transparent hover:border-slate-500/50 rounded-full px-3 py-1 transition-all duration-200">
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"
-                />
-              </svg>
-              <span className="text-xs ml-1">Share</span>
-            </button>
-            <Button
-              variant="accent"
-              size="small"
-              className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-full px-4 hover:from-blue-400 hover:to-indigo-500 hover:shadow-lg hover:scale-105 transition-all duration-200 shadow-md"
-            >
-              Download
-            </Button>
-          </div>
-        </div>
 
         {/* Video Screen */}
         <div className="relative aspect-video rounded-lg mb-4 flex-shrink-0 bg-black">
