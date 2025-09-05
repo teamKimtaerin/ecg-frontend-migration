@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 import VideoSection from '@/components/VideoSection'
 import SubtitleEditList from '@/components/SubtitleEditList'
@@ -9,8 +9,10 @@ import EditorHeaderTabs from '@/components/EditorHeaderTabs'
 import Toolbar from '@/components/Toolbar'
 import UploadModal from '@/components/UploadModal'
 import { useUploadModal } from '@/hooks/useUploadModal'
-import { mergeSelectedClips, areClipsConsecutive } from '@/utils/clipMerger'
+import { areClipsConsecutive } from '@/utils/clipMerger'
 import { showToast } from '@/utils/toast'
+import { EditorHistory } from '@/utils/EditorHistory'
+import { MergeClipsCommand } from '@/utils/commands/MergeClipsCommand'
 
 export default function EditorPage() {
   const [activeTab, setActiveTab] = useState('home')
@@ -18,6 +20,7 @@ export default function EditorPage() {
   const [checkedClipIds, setCheckedClipIds] = useState<string[]>([])
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
   const { isTranscriptionLoading, handleFileSelect, handleStartTranscription } = useUploadModal()
+  const [editorHistory] = useState(() => new EditorHistory())
   const [clips, setClips] = useState<ClipItem[]>([
     {
       id: '1',
@@ -144,12 +147,12 @@ export default function EditorPage() {
           return
         }
 
-        // 현재 클립과 다음 클립을 합치기
+        // 현재 클립과 다음 클립을 합치기 - Command 패턴 사용
         const nextClipId = clips[currentIndex + 1].id
         const clipsToMerge = [currentClipId, nextClipId]
-        const mergedClips = mergeSelectedClips(clips, [], clipsToMerge)
+        const command = new MergeClipsCommand(clips, [], clipsToMerge, setClips)
         
-        setClips(mergedClips)
+        editorHistory.executeCommand(command)
         setSelectedClipId(null)
         setCheckedClipIds([])
         showToast('클립이 성공적으로 합쳐졌습니다.', 'success')
@@ -162,10 +165,10 @@ export default function EditorPage() {
         return
       }
 
-      // 클립 합치기 실행
-      const mergedClips = mergeSelectedClips(clips, [], uniqueSelectedIds)
+      // 클립 합치기 실행 - Command 패턴 사용
+      const command = new MergeClipsCommand(clips, [], uniqueSelectedIds, setClips)
       
-      setClips(mergedClips)
+      editorHistory.executeCommand(command)
       setSelectedClipId(null)
       setCheckedClipIds([])
       showToast('클립이 성공적으로 합쳐졌습니다.', 'success')
@@ -175,6 +178,46 @@ export default function EditorPage() {
     }
   }
 
+  const handleUndo = () => {
+    if (editorHistory.canUndo()) {
+      editorHistory.undo()
+      showToast('작업이 되돌려졌습니다.', 'success')
+    }
+  }
+
+  const handleRedo = () => {
+    if (editorHistory.canRedo()) {
+      editorHistory.redo()
+      showToast('작업이 다시 실행되었습니다.', 'success')
+    }
+  }
+
+  // 키보드 단축키 처리
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Ctrl+Z (undo)
+      if (event.ctrlKey && event.key === 'z' && !event.shiftKey) {
+        event.preventDefault()
+        handleUndo()
+      }
+      // Ctrl+Shift+Z (redo)
+      else if (event.ctrlKey && event.shiftKey && event.key === 'Z') {
+        event.preventDefault()
+        handleRedo()
+      }
+      // Ctrl+Y (redo - 대체 단축키)
+      else if (event.ctrlKey && event.key === 'y') {
+        event.preventDefault()
+        handleRedo()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [editorHistory])
+
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       <EditorHeaderTabs activeTab={activeTab} onTabChange={setActiveTab} />
@@ -183,6 +226,10 @@ export default function EditorPage() {
         activeTab={activeTab} 
         onNewClick={() => setIsUploadModalOpen(true)}
         onMergeClips={handleMergeClips}
+        onUndo={handleUndo}
+        onRedo={handleRedo}
+        canUndo={editorHistory.canUndo()}
+        canRedo={editorHistory.canRedo()}
       />
 
       <div className="flex h-[calc(100vh-120px)]">
