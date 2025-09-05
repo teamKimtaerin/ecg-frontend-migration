@@ -69,8 +69,8 @@ const ClipComponent: React.FC<ClipComponentProps> = ({
         {/* Left side: Timeline and Checkbox area */}
         <div className="w-16 flex items-center justify-center bg-gray-300 rounded-l-lg border-r border-gray-400 relative">
           {/* Timeline at top */}
-          <div className="absolute top-2 left-2 right-2">
-            <span className="text-xs text-gray-600 font-mono font-bold">
+          <div className="absolute top-2 left-0 right-0 flex justify-center">
+            <span className="text-base text-gray-600 font-mono font-bold">
               {clip.timeline}
             </span>
           </div>

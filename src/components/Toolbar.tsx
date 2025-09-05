@@ -6,6 +6,7 @@ import Dropdown from '@/components/Dropdown'
 interface ToolbarProps {
   activeTab: string
   onNewClick?: () => void
+  onMergeClips?: () => void
 }
 
 // 기본 서식 그룹 컴포넌트
@@ -203,7 +204,7 @@ function TextFormattingGroup() {
   )
 }
 
-const Toolbar: React.FC<ToolbarProps> = ({ activeTab, onNewClick }) => {
+const Toolbar: React.FC<ToolbarProps> = ({ activeTab, onNewClick, onMergeClips }) => {
   const renderHomeTools = () => (
     <div className="flex items-center space-x-3">
       <div 
@@ -324,7 +325,10 @@ const Toolbar: React.FC<ToolbarProps> = ({ activeTab, onNewClick }) => {
         <span className="text-xs text-slate-300">붙여넣기</span>
       </div>
       <div className="w-px h-12 bg-slate-600 mx-2" />
-      <div className="flex flex-col items-center space-y-1 px-2 py-1 hover:bg-slate-700/50 rounded cursor-pointer">
+      <div 
+        className="flex flex-col items-center space-y-1 px-2 py-1 hover:bg-slate-700/50 rounded cursor-pointer"
+        onClick={onMergeClips}
+      >
         <svg
           className="w-5 h-5 text-slate-300"
           fill="none"
