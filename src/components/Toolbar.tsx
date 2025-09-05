@@ -335,7 +335,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ activeTab, onNewClick }) => {
             strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth={2}
-            d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"
+            d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
           />
         </svg>
         <span className="text-xs text-slate-300">클립 합치기</span>
@@ -347,12 +347,8 @@ const Toolbar: React.FC<ToolbarProps> = ({ activeTab, onNewClick }) => {
           viewBox="0 0 24 24"
           stroke="currentColor"
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h8m-5-10V3a1 1 0 011-1h4a1 1 0 011 1v1M7 7h10a2 2 0 012 2v8a2 2 0 01-2 2H7a2 2 0 01-2-2V9a2 2 0 012-2z"
-          />
+          <rect x="3" y="6" width="18" height="12" rx="2" ry="2" strokeWidth="2"/>
+          <line x1="12" y1="6" x2="12" y2="18" strokeWidth="2"/>
         </svg>
         <span className="text-xs text-slate-300">클립 나누기</span>
       </div>

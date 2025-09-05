@@ -13,6 +13,7 @@ import { useUploadModal } from '@/hooks/useUploadModal'
 export default function EditorPage() {
   const [activeTab, setActiveTab] = useState('home')
   const [selectedClipId, setSelectedClipId] = useState<string | null>(null)
+  const [checkedClipIds, setCheckedClipIds] = useState<string[]>([])
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
   const { isTranscriptionLoading, handleFileSelect, handleStartTranscription } = useUploadModal()
   const [clips, setClips] = useState<ClipItem[]>([
@@ -97,6 +98,16 @@ export default function EditorPage() {
     )
   }
 
+  const handleClipCheck = (clipId: string, checked: boolean) => {
+    setCheckedClipIds((prev) => {
+      if (checked) {
+        return [...prev, clipId]
+      } else {
+        return prev.filter((id) => id !== clipId)
+      }
+    })
+  }
+
   const wrappedHandleStartTranscription = (data: Parameters<typeof handleStartTranscription>[0]) => {
     return handleStartTranscription(data, () => setIsUploadModalOpen(false), false)
   }
@@ -114,7 +125,9 @@ export default function EditorPage() {
           <SubtitleEditList
             clips={clips}
             selectedClipId={selectedClipId}
+            checkedClipIds={checkedClipIds}
             onClipSelect={setSelectedClipId}
+            onClipCheck={handleClipCheck}
             onWordEdit={handleWordEdit}
             onSpeakerChange={handleSpeakerChange}
           />

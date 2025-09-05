@@ -24,7 +24,9 @@ export interface ClipItem {
 export interface ClipComponentProps {
   clip: ClipItem
   isSelected: boolean
+  isChecked?: boolean
   onSelect: (clipId: string) => void
+  onCheck?: (clipId: string, checked: boolean) => void
   onWordEdit: (clipId: string, wordId: string, newText: string) => void
   onSpeakerChange?: (clipId: string, newSpeaker: string) => void
 }
@@ -32,10 +34,13 @@ export interface ClipComponentProps {
 const ClipComponent: React.FC<ClipComponentProps> = ({
   clip,
   isSelected,
+  isChecked = false,
   onSelect,
+  onCheck,
   onWordEdit,
   onSpeakerChange,
 }) => {
+  const [isHovered, setIsHovered] = React.useState(false)
   const [speakers] = React.useState(['Speaker 1', 'Speaker 2', 'Speaker 3'])
 
   const handleSpeakerChange = (value: string) => {
@@ -48,21 +53,40 @@ const ClipComponent: React.FC<ClipComponentProps> = ({
       onSpeakerChange?.(clip.id, value)
     }
   }
+
   return (
     <div
       className={`bg-gray-200 rounded-lg transition-all cursor-pointer ${
         isSelected ? 'ring-2 ring-blue-500' : 'hover:bg-gray-300'
+      } ${
+        isChecked ? 'ring-2 ring-green-500 bg-green-50' : ''
       }`}
       onClick={() => onSelect(clip.id)}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       <div className="flex">
-        {/* Left side: Timeline - spans full height */}
-        <div className="w-16 flex flex-col bg-gray-300 rounded-l-lg border-r border-gray-400">
-          <div className="flex-1 flex items-center justify-center py-3">
-            <span className="text-xs text-gray-600 font-mono">
+        {/* Left side: Timeline and Checkbox area */}
+        <div className="w-16 flex items-center justify-center bg-gray-300 rounded-l-lg border-r border-gray-400 relative">
+          {/* Timeline at top */}
+          <div className="absolute top-2 left-2 right-2">
+            <span className="text-xs text-gray-600 font-mono font-bold">
               {clip.timeline}
             </span>
           </div>
+          
+          {/* Checkbox in center */}
+          {(isHovered || isChecked) && (
+            <input
+              type="checkbox"
+              checked={isChecked}
+              onChange={(e) => {
+                e.stopPropagation()
+                onCheck?.(clip.id, e.target.checked)
+              }}
+              className="w-5 h-5 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 focus:ring-2"
+            />
+          )}
         </div>
 
         {/* Right side content */}
