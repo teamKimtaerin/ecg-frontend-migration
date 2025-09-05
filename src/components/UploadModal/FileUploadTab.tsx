@@ -1,6 +1,8 @@
 'use client'
 
 import React from 'react'
+import Button from '@/components/Button'
+import Badge from '@/components/Badge'
 
 interface FileUploadTabProps {
   dragActive: boolean
@@ -84,12 +86,14 @@ const FileUploadTab: React.FC<FileUploadTabProps> = ({
               multiple={multiple}
               onChange={onFileSelect}
             />
-            <label
-              htmlFor="file-upload"
-              className="inline-block px-6 py-3 bg-primary text-white rounded-lg cursor-pointer hover:bg-primary-dark transition-colors"
+            <Button
+              variant="primary"
+              style="fill"
+              size="medium"
+              onClick={() => document.getElementById('file-upload')?.click()}
             >
               Choose Files
-            </label>
+            </Button>
           </div>
 
           <div className="text-sm text-text-secondary">
@@ -141,13 +145,9 @@ const FileUploadTab: React.FC<FileUploadTabProps> = ({
 
                 <div className="flex items-center space-x-2">
                   {file.size > maxFileSize ? (
-                    <span className="text-xs text-red-600 bg-red-100 px-2 py-1 rounded">
-                      Too large
-                    </span>
+                    <Badge variant="negative" label="Too large" size="small" />
                   ) : (
-                    <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
-                      Ready
-                    </span>
+                    <Badge variant="positive" label="Ready" size="small" />
                   )}
                 </div>
               </div>

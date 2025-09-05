@@ -1,5 +1,3 @@
-'use client'
-
 import React from 'react'
 import Button from '@/components/Button'
 
@@ -33,7 +31,7 @@ const OpenLibrarySection: React.FC<OpenLibrarySectionProps> = ({
           <Button
             variant="accent"
             size="large"
-            className="bg-status-positive hover:opacity-80 rounded-full px-8"
+            className="bg-status-positive hover:opacity-80 rounded-full px-8 font-bold hover:scale-105"
           >
             Explore Subtitles
           </Button>

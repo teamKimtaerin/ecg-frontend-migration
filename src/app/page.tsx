@@ -1,19 +1,19 @@
 'use client'
 
-import React, { useState, useEffect, useCallback, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import Button from '@/components/Button'
-import UploadModal from '@/components/UploadModal'
-import HeroSection from '@/components/LandingPage/HeroSection'
-import FastTranscriptionSection from '@/components/LandingPage/FastTranscriptionSection'
 import EditTranscriptionSection from '@/components/LandingPage/EditTranscriptionSection'
+import FastTranscriptionSection from '@/components/LandingPage/FastTranscriptionSection'
+import Footer from '@/components/LandingPage/Footer'
+import HeroSection from '@/components/LandingPage/HeroSection'
+import OpenLibrarySection from '@/components/LandingPage/OpenLibrarySection'
 import SubtitleEditorSection from '@/components/LandingPage/SubtitleEditorSection'
 import VoTSection from '@/components/LandingPage/VoTSection'
-import OpenLibrarySection from '@/components/LandingPage/OpenLibrarySection'
-import Footer from '@/components/LandingPage/Footer'
+import UploadModal from '@/components/UploadModal'
 
 export default function Home() {
   const router = useRouter()
@@ -113,7 +113,6 @@ export default function Home() {
     }
     // Files are now stored in the modal state, modal stays open
   }
-
   const handleStartTranscription = async (data: {
     files?: FileList
     url?: string
@@ -122,11 +121,26 @@ export default function Home() {
     autoSubmit: boolean
     method: 'file' | 'link'
   }) => {
+    const handleTranscriptionResponse = async (response: Response) => {
+      if (response.ok) {
+        const result = await response.json()
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Transcription started successfully: ', result)
+        }
+        setIsTranscriptionModalOpen(false)
+        router.push('/editor')
+      } else {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+    }
+
     try {
       setIsTranscriptionLoading(true)
       if (process.env.NODE_ENV === 'development') {
         console.log('Starting transcription with data:', data)
       }
+
+      let response: Response
 
       if (data.method === 'file' && data.files) {
         // Create FormData for file upload
@@ -146,7 +160,9 @@ export default function Home() {
         // 시연용 백엔드 API 호출 - /results 엔드포인트
         const apiUrl =
           process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-        const response = await fetch(`${apiUrl}/api/upload-video/results`, {
+        response = await fetch(`${apiUrl}/api/upload-video/results`, {
+          // API endpoint for file upload transcription
+          // response = await fetch('/api/transcription/upload', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -171,7 +187,7 @@ export default function Home() {
         }
       } else if (data.method === 'link' && data.url) {
         // Send URL data as JSON
-        const response = await fetch('/api/transcription/url', {
+        response = await fetch('/api/transcription/url', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -184,22 +200,10 @@ export default function Home() {
             method: data.method,
           }),
         })
-
-        if (response.ok) {
-          const result = await response.json()
-          if (process.env.NODE_ENV === 'development') {
-            console.log('Transcription started successfully:', result)
-          }
-
-          // Close modal after successful submission
-          setIsTranscriptionModalOpen(false)
-
-          // Redirect to transcriptions dashboard
-          router.push('/transcriptions')
-        } else {
-          throw new Error(`HTTP error! status: ${response.status}`)
-        }
+      } else {
+        return
       }
+      await handleTranscriptionResponse(response)
     } catch (error) {
       console.error('Error starting transcription:', error)
       alert('Failed to start transcription. Please try again.')
@@ -274,7 +278,11 @@ export default function Home() {
                 >
                   Login
                 </a>
-                <Button variant="accent" size="medium" className="rounded-full">
+                <Button
+                  variant="accent"
+                  size="medium"
+                  className="font-bold rounded-full"
+                >
                   Sign up
                 </Button>
               </nav>
