@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 
-import Button from '@/components/Button'
+import Button from '@/components/ui/Button'
 import UploadModal from '@/components/UploadModal'
 import HeroSection from '@/components/LandingPage/HeroSection'
 import FastTranscriptionSection from '@/components/LandingPage/FastTranscriptionSection'

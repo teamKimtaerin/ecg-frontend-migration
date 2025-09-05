@@ -15,7 +15,7 @@ import {
   InfoIcon,
   ExclamationTriangleIcon,
   XCircleIcon,
-} from './icons'
+} from '../icons'
 import Button from './Button'
 
 export type AlertDialogVariant =

@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 
-import VideoSection from '@/components/VideoSection'
-import SubtitleEditList from '@/components/SubtitleEditList'
-import { ClipItem } from '@/components/ClipComponent'
-import EditorHeaderTabs from '@/components/EditorHeaderTabs'
-import Toolbar from '@/components/Toolbar'
+import VideoSection from '@/components/Editor/VideoSection'
+import SubtitleEditList from '@/components/Editor/SubtitleEditList'
+import { ClipItem } from '@/components/Editor/ClipComponent'
+import EditorHeaderTabs from '@/components/Editor/EditorHeaderTabs'
+import Toolbar from '@/components/Editor/Toolbar'
 import UploadModal from '@/components/UploadModal'
 import { useUploadModal } from '@/hooks/useUploadModal'
 import { areClipsConsecutive } from '@/utils/clipMerger'
