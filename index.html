@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GSAP Video Editor Text Effects</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="preview-area" id="previewArea">
+            <div class="demo-text" id="demoText">안녕하세요!</div>
+            <div class="animation-boundary" id="animationBoundary">
+                <!-- 모서리 핸들 -->
+                <div class="drag-handle handle-corner handle-top-left" data-handle="top-left"></div>
+                <div class="drag-handle handle-corner handle-top-right" data-handle="top-right"></div>
+                <div class="drag-handle handle-corner handle-bottom-left" data-handle="bottom-left"></div>
+                <div class="drag-handle handle-corner handle-bottom-right" data-handle="bottom-right"></div>
+                
+                <!-- 변 핸들 -->
+                <div class="drag-handle handle-edge handle-top" data-handle="top"></div>
+                <div class="drag-handle handle-edge handle-bottom" data-handle="bottom"></div>
+                <div class="drag-handle handle-edge handle-left" data-handle="left"></div>
+                <div class="drag-handle handle-edge handle-right" data-handle="right"></div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="input-group">
+                <label for="textInput">텍스트 입력:</label>
+                <input type="text" id="textInput" placeholder="예: 안녕하세요!" maxlength="50" value="안녕하세요!">
+            </div>
+
+            <!-- 텍스트 위치 선택 -->
+            <div class="control-section">
+                <label>텍스트 위치:</label>
+                <div class="position-selector">
+                    <input type="radio" id="posTop" name="position" value="top">
+                    <label for="posTop">상단</label>
+                    
+                    <input type="radio" id="posCenter" name="position" value="center" checked>
+                    <label for="posCenter">중앙</label>
+                    
+                    <input type="radio" id="posBottom" name="position" value="bottom">
+                    <label for="posBottom">하단</label>
+                </div>
+            </div>
+
+            <!-- 등장 시간 조정 -->
+            <div class="control-section">
+                <label for="wordDelay">단어별 등장 간격 (초):</label>
+                <div class="slider-container">
+                    <input type="range" id="wordDelay" min="0.1" max="3" step="0.1" value="0.8">
+                    <span id="delayValue">0.8초</span>
+                </div>
+            </div>
+
+            <!-- 애니메이션 범위 제한 -->
+            <div class="control-section">
+                <div class="checkbox-container">
+                    <input type="checkbox" id="constrainAnimation">
+                    <label for="constrainAnimation">애니메이션 범위 제한</label>
+                </div>
+                <div class="range-controls" id="rangeControls">
+                    <label>범위 조정 (여백):</label>
+                    <div class="range-sliders">
+                        <div class="range-item">
+                            <label for="rangeTop">위쪽:</label>
+                            <input type="range" id="rangeTop" min="0" max="40" value="15">
+                            <span id="topValue">15%</span>
+                        </div>
+                        <div class="range-item">
+                            <label for="rangeBottom">아래쪽:</label>
+                            <input type="range" id="rangeBottom" min="0" max="40" value="15">
+                            <span id="bottomValue">15%</span>
+                        </div>
+                        <div class="range-item">
+                            <label for="rangeLeft">왼쪽:</label>
+                            <input type="range" id="rangeLeft" min="0" max="40" value="10">
+                            <span id="leftValue">10%</span>
+                        </div>
+                        <div class="range-item">
+                            <label for="rangeRight">오른쪽:</label>
+                            <input type="range" id="rangeRight" min="0" max="40" value="10">
+                            <span id="rightValue">10%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 효과 선택 -->
+            <div class="control-section">
+                <label>애니메이션 효과:</label>
+                <div class="effects-list">
+                    <div class="effect-selector">
+                        <input type="radio" id="posterEffect" name="effect" value="poster">
+                        <label for="posterEffect">Poster Randomizer (글자 회전)</label>
+                    </div>
+
+                    <div class="effect-selector">
+                        <input type="radio" id="rainbowEffect" name="effect" value="rainbow">
+                        <label for="rainbowEffect">Rainbow Text (레인보우 색상)</label>
+                    </div>
+
+                    <div class="effect-selector">
+                        <input type="radio" id="popEffect" name="effect" value="pop" checked>
+                        <label for="popEffect">Pop Effect (구슬)</label>
+                    </div>
+
+                    <div class="effect-selector">
+                        <input type="radio" id="bounceEffect" name="effect" value="bounce">
+                        <label for="bounceEffect">Bounce Effect (바운스)</label>
+                    </div>
+                </div>
+            </div>
+
+            <button class="apply-btn" onclick="applyEffect()">적용</button>
+            <button class="pause-btn" onclick="togglePause()">일시정지</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
