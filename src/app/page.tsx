@@ -173,18 +173,18 @@ export default function Home() {
           }),
         })
 
-        if (response.ok) {
-          const result = await response.json()
-          console.log('Mock transcription result:', result)
+        // if (response.ok) {
+        //   const result = await response.json()
+        //   console.log('Mock transcription result:', result)
 
-          // Close modal after successful submission
-          setIsTranscriptionModalOpen(false)
+        //   // Close modal after successful submission
+        //   setIsTranscriptionModalOpen(false)
 
-          // Redirect to transcriptions page after successful upload
-          router.push('/transcriptions')
-        } else {
-          throw new Error(`HTTP error! status: ${response.status}`)
-        }
+        //   // Redirect to transcriptions page after successful upload
+        //   router.push('/transcriptions')
+        // } else {
+        //   throw new Error(`HTTP error! status: ${response.status}`)
+        // }
       } else if (data.method === 'link' && data.url) {
         // Send URL data as JSON
         response = await fetch('/api/transcription/url', {
