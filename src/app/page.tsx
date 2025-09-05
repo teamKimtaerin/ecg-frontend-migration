@@ -1,5 +1,6 @@
 'use client'
 
+import React, { useState, useRef, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -7,16 +8,11 @@ import Button from '@/components/ui/Button'
 import UploadModal from '@/components/UploadModal'
 import HeroSection from '@/components/LandingPage/HeroSection'
 import FastTranscriptionSection from '@/components/LandingPage/FastTranscriptionSection'
-
 import EditTranscriptionSection from '@/components/LandingPage/EditTranscriptionSection'
-import FastTranscriptionSection from '@/components/LandingPage/FastTranscriptionSection'
 import Footer from '@/components/LandingPage/Footer'
-import HeroSection from '@/components/LandingPage/HeroSection'
 import OpenLibrarySection from '@/components/LandingPage/OpenLibrarySection'
 import SubtitleEditorSection from '@/components/LandingPage/SubtitleEditorSection'
 import VoTSection from '@/components/LandingPage/VoTSection'
-import OpenLibrarySection from '@/components/LandingPage/OpenLibrarySection'
-import Footer from '@/components/LandingPage/Footer'
 import { useUploadModal } from '@/hooks/useUploadModal'
 
 
@@ -113,7 +109,6 @@ export default function Home() {
       () => setIsTranscriptionModalOpen(false),
       true
     )
-
   }
 
   return (
