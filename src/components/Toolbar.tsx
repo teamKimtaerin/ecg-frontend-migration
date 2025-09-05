@@ -5,6 +5,7 @@ import Dropdown from '@/components/Dropdown'
 
 interface ToolbarProps {
   activeTab: string
+  onNewClick?: () => void
 }
 
 // 기본 서식 그룹 컴포넌트
@@ -202,10 +203,13 @@ function TextFormattingGroup() {
   )
 }
 
-const Toolbar: React.FC<ToolbarProps> = ({ activeTab }) => {
+const Toolbar: React.FC<ToolbarProps> = ({ activeTab, onNewClick }) => {
   const renderHomeTools = () => (
     <div className="flex items-center space-x-3">
-      <div className="flex flex-col items-center space-y-1 px-2 py-1 hover:bg-slate-700/50 rounded cursor-pointer">
+      <div 
+        className="flex flex-col items-center space-y-1 px-2 py-1 hover:bg-slate-700/50 rounded cursor-pointer"
+        onClick={onNewClick}
+      >
         <svg
           className="w-5 h-5 text-slate-300"
           fill="none"

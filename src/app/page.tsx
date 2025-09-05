@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 
 import Button from '@/components/Button'
 import UploadModal from '@/components/UploadModal'
@@ -14,14 +13,14 @@ import SubtitleEditorSection from '@/components/LandingPage/SubtitleEditorSectio
 import VoTSection from '@/components/LandingPage/VoTSection'
 import OpenLibrarySection from '@/components/LandingPage/OpenLibrarySection'
 import Footer from '@/components/LandingPage/Footer'
+import { useUploadModal } from '@/hooks/useUploadModal'
 
 export default function Home() {
-  const router = useRouter()
   const [isHeaderVisible, setIsHeaderVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
   const [isTranscriptionModalOpen, setIsTranscriptionModalOpen] =
     useState(false)
-  const [isTranscriptionLoading, setIsTranscriptionLoading] = useState(false)
+  const { isTranscriptionLoading, handleFileSelect, handleStartTranscription } = useUploadModal()
 
   const heroRef = useRef<HTMLElement>(null)
   const featuresRef = useRef<HTMLElement>(null)
@@ -100,93 +99,8 @@ export default function Home() {
     }
   }, [])
 
-  const handleFileSelect = (files: FileList) => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log(
-        'Selected files:',
-        Array.from(files).map((file) => ({
-          name: file.name,
-          size: file.size,
-          type: file.type,
-        }))
-      )
-    }
-    // Files are now stored in the modal state, modal stays open
-  }
-  const handleStartTranscription = async (data: {
-    files?: FileList
-    url?: string
-    language: string
-    useDictionary: boolean
-    autoSubmit: boolean
-    method: 'file' | 'link'
-  }) => {
-    const handleTranscriptionResponse = async (response: Response) => {
-      if (response.ok) {
-        const result = await response.json()
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Transcription started successfully: ', result)
-        }
-        setIsTranscriptionModalOpen(false)
-        router.push('/editor')
-      } else {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-    }
-
-    try {
-      setIsTranscriptionLoading(true)
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Starting transcription with data:', data)
-      }
-
-      let response: Response
-
-      if (data.method === 'file' && data.files) {
-        // Create FormData for file upload
-        const formData = new FormData()
-
-        // Add files to FormData
-        Array.from(data.files).forEach((file, index) => {
-          formData.append(`file_${index}`, file)
-        })
-
-        // Add configuration
-        formData.append('language', data.language)
-        formData.append('useDictionary', data.useDictionary.toString())
-        formData.append('autoSubmit', data.autoSubmit.toString())
-        formData.append('method', data.method)
-
-        // API endpoint for file upload transcription
-        response = await fetch('/api/transcription/upload', {
-          method: 'POST',
-          body: formData,
-        })
-      } else if (data.method === 'link' && data.url) {
-        // Send URL data as JSON
-        response = await fetch('/api/transcription/url', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            url: data.url,
-            language: data.language,
-            useDictionary: data.useDictionary,
-            autoSubmit: data.autoSubmit,
-            method: data.method,
-          }),
-        })
-      } else {
-        return
-      }
-      await handleTranscriptionResponse(response)
-    } catch (error) {
-      console.error('Error starting transcription:', error)
-      alert('Failed to start transcription. Please try again.')
-    } finally {
-      setIsTranscriptionLoading(false)
-    }
+  const wrappedHandleStartTranscription = (data: Parameters<typeof handleStartTranscription>[0]) => {
+    return handleStartTranscription(data, () => setIsTranscriptionModalOpen(false), true)
   }
 
   return (
@@ -299,7 +213,7 @@ export default function Home() {
           !isTranscriptionLoading && setIsTranscriptionModalOpen(false)
         }
         onFileSelect={handleFileSelect}
-        onStartTranscription={handleStartTranscription}
+        onStartTranscription={wrappedHandleStartTranscription}
         acceptedTypes={['audio/*', 'video/*']}
         maxFileSize={100 * 1024 * 1024} // 100MB
         multiple={true}

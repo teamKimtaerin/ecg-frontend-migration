@@ -7,10 +7,14 @@ import SubtitleEditList from '@/components/SubtitleEditList'
 import { ClipItem } from '@/components/ClipComponent'
 import EditorHeaderTabs from '@/components/EditorHeaderTabs'
 import Toolbar from '@/components/Toolbar'
+import UploadModal from '@/components/UploadModal'
+import { useUploadModal } from '@/hooks/useUploadModal'
 
 export default function EditorPage() {
   const [activeTab, setActiveTab] = useState('home')
   const [selectedClipId, setSelectedClipId] = useState<string | null>(null)
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
+  const { isTranscriptionLoading, handleFileSelect, handleStartTranscription } = useUploadModal()
   const [clips, setClips] = useState<ClipItem[]>([
     {
       id: '1',
@@ -93,11 +97,15 @@ export default function EditorPage() {
     )
   }
 
+  const wrappedHandleStartTranscription = (data: Parameters<typeof handleStartTranscription>[0]) => {
+    return handleStartTranscription(data, () => setIsUploadModalOpen(false), false)
+  }
+
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       <EditorHeaderTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
-      <Toolbar activeTab={activeTab} />
+      <Toolbar activeTab={activeTab} onNewClick={() => setIsUploadModalOpen(true)} />
 
       <div className="flex h-[calc(100vh-120px)]">
         <VideoSection />
@@ -112,6 +120,17 @@ export default function EditorPage() {
           />
         </div>
       </div>
+
+      <UploadModal
+        isOpen={isUploadModalOpen}
+        onClose={() => !isTranscriptionLoading && setIsUploadModalOpen(false)}
+        onFileSelect={handleFileSelect}
+        onStartTranscription={wrappedHandleStartTranscription}
+        acceptedTypes={['audio/*', 'video/*']}
+        maxFileSize={100 * 1024 * 1024} // 100MB
+        multiple={true}
+        isLoading={isTranscriptionLoading}
+      />
     </div>
   )
 }
