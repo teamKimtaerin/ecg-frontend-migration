@@ -104,18 +104,6 @@ const ClipComponent: React.FC<ClipComponentProps> = ({
                   ))}
                 </div>
               </div>
-
-              <div className="flex space-x-1 flex-shrink-0">
-                <button className="w-6 h-6 bg-gray-400 hover:bg-gray-500 rounded flex items-center justify-center text-xs text-white transition-colors">
-                  ▶
-                </button>
-                <button className="w-6 h-6 bg-gray-400 hover:bg-gray-500 rounded flex items-center justify-center text-xs text-white transition-colors">
-                  ⏸
-                </button>
-                <button className="w-6 h-6 bg-gray-400 hover:bg-gray-500 rounded flex items-center justify-center text-xs text-white transition-colors">
-                  ⏹
-                </button>
-              </div>
             </div>
           </div>
 
