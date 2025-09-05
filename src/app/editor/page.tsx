@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 
 import VideoSection from '@/components/VideoSection'
 import SubtitleEditList from '@/components/SubtitleEditList'
@@ -19,7 +19,8 @@ export default function EditorPage() {
   const [selectedClipId, setSelectedClipId] = useState<string | null>(null)
   const [checkedClipIds, setCheckedClipIds] = useState<string[]>([])
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
-  const { isTranscriptionLoading, handleFileSelect, handleStartTranscription } = useUploadModal()
+  const { isTranscriptionLoading, handleFileSelect, handleStartTranscription } =
+    useUploadModal()
   const [editorHistory] = useState(() => new EditorHistory())
   const [clips, setClips] = useState<ClipItem[]>([
     {
@@ -113,8 +114,14 @@ export default function EditorPage() {
     })
   }
 
-  const wrappedHandleStartTranscription = (data: Parameters<typeof handleStartTranscription>[0]) => {
-    return handleStartTranscription(data, () => setIsUploadModalOpen(false), false)
+  const wrappedHandleStartTranscription = (
+    data: Parameters<typeof handleStartTranscription>[0]
+  ) => {
+    return handleStartTranscription(
+      data,
+      () => setIsUploadModalOpen(false),
+      false
+    )
   }
 
   const handleMergeClips = () => {
@@ -122,7 +129,7 @@ export default function EditorPage() {
       // 선택된 클립과 체크된 클립 결합
       const allSelectedIds = [
         ...(selectedClipId ? [selectedClipId] : []),
-        ...checkedClipIds
+        ...checkedClipIds,
       ]
       const uniqueSelectedIds = Array.from(new Set(allSelectedIds))
 
@@ -135,7 +142,9 @@ export default function EditorPage() {
         }
 
         // 현재 클립의 인덱스 찾기
-        const currentIndex = clips.findIndex(clip => clip.id === currentClipId)
+        const currentIndex = clips.findIndex(
+          (clip) => clip.id === currentClipId
+        )
         if (currentIndex === -1) {
           showToast('선택된 클립을 찾을 수 없습니다.')
           return
@@ -151,7 +160,7 @@ export default function EditorPage() {
         const nextClipId = clips[currentIndex + 1].id
         const clipsToMerge = [currentClipId, nextClipId]
         const command = new MergeClipsCommand(clips, [], clipsToMerge, setClips)
-        
+
         editorHistory.executeCommand(command)
         setSelectedClipId(null)
         setCheckedClipIds([])
@@ -161,36 +170,47 @@ export default function EditorPage() {
 
       // 2개 이상의 클립이 선택된 경우
       if (!areClipsConsecutive(clips, uniqueSelectedIds)) {
-        showToast('선택된 클립들이 연속되어 있지 않습니다. 연속된 클립만 합칠 수 있습니다.')
+        showToast(
+          '선택된 클립들이 연속되어 있지 않습니다. 연속된 클립만 합칠 수 있습니다.'
+        )
         return
       }
 
       // 클립 합치기 실행 - Command 패턴 사용
-      const command = new MergeClipsCommand(clips, [], uniqueSelectedIds, setClips)
-      
+      const command = new MergeClipsCommand(
+        clips,
+        [],
+        uniqueSelectedIds,
+        setClips
+      )
+
       editorHistory.executeCommand(command)
       setSelectedClipId(null)
       setCheckedClipIds([])
       showToast('클립이 성공적으로 합쳐졌습니다.', 'success')
     } catch (error) {
       console.error('클립 합치기 오류:', error)
-      showToast(error instanceof Error ? error.message : '클립 합치기 중 오류가 발생했습니다.')
+      showToast(
+        error instanceof Error
+          ? error.message
+          : '클립 합치기 중 오류가 발생했습니다.'
+      )
     }
   }
 
-  const handleUndo = () => {
+  const handleUndo = useCallback(() => {
     if (editorHistory.canUndo()) {
       editorHistory.undo()
       showToast('작업이 되돌려졌습니다.', 'success')
     }
-  }
+  }, [editorHistory])
 
-  const handleRedo = () => {
+  const handleRedo = useCallback(() => {
     if (editorHistory.canRedo()) {
       editorHistory.redo()
       showToast('작업이 다시 실행되었습니다.', 'success')
     }
-  }
+  }, [editorHistory])
 
   // 키보드 단축키 처리
   useEffect(() => {
@@ -216,14 +236,14 @@ export default function EditorPage() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
     }
-  }, [editorHistory])
+  }, [handleUndo, handleRedo])
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       <EditorHeaderTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
-      <Toolbar 
-        activeTab={activeTab} 
+      <Toolbar
+        activeTab={activeTab}
         onNewClick={() => setIsUploadModalOpen(true)}
         onMergeClips={handleMergeClips}
         onUndo={handleUndo}

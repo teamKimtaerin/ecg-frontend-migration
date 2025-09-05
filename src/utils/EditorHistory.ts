@@ -1,5 +1,3 @@
-import { ClipItem } from '@/components/ClipComponent'
-
 export interface EditorCommand {
   execute(): void
   undo(): void
@@ -17,10 +15,10 @@ export class EditorHistory {
 
   executeCommand(command: EditorCommand): void {
     command.execute()
-    
+
     this.undoStack.push(command)
     this.redoStack = []
-    
+
     if (this.undoStack.length > this.maxHistorySize) {
       this.undoStack.shift()
     }
@@ -42,7 +40,7 @@ export class EditorHistory {
     const command = this.undoStack.pop()!
     command.undo()
     this.redoStack.push(command)
-    
+
     return true
   }
 
@@ -54,7 +52,7 @@ export class EditorHistory {
     const command = this.redoStack.pop()!
     command.execute()
     this.undoStack.push(command)
-    
+
     return true
   }
 

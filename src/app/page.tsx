@@ -20,7 +20,8 @@ export default function Home() {
   const [lastScrollY, setLastScrollY] = useState(0)
   const [isTranscriptionModalOpen, setIsTranscriptionModalOpen] =
     useState(false)
-  const { isTranscriptionLoading, handleFileSelect, handleStartTranscription } = useUploadModal()
+  const { isTranscriptionLoading, handleFileSelect, handleStartTranscription } =
+    useUploadModal()
 
   const heroRef = useRef<HTMLElement>(null)
   const featuresRef = useRef<HTMLElement>(null)
@@ -99,8 +100,14 @@ export default function Home() {
     }
   }, [])
 
-  const wrappedHandleStartTranscription = (data: Parameters<typeof handleStartTranscription>[0]) => {
-    return handleStartTranscription(data, () => setIsTranscriptionModalOpen(false), true)
+  const wrappedHandleStartTranscription = (
+    data: Parameters<typeof handleStartTranscription>[0]
+  ) => {
+    return handleStartTranscription(
+      data,
+      () => setIsTranscriptionModalOpen(false),
+      true
+    )
   }
 
   return (

@@ -208,10 +208,18 @@ function TextFormattingGroup() {
   )
 }
 
-const Toolbar: React.FC<ToolbarProps> = ({ activeTab, onNewClick, onMergeClips, onUndo, onRedo, canUndo = false, canRedo = false }) => {
+const Toolbar: React.FC<ToolbarProps> = ({
+  activeTab,
+  onNewClick,
+  onMergeClips,
+  onUndo,
+  onRedo,
+  canUndo = false,
+  canRedo = false,
+}) => {
   const renderHomeTools = () => (
     <div className="flex items-center space-x-3">
-      <div 
+      <div
         className="flex flex-col items-center space-y-1 px-2 py-1 hover:bg-slate-700/50 rounded cursor-pointer"
         onClick={onNewClick}
       >
@@ -247,9 +255,11 @@ const Toolbar: React.FC<ToolbarProps> = ({ activeTab, onNewClick, onMergeClips, 
         <span className="text-xs text-slate-300">프로젝트 열기</span>
       </div>
       <div className="w-px h-12 bg-slate-600 mx-2" />
-      <div 
+      <div
         className={`flex flex-col items-center space-y-1 px-2 py-1 rounded cursor-pointer transition-colors ${
-          canUndo ? 'hover:bg-slate-700/50 text-slate-300' : 'text-slate-500 cursor-not-allowed'
+          canUndo
+            ? 'hover:bg-slate-700/50 text-slate-300'
+            : 'text-slate-500 cursor-not-allowed'
         }`}
         onClick={canUndo ? onUndo : undefined}
       >
@@ -266,11 +276,17 @@ const Toolbar: React.FC<ToolbarProps> = ({ activeTab, onNewClick, onMergeClips, 
             d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
           />
         </svg>
-        <span className={`text-xs ${canUndo ? 'text-slate-300' : 'text-slate-500'}`}>되돌리기</span>
+        <span
+          className={`text-xs ${canUndo ? 'text-slate-300' : 'text-slate-500'}`}
+        >
+          되돌리기
+        </span>
       </div>
-      <div 
+      <div
         className={`flex flex-col items-center space-y-1 px-2 py-1 rounded cursor-pointer transition-colors ${
-          canRedo ? 'hover:bg-slate-700/50 text-slate-300' : 'text-slate-500 cursor-not-allowed'
+          canRedo
+            ? 'hover:bg-slate-700/50 text-slate-300'
+            : 'text-slate-500 cursor-not-allowed'
         }`}
         onClick={canRedo ? onRedo : undefined}
       >
@@ -287,7 +303,11 @@ const Toolbar: React.FC<ToolbarProps> = ({ activeTab, onNewClick, onMergeClips, 
             d="M21 10H11a8 8 0 00-8 8v2m18-10l-6-6m6 6l-6 6"
           />
         </svg>
-        <span className={`text-xs ${canRedo ? 'text-slate-300' : 'text-slate-500'}`}>다시실행</span>
+        <span
+          className={`text-xs ${canRedo ? 'text-slate-300' : 'text-slate-500'}`}
+        >
+          다시실행
+        </span>
       </div>
       <div className="w-px h-12 bg-slate-600 mx-2" />
       <div className="flex flex-col items-center space-y-1 px-2 py-1 hover:bg-slate-700/50 rounded cursor-pointer">
@@ -339,7 +359,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ activeTab, onNewClick, onMergeClips, 
         <span className="text-xs text-slate-300">붙여넣기</span>
       </div>
       <div className="w-px h-12 bg-slate-600 mx-2" />
-      <div 
+      <div
         className="flex flex-col items-center space-y-1 px-2 py-1 hover:bg-slate-700/50 rounded cursor-pointer"
         onClick={onMergeClips}
       >
@@ -365,8 +385,16 @@ const Toolbar: React.FC<ToolbarProps> = ({ activeTab, onNewClick, onMergeClips, 
           viewBox="0 0 24 24"
           stroke="currentColor"
         >
-          <rect x="3" y="6" width="18" height="12" rx="2" ry="2" strokeWidth="2"/>
-          <line x1="12" y1="6" x2="12" y2="18" strokeWidth="2"/>
+          <rect
+            x="3"
+            y="6"
+            width="18"
+            height="12"
+            rx="2"
+            ry="2"
+            strokeWidth="2"
+          />
+          <line x1="12" y1="6" x2="12" y2="18" strokeWidth="2" />
         </svg>
         <span className="text-xs text-slate-300">클립 나누기</span>
       </div>

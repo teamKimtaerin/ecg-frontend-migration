@@ -58,9 +58,7 @@ const ClipComponent: React.FC<ClipComponentProps> = ({
     <div
       className={`bg-gray-200 rounded-lg transition-all cursor-pointer ${
         isSelected ? 'ring-2 ring-blue-500' : 'hover:bg-gray-300'
-      } ${
-        isChecked ? 'ring-2 ring-green-500 bg-green-50' : ''
-      }`}
+      } ${isChecked ? 'ring-2 ring-green-500 bg-green-50' : ''}`}
       onClick={() => onSelect(clip.id)}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -74,7 +72,7 @@ const ClipComponent: React.FC<ClipComponentProps> = ({
               {clip.timeline}
             </span>
           </div>
-          
+
           {/* Checkbox in center */}
           {(isHovered || isChecked) && (
             <input

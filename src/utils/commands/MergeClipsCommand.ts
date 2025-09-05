@@ -26,7 +26,11 @@ export class MergeClipsCommand implements EditorCommand {
 
   execute(): void {
     try {
-      this.mergedClips = mergeSelectedClips(this.originalClips, this.selectedIds, this.checkedIds)
+      this.mergedClips = mergeSelectedClips(
+        this.originalClips,
+        this.selectedIds,
+        this.checkedIds
+      )
       this.setClips(this.mergedClips)
     } catch (error) {
       console.error('클립 합치기 실행 중 오류:', error)
