@@ -1,8 +1,6 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
-import Link from 'next/link'
-import UploadModal from '@/components/UploadModal'
 
 // GSAP 타입 선언
 declare global {
@@ -1145,7 +1143,8 @@ export default function AssetPage() {
 
           <div className="grid grid-cols-3 gap-6">
             {filteredAssets.map((asset) => (
-              <AssetCar
+              <AssetCard
+                key={asset.id}
                 asset={asset}
                 onCardClick={handleCardClick}
               />
