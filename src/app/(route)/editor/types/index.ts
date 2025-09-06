@@ -38,6 +38,14 @@ export interface SelectionBox {
 }
 
 // Component Props types
+export interface ClipStyleState {
+  isSelected: boolean
+  isChecked: boolean
+  isMultiSelected: boolean
+  isHovered: boolean
+  isDragging?: boolean
+}
+
 export interface EditorHeaderTabsProps {
   activeTab: EditorTab
   onTabChange: (tabId: EditorTab) => void
