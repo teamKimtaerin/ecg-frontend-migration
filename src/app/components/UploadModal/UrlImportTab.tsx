@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import AlertBanner from '@/components/ui/AlertBanner'
+import AlertBanner from '@/components/shared/AlertBanner'
 
 interface UrlImportTabProps {
   url: string
