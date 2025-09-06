@@ -439,18 +439,16 @@ const GSAPTextEditor = () => {
               lineHeight: 1.2,
               position: 'absolute',
               width: '90%',
-              left: '50%',
+              left: '5%',
+              right: '5%',
               top:
                 position === 'top'
-                  ? '20%'
+                  ? '25%'
                   : position === 'center'
                     ? '50%'
                     : 'auto',
-              bottom: position === 'bottom' ? '20%' : 'auto',
-              transform:
-                position === 'bottom'
-                  ? 'translate(-50%, 0)'
-                  : 'translate(-50%, -50%)',
+              bottom: position === 'bottom' ? '25%' : 'auto',
+              transform: 'translateY(-50%)',
               transition: 'all 0.3s ease',
             }}
           >
