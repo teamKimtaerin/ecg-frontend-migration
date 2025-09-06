@@ -29,16 +29,18 @@ const GSAPTextEditor = () => {
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
   const [textPosition, setTextPosition] = useState({ x: 0, y: 0 })
-  const demoTextRef = useRef<HTMLDivElement>(null)
-  const previewAreaRef = useRef<HTMLDivElement>(null)
-
-  // 고정된 경계값
-  const bounds = {
+  const [isResizing, setIsResizing] = useState(false)
+  const [resizeHandle, setResizeHandle] = useState<
+    'top-right' | 'bottom-left' | null
+  >(null)
+  const [bounds, setBounds] = useState({
     top: 15,
     bottom: 15,
     left: 10,
     right: 10,
-  }
+  })
+  const demoTextRef = useRef<HTMLDivElement>(null)
+  const previewAreaRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     // GSAP 라이브러리 로드
@@ -59,7 +61,56 @@ const GSAPTextEditor = () => {
     }
   }, [])
 
-  // 드래그 이벤트 핸들러들
+  // 경계 리사이즈 핸들러들
+  const handleResizeStart = (
+    e: React.MouseEvent,
+    handle: 'top-right' | 'bottom-left'
+  ) => {
+    e.stopPropagation()
+    e.preventDefault()
+    setIsResizing(true)
+    setResizeHandle(handle)
+    setDragStart({
+      x: e.clientX,
+      y: e.clientY,
+    })
+  }
+
+  const handleResizeMove = (e: MouseEvent) => {
+    if (!isResizing || !resizeHandle || !previewAreaRef.current) return
+
+    const previewRect = previewAreaRef.current.getBoundingClientRect()
+    const deltaX = ((e.clientX - dragStart.x) / previewRect.width) * 100
+    const deltaY = ((e.clientY - dragStart.y) / previewRect.height) * 100
+
+    setBounds((prevBounds) => {
+      const newBounds = { ...prevBounds }
+
+      if (resizeHandle === 'top-right') {
+        // 오른쪽 위 핸들: 영역을 축소/확장
+        newBounds.top = Math.max(5, Math.min(40, prevBounds.top + deltaY))
+        newBounds.right = Math.max(5, Math.min(40, prevBounds.right - deltaX))
+      } else if (resizeHandle === 'bottom-left') {
+        // 왼쪽 아래 핸들: 영역을 축소/확장
+        newBounds.bottom = Math.max(5, Math.min(40, prevBounds.bottom - deltaY))
+        newBounds.left = Math.max(5, Math.min(40, prevBounds.left - deltaX))
+      }
+
+      return newBounds
+    })
+
+    setDragStart({
+      x: e.clientX,
+      y: e.clientY,
+    })
+  }
+
+  const handleResizeEnd = () => {
+    setIsResizing(false)
+    setResizeHandle(null)
+  }
+
+  // 텍스트 드래그 이벤트 핸들러들
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!demoTextRef.current) return
 
@@ -117,6 +168,19 @@ const GSAPTextEditor = () => {
       }
     }
   }, [isDragging, dragStart])
+
+  // 리사이즈 이벤트 리스너 등록/해제
+  useEffect(() => {
+    if (isResizing) {
+      document.addEventListener('mousemove', handleResizeMove)
+      document.addEventListener('mouseup', handleResizeEnd)
+
+      return () => {
+        document.removeEventListener('mousemove', handleResizeMove)
+        document.removeEventListener('mouseup', handleResizeEnd)
+      }
+    }
+  }, [isResizing, dragStart, resizeHandle])
 
   const splitTextIntoWords = (element: HTMLElement, text: string) => {
     if (!element) return
@@ -506,7 +570,59 @@ const GSAPTextEditor = () => {
               background: 'rgba(255, 20, 147, 0.08)',
               pointerEvents: 'none',
             }}
-          />
+          >
+            {/* 오른쪽 위 리사이즈 핸들 */}
+            <div
+              style={{
+                position: 'absolute',
+                top: '-8px',
+                right: '-8px',
+                width: '16px',
+                height: '16px',
+                background: 'rgba(255, 20, 147, 0.9)',
+                border: '2px solid rgba(255, 255, 255, 0.9)',
+                borderRadius: '50%',
+                cursor: 'ne-resize',
+                pointerEvents: 'auto',
+                zIndex: 20,
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.4)',
+                transition: 'transform 0.2s ease',
+              }}
+              onMouseDown={(e) => handleResizeStart(e, 'top-right')}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.2)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)'
+              }}
+            />
+
+            {/* 왼쪽 아래 리사이즈 핸들 */}
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '-8px',
+                left: '-8px',
+                width: '16px',
+                height: '16px',
+                background: 'rgba(255, 20, 147, 0.9)',
+                border: '2px solid rgba(255, 255, 255, 0.9)',
+                borderRadius: '50%',
+                cursor: 'sw-resize',
+                pointerEvents: 'auto',
+                zIndex: 20,
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.4)',
+                transition: 'transform 0.2s ease',
+              }}
+              onMouseDown={(e) => handleResizeStart(e, 'bottom-left')}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.2)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)'
+              }}
+            />
+          </div>
         </div>
 
         {/* 컨트롤 영역 */}
