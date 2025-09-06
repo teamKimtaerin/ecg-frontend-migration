@@ -1,19 +1,21 @@
 'use client'
 
 import React from 'react'
-import ClipComponent, { ClipItem } from '@/components/shared/ClipComponent'
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import UnifiedClipComponent from './UnifiedClipComponent'
+import { ClipItem } from '@/components/shared/ClipComponent'
 
-export interface SubtitleEditListProps {
+interface SubtitleEditListProps {
   clips: ClipItem[]
   selectedClipId: string | null
   checkedClipIds?: string[]
-  onClipSelect: (clipId: string) => void
+  onClipSelect: (clipId: string | null) => void
   onClipCheck?: (clipId: string, checked: boolean) => void
   onWordEdit: (clipId: string, wordId: string, newText: string) => void
   onSpeakerChange?: (clipId: string, newSpeaker: string) => void
 }
 
-const SubtitleEditList: React.FC<SubtitleEditListProps> = ({
+export default function SubtitleEditList({
   clips,
   selectedClipId,
   checkedClipIds = [],
@@ -21,25 +23,30 @@ const SubtitleEditList: React.FC<SubtitleEditListProps> = ({
   onClipCheck,
   onWordEdit,
   onSpeakerChange,
-}) => {
+}: SubtitleEditListProps) {
   return (
     <div className="w-[800px] bg-gray-900 p-4">
-      <div className="space-y-3">
-        {clips.map((clip) => (
-          <ClipComponent
-            key={clip.id}
-            clip={clip}
-            isSelected={selectedClipId === clip.id}
-            isChecked={checkedClipIds.includes(clip.id)}
-            onSelect={onClipSelect}
-            onCheck={onClipCheck}
-            onWordEdit={onWordEdit}
-            onSpeakerChange={onSpeakerChange}
-          />
-        ))}
-      </div>
+      <SortableContext
+        items={clips.map((c) => c.id)}
+        strategy={verticalListSortingStrategy}
+      >
+        <div className="space-y-3">
+          {clips.map((clip) => (
+            <UnifiedClipComponent
+              key={clip.id}
+              clip={clip}
+              isSelected={selectedClipId === clip.id}
+              isChecked={checkedClipIds.includes(clip.id)}
+              isMultiSelected={false}
+              enableDragAndDrop={true}
+              onSelect={(clipId) => onClipSelect(clipId)}
+              onCheck={onClipCheck}
+              onWordEdit={onWordEdit}
+              onSpeakerChange={onSpeakerChange}
+            />
+          ))}
+        </div>
+      </SortableContext>
     </div>
   )
 }
-
-export default SubtitleEditList
