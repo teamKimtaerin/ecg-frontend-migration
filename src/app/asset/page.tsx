@@ -1,8 +1,6 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
-import Link from 'next/link'
-import UploadModal from '@/components/UploadModal'
 
 // GSAP 타입 선언
 declare global {
@@ -35,6 +33,9 @@ const GSAPTextEditor = () => {
     left: 10,
     right: 10,
   })
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
+  const [textPosition, setTextPosition] = useState({ x: 0, y: 0 })
   const demoTextRef = useRef<HTMLDivElement>(null)
   const previewAreaRef = useRef<HTMLDivElement>(null)
 
@@ -56,6 +57,65 @@ const GSAPTextEditor = () => {
       }
     }
   }, [])
+
+  // 드래그 이벤트 핸들러들
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!demoTextRef.current) return
+
+    setIsDragging(true)
+    const rect = demoTextRef.current.getBoundingClientRect()
+    setDragStart({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    })
+
+    // 드래그 중에는 텍스트 선택 방지
+    e.preventDefault()
+  }
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isDragging || !demoTextRef.current || !previewAreaRef.current) return
+
+    const previewRect = previewAreaRef.current.getBoundingClientRect()
+    const newX = e.clientX - previewRect.left - dragStart.x
+    const newY = e.clientY - previewRect.top - dragStart.y
+
+    // 프리뷰 영역 경계 내에서만 이동하도록 제한
+    const textRect = demoTextRef.current.getBoundingClientRect()
+    const maxX = previewRect.width - textRect.width
+    const maxY = previewRect.height - textRect.height
+
+    const clampedX = Math.max(0, Math.min(newX, maxX))
+    const clampedY = Math.max(0, Math.min(newY, maxY))
+
+    setTextPosition({ x: clampedX, y: clampedY })
+
+    // 실제 DOM 위치 업데이트
+    demoTextRef.current.style.left = `${clampedX}px`
+    demoTextRef.current.style.top = `${clampedY}px`
+    demoTextRef.current.style.transform = 'none'
+    demoTextRef.current.style.position = 'absolute'
+    demoTextRef.current.style.width = 'auto'
+    demoTextRef.current.style.right = 'auto'
+    demoTextRef.current.style.bottom = 'auto'
+  }
+
+  const handleMouseUp = () => {
+    setIsDragging(false)
+  }
+
+  // 드래그 이벤트 리스너 등록/해제
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('mouseup', handleMouseUp)
+
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove)
+        document.removeEventListener('mouseup', handleMouseUp)
+      }
+    }
+  }, [isDragging, dragStart])
 
   const splitTextIntoWords = (element: HTMLElement, text: string) => {
     if (!element) return
@@ -177,11 +237,6 @@ const GSAPTextEditor = () => {
   const posterEffect = (words: NodeListOf<Element>) => {
     if (!window.gsap || !demoTextRef.current) return
 
-    // 현재 위치 정보 저장
-    const currentTop = demoTextRef.current.style.top
-    const currentBottom = demoTextRef.current.style.bottom
-    const currentTransform = demoTextRef.current.style.transform
-
     words.forEach((word, index) => {
       window.gsap.set(word, {
         scale: 0,
@@ -195,25 +250,12 @@ const GSAPTextEditor = () => {
         duration: 1.2,
         delay: index * delay,
         ease: 'back.out(1.7)',
-        onComplete: function () {
-          // 마지막 단어 애니메이션 완료 후 위치 복원
-          if (index === words.length - 1 && demoTextRef.current) {
-            demoTextRef.current.style.top = currentTop
-            demoTextRef.current.style.bottom = currentBottom
-            demoTextRef.current.style.transform = currentTransform
-          }
-        },
       })
     })
   }
 
   const popEffect = (words: NodeListOf<Element>) => {
     if (!window.gsap || !demoTextRef.current) return
-
-    // 현재 위치 정보 저장
-    const currentTop = demoTextRef.current.style.top
-    const currentBottom = demoTextRef.current.style.bottom
-    const currentTransform = demoTextRef.current.style.transform
 
     words.forEach((word, index) => {
       window.gsap.set(word, {
@@ -246,13 +288,6 @@ const GSAPTextEditor = () => {
               }
             }, charIndex * 20)
           })
-
-          // 마지막 단어 애니메이션 완료 후 위치 복원
-          if (index === words.length - 1 && demoTextRef.current) {
-            demoTextRef.current.style.top = currentTop
-            demoTextRef.current.style.bottom = currentBottom
-            demoTextRef.current.style.transform = currentTransform
-          }
         },
       })
     })
@@ -309,18 +344,20 @@ const GSAPTextEditor = () => {
     splitTextIntoWords(demoText, text)
 
     // 위치 재적용 (애니메이션 후에도 올바른 위치 유지)
-    const currentTop =
-      position === 'top' ? '25%' : position === 'center' ? '50%' : 'auto'
-    const currentBottom = position === 'bottom' ? '25%' : 'auto'
+    if (!isDragging) {
+      const currentTop =
+        position === 'top' ? '25%' : position === 'center' ? '50%' : 'auto'
+      const currentBottom = position === 'bottom' ? '25%' : 'auto'
 
-    demoText.style.position = 'absolute'
-    demoText.style.width = '90%'
-    demoText.style.left = '5%'
-    demoText.style.right = '5%'
-    demoText.style.top = currentTop
-    demoText.style.bottom = currentBottom
-    demoText.style.transform = 'translateY(-50%)'
-    demoText.style.textAlign = 'center'
+      demoText.style.position = 'absolute'
+      demoText.style.width = '90%'
+      demoText.style.left = '5%'
+      demoText.style.right = '5%'
+      demoText.style.top = currentTop
+      demoText.style.bottom = currentBottom
+      demoText.style.transform = 'translateY(-50%)'
+      demoText.style.textAlign = 'center'
+    }
 
     const words = demoText.querySelectorAll('.word')
 
@@ -374,7 +411,7 @@ const GSAPTextEditor = () => {
     }, 500)
 
     return () => clearTimeout(timer)
-  }, [text, effect]) // position을 의존성에서 제거 (별도 useEffect에서 처리)
+  }, [text, effect])
 
   return (
     <div
@@ -426,6 +463,7 @@ const GSAPTextEditor = () => {
             ref={demoTextRef}
             key={`demo-text-${position}`}
             className="demo-text position-center"
+            onMouseDown={handleMouseDown}
             style={{
               fontSize: '3rem',
               fontWeight: 'bold',
@@ -445,7 +483,9 @@ const GSAPTextEditor = () => {
                     : 'auto',
               bottom: position === 'bottom' ? '25%' : 'auto',
               transform: 'translateY(-50%)',
-              transition: 'all 0.3s ease',
+              transition: isDragging ? 'none' : 'all 0.3s ease',
+              cursor: 'move',
+              userSelect: 'none',
             }}
           >
             {text}
@@ -1047,7 +1087,6 @@ export default function AssetPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedAsset, setSelectedAsset] = useState<AssetItem | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
 
   const [assets] = useState<AssetItem[]>([
     {
@@ -1135,7 +1174,7 @@ export default function AssetPage() {
                 className="w-80 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
               />
               <button
-                onClick={() => setIsUploadModalOpen(true)}
+                onClick={() => alert('Upload functionality coming soon!')}
                 className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors"
               >
                 Upload Asset
