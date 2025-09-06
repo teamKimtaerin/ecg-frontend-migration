@@ -1,6 +1,8 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
+import Link from 'next/link'
+import UploadModal from '@/components/UploadModal'
 
 // GSAP 타입 선언
 declare global {
@@ -33,6 +35,7 @@ const GSAPTextEditor = () => {
     left: 10,
     right: 10,
   })
+  const [isPaused, setIsPaused] = useState(false)
   const demoTextRef = useRef<HTMLDivElement>(null)
   const previewAreaRef = useRef<HTMLDivElement>(null)
 
@@ -173,12 +176,7 @@ const GSAPTextEditor = () => {
   }
 
   const posterEffect = (words: NodeListOf<Element>) => {
-    if (!window.gsap || !demoTextRef.current) return
-
-    // 현재 위치 정보 저장
-    const currentTop = demoTextRef.current.style.top
-    const currentBottom = demoTextRef.current.style.bottom
-    const currentTransform = demoTextRef.current.style.transform
+    if (!window.gsap) return
 
     words.forEach((word, index) => {
       window.gsap.set(word, {
@@ -193,25 +191,41 @@ const GSAPTextEditor = () => {
         duration: 1.2,
         delay: index * delay,
         ease: 'back.out(1.7)',
+      })
+    })
+  }
+
+  const rainbowEffect = (words: NodeListOf<Element>) => {
+    if (!window.gsap || !demoTextRef.current) return
+
+    // Rainbow CSS 클래스 추가
+    demoTextRef.current.classList.add('rainbow-text')
+
+    words.forEach((word, index) => {
+      window.gsap.set(word, {
+        scale: 0.3,
+        y: 50,
+        transformOrigin: 'center center',
+      })
+
+      window.gsap.to(word, {
+        scale: 1,
+        y: 0,
+        duration: 0.8,
+        delay: index * delay,
+        ease: 'elastic.out(1, 0.5)',
         onComplete: function () {
-          // 마지막 단어 애니메이션 완료 후 위치 복원
-          if (index === words.length - 1 && demoTextRef.current) {
-            demoTextRef.current.style.top = currentTop
-            demoTextRef.current.style.bottom = currentBottom
-            demoTextRef.current.style.transform = currentTransform
-          }
+          const chars = word.querySelectorAll('.char')
+          chars.forEach((char: Element, charIndex: number) => {
+            ;(char as HTMLElement).style.animationDelay = `${charIndex * 0.1}s`
+          })
         },
       })
     })
   }
 
   const popEffect = (words: NodeListOf<Element>) => {
-    if (!window.gsap || !demoTextRef.current) return
-
-    // 현재 위치 정보 저장
-    const currentTop = demoTextRef.current.style.top
-    const currentBottom = demoTextRef.current.style.bottom
-    const currentTransform = demoTextRef.current.style.transform
+    if (!window.gsap) return
 
     words.forEach((word, index) => {
       window.gsap.set(word, {
@@ -244,13 +258,6 @@ const GSAPTextEditor = () => {
               }
             }, charIndex * 20)
           })
-
-          // 마지막 단어 애니메이션 완료 후 위치 복원
-          if (index === words.length - 1 && demoTextRef.current) {
-            demoTextRef.current.style.top = currentTop
-            demoTextRef.current.style.bottom = currentBottom
-            demoTextRef.current.style.transform = currentTransform
-          }
         },
       })
     })
@@ -300,25 +307,14 @@ const GSAPTextEditor = () => {
       }
     })
 
-    // 기존 클래스 초기화 (위치 클래스는 유지)
+    // 기존 클래스 초기화
     demoText.className = 'demo-text'
 
     // 텍스트를 단어별로 분리
     splitTextIntoWords(demoText, text)
 
-    // 위치 재적용 (애니메이션 후에도 올바른 위치 유지)
-    const currentTop =
-      position === 'top' ? '25%' : position === 'center' ? '50%' : 'auto'
-    const currentBottom = position === 'bottom' ? '25%' : 'auto'
-
-    demoText.style.position = 'absolute'
-    demoText.style.width = '90%'
-    demoText.style.left = '5%'
-    demoText.style.right = '5%'
-    demoText.style.top = currentTop
-    demoText.style.bottom = currentBottom
-    demoText.style.transform = 'translateY(-50%)'
-    demoText.style.textAlign = 'center'
+    // 위치 업데이트
+    updateTextPosition()
 
     const words = demoText.querySelectorAll('.word')
 
@@ -329,6 +325,9 @@ const GSAPTextEditor = () => {
       switch (effect) {
         case 'poster':
           posterEffect(words)
+          break
+        case 'rainbow':
+          rainbowEffect(words)
           break
         case 'pop':
           popEffect(words)
@@ -342,9 +341,16 @@ const GSAPTextEditor = () => {
     }
   }
 
-  const handleAddToCart = () => {
-    console.log('담기 버튼 클릭됨')
-    // 담기 기능 구현
+  const togglePause = () => {
+    if (typeof window === 'undefined' || !window.gsap) return
+
+    if (!isPaused) {
+      window.gsap.globalTimeline.pause()
+      setIsPaused(true)
+    } else {
+      window.gsap.globalTimeline.play()
+      setIsPaused(false)
+    }
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -433,16 +439,18 @@ const GSAPTextEditor = () => {
               lineHeight: 1.2,
               position: 'absolute',
               width: '90%',
-              left: '5%',
-              right: '5%',
+              left: '50%',
               top:
                 position === 'top'
-                  ? '25%'
+                  ? '20%'
                   : position === 'center'
                     ? '50%'
                     : 'auto',
-              bottom: position === 'bottom' ? '25%' : 'auto',
-              transform: 'translateY(-50%)',
+              bottom: position === 'bottom' ? '20%' : 'auto',
+              transform:
+                position === 'bottom'
+                  ? 'translate(-50%, 0)'
+                  : 'translate(-50%, -50%)',
               transition: 'all 0.3s ease',
             }}
           >
@@ -748,6 +756,7 @@ const GSAPTextEditor = () => {
             >
               {[
                 { value: 'poster', label: 'Poster Randomizer (글자 회전)' },
+                { value: 'rainbow', label: 'Rainbow Text (레인보우 색상)' },
                 { value: 'pop', label: 'Pop Effect (구슬)' },
                 { value: 'bounce', label: 'Bounce Effect (바운스)' },
               ].map(({ value, label }) => (
@@ -797,10 +806,10 @@ const GSAPTextEditor = () => {
             </div>
           </div>
 
-          {/* 담기 버튼 */}
+          {/* 액션 버튼들 */}
           <button
-            onClick={handleAddToCart}
-            className="add-to-cart-btn"
+            onClick={applyEffect}
+            className="apply-btn"
             style={{
               padding: '16px 32px',
               background: 'linear-gradient(135deg, #8a2be2 0%, #ff1493 100%)',
@@ -815,9 +824,35 @@ const GSAPTextEditor = () => {
                 '0 10px 20px rgba(138, 43, 226, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
               textTransform: 'uppercase',
               letterSpacing: '1px',
+              marginBottom: '10px',
             }}
           >
-            담기
+            적용
+          </button>
+
+          <button
+            onClick={togglePause}
+            className="pause-btn"
+            style={{
+              padding: '16px 32px',
+              background: isPaused
+                ? 'linear-gradient(135deg, #00c851 0%, #00e676 100%)'
+                : 'linear-gradient(135deg, #ff6b00 0%, #ff8f00 100%)',
+              border: 'none',
+              borderRadius: '10px',
+              color: 'white',
+              fontSize: '1.2rem',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              boxShadow: isPaused
+                ? '0 10px 20px rgba(0, 200, 81, 0.3)'
+                : '0 10px 20px rgba(255, 107, 0, 0.3)',
+              textTransform: 'uppercase',
+              letterSpacing: '1px',
+            }}
+          >
+            {isPaused ? '재생' : '일시정지'}
           </button>
         </div>
       </div>
@@ -844,6 +879,32 @@ const GSAPTextEditor = () => {
         .demo-text .word {
           display: inline-block;
           margin-right: 0.3em;
+        }
+        .rainbow-text .char {
+          background: linear-gradient(
+            45deg,
+            #ff0000,
+            #ff7f00,
+            #ffff00,
+            #00ff00,
+            #0000ff,
+            #4b0082,
+            #9400d3
+          );
+          background-size: 700% 100%;
+          -webkit-background-clip: text;
+          background-clip: text;
+          -webkit-text-fill-color: transparent;
+          animation: rainbow-flow 3s ease-in-out infinite;
+        }
+        @keyframes rainbow-flow {
+          0%,
+          100% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
         }
         .bounce-text .char {
           animation: bounce-char 2s ease-in-out infinite;
@@ -1169,6 +1230,17 @@ export default function AssetPage() {
       >
         <GSAPTextEditor />
       </Modal>
+
+      {/* 업로드 모달 - 임시 주석 처리
+      <UploadModal
+        isOpen={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+        onUpload={(files) => {
+          console.log('Uploaded files:', files)
+          setIsUploadModalOpen(false)
+        }}
+      />
+      */}
     </div>
   )
 }
