@@ -23,7 +23,7 @@ interface AssetItem {
 // GSAP 텍스트 에디터 컴포넌트
 const GSAPTextEditor = () => {
   const [text, setText] = useState('안녕하세요!')
-  const [effect, setEffect] = useState('pop')
+  const [rotationDirection, setRotationDirection] = useState('right') // 'left' 또는 'right'
   const [isDragging, setIsDragging] = useState(false)
   const [isResizing, setIsResizing] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
@@ -189,138 +189,25 @@ const GSAPTextEditor = () => {
     })
   }
 
-  const createPhysicsBall = (x: number, y: number) => {
-    if (typeof window === 'undefined' || !window.gsap || !containerRef.current)
-      return
-
-    const ball = document.createElement('div')
-    ball.className = 'physics-ball'
-    containerRef.current.appendChild(ball) // 컨테이너 내부에 추가
-
-    const size = Math.random() * 8 + 4
-
-    window.gsap.set(ball, {
-      width: size,
-      height: size,
-      left: x,
-      top: y,
-      scale: 0,
-      position: 'absolute',
-      borderRadius: '50%',
-      background:
-        'radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.9), rgba(138, 43, 226, 0.8), rgba(255, 20, 147, 0.9))',
-      boxShadow: '0 0 15px rgba(138, 43, 226, 0.6)',
-      pointerEvents: 'none',
-      zIndex: 5,
-    })
-
-    window.gsap
-      .timeline({
-        onComplete: () => {
-          if (ball.parentNode) {
-            ball.parentNode.removeChild(ball)
-          }
-        },
-      })
-      .to(ball, { scale: 1, duration: 0.2, ease: 'back.out(2)' })
-      .to(
-        ball,
-        {
-          y: `+=${Math.random() * 100 + 50}`,
-          x: `+=${Math.random() * 80 - 40}`,
-          rotation: Math.random() * 360,
-          opacity: 0,
-          duration: 1.2,
-          ease: 'power2.out',
-        },
-        '<0.1'
-      )
-  }
-
-  const posterEffect = (words: NodeListOf<Element>) => {
+  const rotationEffect = (words: NodeListOf<Element>) => {
     if (!window.gsap) return
 
     words.forEach((word, index) => {
+      // 회전 각도를 줄여서 더 부드럽게 (360도 → 180도)
+      const rotationAngle = rotationDirection === 'right' ? 180 : -180
+
       window.gsap.set(word, {
         scale: 0,
-        rotation: 360,
+        rotation: rotationAngle,
         transformOrigin: 'center center',
       })
 
       window.gsap.to(word, {
         scale: 1,
         rotation: 0,
-        duration: 1.2,
-        delay: index * 0.2,
-        ease: 'back.out(1.7)',
-      })
-    })
-  }
-
-  const popEffect = (words: NodeListOf<Element>) => {
-    if (!window.gsap || !textRef.current) return
-
-    words.forEach((word, index) => {
-      window.gsap.set(word, {
-        scale: 0,
-        y: 30,
-        transformOrigin: 'center center',
-      })
-
-      window.gsap.to(word, {
-        scale: 1,
-        y: 0,
-        duration: 0.6,
-        delay: index * 0.15,
-        ease: 'back.out(2)',
-        onComplete: function () {
-          const chars = word.querySelectorAll('.char')
-          chars.forEach((char: Element, charIndex: number) => {
-            setTimeout(() => {
-              const textRect = textRef.current?.getBoundingClientRect()
-              const charRect = char.getBoundingClientRect()
-
-              if (textRect) {
-                // 컨테이너 기준 상대 좌표로 변환
-                const relativeX =
-                  charRect.left - textRect.left + charRect.width / 2
-                const relativeY =
-                  charRect.top - textRect.top + charRect.height / 2
-
-                for (let i = 0; i < 3; i++) {
-                  setTimeout(() => {
-                    createPhysicsBall(
-                      relativeX + Math.random() * 10 - 5,
-                      relativeY + Math.random() * 10 - 5
-                    )
-                  }, i * 15)
-                }
-              }
-            }, charIndex * 20)
-          })
-        },
-      })
-    })
-  }
-
-  const bounceEffect = (words: NodeListOf<Element>) => {
-    if (!window.gsap || !textRef.current) return
-
-    textRef.current.classList.add('bounce-text')
-
-    words.forEach((word, index) => {
-      window.gsap.set(word, {
-        scale: 0,
-        y: -60,
-        transformOrigin: 'center center',
-      })
-
-      window.gsap.to(word, {
-        scale: 1,
-        y: 0,
-        duration: 1,
-        delay: index * 0.2,
-        ease: 'bounce.out',
+        duration: 2.0, // 지속 시간을 늘려서 더 천천히 (1.2초 → 2.0초)
+        delay: index * 0.3, // 단어 간 간격도 늘려서 더 명확하게 (0.2초 → 0.3초)
+        ease: 'power2.out', // 더 부드러운 easing 사용 (back.out → power2.out)
       })
     })
   }
@@ -334,15 +221,6 @@ const GSAPTextEditor = () => {
     // 기존 애니메이션 정리
     window.gsap.killTweensOf('*')
 
-    // 기존 구슬들 제거
-    if (containerRef.current) {
-      containerRef.current.querySelectorAll('.physics-ball').forEach((ball) => {
-        if (ball.parentNode) {
-          ball.parentNode.removeChild(ball)
-        }
-      })
-    }
-
     // 텍스트를 단어별로 분리
     splitTextIntoWords(textElement, text)
 
@@ -350,19 +228,7 @@ const GSAPTextEditor = () => {
     window.gsap.set(textElement, { opacity: 1 })
 
     if (words.length > 0) {
-      switch (effect) {
-        case 'poster':
-          posterEffect(words)
-          break
-        case 'pop':
-          popEffect(words)
-          break
-        case 'bounce':
-          bounceEffect(words)
-          break
-        default:
-          popEffect(words)
-      }
+      rotationEffect(words)
     }
   }
 
@@ -376,13 +242,13 @@ const GSAPTextEditor = () => {
     }
   }
 
-  // 텍스트나 효과 변경 시 애니메이션 적용
+  // 텍스트나 회전 방향 변경 시 애니메이션 적용
   useEffect(() => {
     const timer = setTimeout(() => {
       applyEffect()
     }, 300)
     return () => clearTimeout(timer)
-  }, [text, effect])
+  }, [text, rotationDirection])
 
   return (
     <div
@@ -564,7 +430,7 @@ const GSAPTextEditor = () => {
             />
           </div>
 
-          {/* 효과 선택 */}
+          {/* 회전 방향 선택 */}
           <div className="control-section">
             <label
               style={{
@@ -575,20 +441,19 @@ const GSAPTextEditor = () => {
                 display: 'block',
               }}
             >
-              애니메이션 효과:
+              회전 방향:
             </label>
             <div
-              className="effects-list"
+              className="rotation-list"
               style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
             >
               {[
-                { value: 'poster', label: 'Poster Randomizer (글자 회전)' },
-                { value: 'pop', label: 'Pop Effect (구슬)' },
-                { value: 'bounce', label: 'Bounce Effect (바운스)' },
+                { value: 'left', label: '왼쪽으로 회전 (반시계 방향)' },
+                { value: 'right', label: '오른쪽으로 회전 (시계 방향)' },
               ].map(({ value, label }) => (
                 <div
                   key={value}
-                  className="effect-selector"
+                  className="rotation-selector"
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -603,10 +468,10 @@ const GSAPTextEditor = () => {
                 >
                   <input
                     type="radio"
-                    name="effect"
+                    name="rotation"
                     value={value}
-                    checked={effect === value}
-                    onChange={(e) => setEffect(e.target.value)}
+                    checked={rotationDirection === value}
+                    onChange={(e) => setRotationDirection(e.target.value)}
                     style={{
                       width: '16px',
                       height: '16px',
@@ -621,7 +486,8 @@ const GSAPTextEditor = () => {
                       cursor: 'pointer',
                       flex: 1,
                       fontSize: '0.95rem',
-                      color: effect === value ? '#8a2be2' : '#e0e0e0',
+                      color:
+                        rotationDirection === value ? '#8a2be2' : '#e0e0e0',
                       transition: 'color 0.3s ease',
                     }}
                   >
@@ -667,24 +533,6 @@ const GSAPTextEditor = () => {
         .demo-text .word {
           display: inline-block;
           margin-right: 0.3em;
-        }
-        .bounce-text .char {
-          animation: bounce-char 2s ease-in-out infinite;
-        }
-        @keyframes bounce-char {
-          0%,
-          20%,
-          50%,
-          80%,
-          100% {
-            transform: translateY(0);
-          }
-          40% {
-            transform: translateY(-15px);
-          }
-          60% {
-            transform: translateY(-8px);
-          }
         }
         .gsap-editor::-webkit-scrollbar {
           width: 6px;
