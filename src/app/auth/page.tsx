@@ -24,6 +24,17 @@ const AuthPage: React.FC = () => {
 
   const { login, signup, getGoogleLoginUrl } = useAuth()
 
+  const handleGoogleLogin = useCallback(async () => {
+    try {
+      const googleUrl = await getGoogleLoginUrl()
+      // 현재 창에서 Google OAuth로 이동
+      window.location.href = googleUrl
+    } catch (error) {
+      console.error('Google OAuth 오류:', error)
+      setErrors({ general: 'Google 로그인을 시작할 수 없습니다.' })
+    }
+  }, [getGoogleLoginUrl])
+
   // Google OAuth 자동 리디렉션
   React.useEffect(() => {
     if (provider === 'google') {
@@ -101,17 +112,6 @@ const AuthPage: React.FC = () => {
       setIsLoading(false)
     }
   }
-
-  const handleGoogleLogin = useCallback(async () => {
-    try {
-      const googleUrl = await getGoogleLoginUrl()
-      // 현재 창에서 Google OAuth로 이동
-      window.location.href = googleUrl
-    } catch (error) {
-      console.error('Google OAuth 오류:', error)
-      setErrors({ general: 'Google 로그인을 시작할 수 없습니다.' })
-    }
-  }, [getGoogleLoginUrl])
 
   return (
     <div className="min-h-screen bg-black text-white flex items-center justify-center px-6">

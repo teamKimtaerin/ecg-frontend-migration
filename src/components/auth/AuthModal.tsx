@@ -27,12 +27,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
   }
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      showCloseButton
-      className="max-w-md"
-    >
+    <Modal isOpen={isOpen} onClose={onClose} className="max-w-md">
       <div className="p-6">
         {mode === 'login' ? (
           <LoginForm

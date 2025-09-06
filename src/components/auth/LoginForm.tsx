@@ -76,9 +76,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
         </div>
 
         {error && (
-          <HelpText variant="error" className="text-center">
-            {error}
-          </HelpText>
+          <HelpText text={error} variant="negative" className="text-center" />
         )}
 
         <div className="space-y-4">

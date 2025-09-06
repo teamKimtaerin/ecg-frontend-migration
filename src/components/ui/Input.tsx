@@ -71,16 +71,10 @@ const Input: React.FC<InputProps> = ({
         className={inputClasses}
       />
 
-      {error && (
-        <HelpText variant="error" className="mt-1">
-          {error}
-        </HelpText>
-      )}
+      {error && <HelpText text={error} variant="negative" className="mt-1" />}
 
       {helperText && !error && (
-        <HelpText variant="default" className="mt-1">
-          {helperText}
-        </HelpText>
+        <HelpText text={helperText} variant="neutral" className="mt-1" />
       )}
     </div>
   )
