@@ -26,18 +26,19 @@ const GSAPTextEditor = () => {
   const [position, setPosition] = useState('center')
   const [delay, setDelay] = useState(0.8)
   const [effect, setEffect] = useState('pop')
-  const [constrainAnimation, setConstrainAnimation] = useState(false)
-  const [bounds, setBounds] = useState({
-    top: 15,
-    bottom: 15,
-    left: 10,
-    right: 10,
-  })
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
   const [textPosition, setTextPosition] = useState({ x: 0, y: 0 })
   const demoTextRef = useRef<HTMLDivElement>(null)
   const previewAreaRef = useRef<HTMLDivElement>(null)
+
+  // 고정된 경계값
+  const bounds = {
+    top: 15,
+    bottom: 15,
+    left: 10,
+    right: 10,
+  }
 
   useEffect(() => {
     // GSAP 라이브러리 로드
@@ -491,23 +492,21 @@ const GSAPTextEditor = () => {
             {text}
           </div>
 
-          {/* 애니메이션 범위 경계선 */}
-          {constrainAnimation && (
-            <div
-              className="animation-boundary visible"
-              style={{
-                position: 'absolute',
-                top: `${bounds.top}%`,
-                left: `${bounds.left}%`,
-                right: `${bounds.right}%`,
-                bottom: `${bounds.bottom}%`,
-                border: '2px dashed rgba(255, 20, 147, 0.8)',
-                borderRadius: '8px',
-                background: 'rgba(255, 20, 147, 0.08)',
-                pointerEvents: 'none',
-              }}
-            />
-          )}
+          {/* 애니메이션 범위 경계선 - 항상 표시 */}
+          <div
+            className="animation-boundary"
+            style={{
+              position: 'absolute',
+              top: `${bounds.top}%`,
+              left: `${bounds.left}%`,
+              right: `${bounds.right}%`,
+              bottom: `${bounds.bottom}%`,
+              border: '2px dashed rgba(255, 20, 147, 0.8)',
+              borderRadius: '8px',
+              background: 'rgba(255, 20, 147, 0.08)',
+              pointerEvents: 'none',
+            }}
+          />
         </div>
 
         {/* 컨트롤 영역 */}
@@ -553,128 +552,6 @@ const GSAPTextEditor = () => {
                 transition: 'all 0.3s ease',
               }}
             />
-          </div>
-
-          {/* 애니메이션 범위 제한 */}
-          <div className="control-section">
-            <div
-              className="checkbox-container"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                padding: '12px',
-                background: 'rgba(30, 30, 30, 0.6)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                borderRadius: '10px',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-              }}
-            >
-              <input
-                type="checkbox"
-                checked={constrainAnimation}
-                onChange={(e) => setConstrainAnimation(e.target.checked)}
-                style={{
-                  width: '18px',
-                  height: '18px',
-                  accentColor: '#8a2be2',
-                  cursor: 'pointer',
-                }}
-              />
-              <label style={{ cursor: 'pointer', margin: 0, fontSize: '1rem' }}>
-                애니메이션 범위 제한
-              </label>
-            </div>
-
-            {constrainAnimation && (
-              <div
-                className="range-controls"
-                style={{
-                  marginTop: '15px',
-                  padding: '20px',
-                  background: 'rgba(20, 20, 20, 0.8)',
-                  borderRadius: '12px',
-                  border: '1px solid rgba(255, 20, 147, 0.3)',
-                  transition: 'all 0.3s ease',
-                }}
-              >
-                <label
-                  style={{
-                    color: '#e0e0e0',
-                    fontSize: '1rem',
-                    marginBottom: '15px',
-                    display: 'block',
-                  }}
-                >
-                  범위 조정 (여백):
-                </label>
-                <div
-                  className="range-sliders"
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: '1fr 1fr',
-                    gap: '10px 15px',
-                  }}
-                >
-                  {['top', 'bottom', 'left', 'right'].map((direction) => (
-                    <div
-                      key={direction}
-                      className="range-item"
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        minWidth: 0,
-                      }}
-                    >
-                      <label
-                        style={{
-                          fontSize: '0.85rem',
-                          minWidth: '45px',
-                          margin: 0,
-                          color: '#ff1493',
-                          flexShrink: 0,
-                        }}
-                      >
-                        {direction === 'top'
-                          ? '위쪽:'
-                          : direction === 'bottom'
-                            ? '아래쪽:'
-                            : direction === 'left'
-                              ? '왼쪽:'
-                              : '오른쪽:'}
-                      </label>
-                      <input
-                        type="range"
-                        min="0"
-                        max="40"
-                        value={bounds[direction as keyof typeof bounds]}
-                        onChange={(e) =>
-                          setBounds((prev) => ({
-                            ...prev,
-                            [direction]: parseInt(e.target.value),
-                          }))
-                        }
-                        style={{ flex: 1, height: '5px', minWidth: 0 }}
-                      />
-                      <span
-                        style={{
-                          color: '#ff1493',
-                          fontSize: '0.8rem',
-                          fontWeight: 'bold',
-                          minWidth: '35px',
-                          flexShrink: 0,
-                          textAlign: 'right',
-                        }}
-                      >
-                        {bounds[direction as keyof typeof bounds]}%
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
 
           {/* 효과 선택 */}
