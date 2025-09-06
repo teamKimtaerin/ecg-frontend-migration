@@ -1,4 +1,4 @@
-import { ClipItem } from '@/components/shared/ClipComponent'
+import { ClipItem } from '@/app/(route)/editor/components/ClipComponent'
 
 // 넘버링에서 숫자를 파싱하는 함수
 const parseNumbering = (timeline: string): number => {

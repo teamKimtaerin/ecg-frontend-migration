@@ -2,14 +2,12 @@
 
 import React from 'react'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import UnifiedClipComponent from './UnifiedClipComponent'
-import { ClipItem } from '@/components/shared/ClipComponent'
+import ClipComponent, { ClipItem } from './ClipComponent'
 
 interface SubtitleEditListProps {
   clips: ClipItem[]
-  selectedClipId: string | null
-  checkedClipIds?: string[]
-  onClipSelect: (clipId: string | null) => void
+  selectedClipIds: Set<string>
+  onClipSelect: (clipId: string) => void
   onClipCheck?: (clipId: string, checked: boolean) => void
   onWordEdit: (clipId: string, wordId: string, newText: string) => void
   onSpeakerChange?: (clipId: string, newSpeaker: string) => void
@@ -17,8 +15,7 @@ interface SubtitleEditListProps {
 
 export default function SubtitleEditList({
   clips,
-  selectedClipId,
-  checkedClipIds = [],
+  selectedClipIds,
   onClipSelect,
   onClipCheck,
   onWordEdit,
@@ -32,14 +29,14 @@ export default function SubtitleEditList({
       >
         <div className="space-y-3">
           {clips.map((clip) => (
-            <UnifiedClipComponent
+            <ClipComponent
               key={clip.id}
               clip={clip}
-              isSelected={selectedClipId === clip.id}
-              isChecked={checkedClipIds.includes(clip.id)}
-              isMultiSelected={false}
+              isSelected={false} // Single selection not used anymore
+              isChecked={selectedClipIds.has(clip.id)}
+              isMultiSelected={selectedClipIds.has(clip.id)}
               enableDragAndDrop={true}
-              onSelect={(clipId) => onClipSelect(clipId)}
+              onSelect={onClipSelect}
               onCheck={onClipCheck}
               onWordEdit={onWordEdit}
               onSpeakerChange={onSpeakerChange}

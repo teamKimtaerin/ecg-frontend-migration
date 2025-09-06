@@ -22,9 +22,8 @@ import Toolbar from '@/components/ui/Toolbar'
 import VideoSection from './components/VideoSection'
 import SubtitleEditList from './components/SubtitleEditList'
 import DragOverlayContent from './components/DragOverlayContent'
-import SelectionBox from '@/components/SelectionBox'
-import UploadModal from '../components/UploadModal'
-import { ClipItem } from '@/components/shared/ClipComponent'
+import SelectionBox from '@/components/DragDrop/SelectionBox'
+import UploadModal from '@/components/UploadModal'
 
 // Utils
 import { areClipsConsecutive } from '@/utils/clipMerger'
@@ -33,76 +32,26 @@ import { EditorHistory } from '@/utils/EditorHistory'
 import { MergeClipsCommand } from '@/utils/commands/MergeClipsCommand'
 
 export default function EditorPage() {
-  // Store state for DnD
-  const { activeId } = useEditorStore()
+  // Store state for DnD and selection
+  const {
+    activeId,
+    clips,
+    setClips,
+    selectedClipIds,
+    setSelectedClipIds,
+    toggleClipSelection,
+    clearSelection,
+    updateClipWords,
+  } = useEditorStore()
 
   // Local state
   const [activeTab, setActiveTab] = useState('home')
-  const [selectedClipId, setSelectedClipId] = useState<string | null>(null)
-  const [checkedClipIds, setCheckedClipIds] = useState<string[]>([])
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
   const [editorHistory] = useState(() => new EditorHistory())
 
   // Upload modal hook
   const { isTranscriptionLoading, handleFileSelect, handleStartTranscription } =
     useUploadModal()
-
-  // Initial clips data
-  const [clips, setClips] = useState<ClipItem[]>([
-    {
-      id: '1',
-      timeline: '1',
-      speaker: 'Speaker 1',
-      subtitle: '이제 웹님',
-      fullText: '이제 웹님',
-      duration: '1.283초',
-      thumbnail: '/placeholder-thumb.jpg',
-      words: [
-        { id: '1-1', text: '이제', start: 15.0, end: 15.5, isEditable: true },
-        { id: '1-2', text: '웹님', start: 15.5, end: 16.0, isEditable: true },
-      ],
-    },
-    {
-      id: '2',
-      timeline: '2',
-      speaker: 'Speaker 2',
-      subtitle: '네시요',
-      fullText: '네시요',
-      duration: '14.683초',
-      thumbnail: '/placeholder-thumb.jpg',
-      words: [
-        { id: '2-1', text: '네시요', start: 24.0, end: 24.8, isEditable: true },
-      ],
-    },
-    {
-      id: '3',
-      timeline: '3',
-      speaker: 'Speaker 1',
-      subtitle: '지금다',
-      fullText: '지금다',
-      duration: '4.243초',
-      thumbnail: '/placeholder-thumb.jpg',
-      words: [
-        { id: '3-1', text: '지금다', start: 32.0, end: 32.8, isEditable: true },
-      ],
-    },
-    {
-      id: '4',
-      timeline: '4',
-      speaker: 'Speaker 1',
-      subtitle: '이 지금 이는 한 공에',
-      fullText: '이 지금 이는 한 공에',
-      duration: '6.163초',
-      thumbnail: '/placeholder-thumb.jpg',
-      words: [
-        { id: '4-1', text: '이', start: 41.0, end: 41.2, isEditable: true },
-        { id: '4-2', text: '지금', start: 41.2, end: 41.6, isEditable: true },
-        { id: '4-3', text: '이는', start: 41.6, end: 41.9, isEditable: true },
-        { id: '4-4', text: '한', start: 41.9, end: 42.1, isEditable: true },
-        { id: '4-5', text: '공에', start: 42.1, end: 42.5, isEditable: true },
-      ],
-    },
-  ])
 
   // DnD functionality
   const { sensors, handleDragStart, handleDragEnd, handleDragCancel } =
@@ -120,39 +69,33 @@ export default function EditorPage() {
 
   // Edit handlers
   const handleWordEdit = (clipId: string, wordId: string, newText: string) => {
-    setClips((prevClips) =>
-      prevClips.map((clip) =>
-        clip.id === clipId
-          ? {
-              ...clip,
-              words: clip.words.map((word) =>
-                word.id === wordId ? { ...word, text: newText } : word
-              ),
-              fullText: clip.words
-                .map((word) => (word.id === wordId ? newText : word.text))
-                .join(' '),
-            }
-          : clip
-      )
-    )
+    updateClipWords(clipId, wordId, newText)
   }
 
   const handleSpeakerChange = (clipId: string, newSpeaker: string) => {
-    setClips((prevClips) =>
-      prevClips.map((clip) =>
-        clip.id === clipId ? { ...clip, speaker: newSpeaker } : clip
-      )
+    const updatedClips = clips.map((clip) =>
+      clip.id === clipId ? { ...clip, speaker: newSpeaker } : clip
     )
+    setClips(updatedClips)
   }
 
   const handleClipCheck = (clipId: string, checked: boolean) => {
-    setCheckedClipIds((prev) => {
-      if (checked) {
-        return [...prev, clipId]
-      } else {
-        return prev.filter((id) => id !== clipId)
-      }
-    })
+    if (checked) {
+      const newSet = new Set(selectedClipIds)
+      newSet.add(clipId)
+      setSelectedClipIds(newSet)
+    } else {
+      const newSet = new Set(selectedClipIds)
+      newSet.delete(clipId)
+      setSelectedClipIds(newSet)
+    }
+  }
+
+  const handleClipSelect = (clipId: string) => {
+    // Single click - select only this clip
+    const newSet = new Set<string>()
+    newSet.add(clipId)
+    setSelectedClipIds(newSet)
   }
 
   // Upload modal handler
@@ -169,16 +112,12 @@ export default function EditorPage() {
   // Merge clips handler
   const handleMergeClips = () => {
     try {
-      // 선택된 클립과 체크된 클립 결합
-      const allSelectedIds = [
-        ...(selectedClipId ? [selectedClipId] : []),
-        ...checkedClipIds,
-      ]
-      const uniqueSelectedIds = Array.from(new Set(allSelectedIds))
+      // Get selected clips from store
+      const uniqueSelectedIds = Array.from(selectedClipIds)
 
       // 선택된 클립이 1개 이하인 경우
       if (uniqueSelectedIds.length <= 1) {
-        const currentClipId = uniqueSelectedIds[0] || selectedClipId
+        const currentClipId = uniqueSelectedIds[0]
         if (!currentClipId) {
           showToast('합칠 클립을 선택해주세요.')
           return
@@ -205,8 +144,7 @@ export default function EditorPage() {
         const command = new MergeClipsCommand(clips, [], clipsToMerge, setClips)
 
         editorHistory.executeCommand(command)
-        setSelectedClipId(null)
-        setCheckedClipIds([])
+        clearSelection()
         showToast('클립이 성공적으로 합쳐졌습니다.', 'success')
         return
       }
@@ -228,8 +166,7 @@ export default function EditorPage() {
       )
 
       editorHistory.executeCommand(command)
-      setSelectedClipId(null)
-      setCheckedClipIds([])
+      clearSelection()
       showToast('클립이 성공적으로 합쳐졌습니다.', 'success')
     } catch (error) {
       console.error('클립 합치기 오류:', error)
@@ -315,9 +252,8 @@ export default function EditorPage() {
           >
             <SubtitleEditList
               clips={clips}
-              selectedClipId={selectedClipId}
-              checkedClipIds={checkedClipIds}
-              onClipSelect={setSelectedClipId}
+              selectedClipIds={selectedClipIds}
+              onClipSelect={handleClipSelect}
               onClipCheck={handleClipCheck}
               onWordEdit={handleWordEdit}
               onSpeakerChange={handleSpeakerChange}

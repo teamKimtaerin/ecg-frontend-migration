@@ -1,6 +1,6 @@
-import { EditorCommand } from '../EditorHistory'
-import { ClipItem } from '@/components/shared/ClipComponent'
+import { ClipItem } from '@/app/(route)/editor/components/ClipComponent'
 import { mergeSelectedClips } from '../clipMerger'
+import { EditorCommand } from '../EditorHistory'
 
 export class MergeClipsCommand implements EditorCommand {
   private originalClips: ClipItem[]

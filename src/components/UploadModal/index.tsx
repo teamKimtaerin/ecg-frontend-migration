@@ -8,9 +8,9 @@ import Modal, { type ModalProps } from '@/components/ui/Modal'
 import Button from '@/components/ui/Button'
 import ButtonGroup from '@/components/ui/ButtonGroup'
 import ProgressCircle from '@/components/ui/ProgressCircle'
-import FileUploadTab from './UploadModal/FileUploadTab'
-import UrlImportTab from './UploadModal/UrlImportTab'
-import TranscriptionSettings from './UploadModal/TranscriptionSettings'
+import FileUploadTab from './FileUploadTab'
+import UrlImportTab from './UrlImportTab'
+import TranscriptionSettings from './TranscriptionSettings'
 
 export interface UploadModalProps
   extends Omit<ModalProps, 'children' | 'title' | 'size'> {

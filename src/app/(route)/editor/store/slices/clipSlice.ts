@@ -44,21 +44,39 @@ export const createClipSlice: StateCreator<ClipSlice> = (set) => ({
 
       // If multiple items are selected, move them as a group
       if (selectedIds.size > 1 && selectedIds.has(activeId)) {
+        // Get selected items in their current order
         const selectedItems = clips.filter((item) => selectedIds.has(item.id))
         const unselectedItems = clips.filter(
           (item) => !selectedIds.has(item.id)
         )
 
-        // Remove selected items from their original positions
-        const tempItems = [...unselectedItems]
+        // Find where to insert the group
+        let insertIndex = 0
 
-        // Insert selected items at the new position
-        const insertIndex =
-          tempItems.findIndex((item) => item.id === overId) +
-          (newIndex > oldIndex ? 1 : 0)
+        // If dropping on an unselected item, insert before or after it
+        if (!selectedIds.has(overId)) {
+          const overIndexInUnselected = unselectedItems.findIndex(
+            (item) => item.id === overId
+          )
 
-        tempItems.splice(insertIndex, 0, ...selectedItems)
-        return { clips: tempItems }
+          // Determine if we should insert before or after the target
+          // If dragging down (oldIndex < newIndex), insert after
+          // If dragging up (oldIndex > newIndex), insert before
+          if (oldIndex < newIndex) {
+            insertIndex = overIndexInUnselected + 1
+          } else {
+            insertIndex = overIndexInUnselected
+          }
+        }
+
+        // Create new array with items in correct positions
+        const newClips = [
+          ...unselectedItems.slice(0, insertIndex),
+          ...selectedItems,
+          ...unselectedItems.slice(insertIndex),
+        ]
+
+        return { clips: newClips }
       } else {
         // Single item drag
         return { clips: arrayMove(clips, oldIndex, newIndex) }

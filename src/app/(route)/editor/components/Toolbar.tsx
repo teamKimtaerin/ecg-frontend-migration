@@ -1,9 +1,7 @@
 'use client'
 
-import React from 'react'
-
+import Button from '../../../../components/ui/Button'
 import { useEditorStore } from '../store'
-import Button from '../../../components/ui/Button'
 
 export default function Toolbar() {
   const { activeTab } = useEditorStore()
