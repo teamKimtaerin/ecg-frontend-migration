@@ -7,9 +7,9 @@ import ClipCheckbox from './ClipCheckbox'
 import ClipSpeaker from './ClipSpeaker'
 import ClipWords from './ClipWords'
 import ClipText from './ClipText'
-import { useClipDragAndDrop } from './hooks/useClipDragAndDrop'
-import { useClipStyles } from './hooks/useClipStyles'
-import { useSpeakerManagement } from './hooks/useSpeakerManagement'
+import { useSpeakerManagement } from '../../hooks/useSpeakerManagement'
+import { useClipDragAndDrop } from '../../hooks/useClipDragAndDrop'
+import { useClipStyles } from '../../hooks/useClipStyles'
 
 export default function ClipComponent({
   clip,

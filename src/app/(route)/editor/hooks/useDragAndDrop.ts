@@ -1,4 +1,3 @@
-import { useCallback } from 'react'
 import {
   DragEndEvent,
   DragStartEvent,
@@ -9,6 +8,7 @@ import {
   useSensors,
 } from '@dnd-kit/core'
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable'
+import { useCallback } from 'react'
 import { useEditorStore } from '../store'
 import { DRAG_ACTIVATION_DISTANCE } from '../types'
 

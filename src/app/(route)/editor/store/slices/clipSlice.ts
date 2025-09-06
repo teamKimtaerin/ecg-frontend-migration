@@ -1,6 +1,6 @@
+import { arrayMove } from '@/lib/utils/array'
 import { StateCreator } from 'zustand'
 import { ClipItem, INITIAL_CLIPS } from '../../types'
-import { arrayMove } from '@/lib/utils/array'
 
 export interface ClipSlice {
   clips: ClipItem[]

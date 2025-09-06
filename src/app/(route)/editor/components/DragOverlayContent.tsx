@@ -1,8 +1,7 @@
 'use client'
 
-import React from 'react'
-import { useEditorStore } from '../store'
 import { SEMANTIC_COLORS } from '@/lib/utils/colors'
+import { useEditorStore } from '../store'
 
 export default function DragOverlayContent() {
   const { activeId, clips, selectedClipIds } = useEditorStore()

@@ -1,35 +1,35 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
 import {
   DndContext,
   DragOverlay,
   closestCenter,
   defaultDropAnimationSideEffects,
 } from '@dnd-kit/core'
+import { useCallback, useEffect, useState } from 'react'
 
 // Store
 import { useEditorStore } from './store'
 
 // Hooks
+import { useUploadModal } from '@/hooks/useUploadModal'
 import { useDragAndDrop } from './hooks/useDragAndDrop'
 import { useSelectionBox } from './hooks/useSelectionBox'
-import { useUploadModal } from '@/hooks/useUploadModal'
 
 // Components
-import EditorHeaderTabs from './components/EditorHeaderTabs'
-import Toolbar from '@/components/ui/Toolbar'
-import VideoSection from './components/VideoSection'
-import SubtitleEditList from './components/SubtitleEditList'
-import DragOverlayContent from './components/DragOverlayContent'
 import SelectionBox from '@/components/DragDrop/SelectionBox'
 import UploadModal from '@/components/UploadModal'
+import Toolbar from '@/components/ui/Toolbar'
+import DragOverlayContent from './components/DragOverlayContent'
+import EditorHeaderTabs from './components/EditorHeaderTabs'
+import SubtitleEditList from './components/SubtitleEditList'
+import VideoSection from './components/VideoSection'
 
 // Utils
-import { areClipsConsecutive } from '@/utils/clipMerger'
-import { showToast } from '@/utils/toast'
 import { EditorHistory } from '@/utils/EditorHistory'
+import { areClipsConsecutive } from '@/utils/clipMerger'
 import { MergeClipsCommand } from '@/utils/commands/MergeClipsCommand'
+import { showToast } from '@/utils/toast'
 
 export default function EditorPage() {
   // Store state for DnD and selection

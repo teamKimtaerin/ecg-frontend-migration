@@ -1,6 +1,5 @@
 'use client'
 
-import React from 'react'
 import Button from '@/components/ui/Button'
 import Tab from '@/components/ui/Tab'
 import TabItem from '@/components/ui/TabItem'
