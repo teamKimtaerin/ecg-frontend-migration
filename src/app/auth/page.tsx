@@ -1,11 +1,11 @@
 'use client'
 
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Button from '@/components/ui/Button'
 import { useAuth } from '@/hooks/useAuth'
 
-const AuthPage: React.FC = () => {
+const AuthPageContent: React.FC = () => {
   const router = useRouter()
   const searchParams = useSearchParams()
   const initialMode = searchParams.get('mode') === 'signup' ? 'signup' : 'login'
@@ -304,6 +304,23 @@ const AuthPage: React.FC = () => {
         </div>
       </div>
     </div>
+  )
+}
+
+const AuthPage: React.FC = () => {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-black text-white flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-gray-medium">로딩 중...</p>
+          </div>
+        </div>
+      }
+    >
+      <AuthPageContent />
+    </Suspense>
   )
 }
 
