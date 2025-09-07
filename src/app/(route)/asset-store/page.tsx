@@ -7,6 +7,7 @@ import { GSAPTextEditor } from '@/app/(route)/asset-store/components/GSAPTextEdi
 import { cn, TRANSITIONS } from '@/lib/utils'
 import { AssetItem } from '@/types/asset-store'
 import { useState } from 'react'
+import { LuSearch } from 'react-icons/lu'
 
 // 메인 페이지 컴포넌트
 export default function AssetPage() {
@@ -15,6 +16,7 @@ export default function AssetPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState('Vlog')
   const [activeFilter, setActiveFilter] = useState('All')
+  const [showFavorites, setShowFavorites] = useState(false)
 
   // 카테고리 필터 버튼 목록
   const categoryFilters = [
@@ -128,9 +130,24 @@ export default function AssetPage() {
     setSelectedCategory(category)
   }
 
+  const handleFavoriteClick = () => {
+    setShowFavorites(!showFavorites)
+    // 즐겨찾기 모드 활성화 시 다른 필터 초기화
+    if (!showFavorites) {
+      setActiveFilter('All')
+    }
+  }
+
+  const handleUploadClick = () => {
+    console.log('에셋 업로드 클릭됨')
+  }
+
   const handleAddToCart = () => {
     console.log('아이템이 카트에 추가되었습니다:', selectedAsset?.title)
   }
+
+  // 즐겨찾기 개수 계산
+  const favoriteCount = assets.filter((asset) => asset.isFavorite).length
 
   const filteredAssets = assets.filter((asset) => {
     const matchesSearch = asset.title
@@ -138,16 +155,22 @@ export default function AssetPage() {
       .includes(searchTerm.toLowerCase())
     const matchesCategory =
       activeFilter === 'All' || asset.category === activeFilter
-    return matchesSearch && matchesCategory
+    const matchesFavorites = !showFavorites || asset.isFavorite
+
+    return matchesSearch && matchesCategory && matchesFavorites
   })
 
   // 메인 컨테이너 클래스
   const mainContainerClasses = cn('min-h-screen', 'bg-gray-50', 'text-black')
 
+  // 검색 컨테이너 클래스
+  const searchContainerClasses = cn('relative', 'w-80')
+
   // 검색 입력 클래스
   const searchInputClasses = cn(
-    'w-80',
-    'px-4',
+    'w-full',
+    'pl-4',
+    'pr-12', // 오른쪽 패딩을 늘려서 아이콘 공간 확보
     'py-2.5',
     'bg-white',
     'border',
@@ -161,6 +184,17 @@ export default function AssetPage() {
     'focus:ring-black',
     'shadow-sm',
     TRANSITIONS.colors
+  )
+
+  // 검색 아이콘 클래스
+  const searchIconClasses = cn(
+    'absolute',
+    'right-3',
+    'top-1/2',
+    'transform',
+    '-translate-y-1/2',
+    'text-gray-400',
+    'pointer-events-none'
   )
 
   // 카테고리 버튼 클래스
@@ -191,6 +225,9 @@ export default function AssetPage() {
         <AssetSidebar
           selectedCategory={selectedCategory}
           onCategoryChange={handleCategoryChange}
+          favoriteCount={favoriteCount}
+          onFavoriteClick={handleFavoriteClick}
+          onUploadClick={handleUploadClick}
         />
 
         <main className="flex-1 p-8">
@@ -198,13 +235,16 @@ export default function AssetPage() {
             <h1 className="text-2xl font-semibold text-black">Asset Store</h1>
 
             <div className="flex items-center space-x-4">
-              <input
-                type="text"
-                placeholder="Search assets"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className={searchInputClasses}
-              />
+              <div className={searchContainerClasses}>
+                <input
+                  type="text"
+                  placeholder="Search assets"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className={searchInputClasses}
+                />
+                <LuSearch className={searchIconClasses} size={20} />
+              </div>
             </div>
           </div>
 

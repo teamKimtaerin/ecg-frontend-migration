@@ -112,11 +112,11 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
     // 기본 스타일
     'gsap-editor',
     'min-h-[70vh]',
-    'p-5',
+    'p-6',
 
     // 배경 및 색상
-    'bg-gray-900',
-    'text-gray-100',
+    'bg-white',
+    'text-black',
 
     // 폰트
     'font-sans',
@@ -133,23 +133,15 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
     'grid',
     'grid-cols-1',
     'lg:grid-cols-[2fr_1fr]',
-    'gap-10',
+    'gap-8',
     'items-start',
 
     // 스타일링
-    'bg-gray-800/90',
-    'backdrop-blur-xl',
+    'bg-white',
     'border',
-    'border-white/10',
-    'rounded-3xl',
-    'p-10',
-
-    // 그림자
-    'shadow-2xl',
-    'shadow-black/30',
-
-    // 내부 그림자
-    '[box-shadow:0_20px_40px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.1)]'
+    'border-gray-200',
+    'rounded-xl',
+    'p-8'
   )
 
   // 프리뷰 영역 클래스
@@ -166,10 +158,10 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
     'h-[60vh]',
 
     // 스타일링
-    'bg-gray-900/80',
+    'bg-black',
     'border-2',
-    'border-purple-500/30',
-    'rounded-2xl'
+    'border-gray-800',
+    'rounded-xl'
   )
 
   // 컨트롤 영역 클래스
@@ -177,7 +169,7 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
     // 레이아웃
     'flex',
     'flex-col',
-    'gap-6',
+    'gap-5',
 
     // 스크롤
     'max-h-[60vh]',
@@ -471,7 +463,7 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
     label: string
   ) => (
     <div key={key} className="space-y-2">
-      <label className="block text-gray-200 text-sm font-medium">
+      <label className="block text-black text-sm font-medium">
         {label}:{' '}
         {typeof propertyValues[key] === 'number'
           ? (propertyValues[key] as number).toFixed(1)
@@ -493,7 +485,7 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
         className={cn(
           'w-full',
           'h-2',
-          'bg-gray-700',
+          'bg-gray-200',
           'rounded-lg',
           'appearance-none',
           'cursor-pointer',
@@ -501,9 +493,9 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
           '[&::-webkit-slider-thumb]:w-5',
           '[&::-webkit-slider-thumb]:h-5',
           '[&::-webkit-slider-thumb]:rounded-full',
-          '[&::-webkit-slider-thumb]:bg-purple-500',
+          '[&::-webkit-slider-thumb]:bg-black',
           '[&::-webkit-slider-thumb]:cursor-pointer',
-          '[&::-webkit-slider-thumb]:shadow-lg'
+          '[&::-webkit-slider-thumb]:shadow-md'
         )}
       />
     </div>
@@ -522,12 +514,12 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
           'items-center',
           'gap-3',
           'p-3',
-          'bg-gray-900/60',
+          'bg-gray-50',
           'border',
-          'border-white/10',
+          'border-gray-200',
           'rounded-lg',
           'cursor-pointer',
-          'hover:bg-gray-900/80',
+          'hover:bg-gray-100',
           TRANSITIONS.normal
         )}
       >
@@ -541,9 +533,9 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
                 : false
           }
           onChange={(e) => updatePropertyValue(key, e.target.checked)}
-          className="w-4 h-4 text-purple-600 cursor-pointer"
+          className="w-4 h-4 text-black cursor-pointer accent-black"
         />
-        <span className="text-sm text-gray-200">{label}</span>
+        <span className="text-sm text-black">{label}</span>
       </label>
     </div>
   )
@@ -555,9 +547,7 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
     label: string
   ) => (
     <div key={key} className="space-y-3">
-      <label className="block text-gray-200 text-sm font-medium">
-        {label}:
-      </label>
+      <label className="block text-black text-sm font-medium">{label}:</label>
       <div className="space-y-2">
         {property.enum?.map((option: string) => (
           <label
@@ -567,12 +557,12 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
               'items-center',
               'gap-3',
               'p-3',
-              'bg-gray-900/60',
+              'bg-gray-50',
               'border',
-              'border-white/10',
+              'border-gray-200',
               'rounded-lg',
               'cursor-pointer',
-              'hover:bg-gray-900/80',
+              'hover:bg-gray-100',
               TRANSITIONS.normal
             )}
           >
@@ -582,9 +572,9 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
               value={option}
               checked={propertyValues[key] === option}
               onChange={(e) => updatePropertyValue(key, e.target.value)}
-              className="w-4 h-4 text-purple-600 cursor-pointer"
+              className="w-4 h-4 text-black cursor-pointer accent-black"
             />
-            <span className="text-sm text-gray-200">
+            <span className="text-sm text-black">
               {option === 'left'
                 ? '왼쪽으로 회전 (반시계 방향)'
                 : option === 'right'
@@ -624,40 +614,34 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
     'w-full',
     'px-4',
     'py-3',
-    'bg-gray-900/90',
+    'bg-white',
     'border',
-    'border-purple-500/30',
-    'rounded-xl',
-    'text-white',
-    'placeholder-gray-400',
-    'text-lg',
-    'shadow-lg',
-    'shadow-black/20',
+    'border-gray-300',
+    'rounded-lg',
+    'text-black',
+    'placeholder-gray-500',
+    'text-base',
     'focus:outline-none',
-    'focus:border-purple-500',
+    'focus:border-black',
+    'focus:ring-1',
+    'focus:ring-black',
     TRANSITIONS.normal
   )
 
   // 버튼 클래스
   const buttonClasses = cn(
     'w-full',
-    'px-8',
-    'py-4',
-    'bg-gradient-to-r',
-    'from-purple-600',
-    'to-pink-600',
-    'border-0',
-    'rounded-xl',
+    'px-6',
+    'py-3',
+    'bg-black',
+    'border',
+    'border-black',
+    'rounded-lg',
     'text-white',
-    'text-xl',
-    'font-bold',
-    'uppercase',
-    'tracking-wider',
+    'text-base',
+    'font-medium',
     'cursor-pointer',
-    'shadow-lg',
-    'shadow-purple-500/30',
-    'hover:shadow-xl',
-    'hover:shadow-purple-500/40',
+    'hover:bg-gray-800',
     'active:scale-95',
     TRANSITIONS.normal
   )
@@ -687,9 +671,9 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
                 top: '0px',
                 width: '100%',
                 height: '100%',
-                border: '2px dashed rgba(255, 20, 147, 0.8)',
+                border: '2px dashed rgba(255, 255, 255, 0.3)',
                 borderRadius: '8px',
-                background: 'rgba(255, 20, 147, 0.08)',
+                background: 'rgba(255, 255, 255, 0.05)',
                 pointerEvents: 'none',
               }}
             >
@@ -701,8 +685,8 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
                   right: '-8px',
                   width: '16px',
                   height: '16px',
-                  background: 'rgba(255, 20, 147, 0.9)',
-                  border: '2px solid rgba(255, 255, 255, 0.9)',
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  border: '2px solid rgba(0, 0, 0, 0.8)',
                   borderRadius: '50%',
                   cursor: 'ne-resize',
                   pointerEvents: 'auto',
@@ -718,8 +702,8 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
                   left: '-8px',
                   width: '16px',
                   height: '16px',
-                  background: 'rgba(255, 20, 147, 0.9)',
-                  border: '2px solid rgba(255, 255, 255, 0.9)',
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  border: '2px solid rgba(0, 0, 0, 0.8)',
                   borderRadius: '50%',
                   cursor: 'sw-resize',
                   pointerEvents: 'auto',
@@ -759,10 +743,10 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
         {/* 컨트롤 영역 */}
         <div className={controlAreaClasses}>
           {/* 텍스트 입력 */}
-          <div className="space-y-2">
-            <label className="block text-gray-200 text-lg font-medium">
-              텍스트 입력:
-            </label>
+          <div className="space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="bg-black text-white px-3 py-1 rounded text-sm font-medium -m-4 mb-3">
+              텍스트 입력
+            </div>
             <input
               type="text"
               value={text}
@@ -776,14 +760,19 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
 
           {/* 동적 컨트롤 */}
           {assetConfig ? (
-            <div className="space-y-4">{renderDynamicControls()}</div>
+            <div className="space-y-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="bg-black text-white px-3 py-1 rounded text-sm font-medium -m-4 mb-3">
+                애니메이션 설정
+              </div>
+              {renderDynamicControls()}
+            </div>
           ) : (
             /* 기본 회전 방향 선택 */
-            <div className="space-y-3">
-              <label className="block text-gray-200 text-base font-medium">
-                회전 방향:
-              </label>
-              <div className="space-y-3">
+            <div className="space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="bg-black text-white px-3 py-1 rounded text-sm font-medium -m-4 mb-3">
+                회전 방향
+              </div>
+              <div className="space-y-2">
                 {[
                   { value: 'left', label: '왼쪽으로 회전 (반시계 방향)' },
                   { value: 'right', label: '오른쪽으로 회전 (시계 방향)' },
@@ -795,12 +784,12 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
                       'items-center',
                       'gap-3',
                       'p-3',
-                      'bg-gray-900/60',
+                      'bg-gray-50',
                       'border',
-                      'border-white/10',
+                      'border-gray-200',
                       'rounded-lg',
                       'cursor-pointer',
-                      'hover:bg-gray-900/80',
+                      'hover:bg-gray-100',
                       TRANSITIONS.normal
                     )}
                   >
@@ -814,15 +803,13 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
                           e.target.value as RotationDirection
                         )
                       }
-                      className="w-4 h-4 text-purple-600 cursor-pointer"
+                      className="w-4 h-4 text-black cursor-pointer accent-black"
                     />
                     <span
                       className={cn(
                         'flex-1',
                         'text-sm',
-                        rotationDirection === value
-                          ? 'text-purple-400'
-                          : 'text-gray-200',
+                        'text-black',
                         TRANSITIONS.colors
                       )}
                     >

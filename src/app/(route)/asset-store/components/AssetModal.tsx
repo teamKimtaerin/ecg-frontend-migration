@@ -47,17 +47,20 @@ export const Modal: React.FC<ModalProps> = ({
   const backdropClasses = cn(
     'absolute',
     'inset-0',
-    'bg-black/50',
+    'bg-black/60',
     'backdrop-blur-sm'
   )
 
   // 모달 컨테이너 클래스
   const modalClasses = cn(
     'relative',
-    'bg-gray-800',
+    'bg-white',
     'rounded-lg',
     'mx-4',
     'overflow-hidden',
+    'border',
+    'border-gray-200',
+    'shadow-xl',
 
     // 크기 변형
     variant === 'large' && 'max-w-7xl w-full max-h-[95vh]',
@@ -75,7 +78,8 @@ export const Modal: React.FC<ModalProps> = ({
     'justify-between',
     'p-4',
     'border-b',
-    'border-gray-700'
+    'border-gray-300',
+    'bg-black'
   )
 
   return (
@@ -97,7 +101,7 @@ export const Modal: React.FC<ModalProps> = ({
               'items-center',
               'justify-center',
               'rounded',
-              'hover:bg-gray-700',
+              'hover:bg-gray-800',
               TRANSITIONS.colors
             )}
             aria-label="닫기"
