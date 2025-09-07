@@ -90,35 +90,38 @@ export default function AssetPage() {
     },
     {
       id: '6',
-      title: 'Physics Motion',
-      category: 'Physics',
-      rating: 4,
-      downloads: 734,
-      likes: 567,
-      thumbnail: '/asset-store/physics-motion-thumb.svg',
+      title: 'Fade In Stagger',
+      category: 'Text Effect',
+      rating: 5,
+      downloads: 1456,
+      likes: 1089,
+      thumbnail: '/asset-store/fade-in-stagger-thumb.svg',
       isPro: false,
+      configFile: '/plugin/fadein/config.json',
       isFavorite: false,
     },
     {
       id: '7',
-      title: 'Observer Carousel',
-      category: 'Observer',
+      title: 'Scale Pop',
+      category: 'Text Effect',
       rating: 5,
-      downloads: 1876,
-      likes: 1234,
-      thumbnail: '/asset-store/observer-carousel-thumb.svg',
-      isPro: true,
+      downloads: 2134,
+      likes: 1567,
+      thumbnail: '/asset-store/scale-pop-thumb.svg',
+      isPro: false,
+      configFile: '/plugin/scalepop/config.json',
       isFavorite: false,
     },
     {
       id: '8',
-      title: 'Scroll Waves',
-      category: 'Scroll',
-      rating: 4,
-      downloads: 1123,
-      likes: 889,
-      thumbnail: '/asset-store/scroll-waves-thumb.svg',
+      title: 'Slide Up',
+      category: 'Text Effect',
+      rating: 5,
+      downloads: 2456,
+      likes: 1789,
+      thumbnail: '/asset-store/slide-up-thumb.svg',
       isPro: false,
+      configFile: '/plugin/slideup/config.json',
       isFavorite: true,
     },
   ])
@@ -129,7 +132,10 @@ export default function AssetPage() {
       asset.id === '2' ||
       asset.id === '3' ||
       asset.id === '4' ||
-      asset.id === '5'
+      asset.id === '5' ||
+      asset.id === '6' ||
+      asset.id === '7' ||
+      asset.id === '8'
     ) {
       setSelectedAsset(asset)
       setIsModalOpen(true)

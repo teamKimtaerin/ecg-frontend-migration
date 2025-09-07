@@ -850,6 +850,404 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
     })
   }, [text, propertyValues])
 
+  const fadeInStaggerEffect = useCallback(() => {
+    if (!window.gsap || !textRef.current) return
+
+    const textElement = textRef.current
+
+    // config에서 값 가져오거나 기본값 사용
+    const staggerDelay =
+      typeof propertyValues.staggerDelay === 'number'
+        ? propertyValues.staggerDelay
+        : 0.1
+    const animationDuration =
+      typeof propertyValues.animationDuration === 'number'
+        ? propertyValues.animationDuration
+        : 0.8
+    const startOpacity =
+      typeof propertyValues.startOpacity === 'number'
+        ? propertyValues.startOpacity
+        : 0
+    const scaleStart =
+      typeof propertyValues.scaleStart === 'number'
+        ? propertyValues.scaleStart
+        : 0.9
+    const ease =
+      typeof propertyValues.ease === 'string'
+        ? propertyValues.ease
+        : 'power2.out'
+
+    // 기존 내용 초기화
+    textElement.innerHTML = ''
+    textElement.className = 'fade-in-stagger-text'
+    textElement.style.position = 'relative'
+    textElement.style.display = 'inline-block'
+
+    const textContent = text || '안녕하세요!'
+
+    // 각 글자를 개별 span으로 분리
+    for (let i = 0; i < textContent.length; i++) {
+      const char = textContent.charAt(i)
+      const charSpan = document.createElement('span')
+      charSpan.className = 'fade-char'
+      charSpan.textContent = char === ' ' ? '\u00A0' : char // 공백 처리
+      charSpan.style.display = 'inline-block'
+      charSpan.style.position = 'relative'
+      charSpan.style.color = '#fff'
+      textElement.appendChild(charSpan)
+    }
+
+    const chars = textElement.querySelectorAll('.fade-char')
+
+    chars.forEach((char, index) => {
+      // 초기 상태 설정 (순수 페이드인 - 슬라이드 없음)
+      window.gsap.set(char, {
+        opacity: startOpacity,
+        scale: scaleStart,
+        transformOrigin: 'center center',
+      })
+
+      // 순수 페이드 인 애니메이션
+      window.gsap.to(char, {
+        opacity: 1,
+        scale: 1,
+        duration: animationDuration,
+        delay: index * staggerDelay,
+        ease: ease,
+        // 미묘한 색상 변화 효과
+        onStart: () => {
+          char.style.filter = 'brightness(1.3)'
+          char.style.textShadow = '0 0 5px rgba(255,255,255,0.3)'
+        },
+        onComplete: () => {
+          // 밝기와 글로우 효과 제거
+          window.gsap.to(char, {
+            filter: 'brightness(1)',
+            textShadow: '0 0 0px rgba(255,255,255,0)',
+            duration: 0.4,
+            ease: 'power1.out',
+          })
+        },
+      })
+
+      // 미묘한 펄스 효과 (스케일 변동)
+      window.gsap.to(char, {
+        scale: 1.03,
+        duration: animationDuration * 0.2,
+        delay: index * staggerDelay + animationDuration * 0.6,
+        ease: 'power2.out',
+        yoyo: true,
+        repeat: 1,
+      })
+
+      // 색상 그라데이션 효과
+      window.gsap.fromTo(
+        char,
+        {
+          color: '#999999',
+        },
+        {
+          color: '#ffffff',
+          duration: animationDuration * 0.8,
+          delay: index * staggerDelay + animationDuration * 0.2,
+          ease: 'power1.inOut',
+        }
+      )
+    })
+  }, [text, propertyValues])
+
+  const scalePopEffect = useCallback(() => {
+    if (!window.gsap || !textRef.current) return
+
+    const textElement = textRef.current
+
+    // config에서 값 가져오거나 기본값 사용
+    const startScale =
+      typeof propertyValues.startScale === 'number'
+        ? propertyValues.startScale
+        : 0
+    const maxScale =
+      typeof propertyValues.maxScale === 'number'
+        ? propertyValues.maxScale
+        : 1.3
+    const popDuration =
+      typeof propertyValues.popDuration === 'number'
+        ? propertyValues.popDuration
+        : 0.6
+    const staggerDelay =
+      typeof propertyValues.staggerDelay === 'number'
+        ? propertyValues.staggerDelay
+        : 0.08
+    const rotationAmount =
+      typeof propertyValues.rotationAmount === 'number'
+        ? propertyValues.rotationAmount
+        : 10
+
+    // 기존 내용 초기화
+    textElement.innerHTML = ''
+    textElement.className = 'scale-pop-text'
+    textElement.style.position = 'relative'
+    textElement.style.display = 'inline-block'
+
+    const textContent = text || '안녕하세요!'
+
+    // 각 글자를 개별 span으로 분리
+    for (let i = 0; i < textContent.length; i++) {
+      const char = textContent.charAt(i)
+      const charSpan = document.createElement('span')
+      charSpan.className = 'scale-char'
+      charSpan.textContent = char === ' ' ? '\u00A0' : char // 공백 처리
+      charSpan.style.display = 'inline-block'
+      charSpan.style.position = 'relative'
+      charSpan.style.color = '#fff'
+      textElement.appendChild(charSpan)
+    }
+
+    const chars = textElement.querySelectorAll('.scale-char')
+
+    chars.forEach((char, index) => {
+      // 랜덤한 회전 방향 결정
+      const randomRotation = (Math.random() - 0.5) * rotationAmount * 2
+
+      // 초기 상태 설정
+      window.gsap.set(char, {
+        scale: startScale,
+        opacity: 0,
+        rotation: randomRotation * 0.5,
+        transformOrigin: 'center center',
+        filter: 'blur(2px)',
+      })
+
+      // 스케일 팝 애니메이션 타임라인
+      const timeline = window.gsap.timeline()
+
+      // 1단계: 나타나면서 오버스케일
+      timeline.to(char, {
+        scale: maxScale,
+        opacity: 1,
+        rotation: randomRotation,
+        filter: 'blur(0px)',
+        duration: popDuration * 0.6,
+        delay: index * staggerDelay,
+        ease: 'back.out(2)',
+        onStart: () => {
+          // 글로우 효과 추가
+          char.style.textShadow = '0 0 10px rgba(255,255,255,0.5)'
+        },
+      })
+
+      // 2단계: 정상 크기로 복귀
+      timeline.to(char, {
+        scale: 1,
+        rotation: 0,
+        duration: popDuration * 0.4,
+        ease: 'elastic.out(1, 0.4)',
+        onComplete: () => {
+          // 글로우 효과 제거
+          window.gsap.to(char, {
+            textShadow: '0 0 0px rgba(255,255,255,0)',
+            duration: 0.3,
+            ease: 'power1.out',
+          })
+        },
+      })
+
+      // 추가적인 바운스 효과
+      timeline.to(
+        char,
+        {
+          y: -5,
+          duration: 0.15,
+          delay: popDuration * 0.1,
+          ease: 'power2.out',
+          yoyo: true,
+          repeat: 1,
+        },
+        '-=0.2'
+      )
+
+      // 미묘한 색상 변화 효과
+      timeline.to(
+        char,
+        {
+          color: '#fff',
+          duration: popDuration,
+          ease: 'power1.inOut',
+          onStart: () => {
+            char.style.color = '#e74c3c' // 시작 색상
+          },
+          onUpdate: function () {
+            // 진행률에 따라 색상 변화
+            const progress = this.progress()
+            const r = Math.floor(231 + (255 - 231) * progress) // 231 -> 255
+            const g = Math.floor(76 + (255 - 76) * progress) // 76 -> 255
+            const b = Math.floor(60 + (255 - 60) * progress) // 60 -> 255
+            char.style.color = `rgb(${r}, ${g}, ${b})`
+          },
+        },
+        0
+      )
+    })
+  }, [text, propertyValues])
+
+  const slideUpEffect = useCallback(() => {
+    if (!window.gsap || !textRef.current) return
+
+    const textElement = textRef.current
+
+    // config에서 값 가져오거나 기본값 사용
+    const slideDistance =
+      typeof propertyValues.slideDistance === 'number'
+        ? propertyValues.slideDistance
+        : 50
+    const animationDuration =
+      typeof propertyValues.animationDuration === 'number'
+        ? propertyValues.animationDuration
+        : 0.8
+    const staggerDelay =
+      typeof propertyValues.staggerDelay === 'number'
+        ? propertyValues.staggerDelay
+        : 0.1
+    const overshoot =
+      typeof propertyValues.overshoot === 'number'
+        ? propertyValues.overshoot
+        : 10
+    const blurEffect =
+      typeof propertyValues.blurEffect === 'boolean'
+        ? propertyValues.blurEffect
+        : true
+
+    // 기존 내용 초기화
+    textElement.innerHTML = ''
+    textElement.className = 'slide-up-text'
+    textElement.style.position = 'relative'
+    textElement.style.display = 'inline-block'
+    textElement.style.overflow = 'hidden'
+
+    const textContent = text || '안녕하세요!'
+
+    // 각 글자를 개별 span으로 분리
+    for (let i = 0; i < textContent.length; i++) {
+      const char = textContent.charAt(i)
+      const charSpan = document.createElement('span')
+      charSpan.className = 'slide-char'
+      charSpan.textContent = char === ' ' ? '\u00A0' : char // 공백 처리
+      charSpan.style.display = 'inline-block'
+      charSpan.style.position = 'relative'
+      charSpan.style.color = '#fff'
+      charSpan.style.overflow = 'hidden'
+      textElement.appendChild(charSpan)
+    }
+
+    const chars = textElement.querySelectorAll('.slide-char')
+
+    chars.forEach((char, index) => {
+      // 초기 상태 설정
+      window.gsap.set(char, {
+        y: slideDistance,
+        opacity: 0,
+        scale: 0.95,
+        transformOrigin: 'center bottom',
+        filter: blurEffect ? 'blur(3px)' : 'blur(0px)',
+      })
+
+      // 슬라이드 업 애니메이션 타임라인
+      const timeline = window.gsap.timeline()
+
+      // 1단계: 슬라이드 업 (오버슈트 포함)
+      timeline.to(char, {
+        y: overshoot > 0 ? -overshoot : 0,
+        opacity: 1,
+        scale: 1,
+        filter: 'blur(0px)',
+        duration: animationDuration * 0.7,
+        delay: index * staggerDelay,
+        ease: 'power3.out',
+        onStart: () => {
+          // 슬라이딩 시작 시 미묘한 글로우 효과
+          if (blurEffect) {
+            char.style.textShadow = '0 0 8px rgba(255,255,255,0.3)'
+          }
+        },
+      })
+
+      // 2단계: 정확한 위치로 복귀 (오버슈트가 있는 경우만)
+      if (overshoot > 0) {
+        timeline.to(char, {
+          y: 0,
+          duration: animationDuration * 0.3,
+          ease: 'power2.out',
+          onComplete: () => {
+            // 글로우 효과 제거
+            if (blurEffect) {
+              window.gsap.to(char, {
+                textShadow: '0 0 0px rgba(255,255,255,0)',
+                duration: 0.4,
+                ease: 'power1.out',
+              })
+            }
+          },
+        })
+      } else {
+        // 오버슈트가 없는 경우 글로우 제거
+        timeline.call(() => {
+          if (blurEffect) {
+            window.gsap.to(char, {
+              textShadow: '0 0 0px rgba(255,255,255,0)',
+              duration: 0.4,
+              ease: 'power1.out',
+            })
+          }
+        })
+      }
+
+      // 미묘한 추가 효과들
+      // 스케일 미세 조정
+      timeline.to(
+        char,
+        {
+          scale: 1.02,
+          duration: 0.2,
+          delay: animationDuration * 0.1,
+          ease: 'power2.out',
+          yoyo: true,
+          repeat: 1,
+        },
+        '-=0.3'
+      )
+
+      // 색상 변화
+      timeline.fromTo(
+        char,
+        {
+          color: '#cccccc',
+        },
+        {
+          color: '#ffffff',
+          duration: animationDuration,
+          ease: 'power1.inOut',
+        },
+        0
+      )
+    })
+
+    // 전체 컨테이너에 미묘한 효과
+    if (blurEffect) {
+      window.gsap.fromTo(
+        textElement,
+        {
+          filter: 'brightness(0.8)',
+        },
+        {
+          filter: 'brightness(1)',
+          duration:
+            animationDuration * chars.length * staggerDelay + animationDuration,
+          ease: 'power1.out',
+        }
+      )
+    }
+  }, [text, propertyValues])
+
   const applyEffect = useCallback(() => {
     if (typeof window === 'undefined' || !window.gsap || !textRef.current)
       return
@@ -872,6 +1270,15 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
     } else if (assetConfig?.name === 'Magnetic Pull Effect') {
       // Magnetic Pull 효과
       magneticPullEffect()
+    } else if (assetConfig?.name === 'Fade In Stagger Effect') {
+      // Fade In Stagger 효과
+      fadeInStaggerEffect()
+    } else if (assetConfig?.name === 'Scale Pop Effect') {
+      // Scale Pop 효과
+      scalePopEffect()
+    } else if (assetConfig?.name === 'Slide Up Effect') {
+      // Slide Up 효과
+      slideUpEffect()
     } else {
       // Rotation 효과 (기본값)
       splitTextIntoWords(textElement, text)
@@ -889,6 +1296,9 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
     elasticBounceEffect,
     glitchEffect,
     magneticPullEffect,
+    fadeInStaggerEffect,
+    scalePopEffect,
+    slideUpEffect,
     assetConfig,
   ])
 
