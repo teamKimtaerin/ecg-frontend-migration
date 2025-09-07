@@ -378,13 +378,13 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
           ;(word as HTMLElement).style.color = '#fff'
         }
 
-        window.gsap.set(word, {
+        window.gsap.set(word as HTMLElement, {
           scale: 0,
           rotation: finalAngle,
           transformOrigin: 'center center',
         })
 
-        window.gsap.to(word, {
+        window.gsap.to(word as HTMLElement, {
           scale: 1,
           rotation: 0,
           duration: duration,
@@ -394,7 +394,7 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
 
         // 그라데이션 애니메이션
         if (enableGradient) {
-          window.gsap.to(word, {
+          window.gsap.to(word as HTMLElement, {
             backgroundPosition: '200% 200%',
             duration: duration * 2,
             delay: index * stagger,
