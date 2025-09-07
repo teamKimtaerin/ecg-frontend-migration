@@ -1,11 +1,9 @@
 import { ClipStyleState } from '../types'
-import { SEMANTIC_COLORS } from '@/lib/utils/colors'
 
 export function useClipStyles({
   isSelected,
   isChecked,
   isMultiSelected,
-  isHovered,
   isDragging = false,
 }: ClipStyleState) {
   const getContainerClassName = () => {
@@ -14,10 +12,18 @@ export function useClipStyles({
     const stateClasses = []
 
     if (isMultiSelected || isChecked) {
+      // 체크박스 선택된 상태 (초록색)
       stateClasses.push('ring-2 ring-green-500 bg-green-50')
-    } else if (isSelected) {
-      stateClasses.push('ring-2 ring-gray-400')
-    } else if (!isDragging) {
+    }
+
+    if (isSelected) {
+      // 포커스 상태 (파란색 테두리, 체크박스와 독립적)
+      if (isMultiSelected || isChecked) {
+        stateClasses.push('ring-4 ring-blue-400') // 체크와 포커스가 함께 있을 때
+      } else {
+        stateClasses.push('ring-2 ring-blue-400 bg-blue-50') // 포커스만 있을 때
+      }
+    } else if (!isDragging && !(isMultiSelected || isChecked)) {
       stateClasses.push('hover:bg-gray-300')
     }
 
