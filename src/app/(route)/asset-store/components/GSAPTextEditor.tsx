@@ -420,7 +420,8 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
     // 텍스트를 단어별로 분리
     splitTextIntoWords(textElement, text)
 
-    const words = textElement.querySelectorAll('.word')
+    // 안전한 DOM 요소 조회
+    const words = textElement?.querySelectorAll('.word') || []
     window.gsap.set(textElement, { opacity: 1 })
 
     if (words.length > 0) {
