@@ -27,7 +27,7 @@ export default function AssetPage() {
     { id: 'Interactive', label: 'Interactive', count: 2 },
   ]
 
-  const [assets] = useState<AssetItem[]>([
+  const [assets, setAssets] = useState<AssetItem[]>([
     {
       id: '1',
       title: 'Rotation Text',
@@ -144,6 +144,26 @@ export default function AssetPage() {
 
   const handleAddToCart = () => {
     console.log('아이템이 카트에 추가되었습니다:', selectedAsset?.title)
+  }
+
+  const handleLikeClick = (assetId: string) => {
+    setAssets((prevAssets) =>
+      prevAssets.map((asset) =>
+        asset.id === assetId
+          ? { ...asset, likes: (asset.likes || 0) + 1 }
+          : asset
+      )
+    )
+  }
+
+  const handleFavoriteToggle = (assetId: string) => {
+    setAssets((prevAssets) =>
+      prevAssets.map((asset) =>
+        asset.id === assetId
+          ? { ...asset, isFavorite: !asset.isFavorite }
+          : asset
+      )
+    )
   }
 
   // 즐겨찾기 개수 계산
@@ -270,6 +290,8 @@ export default function AssetPage() {
                 key={asset.id}
                 asset={asset}
                 onCardClick={handleCardClick}
+                onLikeClick={handleLikeClick}
+                onFavoriteToggle={handleFavoriteToggle}
               />
             ))}
           </div>

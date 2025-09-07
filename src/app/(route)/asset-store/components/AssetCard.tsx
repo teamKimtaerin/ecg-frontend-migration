@@ -26,12 +26,16 @@ export interface AssetItem {
 interface AssetCardProps extends BaseComponentProps {
   asset: AssetItem
   onCardClick: (asset: AssetItem) => void
+  onLikeClick?: (assetId: string) => void
+  onFavoriteToggle?: (assetId: string) => void
 }
 
 // Asset 카드 컴포넌트
 export const AssetCard: React.FC<AssetCardProps> = ({
   asset,
   onCardClick,
+  onLikeClick,
+  onFavoriteToggle,
   className,
 }) => {
   // 검증
@@ -77,8 +81,7 @@ export const AssetCard: React.FC<AssetCardProps> = ({
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation() // 카드 클릭 이벤트 방지
-    // 나중에 즐겨찾기 토글 로직 구현 예정
-    console.log('Favorite clicked:', asset.id)
+    onFavoriteToggle?.(asset.id)
   }
 
   return (
@@ -92,7 +95,11 @@ export const AssetCard: React.FC<AssetCardProps> = ({
             'top-2',
             'right-2',
             'z-10',
-            'p-1.5',
+            'w-8',
+            'h-8',
+            'flex',
+            'items-center',
+            'justify-center',
             'rounded-full',
             'bg-white/80',
             'backdrop-blur-sm',
@@ -106,12 +113,14 @@ export const AssetCard: React.FC<AssetCardProps> = ({
         >
           <span
             className={cn(
-              'text-lg',
+              'text-base',
+              'leading-none',
               'transition-colors',
               'duration-200',
               asset.isFavorite ? 'text-yellow-500' : 'text-gray-400',
               'hover:text-yellow-500'
             )}
+            style={{ lineHeight: 1 }}
           >
             {asset.isFavorite ? '★' : '☆'}
           </span>
@@ -174,10 +183,16 @@ export const AssetCard: React.FC<AssetCardProps> = ({
 
           {/* 좋아요 수와 다운로드 수 */}
           <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
-            <div className="flex items-center space-x-1 text-gray-500">
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                onLikeClick?.(asset.id)
+              }}
+              className="flex items-center space-x-1 text-gray-500 hover:text-red-500 transition-colors duration-200 cursor-pointer"
+            >
               <span className="text-xs">❤️</span>
               <span className="text-xs font-medium">{asset.likes || 0}</span>
-            </div>
+            </button>
             <div className="flex items-center space-x-1 text-gray-500">
               <span className="text-xs">⬇️</span>
               <span className="text-xs font-medium">{asset.downloads}</span>
