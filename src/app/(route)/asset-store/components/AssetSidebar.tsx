@@ -89,24 +89,6 @@ export const AssetSidebar: React.FC<AssetSidebarProps> = ({
 
   return (
     <aside className={sidebarClasses}>
-      {/* Categories 섹션 */}
-      <div className="mb-6">
-        <h3 className="text-black text-base font-semibold mb-5 tracking-wide">
-          Categories
-        </h3>
-        <div className="space-y-1">
-          {categories.map((category) => (
-            <button
-              key={category}
-              onClick={() => onCategoryChange?.(category)}
-              className={getCategoryButtonClasses(category)}
-            >
-              {category}
-            </button>
-          ))}
-        </div>
-      </div>
-
       {/* Favorites 섹션 */}
       <div className="mb-6">
         <h3 className="text-black text-base font-semibold mb-5 tracking-wide">

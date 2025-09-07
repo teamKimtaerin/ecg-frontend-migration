@@ -14,24 +14,23 @@ export default function AssetPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedAsset, setSelectedAsset] = useState<AssetItem | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [selectedCategory, setSelectedCategory] = useState('Vlog')
+  const [selectedCategory, setSelectedCategory] = useState('Smooth')
   const [activeFilter, setActiveFilter] = useState('All')
   const [showFavorites, setShowFavorites] = useState(false)
 
   // 카테고리 필터 버튼 목록
   const categoryFilters = [
     { id: 'All', label: 'All', count: 8 },
-    { id: 'Animation', label: 'Animation', count: 3 },
-    { id: 'Text Effect', label: 'Text', count: 1 },
-    { id: 'Scroll', label: 'Scroll', count: 2 },
-    { id: 'Interactive', label: 'Interactive', count: 2 },
+    { id: 'Smooth', label: 'Smooth', count: 3 },
+    { id: 'Dynamic', label: 'Dynamic', count: 3 },
+    { id: 'Unique', label: 'Unique', count: 2 },
   ]
 
   const [assets, setAssets] = useState<AssetItem[]>([
     {
       id: '1',
       title: 'Rotation Text',
-      category: 'Text Effect',
+      category: 'Dynamic',
       rating: 5,
       downloads: 1243,
       likes: 892,
@@ -43,7 +42,7 @@ export default function AssetPage() {
     {
       id: '2',
       title: 'TypeWriter Effect',
-      category: 'Text Effect',
+      category: 'Smooth',
       rating: 4,
       downloads: 856,
       likes: 654,
@@ -55,7 +54,7 @@ export default function AssetPage() {
     {
       id: '3',
       title: 'Elastic Bounce',
-      category: 'Text Effect',
+      category: 'Dynamic',
       rating: 5,
       downloads: 2341,
       likes: 1456,
@@ -67,7 +66,7 @@ export default function AssetPage() {
     {
       id: '4',
       title: 'Glitch Effect',
-      category: 'Text Effect',
+      category: 'Unique',
       rating: 4,
       downloads: 967,
       likes: 723,
@@ -79,7 +78,7 @@ export default function AssetPage() {
     {
       id: '5',
       title: 'Magnetic Pull',
-      category: 'Text Effect',
+      category: 'Unique',
       rating: 5,
       downloads: 1589,
       likes: 1123,
@@ -91,7 +90,7 @@ export default function AssetPage() {
     {
       id: '6',
       title: 'Fade In Stagger',
-      category: 'Text Effect',
+      category: 'Smooth',
       rating: 5,
       downloads: 1456,
       likes: 1089,
@@ -103,7 +102,7 @@ export default function AssetPage() {
     {
       id: '7',
       title: 'Scale Pop',
-      category: 'Text Effect',
+      category: 'Dynamic',
       rating: 5,
       downloads: 2134,
       likes: 1567,
@@ -115,7 +114,7 @@ export default function AssetPage() {
     {
       id: '8',
       title: 'Slide Up',
-      category: 'Text Effect',
+      category: 'Smooth',
       rating: 5,
       downloads: 2456,
       likes: 1789,
