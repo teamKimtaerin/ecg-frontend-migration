@@ -6,7 +6,7 @@ import { AssetSidebar } from '@/app/(route)/asset-store/components/AssetSidebar'
 import { GSAPTextEditor } from '@/app/(route)/asset-store/components/GSAPTextEditor'
 import { cn, TRANSITIONS } from '@/lib/utils'
 import { AssetItem } from '@/types/asset-store'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { LuSearch } from 'react-icons/lu'
 
 // 메인 페이지 컴포넌트
@@ -26,104 +26,23 @@ export default function AssetPage() {
     { id: 'Unique', label: 'Unique', count: 2 },
   ]
 
-  const [assets, setAssets] = useState<AssetItem[]>([
-    {
-      id: '1',
-      title: 'Rotation Text',
-      category: 'Dynamic',
-      rating: 5,
-      downloads: 1243,
-      likes: 892,
-      thumbnail: '/asset-store/rotation-text-thumb.svg',
-      isPro: false,
-      configFile: '/plugin/rotation/config.json',
-      isFavorite: true,
-    },
-    {
-      id: '2',
-      title: 'TypeWriter Effect',
-      category: 'Smooth',
-      rating: 4,
-      downloads: 856,
-      likes: 654,
-      thumbnail: '/asset-store/typewriter-thumb.svg',
-      isPro: false,
-      configFile: '/plugin/typewriter/config.json',
-      isFavorite: false,
-    },
-    {
-      id: '3',
-      title: 'Elastic Bounce',
-      category: 'Dynamic',
-      rating: 5,
-      downloads: 2341,
-      likes: 1456,
-      thumbnail: '/asset-store/elastic-bounce-thumb.svg',
-      isPro: false,
-      configFile: '/plugin/elastic/config.json',
-      isFavorite: true,
-    },
-    {
-      id: '4',
-      title: 'Glitch Effect',
-      category: 'Unique',
-      rating: 4,
-      downloads: 967,
-      likes: 723,
-      thumbnail: '/asset-store/glitch-thumb.svg',
-      isPro: false,
-      configFile: '/plugin/glitch/config.json',
-      isFavorite: false,
-    },
-    {
-      id: '5',
-      title: 'Magnetic Pull',
-      category: 'Unique',
-      rating: 5,
-      downloads: 1589,
-      likes: 1123,
-      thumbnail: '/asset-store/magnetic-pull-thumb.svg',
-      isPro: false,
-      configFile: '/plugin/magnetic/config.json',
-      isFavorite: true,
-    },
-    {
-      id: '6',
-      title: 'Fade In Stagger',
-      category: 'Smooth',
-      rating: 5,
-      downloads: 1456,
-      likes: 1089,
-      thumbnail: '/asset-store/fade-in-stagger-thumb.svg',
-      isPro: false,
-      configFile: '/plugin/fadein/config.json',
-      isFavorite: false,
-    },
-    {
-      id: '7',
-      title: 'Scale Pop',
-      category: 'Dynamic',
-      rating: 5,
-      downloads: 2134,
-      likes: 1567,
-      thumbnail: '/asset-store/scale-pop-thumb.svg',
-      isPro: false,
-      configFile: '/plugin/scalepop/config.json',
-      isFavorite: false,
-    },
-    {
-      id: '8',
-      title: 'Slide Up',
-      category: 'Smooth',
-      rating: 5,
-      downloads: 2456,
-      likes: 1789,
-      thumbnail: '/asset-store/slide-up-thumb.svg',
-      isPro: false,
-      configFile: '/plugin/slideup/config.json',
-      isFavorite: true,
-    },
-  ])
+  const [assets, setAssets] = useState<AssetItem[]>([])
+
+  useEffect(() => {
+    const loadAssets = async () => {
+      try {
+        const response = await fetch('/asset-store/assets-database.json')
+        const data = await response.json()
+        setAssets(data.assets)
+        setIsLoading(false)
+      } catch (error) {
+        console.error('Failed to load assets:', error)
+        setIsLoading(false)
+      }
+    }
+    loadAssets()
+  }, [])
+  const [isLoading, setIsLoading] = useState(true)
 
   const handleCardClick = (asset: AssetItem) => {
     if (
@@ -299,17 +218,23 @@ export default function AssetPage() {
             ))}
           </div>
 
-          <div className="grid grid-cols-4 gap-6">
-            {filteredAssets.map((asset) => (
-              <AssetCard
-                key={asset.id}
-                asset={asset}
-                onCardClick={handleCardClick}
-                onLikeClick={handleLikeClick}
-                onFavoriteToggle={handleFavoriteToggle}
-              />
-            ))}
-          </div>
+          {isLoading ? (
+            <div className="flex justify-center items-center py-20">
+              <div className="text-gray-500">Loading assets...</div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-4 gap-6">
+              {filteredAssets.map((asset) => (
+                <AssetCard
+                  key={asset.id}
+                  asset={asset}
+                  onCardClick={handleCardClick}
+                  onLikeClick={handleLikeClick}
+                  onFavoriteToggle={handleFavoriteToggle}
+                />
+              ))}
+            </div>
+          )}
         </main>
       </div>
 

@@ -36,11 +36,19 @@ export interface AssetItem {
   id: string
   title: string
   category: string
+  description: string
+  thumbnail: string
+  configFile?: string
+  authorId: string
+  authorName: string
+  isPro: boolean
+  price: number
   rating: number
   downloads: number
-  likes?: number
-  thumbnail: string
-  isPro?: boolean
-  configFile?: string
-  isFavorite?: boolean
+  likes: number
+  usageCount: number
+  tags: string[]
+  isFavorite: boolean
+  createdAt: string
+  updatedAt: string
 }
