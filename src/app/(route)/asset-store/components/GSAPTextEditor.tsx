@@ -400,6 +400,456 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
     [propertyValues, rotationDirection]
   )
 
+  const typeWriterEffect = useCallback(() => {
+    if (!window.gsap || !textRef.current) return
+
+    const textElement = textRef.current
+    const originalText = text
+
+    // config에서 값 가져오거나 기본값 사용
+    const typingSpeed =
+      typeof propertyValues.typingSpeed === 'number'
+        ? propertyValues.typingSpeed
+        : 0.1
+    const startDelay =
+      typeof propertyValues.startDelay === 'number'
+        ? propertyValues.startDelay
+        : 0.5
+    const showCursor =
+      typeof propertyValues.showCursor === 'boolean'
+        ? propertyValues.showCursor
+        : true
+    const cursorBlinkSpeed =
+      typeof propertyValues.cursorBlinkSpeed === 'number'
+        ? propertyValues.cursorBlinkSpeed
+        : 0.8
+    const randomSpeed =
+      typeof propertyValues.randomSpeed === 'boolean'
+        ? propertyValues.randomSpeed
+        : false
+
+    // 기존 내용 초기화
+    textElement.innerHTML = ''
+    textElement.className = 'typewriter-text'
+
+    // 텍스트 컨테이너 생성
+    const textContainer = document.createElement('span')
+    textContainer.className = 'typed-text'
+    textElement.appendChild(textContainer)
+
+    // 커서 생성
+    let cursorElement = null
+    if (showCursor) {
+      cursorElement = document.createElement('span')
+      cursorElement.className = 'typewriter-cursor'
+      cursorElement.textContent = '|'
+      cursorElement.style.display = 'inline-block'
+      cursorElement.style.color = '#fff'
+      textElement.appendChild(cursorElement)
+
+      // 커서 깜빡임 애니메이션
+      window.gsap.to(cursorElement, {
+        opacity: 0,
+        duration: cursorBlinkSpeed,
+        repeat: -1,
+        yoyo: true,
+        ease: 'power2.inOut',
+      })
+    }
+
+    // 타이핑 애니메이션 타임라인
+    const timeline = window.gsap.timeline()
+
+    // 시작 지연
+    if (startDelay > 0) {
+      timeline.to({}, { duration: startDelay })
+    }
+
+    // 각 글자별 타이핑 애니메이션
+    for (let i = 0; i <= originalText.length; i++) {
+      const delay = randomSpeed
+        ? typingSpeed * (0.5 + Math.random())
+        : typingSpeed
+
+      timeline.to(
+        {},
+        {
+          duration: delay,
+          onComplete: () => {
+            textContainer.textContent = originalText.substring(0, i)
+          },
+        }
+      )
+    }
+  }, [text, propertyValues])
+
+  const elasticBounceEffect = useCallback(() => {
+    if (!window.gsap || !textRef.current) return
+
+    const textElement = textRef.current
+
+    // config에서 값 가져오거나 기본값 사용
+    const bounceStrength =
+      typeof propertyValues.bounceStrength === 'number'
+        ? propertyValues.bounceStrength
+        : 0.7
+    const animationDuration =
+      typeof propertyValues.animationDuration === 'number'
+        ? propertyValues.animationDuration
+        : 1.5
+    const staggerDelay =
+      typeof propertyValues.staggerDelay === 'number'
+        ? propertyValues.staggerDelay
+        : 0.1
+    const startScale =
+      typeof propertyValues.startScale === 'number'
+        ? propertyValues.startScale
+        : 0
+    const overshoot =
+      typeof propertyValues.overshoot === 'number'
+        ? propertyValues.overshoot
+        : 1.3
+
+    // 텍스트를 단어별로 분리
+    splitTextIntoWords(textElement, text)
+    const words = textElement.querySelectorAll('.word')
+
+    words.forEach((word, index) => {
+      // 초기 상태 설정
+      window.gsap.set(word, {
+        scale: startScale,
+        y: 20,
+        opacity: 0,
+        transformOrigin: 'center bottom',
+      })
+
+      // 바운스 애니메이션
+      window.gsap.to(word, {
+        scale: overshoot,
+        y: 0,
+        opacity: 1,
+        duration: animationDuration * 0.4,
+        delay: index * staggerDelay,
+        ease: 'back.out(2)',
+        onComplete: () => {
+          // 오버슈트에서 정상 크기로 복귀
+          window.gsap.to(word, {
+            scale: 1,
+            duration: animationDuration * 0.3,
+            ease: `elastic.out(${bounceStrength}, 0.3)`,
+          })
+        },
+      })
+
+      // 미묘한 y축 바운스 추가
+      window.gsap.to(word, {
+        y: -5,
+        duration: animationDuration * 0.2,
+        delay: index * staggerDelay + animationDuration * 0.4,
+        ease: 'power2.out',
+        yoyo: true,
+        repeat: 1,
+      })
+    })
+  }, [text, propertyValues])
+
+  const glitchEffect = useCallback(() => {
+    if (!window.gsap || !textRef.current) return
+
+    const textElement = textRef.current
+
+    // config에서 값 가져오거나 기본값 사용
+    const glitchIntensity =
+      typeof propertyValues.glitchIntensity === 'number'
+        ? propertyValues.glitchIntensity
+        : 5
+    const animationDuration =
+      typeof propertyValues.animationDuration === 'number'
+        ? propertyValues.animationDuration
+        : 2
+    const glitchFrequency =
+      typeof propertyValues.glitchFrequency === 'number'
+        ? propertyValues.glitchFrequency
+        : 0.3
+    const colorSeparation =
+      typeof propertyValues.colorSeparation === 'boolean'
+        ? propertyValues.colorSeparation
+        : true
+    const noiseEffect =
+      typeof propertyValues.noiseEffect === 'boolean'
+        ? propertyValues.noiseEffect
+        : true
+
+    // 기존 내용 초기화
+    textElement.innerHTML = ''
+    textElement.className = 'glitch-text'
+    textElement.style.position = 'relative'
+    textElement.style.display = 'inline-block'
+
+    const textContent = text || '안녕하세요!'
+
+    // 메인 텍스트
+    const mainText = document.createElement('span')
+    mainText.className = 'glitch-main'
+    mainText.textContent = textContent
+    mainText.style.position = 'relative'
+    mainText.style.display = 'inline-block'
+    mainText.style.color = '#fff'
+    textElement.appendChild(mainText)
+
+    // 색상 분리 효과를 위한 레이어들
+    if (colorSeparation) {
+      // 빨간색 레이어
+      const redLayer = document.createElement('span')
+      redLayer.className = 'glitch-red'
+      redLayer.textContent = textContent
+      redLayer.style.position = 'absolute'
+      redLayer.style.top = '0'
+      redLayer.style.left = '0'
+      redLayer.style.color = '#ff0000'
+      redLayer.style.opacity = '0.8'
+      redLayer.style.mixBlendMode = 'screen'
+      textElement.appendChild(redLayer)
+
+      // 시안색 레이어
+      const cyanLayer = document.createElement('span')
+      cyanLayer.className = 'glitch-cyan'
+      cyanLayer.textContent = textContent
+      cyanLayer.style.position = 'absolute'
+      cyanLayer.style.top = '0'
+      cyanLayer.style.left = '0'
+      cyanLayer.style.color = '#00ffff'
+      cyanLayer.style.opacity = '0.8'
+      cyanLayer.style.mixBlendMode = 'screen'
+      textElement.appendChild(cyanLayer)
+    }
+
+    // 노이즈 효과
+    if (noiseEffect) {
+      const noiseLayer = document.createElement('span')
+      noiseLayer.className = 'glitch-noise'
+      noiseLayer.textContent = textContent
+      noiseLayer.style.position = 'absolute'
+      noiseLayer.style.top = '0'
+      noiseLayer.style.left = '0'
+      noiseLayer.style.color = '#fff'
+      noiseLayer.style.opacity = '0.1'
+      textElement.appendChild(noiseLayer)
+    }
+
+    // 글리치 애니메이션 타임라인
+    const timeline = window.gsap.timeline({ repeat: -1 })
+
+    const redLayer = textElement.querySelector('.glitch-red')
+    const cyanLayer = textElement.querySelector('.glitch-cyan')
+    const noiseLayer = textElement.querySelector('.glitch-noise')
+
+    // 메인 텍스트 글리치
+    timeline.to(mainText, {
+      x: () => (Math.random() - 0.5) * glitchIntensity,
+      y: () => (Math.random() - 0.5) * glitchIntensity,
+      duration: glitchFrequency,
+      ease: 'none',
+    })
+
+    // 색상 분리 효과
+    if (colorSeparation && redLayer && cyanLayer) {
+      timeline.to(
+        redLayer,
+        {
+          x: () => (Math.random() - 0.5) * glitchIntensity * 2,
+          y: () => (Math.random() - 0.5) * glitchIntensity * 0.5,
+          duration: glitchFrequency,
+          ease: 'none',
+        },
+        0
+      )
+
+      timeline.to(
+        cyanLayer,
+        {
+          x: () => (Math.random() - 0.5) * glitchIntensity * -2,
+          y: () => (Math.random() - 0.5) * glitchIntensity * 0.5,
+          duration: glitchFrequency,
+          ease: 'none',
+        },
+        0
+      )
+    }
+
+    // 노이즈 효과
+    if (noiseEffect && noiseLayer) {
+      timeline.to(
+        noiseLayer,
+        {
+          opacity: () => Math.random() * 0.5,
+          x: () => (Math.random() - 0.5) * glitchIntensity * 3,
+          duration: glitchFrequency * 0.5,
+          ease: 'none',
+        },
+        0
+      )
+    }
+
+    // 깜빡임 효과
+    timeline.to(
+      mainText,
+      {
+        opacity: 0,
+        duration: 0.1,
+        repeat: 1,
+        yoyo: true,
+        ease: 'none',
+      },
+      glitchFrequency * 0.7
+    )
+
+    // 스케일 글리치
+    timeline.to(
+      textElement,
+      {
+        scaleX: () => 1 + (Math.random() - 0.5) * 0.1,
+        scaleY: () => 1 + (Math.random() - 0.5) * 0.05,
+        duration: glitchFrequency,
+        ease: 'none',
+      },
+      0
+    )
+
+    // 전체 애니메이션 지속시간 설정
+    timeline.duration(animationDuration)
+  }, [text, propertyValues])
+
+  const magneticPullEffect = useCallback(() => {
+    if (!window.gsap || !textRef.current) return
+
+    const textElement = textRef.current
+
+    // config에서 값 가져오거나 기본값 사용
+    const scatterDistance =
+      typeof propertyValues.scatterDistance === 'number'
+        ? propertyValues.scatterDistance
+        : 200
+    const pullSpeed =
+      typeof propertyValues.pullSpeed === 'number'
+        ? propertyValues.pullSpeed
+        : 1.5
+    const staggerDelay =
+      typeof propertyValues.staggerDelay === 'number'
+        ? propertyValues.staggerDelay
+        : 0.05
+    const magneticStrength =
+      typeof propertyValues.magneticStrength === 'number'
+        ? propertyValues.magneticStrength
+        : 1.2
+    const elasticEffect =
+      typeof propertyValues.elasticEffect === 'boolean'
+        ? propertyValues.elasticEffect
+        : true
+
+    // 기존 내용 초기화
+    textElement.innerHTML = ''
+    textElement.className = 'magnetic-pull-text'
+    textElement.style.position = 'relative'
+    textElement.style.display = 'inline-block'
+
+    const textContent = text || '안녕하세요!'
+
+    // 각 글자를 개별 span으로 분리
+    for (let i = 0; i < textContent.length; i++) {
+      const char = textContent.charAt(i)
+      const charSpan = document.createElement('span')
+      charSpan.className = 'magnetic-char'
+      charSpan.textContent = char === ' ' ? '\u00A0' : char // 공백 처리
+      charSpan.style.display = 'inline-block'
+      charSpan.style.position = 'relative'
+      charSpan.style.color = '#fff'
+      textElement.appendChild(charSpan)
+    }
+
+    const chars = textElement.querySelectorAll('.magnetic-char')
+
+    chars.forEach((char, index) => {
+      // 랜덤한 방향과 거리로 흩어진 초기 위치 설정
+      const angle = Math.random() * Math.PI * 2
+      const distance = scatterDistance * (0.5 + Math.random() * 0.5)
+      const scatterX = Math.cos(angle) * distance
+      const scatterY = Math.sin(angle) * distance
+
+      // 초기 상태: 흩어진 상태
+      window.gsap.set(char, {
+        x: scatterX,
+        y: scatterY,
+        opacity: 0,
+        scale: 0.3,
+        rotation: Math.random() * 360 - 180,
+      })
+
+      // 자석에 끌려오는 애니메이션
+      const timeline = window.gsap.timeline()
+
+      // 1단계: 나타나기
+      timeline.to(char, {
+        opacity: 1,
+        duration: 0.2,
+        delay: index * staggerDelay,
+        ease: 'power2.out',
+      })
+
+      // 2단계: 자석에 끌려오기
+      timeline.to(
+        char,
+        {
+          x: 0,
+          y: 0,
+          scale: magneticStrength,
+          rotation: 0,
+          duration: pullSpeed,
+          ease: 'power2.out',
+          onComplete: () => {
+            if (elasticEffect) {
+              // 3단계: 탄성 복귀
+              window.gsap.to(char, {
+                scale: 1,
+                duration: 0.6,
+                ease: 'elastic.out(1, 0.4)',
+              })
+
+              // 미묘한 바운스 효과
+              window.gsap.to(char, {
+                y: -3,
+                duration: 0.15,
+                ease: 'power2.out',
+                yoyo: true,
+                repeat: 1,
+              })
+            } else {
+              // 단순한 스케일 복귀
+              window.gsap.to(char, {
+                scale: 1,
+                duration: 0.3,
+                ease: 'power2.out',
+              })
+            }
+          },
+        },
+        '-=0.1'
+      )
+
+      // 자석 끌림 효과 (중간에 가속)
+      timeline.to(
+        char,
+        {
+          x: 0,
+          y: 0,
+          duration: pullSpeed * 0.3,
+          ease: 'power3.in',
+        },
+        `-=${pullSpeed * 0.4}`
+      )
+    })
+  }, [text, propertyValues])
+
   const applyEffect = useCallback(() => {
     if (typeof window === 'undefined' || !window.gsap || !textRef.current)
       return
@@ -409,17 +859,38 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
     // 기존 애니메이션 정리
     window.gsap.killTweensOf('*')
 
-    // 텍스트를 단어별로 분리
-    splitTextIntoWords(textElement, text)
+    // 플러그인 타입에 따라 다른 효과 적용
+    if (assetConfig?.name === 'TypeWriter Text Effect') {
+      // TypeWriter 효과
+      typeWriterEffect()
+    } else if (assetConfig?.name === 'Elastic Bounce Effect') {
+      // Elastic Bounce 효과
+      elasticBounceEffect()
+    } else if (assetConfig?.name === 'Glitch Effect') {
+      // Glitch 효과
+      glitchEffect()
+    } else if (assetConfig?.name === 'Magnetic Pull Effect') {
+      // Magnetic Pull 효과
+      magneticPullEffect()
+    } else {
+      // Rotation 효과 (기본값)
+      splitTextIntoWords(textElement, text)
+      const words = textElement?.querySelectorAll('.word') || []
+      window.gsap.set(textElement, { opacity: 1 })
 
-    // 안전한 DOM 요소 조회
-    const words = textElement?.querySelectorAll('.word') || []
-    window.gsap.set(textElement, { opacity: 1 })
-
-    if (words.length > 0) {
-      rotationEffect(words)
+      if (words.length > 0) {
+        rotationEffect(words)
+      }
     }
-  }, [text, rotationEffect])
+  }, [
+    text,
+    rotationEffect,
+    typeWriterEffect,
+    elasticBounceEffect,
+    glitchEffect,
+    magneticPullEffect,
+    assetConfig,
+  ])
 
   const handleAddToCart = () => {
     onAddToCart?.()
@@ -579,10 +1050,70 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
                 ? '왼쪽으로 회전 (반시계 방향)'
                 : option === 'right'
                   ? '오른쪽으로 회전 (시계 방향)'
-                  : option}
+                  : option === 'alternate'
+                    ? '교대로 회전 (좌우 번갈아)'
+                    : option === 'power1.out'
+                      ? 'Power1 (부드러운)'
+                      : option === 'power2.out'
+                        ? 'Power2 (기본)'
+                        : option === 'power3.out'
+                          ? 'Power3 (강한)'
+                          : option === 'back.out'
+                            ? 'Back (되튐)'
+                            : option === 'elastic.out'
+                              ? 'Elastic (탄성)'
+                              : option === 'bounce.out'
+                                ? 'Bounce (바운스)'
+                                : option === 'circ.out'
+                                  ? 'Circular (원형)'
+                                  : option === 'expo.out'
+                                    ? 'Exponential (지수)'
+                                    : option === 'center center'
+                                      ? '중앙'
+                                      : option === 'left center'
+                                        ? '왼쪽'
+                                        : option === 'right center'
+                                          ? '오른쪽'
+                                          : option === 'center top'
+                                            ? '상단'
+                                            : option === 'center bottom'
+                                              ? '하단'
+                                              : option}
             </span>
           </label>
         ))}
+      </div>
+    </div>
+  )
+
+  // 컬러 선택 컴포넌트
+  const renderColorPicker = (
+    key: string,
+    property: SchemaProperty,
+    label: string
+  ) => (
+    <div key={key} className="space-y-2">
+      <label className="block text-black text-sm font-medium">{label}:</label>
+      <div className="flex items-center gap-3">
+        <input
+          type="color"
+          value={
+            typeof propertyValues[key] === 'string'
+              ? propertyValues[key]
+              : typeof property.default === 'string'
+                ? property.default
+                : '#000000'
+          }
+          onChange={(e) => updatePropertyValue(key, e.target.value)}
+          className="w-12 h-8 rounded border border-gray-300 cursor-pointer"
+        />
+        <span className="text-sm text-gray-600">
+          {typeof propertyValues[key] === 'string'
+            ? propertyValues[key]
+            : typeof property.default === 'string'
+              ? property.default
+              : '#000000'}
+        </span>
       </div>
     </div>
   )
@@ -595,14 +1126,16 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
     const translations = assetConfig.i18n?.[locale] || {}
 
     return Object.entries(assetConfig.schema).map(([key, property]) => {
-      const label = translations[key] || key
+      const label = property.label || translations[key] || key
 
-      if (property.ui?.control === 'slider') {
+      if (property.type === 'number') {
         return renderSlider(key, property, label)
-      } else if (property.ui?.control === 'checkbox') {
+      } else if (property.type === 'boolean') {
         return renderCheckbox(key, property, label)
-      } else if (property.ui?.control === 'radio' && property.enum) {
+      } else if (property.type === 'select' && property.enum) {
         return renderRadio(key, property, label)
+      } else if (property.type === 'color') {
+        return renderColorPicker(key, property, label)
       }
 
       return null

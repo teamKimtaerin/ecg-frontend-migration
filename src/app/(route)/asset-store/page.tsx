@@ -37,51 +37,55 @@ export default function AssetPage() {
       likes: 892,
       thumbnail: '/asset-store/rotation-text-thumb.svg',
       isPro: false,
-      configFile: '/asset-store/template1-rotation.json',
+      configFile: '/plugin/rotation/config.json',
       isFavorite: true,
     },
     {
       id: '2',
-      title: 'Fade In Animation',
-      category: 'Animation',
+      title: 'TypeWriter Effect',
+      category: 'Text Effect',
       rating: 4,
       downloads: 856,
       likes: 654,
-      thumbnail: '/asset-store/fade-in-thumb.svg',
+      thumbnail: '/asset-store/typewriter-thumb.svg',
       isPro: false,
+      configFile: '/plugin/typewriter/config.json',
       isFavorite: false,
     },
     {
       id: '3',
-      title: 'Scroll Trigger',
-      category: 'Scroll',
+      title: 'Elastic Bounce',
+      category: 'Text Effect',
       rating: 5,
       downloads: 2341,
       likes: 1456,
-      thumbnail: '/asset-store/scroll-trigger-thumb.svg',
-      isPro: true,
+      thumbnail: '/asset-store/elastic-bounce-thumb.svg',
+      isPro: false,
+      configFile: '/plugin/elastic/config.json',
       isFavorite: true,
     },
     {
       id: '4',
-      title: 'Morphing Shape',
-      category: 'Animation',
+      title: 'Glitch Effect',
+      category: 'Text Effect',
       rating: 4,
       downloads: 967,
       likes: 723,
-      thumbnail: '/asset-store/morphing-shape-thumb.svg',
+      thumbnail: '/asset-store/glitch-thumb.svg',
       isPro: false,
+      configFile: '/plugin/glitch/config.json',
       isFavorite: false,
     },
     {
       id: '5',
-      title: 'Timeline Control',
-      category: 'Interactive',
+      title: 'Magnetic Pull',
+      category: 'Text Effect',
       rating: 5,
       downloads: 1589,
       likes: 1123,
-      thumbnail: '/asset-store/timeline-control-thumb.svg',
-      isPro: true,
+      thumbnail: '/asset-store/magnetic-pull-thumb.svg',
+      isPro: false,
+      configFile: '/plugin/magnetic/config.json',
       isFavorite: true,
     },
     {
@@ -120,7 +124,13 @@ export default function AssetPage() {
   ])
 
   const handleCardClick = (asset: AssetItem) => {
-    if (asset.id === '1') {
+    if (
+      asset.id === '1' ||
+      asset.id === '2' ||
+      asset.id === '3' ||
+      asset.id === '4' ||
+      asset.id === '5'
+    ) {
       setSelectedAsset(asset)
       setIsModalOpen(true)
     }
