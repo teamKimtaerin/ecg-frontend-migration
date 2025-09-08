@@ -17,6 +17,20 @@ export interface UISlice {
   // Panel resize state
   videoPanelWidth: number
   setVideoPanelWidth: (width: number) => void
+
+  // Animation Asset Sidebar state
+  isAssetSidebarOpen: boolean
+  setIsAssetSidebarOpen: (open: boolean) => void
+  assetSidebarWidth: number
+  setAssetSidebarWidth: (width: number) => void
+  selectedAssetCategory: string
+  setSelectedAssetCategory: (category: string) => void
+  assetSearchQuery: string
+  setAssetSearchQuery: (query: string) => void
+  activeAssetTab: 'free' | 'my'
+  setActiveAssetTab: (tab: 'free' | 'my') => void
+  selectedGlitchAssets: string[]
+  setSelectedGlitchAssets: (assets: string[]) => void
 }
 
 export const createUISlice: StateCreator<UISlice> = (set) => ({
@@ -35,4 +49,19 @@ export const createUISlice: StateCreator<UISlice> = (set) => ({
   // Panel resize state
   videoPanelWidth: 300, // Default width (minimum width)
   setVideoPanelWidth: (width) => set({ videoPanelWidth: width }),
+
+  // Animation Asset Sidebar state
+  isAssetSidebarOpen: false,
+  setIsAssetSidebarOpen: (open) => set({ isAssetSidebarOpen: open }),
+  assetSidebarWidth: 320, // Default width
+  setAssetSidebarWidth: (width) => set({ assetSidebarWidth: width }),
+  selectedAssetCategory: '전체 클립',
+  setSelectedAssetCategory: (category) =>
+    set({ selectedAssetCategory: category }),
+  assetSearchQuery: '',
+  setAssetSearchQuery: (query) => set({ assetSearchQuery: query }),
+  activeAssetTab: 'free',
+  setActiveAssetTab: (tab) => set({ activeAssetTab: tab }),
+  selectedGlitchAssets: [],
+  setSelectedGlitchAssets: (assets) => set({ selectedGlitchAssets: assets }),
 })
