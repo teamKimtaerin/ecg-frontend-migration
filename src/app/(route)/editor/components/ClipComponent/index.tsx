@@ -47,6 +47,19 @@ export default function ClipComponent({
     onSelect(clip.id)
   }
 
+  const handleLeftSideClick = (e: React.MouseEvent) => {
+    // Stop propagation to prevent parent click handlers
+    e.stopPropagation()
+
+    // If onCheck is available, toggle the checkbox
+    if (onCheck) {
+      onCheck(clip.id, !isChecked)
+    }
+
+    // Also trigger clip selection
+    onSelect(clip.id)
+  }
+
   return (
     <div
       {...dragProps}
@@ -58,7 +71,11 @@ export default function ClipComponent({
     >
       <div className="flex">
         {/* Left sidebar */}
-        <div className={sidebarClassName}>
+        <div
+          className={`${sidebarClassName} cursor-pointer`}
+          onClick={handleLeftSideClick}
+          title="클릭하여 클립 선택/해제"
+        >
           <ClipTimeline index={index} />
           <ClipCheckbox
             clipId={clip.id}

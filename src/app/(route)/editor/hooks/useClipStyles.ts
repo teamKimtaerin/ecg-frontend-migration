@@ -31,7 +31,11 @@ export function useClipStyles({
   }
 
   const getSidebarClassName = () => {
-    return 'w-16 flex items-center justify-center bg-[#4D4D59] rounded-l-lg border-r border-[#383842] relative'
+    const baseClasses =
+      'w-16 flex items-center justify-center bg-[#4D4D59] rounded-l-lg border-r border-[#383842] relative transition-all'
+    const hoverClasses = 'hover:bg-[#5D5D69] hover:shadow-sm'
+
+    return `${baseClasses} ${hoverClasses}`
   }
 
   const getContentClassName = () => {
