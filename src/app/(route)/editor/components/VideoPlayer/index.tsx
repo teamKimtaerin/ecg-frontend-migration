@@ -4,8 +4,8 @@ import React, { useState, useRef, useCallback, useEffect } from 'react'
 import { useEditorStore } from '../../store/editorStore'
 import { mediaStorage } from '@/utils/storage/mediaStorage'
 import { log } from '@/utils/logger'
-
 import { VIDEO_PLAYER_CONSTANTS } from '@/lib/utils/constants'
+
 
 interface VideoPlayerProps {
   className?: string
