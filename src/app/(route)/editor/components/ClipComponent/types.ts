@@ -20,6 +20,7 @@ export interface ClipItem {
 
 export interface ClipComponentProps {
   clip: ClipItem
+  index: number
   isSelected: boolean
   isChecked?: boolean
   isMultiSelected?: boolean
@@ -36,4 +37,18 @@ export interface ClipStyleState {
   isMultiSelected: boolean
   isHovered: boolean
   isDragging?: boolean
+}
+
+export interface ClipToolBarProps {
+  selectedClipIds: Set<string>
+  canUndo: boolean
+  canRedo: boolean
+  onNewClick: () => void
+  onMergeClips: () => void
+  onUndo: () => void
+  onRedo: () => void
+  onCut?: () => void
+  onCopy?: () => void
+  onPaste?: () => void
+  onSplitClip?: () => void
 }

@@ -13,6 +13,7 @@ import { useClipStyles } from '../../hooks/useClipStyles'
 
 export default function ClipComponent({
   clip,
+  index,
   isSelected,
   isChecked = false,
   isMultiSelected = false,
@@ -23,6 +24,7 @@ export default function ClipComponent({
   onSpeakerChange,
 }: ClipComponentProps) {
   const [isHovered, setIsHovered] = useState(false)
+
   const { speakers } = useSpeakerManagement()
   const { dragProps, isDragging } = useClipDragAndDrop(
     clip.id,
@@ -37,22 +39,28 @@ export default function ClipComponent({
       isDragging,
     })
 
+  const handleClick = (e: React.MouseEvent) => {
+    // Stop propagation to prevent selection box from triggering
+    e.stopPropagation()
+    onSelect(clip.id)
+  }
+
   return (
     <div
       {...dragProps}
       className={`sortable-clip ${containerClassName}`}
       data-clip-id={clip.id}
-      onClick={() => onSelect(clip.id)}
+      onClick={handleClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="flex">
         {/* Left sidebar */}
         <div className={sidebarClassName}>
-          <ClipTimeline timeline={clip.timeline} />
+          <ClipTimeline index={index} />
           <ClipCheckbox
             clipId={clip.id}
-            isChecked={isChecked || isMultiSelected}
+            isChecked={isChecked}
             onCheck={onCheck}
           />
         </div>
@@ -80,7 +88,7 @@ export default function ClipComponent({
           </div>
 
           {/* Divider */}
-          <div className="border-t border-gray-400" />
+          <div className="border-t border-[#383842]" />
 
           {/* Lower section */}
           <ClipText fullText={clip.fullText} />
