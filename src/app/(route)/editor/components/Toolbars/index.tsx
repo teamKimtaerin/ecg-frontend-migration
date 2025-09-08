@@ -100,7 +100,6 @@ export default function Toolbars({
       return (
         <ToolbarWrapper variant="base" onExport={handleExport}>
           <FormatToolbar {...commonProps} />
-
         </ToolbarWrapper>
       )
 

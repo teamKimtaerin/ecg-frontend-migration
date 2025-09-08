@@ -25,7 +25,6 @@ export function useClipStyles({
       }
     } else if (!isDragging && !(isMultiSelected || isChecked)) {
       stateClasses.push('hover:bg-[#383842]')
-
     }
 
     return `${baseClasses} ${stateClasses.join(' ')}`
@@ -33,7 +32,6 @@ export function useClipStyles({
 
   const getSidebarClassName = () => {
     return 'w-16 flex items-center justify-center bg-[#4D4D59] rounded-l-lg border-r border-[#383842] relative'
-
   }
 
   const getContentClassName = () => {

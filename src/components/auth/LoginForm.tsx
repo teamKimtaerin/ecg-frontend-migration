@@ -49,7 +49,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
     try {
       await login(formData)
       onSuccess?.()
-    } catch (error) {
+    } catch {
       // 에러는 store에서 처리됨
     }
   }

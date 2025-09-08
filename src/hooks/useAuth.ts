@@ -13,7 +13,7 @@ export const useAuth = () => {
     if (store.token && !store.user && !store.isLoading) {
       store.getCurrentUser()
     }
-  }, [store.token, store.user, store.isLoading, store.getCurrentUser])
+  }, [store.token, store.user, store.isLoading, store.getCurrentUser, store])
 
   return {
     // 상태

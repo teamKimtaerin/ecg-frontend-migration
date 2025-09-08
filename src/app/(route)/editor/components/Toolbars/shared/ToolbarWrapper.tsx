@@ -5,7 +5,6 @@ import ToolbarBase from './ToolbarBase'
 import { type ToolbarVariant } from '../../../constants/colors'
 import { AiOutlineExport } from 'react-icons/ai'
 
-
 interface ToolbarWrapperProps {
   variant?: ToolbarVariant
   children: React.ReactNode
@@ -46,7 +45,6 @@ export default function ToolbarWrapper({
           <AiOutlineExport className="w-5 h-5" />
           내보내기
         </button>
-
       </div>
     </ToolbarBase>
   )

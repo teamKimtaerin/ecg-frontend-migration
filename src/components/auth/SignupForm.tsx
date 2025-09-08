@@ -69,7 +69,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
         password: formData.password,
       })
       onSuccess?.()
-    } catch (error) {
+    } catch {
       // 에러는 store에서 처리됨
     }
   }
