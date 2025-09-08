@@ -39,6 +39,7 @@ import EditorHeaderTabs from './components/EditorHeaderTabs'
 import SubtitleEditList from './components/SubtitleEditList'
 import VideoSection from './components/VideoSection'
 import EmptyState from './components/EmptyState'
+import SpeakerManagementSidebar from './components/SpeakerManagementSidebar'
 
 // Utils
 import { EditorHistory } from '@/utils/editor/EditorHistory'
@@ -89,6 +90,7 @@ export default function EditorPage() {
   const [isRecovering, setIsRecovering] = useState(true) // 초기값을 true로 설정
   const [scrollProgress, setScrollProgress] = useState(0) // 스크롤 진행도
   const [speakers, setSpeakers] = useState<string[]>([]) // Speaker 리스트 전역 관리
+  const [isSpeakerManagementOpen, setIsSpeakerManagementOpen] = useState(false) // 화자 관리 사이드바 상태
 
   // Get media actions from store
   const { setMediaInfo } = useEditorStore()
@@ -114,11 +116,27 @@ export default function EditorPage() {
           )
           setClips(transcriptionClips)
 
-          // Extract unique speakers from clips
-          const uniqueSpeakers = Array.from(
+          // Extract unique speakers from clips and rename them with numbers
+          const originalSpeakers = Array.from(
             new Set(transcriptionClips.map((clip) => clip.speaker))
           )
-          setSpeakers(uniqueSpeakers)
+
+          // Create mapping for speaker names (original -> numbered)
+          const speakerMapping: Record<string, string> = {}
+          originalSpeakers.forEach((speaker, index) => {
+            speakerMapping[speaker] = `화자${index + 1}`
+          })
+
+          // Update clips with new speaker names
+          const updatedClips = transcriptionClips.map((clip) => ({
+            ...clip,
+            speaker: speakerMapping[clip.speaker] || clip.speaker,
+          }))
+
+          const numberedSpeakers = Object.values(speakerMapping)
+
+          setClips(updatedClips)
+          setSpeakers(numberedSpeakers)
         }
 
         // Check for project to recover
@@ -299,18 +317,6 @@ export default function EditorPage() {
     editorHistory.executeCommand(command)
   }
 
-  const handleSpeakerRemove = (speakerToRemove: string) => {
-    // Use Command pattern for undo/redo support
-    const command = new RemoveSpeakerCommand(
-      clips,
-      speakers,
-      speakerToRemove,
-      setClips,
-      setSpeakers
-    )
-    editorHistory.executeCommand(command)
-  }
-
   const handleBatchSpeakerChange = (clipIds: string[], newSpeaker: string) => {
     // If only one clipId is passed, check if we should apply to all empty clips
     let targetClipIds = clipIds
@@ -341,6 +347,48 @@ export default function EditorPage() {
       setSpeakers
     )
     editorHistory.executeCommand(command)
+  }
+
+  // 화자 관리 사이드바 핸들러들
+  const handleOpenSpeakerManagement = () => {
+    setIsSpeakerManagementOpen(true)
+  }
+
+  const handleCloseSpeakerManagement = () => {
+    setIsSpeakerManagementOpen(false)
+  }
+
+  const handleAddSpeaker = (name: string) => {
+    if (!speakers.includes(name)) {
+      setSpeakers([...speakers, name])
+    }
+  }
+
+  const handleRemoveSpeaker = (name: string) => {
+    // Use Command pattern for speaker removal
+    const command = new RemoveSpeakerCommand(
+      clips,
+      speakers,
+      name,
+      setClips,
+      setSpeakers
+    )
+    editorHistory.executeCommand(command)
+  }
+
+  const handleRenameSpeaker = (oldName: string, newName: string) => {
+    // Update clips with the new speaker name
+    const updatedClips = clips.map((clip) =>
+      clip.speaker === oldName ? { ...clip, speaker: newName } : clip
+    )
+
+    // Update speakers list
+    const updatedSpeakers = speakers.map((speaker) =>
+      speaker === oldName ? newName : speaker
+    )
+
+    setClips(updatedClips)
+    setSpeakers(updatedSpeakers)
   }
 
   const handleClipCheck = (clipId: string, checked: boolean) => {
@@ -784,6 +832,11 @@ export default function EditorPage() {
 
   // 에디터 페이지 진입 시 튜토리얼 모달 표시 (첫 방문자용)
   useEffect(() => {
+    // TODO: localStorage 대신 DB에서 사용자의 튜토리얼 완료 상태를 확인하도록 변경
+    // - 사용자 인증 상태 확인 후 API 호출
+    // - GET /api/user/tutorial-status 또는 사용자 프로필에서 튜토리얼 완료 여부 확인
+    // - 로그인하지 않은 사용자의 경우 localStorage 사용 (임시)
+    // - 튜토리얼 타입별 완료 상태 관리 (editor, upload, export 등)
     const hasSeenEditorTutorial = localStorage.getItem('hasSeenEditorTutorial')
     if (!hasSeenEditorTutorial && clips.length > 0) {
       setShowTutorialModal(true)
@@ -791,6 +844,10 @@ export default function EditorPage() {
   }, [clips])
 
   const handleTutorialClose = () => {
+    // TODO: localStorage 대신 DB에 튜토리얼 완료 상태 저장하도록 변경
+    // - POST /api/user/tutorial-status API 호출
+    // - 사용자가 로그인된 경우 DB에 저장, 미로그인 시 localStorage 사용
+    // - 튜토리얼 완료 날짜/시간, 완료 단계도 함께 저장
     setShowTutorialModal(false)
     localStorage.setItem('hasSeenEditorTutorial', 'true')
   }
@@ -907,8 +964,10 @@ export default function EditorPage() {
               onClipCheck={handleClipCheck}
               onWordEdit={handleWordEdit}
               onSpeakerChange={handleSpeakerChange}
-              onSpeakerRemove={handleSpeakerRemove}
               onBatchSpeakerChange={handleBatchSpeakerChange}
+              onOpenSpeakerManagement={handleOpenSpeakerManagement}
+              onAddSpeaker={handleAddSpeaker}
+              onRenameSpeaker={handleRenameSpeaker}
               onEmptySpaceClick={handleEmptySpaceClick}
             />
 
@@ -942,6 +1001,15 @@ export default function EditorPage() {
           isOpen={showTutorialModal}
           onClose={handleTutorialClose}
           onComplete={handleTutorialComplete}
+        />
+
+        <SpeakerManagementSidebar
+          isOpen={isSpeakerManagementOpen}
+          onClose={handleCloseSpeakerManagement}
+          speakers={speakers}
+          onAddSpeaker={handleAddSpeaker}
+          onRemoveSpeaker={handleRemoveSpeaker}
+          onRenameSpeaker={handleRenameSpeaker}
         />
       </div>
 
