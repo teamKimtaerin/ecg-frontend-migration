@@ -2,7 +2,9 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## 🏗️ Project Overview
+## 🎬 Project Overview
+
+ECG (Easy Caption Generator) Frontend - A powerful subtitle editing tool built with Next.js.
 
 ### Tech Stack
 
@@ -10,269 +12,225 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Language**: TypeScript 5
 - **UI Library**: React 19.1.1
 - **Styling**: TailwindCSS v4 with PostCSS
-- **Build Tool**: Next.js with Turbopack
-
-### Project Structure
-
-```
-src/
-├── app/           # App Router pages and layouts
-│   ├── layout.tsx # Root layout with font configuration
-│   ├── page.tsx   # Home page
-│   ├── error.tsx  # Error boundary
-│   └── globals.css # Global styles with Tailwind
-├── components/    # Reusable components (to be created)
-└── lib/          # Utility functions and shared logic
-```
+- **State Management**: Zustand 5.0.8
+- **Drag & Drop**: @dnd-kit/core & @dnd-kit/sortable
+- **Icons**: react-icons (Lucide icons - lu)
+- **Utilities**: clsx, tailwind-merge
 
 ## 🚀 Development Commands
 
 ### Essential Commands
 
 ```bash
-npm run dev       # Start development server with Turbopack (http://localhost:3000)
-npm run build     # Build for production with Turbopack
-npm run start     # Start production server
-npm run lint      # Run ESLint checks
-npm run lint:fix  # Fix linting issues automatically
+npm run dev         # Start development server (http://localhost:3000)
+npm run build       # Build for production
+npm run start       # Start production server
+npm run lint        # Run ESLint checks
+npm run lint:fix    # Fix linting issues automatically
+npm run format      # Format code with Prettier
+npm run format:check # Check code formatting
+npm run type-check  # TypeScript type checking
 ```
 
-### Git Workflow
+### Testing Commands
 
 ```bash
-git add .
-git commit -m "feat: your message"
-pr "간단한 설명"  # 빠른 PR 생성 (아래 설정 참조)
+npm run test        # Run Jest unit tests
+npm run test:watch  # Run tests in watch mode
+npm run test:coverage # Generate test coverage report
+npm run test:e2e    # Run Playwright E2E tests
+npm run test:e2e:ui # Run Playwright with UI mode
 ```
 
-## 🏛️ Architecture Notes
+## 🏗️ Architecture
 
-### App Router Conventions
+### Project Structure
 
-- Pages use `page.tsx` files in the app directory
-- Layouts use `layout.tsx` for shared UI
-- Loading states: `loading.tsx`
-- Error handling: `error.tsx`
-- Route groups: Use `(group-name)` folders
+```
+src/
+├── app/                    # Next.js App Router
+│   ├── editor/            # Main editor page
+│   │   ├── components/    # Editor-specific components
+│   │   │   └── ClipComponent/ # Modular clip component
+│   │   ├── hooks/         # Custom hooks (DnD, selection)
+│   │   ├── store/         # Zustand store with slices
+│   │   └── types/         # TypeScript types
+│   └── components/        # Page-level components
+├── components/
+│   ├── ui/               # Reusable UI components
+│   ├── icons/           # Icon components (react-icons wrapper)
+│   └── DnD/             # Drag & drop components
+├── lib/
+│   └── utils/           # Utility functions
+│       └── colors.ts    # Color system utilities
+└── hooks/               # Global custom hooks
+```
 
-### Component Organization
+### State Management (Zustand)
 
-- Place reusable components in `/src/components/`
-- Use server components by default
-- Add `'use client'` directive only when needed (interactivity, hooks, browser APIs)
+The editor uses a modular Zustand store with slices:
 
-### Styling Approach
+```typescript
+store/
+├── editorStore.ts       # Main store combining all slices
+└── slices/
+    ├── clipSlice.ts     # Clip data and operations
+    ├── selectionSlice.ts # Multi-selection state
+    └── uiSlice.ts       # UI state (tabs, modals)
+```
 
-- TailwindCSS v4 with PostCSS for styling
-- Custom CSS variables defined in `globals.css`
-- Theme colors: Use CSS variables (--background, --foreground)
-- Font: Geist Sans and Geist Mono (optimized with next/font)
+### Component Architecture
 
-### TypeScript Configuration
+#### Editor Page Hierarchy
+
+```
+EditorPage
+├── EditorHeaderTabs
+├── Toolbar
+├── VideoSection
+├── SubtitleEditList
+│   └── ClipComponent (with DnD)
+│       ├── ClipTimeline
+│       ├── ClipCheckbox
+│       ├── ClipSpeaker
+│       ├── ClipWords
+│       └── ClipText
+└── SelectionBox
+```
+
+## 💡 Development Guidelines
+
+### Component Development
+
+**IMPORTANT: Always prefer using existing UI components from `components/ui/`**
+
+Before creating new components, check if these existing UI components can be used:
+
+- `Button` - Standard button with variants
+- `Dropdown` - Select/dropdown component
+- `Tab/TabItem` - Tab navigation
+- `AlertDialog` - Modal dialogs
+- `AlertBanner` - Notification banners
+- `Badge` - Status badges
+- `Checkbox` - Checkbox input
+- `HelpText` - Help/error messages
+- `ProgressBar` - Progress indicators
+- `RadioGroup` - Radio button groups
+- `StatusLight` - Status indicators
+- `TextField` - Text input fields
+- `Toolbar` - Toolbar component
+
+### Color System
+
+Use the centralized color system from `lib/utils/colors.ts`:
+
+- Access semantic colors: `SEMANTIC_COLORS`
+- Use color palette: `colorPalette`
+- Apply transitions: `TRANSITIONS`
+
+Example:
+
+```typescript
+import { SEMANTIC_COLORS, colorPalette } from '@/lib/utils/colors'
+```
+
+### Icon Usage
+
+Icons are centralized in `components/icons/`:
+
+```typescript
+import { ChevronDownIcon, InfoIcon /* etc */ } from '@/components/icons'
+```
+
+All icons use react-icons/lu (Lucide) internally but are wrapped for consistency.
+
+### Drag & Drop Implementation
+
+The editor uses @dnd-kit for drag-and-drop:
+
+1. Clips are wrapped with `SortableContext`
+2. Multi-selection is supported via Zustand store
+3. Group dragging moves all selected items together
+
+### Key Features
+
+1. **Multi-Selection System**
+   - Checkbox selection for multiple clips
+   - Drag any selected clip to move all selected clips
+   - Selection state managed in Zustand store
+
+2. **Clip Editing**
+   - Inline word editing
+   - Speaker management with dropdown
+   - Timeline display
+
+3. **Undo/Redo**
+   - Command pattern implementation
+   - EditorHistory utility for state management
+
+## 🔧 Configuration
+
+### TypeScript
 
 - Strict mode enabled
 - Path alias: `@/*` maps to `./src/*`
-- Use absolute imports: `import { Component } from '@/components/Component'`
+- Use absolute imports
 
-## ⚙️ Important Configuration
+### ESLint
 
-### ESLint Setup
-
-- Uses flat config format (ESLint 9)
-- Extends Next.js core web vitals rules
-- TypeScript-aware linting
+- Flat config format (ESLint 9)
+- Next.js core web vitals rules
 - Auto-fixable with `npm run lint:fix`
 
-### TailwindCSS v4 Notes
+### TailwindCSS v4
 
 - PostCSS-based configuration
-- Custom properties for theming
-- Dark mode support via `prefers-color-scheme`
-- No traditional `tailwind.config.js` file (v4 approach)
+- No traditional tailwind.config.js
+- Theme variables in globals.css
 
----
+## 📝 Git Workflow & PR Automation
 
-# 🔄 Claude Code PR 자동화 가이드 (대화형 모드)
-
-## 🚀 빠른 시작
-
-### 설치 (처음 한 번만)
+### Quick PR Creation
 
 ```bash
-# 프로젝트 루트에서 실행
-./install.sh
-source ~/.zshrc  # 또는 source ~/.bashrc
-```
-
-### 사용법
-
-```bash
-# 1. 작업 후 변경사항 추가
+# 1. Stage changes
 git add .
 
-# 2. PR 생성 (자동 커밋 + 푸시 + PR)
-prm "Feat: 블로그 생성"
+# 2. Create PR with auto commit + push
+prm "Feat: Your feature description"
 
-# 3. Claude Code에서 분석 후 결과 붙여넣기
+# 3. Follow prompts for Claude Code analysis
 ```
 
-## 📋 상세 워크플로우
+### Branch Naming
 
-### 1️⃣ 작업 브랜치 생성
+- `feature/` - New features
+- `fix/` - Bug fixes
+- `refactor/` - Code refactoring
+
+### Commit Convention
+
+- `[Feat]` - New feature
+- `[Fix]` - Bug fix
+- `[Refactor]` - Code refactoring
+- `[Docs]` - Documentation
+- `[Test]` - Tests
+
+## 🐳 Docker Support
 
 ```bash
-git checkout -b feature/blog-create
+# Development build
+docker build --target dev -t ecg-frontend:dev .
+docker run -p 3000:3000 --rm ecg-frontend:dev
+
+# Production build
+docker build --target prod -t ecg-frontend:prod .
 ```
 
-### 2️⃣ 코드 작업 및 변경사항 추가
+## ⚠️ Important Notes
 
-```bash
-# 코드 작업...
-git add .
-```
-
-### 3️⃣ PR 생성 명령어 실행
-
-```bash
-prm "Feat: 블로그 생성 기능 구현"
-```
-
-### 4️⃣ Claude Code 분석
-
-실행하면 자동으로:
-
-- ✅ 변경사항을 커밋 (제공한 메시지 사용)
-- ✅ 현재 브랜치를 origin에 푸시
-- ✅ Claude Code용 분석 프롬프트를 클립보드에 복사
-- ⏸️ Claude Code 분석을 기다림
-
-### 5️⃣ Claude Code에서 분석
-
-1. [claude.ai/code](https://claude.ai/code) 접속
-2. Cmd+V로 프롬프트 붙여넣기 (자동 복사됨)
-3. Claude가 생성한 PR 제목과 본문 복사
-
-### 6️⃣ PR 생성 완료
-
-1. 터미널로 돌아와서 Enter
-2. PR 제목 입력 (Claude 생성 내용)
-3. PR 본문 붙여넣기 후 Ctrl+D
-4. 자동으로 GitHub PR 생성!
-
-## 🔧 필수 설정
-
-### GitHub CLI 설치 및 인증
-
-```bash
-# 설치
-brew install gh
-
-# GitHub 로그인
-gh auth login
-```
-
-### Claude Code 접속
-
-- https://claude.ai/code
-- 팀원 모두 접속 가능해야 함
-
-## ✨ 주요 기능
-
-### 자동 처리
-
-- 🤖 변경사항 분석 및 diff 생성
-- 📝 자동 커밋 (제공한 메시지 사용)
-- 🚀 자동 푸시 (현재 브랜치)
-- 📋 클립보드에 프롬프트 자동 복사
-- 🔗 PR 생성 후 URL 제공
-
-### Claude Code 분석 내용
-
-- 작업 개요 및 목적
-- 주요 변경사항 목록
-- 기술적 세부사항
-- 체크리스트
-- 리뷰 포인트
-
-## 📂 프로젝트 구조
-
-```
-.claude/
-├── scripts/
-│   └── prm         # PR 자동화 스크립트 (PR Make)
-├── CLAUDE.md       # 이 파일
-└── settings.local.json
-install.sh          # 설치 스크립트
-```
-
-## 💡 팁
-
-### 브랜치 네이밍
-
-```bash
-# 기능 추가
-git checkout -b feature/blog-create
-
-# 버그 수정
-git checkout -b fix/login-error
-
-# 리팩토링
-git checkout -b refactor/api-structure
-```
-
-### PR 제목 컨벤션
-
-```
-[Feat] 새로운 기능 추가
-[Fix] 버그 수정
-[Refactor] 코드 리팩토링
-[Docs] 문서 수정
-[Test] 테스트 추가
-```
-
-## 🤝 팀원 공유
-
-### 팀원 설치 방법
-
-1. 이 저장소 클론
-2. `./install.sh` 실행
-3. `gh auth login`으로 GitHub 인증
-4. Claude Code 접속 가능 확인
-
-### 사용 예시
-
-```bash
-# 실제 사용 예시
-git add .
-prm "Feat: 사용자 프로필 페이지 추가"
-
-# Claude Code에서 분석 후
-# 생성된 PR 제목과 본문을 복사해서 사용
-```
-
-## ❓ 문제 해결
-
-### PATH를 찾을 수 없을 때
-
-```bash
-source ~/.zshrc  # zsh 사용자
-source ~/.bashrc # bash 사용자
-```
-
-### GitHub CLI 인증 문제
-
-```bash
-gh auth status  # 상태 확인
-gh auth login   # 재로그인
-```
-
-### 클립보드 복사가 안 될 때
-
-- macOS가 아닌 경우 수동으로 프롬프트 복사
-- 화면에 출력된 프롬프트 사용
-
-## 📝 업데이트 내역
-
-- 2024.01: 대화형 Claude Code 모드 구현
-- 자동 커밋, 푸시, PR 생성 기능 추가
-- 클립보드 자동 복사 기능 추가
+1. **Always use existing UI components** from `components/ui/` before creating new ones
+2. React 19 compatibility: Use `--legacy-peer-deps` when installing packages
+3. Development server may use port 3001 if 3000 is occupied
+4. Husky pre-commit hooks run automatically
+5. The editor page (`/editor`) is the main feature - handle with care

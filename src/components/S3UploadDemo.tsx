@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useCallback, useRef } from 'react'
-import Button from './Button'
+import Button from './ui/Button'
 
 interface UploadStatus {
   status: 'idle' | 'uploading' | 'success' | 'error'
@@ -10,7 +10,7 @@ interface UploadStatus {
   s3Url?: string
 }
 
-const S3UploadDemo: React.FC = () => {
+const S3UploadDemo = () => {
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>({
     status: 'idle',
     progress: 0,
