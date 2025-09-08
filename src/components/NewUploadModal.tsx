@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useCallback } from 'react'
-import { LuLink, LuPlay } from 'react-icons/lu'
+import { LuLink } from 'react-icons/lu'
 import { FaYoutube, FaVimeo } from 'react-icons/fa'
 import Modal from '@/components/ui/Modal'
 
@@ -145,6 +145,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
       closeOnBackdropClick={!isLoading}
       closeOnEsc={!isLoading}
       scrollable={true}
+      aria-label="파일 업로드"
     >
       <div className="bg-white rounded-xl p-8 relative">
         {/* Header */}
