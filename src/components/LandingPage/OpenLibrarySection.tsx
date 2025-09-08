@@ -1,5 +1,5 @@
 import React from 'react'
-import Button from '@/components/ui/Button'
+import Button from '@/components/Button'
 
 interface OpenLibrarySectionProps {
   libraryRef: React.RefObject<HTMLElement | null>

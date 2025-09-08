@@ -1,11 +1,11 @@
 'use client'
 
 import React, { useState } from 'react'
-import Dropdown from '@/components/ui/Dropdown'
+import Dropdown from '@/components/Dropdown'
 import { HomeIcon, UserIcon, SettingsIcon } from '@/components/icons'
 import { DESIGN_SYSTEM_CONSTANTS, getSpacingClass } from './constants'
 
-const DropdownDemo = () => {
+const DropdownDemo: React.FC = () => {
   const [dropdowns, setDropdowns] = useState({
     basic: '',
     quiet: '',

@@ -5,7 +5,6 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build:static": "./scripts/build-static.sh",
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
@@ -20,22 +19,17 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@dnd-kit/core": "^6.3.1",
-    "@dnd-kit/sortable": "^10.0.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^24.3.0",
     "@types/react": "^19.1.12",
     "@types/react-dom": "^19.1.9",
     "clsx": "^2.1.1",
-    "lucide-react": "^0.542.0",
     "next": "^15.5.2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "react-icons": "^5.5.0",
     "tailwind-merge": "^3.3.1",
     "tailwindcss": "^4",
-    "typescript": "^5.9.2",
-    "zustand": "^5.0.8"
+    "typescript": "^5.9.2"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

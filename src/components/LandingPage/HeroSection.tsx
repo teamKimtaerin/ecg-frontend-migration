@@ -1,8 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import Link from 'next/link'
-import Button from '@/components/ui/Button'
+import Button from '@/components/Button'
 
 interface HeroSectionProps {
   heroRef: React.RefObject<HTMLElement | null>
@@ -62,38 +61,32 @@ const HeroSection: React.FC<HeroSectionProps> = ({ heroRef }) => {
                     onChange={(e) => setEmail(e.target.value)}
                     className="flex-1 px-4 py-3 bg-black/50 border border-gray-slate/50 rounded-full text-white placeholder-gray-medium focus:outline-none focus:border-primary"
                   />
-                  <Link
-                    href={`/auth?mode=signup${email ? `&email=${encodeURIComponent(email)}` : ''}`}
+                  <Button
+                    variant="accent"
+                    size="medium"
+                    className="font-bold bg-status-positive hover:bg-status-positive hover:opacity-70 hover:scale-105 rounded-full px-8 "
                   >
-                    <Button
-                      variant="accent"
-                      size="medium"
-                      className="font-bold bg-status-positive hover:bg-status-positive hover:opacity-70 hover:scale-105 rounded-full px-8 "
-                    >
-                      Sign up
-                    </Button>
-                  </Link>
+                    Sign up
+                  </Button>
                 </div>
                 <div className="flex items-center space-x-3">
                   <div className="flex-1 h-px bg-gray-slate/30"></div>
                   <span className="text-gray-medium text-sm">or</span>
                   <div className="flex-1 h-px bg-gray-slate/30"></div>
                 </div>
-                <Link href="/auth?mode=signup&provider=google">
-                  <Button
-                    variant="secondary"
-                    style="outline"
-                    size="medium"
-                    className="w-full rounded-full border-gray-slate/50 text-white hover:border-white"
-                  >
-                    <span className="flex items-center justify-center space-x-2">
-                      <span className=" w-5 h-5 bg-white rounded-full flex items-center justify-center text-black font-bold text-xs">
-                        G
-                      </span>
-                      <span>Sign Up with Google</span>
+                <Button
+                  variant="secondary"
+                  style="outline"
+                  size="medium"
+                  className="w-full rounded-full border-gray-slate/50 text-white hover:border-white"
+                >
+                  <span className="flex items-center justify-center space-x-2">
+                    <span className=" w-5 h-5 bg-white rounded-full flex items-center justify-center text-black font-bold text-xs">
+                      G
                     </span>
-                  </Button>
-                </Link>
+                    <span>Sign Up with Google</span>
+                  </span>
+                </Button>
               </div>
             </div>
           </div>

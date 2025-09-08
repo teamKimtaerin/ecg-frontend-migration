@@ -1,12 +1,12 @@
 'use client'
 
 import React from 'react'
-import Button from '@/components/ui/Button'
-import ButtonGroup from '@/components/ui/ButtonGroup'
+import Button from '@/components/Button'
+import ButtonGroup from '@/components/ButtonGroup'
 import { StarIcon, HeartIcon, PlusIcon } from '@/components/icons'
 import { DESIGN_SYSTEM_CONSTANTS, getSpacingClass } from './constants'
 
-const ButtonDemo = () => {
+const ButtonDemo: React.FC = () => {
   return (
     <div className={getSpacingClass('DEMO_SECTIONS')}>
       <div>

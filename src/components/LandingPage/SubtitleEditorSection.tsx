@@ -1,5 +1,5 @@
 import React from 'react'
-import Button from '@/components/ui/Button'
+import Button from '@/components/Button'
 
 interface SubtitleEditorSectionProps {
   subtitleRef: React.RefObject<HTMLElement | null>
