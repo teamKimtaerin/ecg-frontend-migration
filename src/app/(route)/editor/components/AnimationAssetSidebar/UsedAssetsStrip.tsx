@@ -1,7 +1,17 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { IoClose } from 'react-icons/io5'
+import {
+  IoClose,
+  IoRefresh,
+  IoChevronUp,
+  IoExpand,
+  IoDocument,
+  IoEye,
+  IoTrendingUp,
+  IoFlash,
+  IoArrowBack,
+} from 'react-icons/io5'
 import { useEditorStore } from '../../store'
 import { AssetItem } from './AssetCard'
 
@@ -59,10 +69,30 @@ const UsedAssetsStrip: React.FC = () => {
     fetchAssets()
   }, [])
 
-  // Get used assets by filtering all assets with selected IDs
-  const usedAssets = allAssets.filter((asset) =>
-    selectedGlitchAssets.includes(asset.id)
-  )
+  // Get used assets in selection order (left to right: 1, 2, 3...)
+  const usedAssets = selectedGlitchAssets
+    .map((id) => allAssets.find((asset) => asset.id === id))
+    .filter((asset) => asset !== undefined) as AssetItem[]
+
+  // Get asset selection order based on array index
+  const getAssetOrder = (index: number) => {
+    return index + 1
+  }
+
+  // Get characteristic icon for each asset type
+  const getAssetIcon = (assetName: string) => {
+    const iconMap = {
+      'Rotation Text': IoRefresh,
+      'TypeWriter Effect': IoDocument,
+      'Elastic Bounce': IoChevronUp,
+      'Glitch Effect': IoFlash,
+      'Magnetic Pull': IoArrowBack,
+      'Fade In Stagger': IoEye,
+      'Scale Pop': IoExpand,
+      'Slide Up': IoTrendingUp,
+    }
+    return iconMap[assetName as keyof typeof iconMap] || null
+  }
 
   const handleRemoveAsset = (assetId: string) => {
     setSelectedGlitchAssets(selectedGlitchAssets.filter((id) => id !== assetId))
@@ -88,13 +118,26 @@ const UsedAssetsStrip: React.FC = () => {
           사용중인 에셋이 없습니다.
         </div>
       ) : (
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
-          {usedAssets.map((asset) => (
+        <div className="flex gap-6 overflow-x-auto pb-2 pt-6 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
+          {usedAssets.map((asset, index) => (
             <div
               key={asset.id}
-              className="flex-shrink-0 relative group bg-slate-700/50 rounded-lg overflow-hidden"
+              className="flex-shrink-0 relative group bg-slate-700/50 rounded-lg overflow-visible"
               style={{ width: '80px' }}
             >
+              {/* Characteristic Icon */}
+              {(() => {
+                const IconComponent = getAssetIcon(asset.name)
+                return IconComponent ? (
+                  <div
+                    className="absolute -top-5 left-1/2 transform -translate-x-1/2 bg-slate-800/90 rounded-full w-6 h-6 flex items-center justify-center shadow-sm"
+                    style={{ zIndex: 10 }}
+                  >
+                    <IconComponent size={14} className="text-slate-300" />
+                  </div>
+                ) : null
+              })()}
+
               {/* Thumbnail */}
               <div className="aspect-[4/3] bg-slate-800/50 flex items-center justify-center overflow-hidden">
                 <img
@@ -102,6 +145,23 @@ const UsedAssetsStrip: React.FC = () => {
                   alt={asset.name}
                   className="w-full h-full object-cover"
                 />
+              </div>
+
+              {/* Order Badge */}
+              <div
+                className="absolute -top-1 -left-1 w-5 h-5 bg-blue-500 rounded-md flex items-center justify-center text-white text-xs font-bold shadow-lg flex-shrink-0"
+                style={{
+                  width: '20px',
+                  height: '20px',
+                  borderRadius: '4px',
+                  minWidth: '20px',
+                  minHeight: '20px',
+                  fontSize: '10px',
+                  boxSizing: 'border-box',
+                }}
+                aria-label={`선택 순서 ${getAssetOrder(index)}번`}
+              >
+                {getAssetOrder(index)}
               </div>
 
               {/* Asset Name */}
@@ -114,10 +174,18 @@ const UsedAssetsStrip: React.FC = () => {
               {/* Remove Button */}
               <button
                 onClick={() => handleRemoveAsset(asset.id)}
-                className="absolute -top-1 -right-1 w-5 h-5 min-w-5 min-h-5 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-sm aspect-square"
+                className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg flex-shrink-0"
+                style={{
+                  width: '24px',
+                  height: '24px',
+                  borderRadius: '4px',
+                  minWidth: '24px',
+                  minHeight: '24px',
+                  boxSizing: 'border-box',
+                }}
                 aria-label={`${asset.name} 제거`}
               >
-                <IoClose size={12} className="text-white" />
+                <IoClose size={14} className="text-white" />
               </button>
             </div>
           ))}
