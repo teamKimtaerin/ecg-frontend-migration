@@ -1,7 +1,7 @@
 'use client'
 
+import { clsx } from 'clsx'
 import {
-  cn,
   logComponentWarning,
   TRANSITIONS,
   type BaseComponentProps,
@@ -108,7 +108,7 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
   }, [text])
 
   // 에디터 컨테이너 클래스
-  const editorClasses = cn(
+  const editorClasses = clsx(
     // 기본 스타일
     'gsap-editor',
     'min-h-[70vh]',
@@ -128,7 +128,7 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
   )
 
   // 메인 컨테이너 클래스
-  const mainContainerClasses = cn(
+  const mainContainerClasses = clsx(
     // 레이아웃
     'grid',
     'grid-cols-1',
@@ -145,7 +145,7 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
   )
 
   // 프리뷰 영역 클래스
-  const previewAreaClasses = cn(
+  const previewAreaClasses = clsx(
     // 레이아웃
     'flex',
     'items-center',
@@ -165,7 +165,7 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
   )
 
   // 컨트롤 영역 클래스
-  const controlAreaClasses = cn(
+  const controlAreaClasses = clsx(
     // 레이아웃
     'flex',
     'flex-col',
@@ -1363,7 +1363,7 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
               : 0
         }
         onChange={(e) => updatePropertyValue(key, parseFloat(e.target.value))}
-        className={cn(
+        className={clsx(
           'w-full',
           'h-2',
           'bg-gray-200',
@@ -1390,7 +1390,7 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
   ) => (
     <div key={key} className="space-y-2">
       <label
-        className={cn(
+        className={clsx(
           'flex',
           'items-center',
           'gap-3',
@@ -1433,7 +1433,7 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
         {property.enum?.map((option: string) => (
           <label
             key={option}
-            className={cn(
+            className={clsx(
               'flex',
               'items-center',
               'gap-3',
@@ -1553,7 +1553,7 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
   }
 
   // 입력 필드 클래스
-  const inputClasses = cn(
+  const inputClasses = clsx(
     'w-full',
     'px-4',
     'py-3',
@@ -1572,7 +1572,7 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
   )
 
   // 버튼 클래스
-  const buttonClasses = cn(
+  const buttonClasses = clsx(
     'w-full',
     'px-6',
     'py-3',
@@ -1722,7 +1722,7 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
                 ].map(({ value, label }) => (
                   <label
                     key={value}
-                    className={cn(
+                    className={clsx(
                       'flex',
                       'items-center',
                       'gap-3',
@@ -1749,7 +1749,7 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
                       className="w-4 h-4 text-black cursor-pointer accent-black"
                     />
                     <span
-                      className={cn(
+                      className={clsx(
                         'flex-1',
                         'text-sm',
                         'text-black',

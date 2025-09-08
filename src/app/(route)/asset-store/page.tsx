@@ -4,7 +4,8 @@ import { AssetCard } from '@/app/(route)/asset-store/components/AssetCard'
 import { Modal } from '@/app/(route)/asset-store/components/AssetModal'
 import { AssetSidebar } from '@/app/(route)/asset-store/components/AssetSidebar'
 import { GSAPTextEditor } from '@/app/(route)/asset-store/components/GSAPTextEditor'
-import { cn, TRANSITIONS } from '@/lib/utils'
+import { clsx } from 'clsx'
+import { TRANSITIONS } from '@/lib/utils'
 import { AssetItem } from '@/types/asset-store'
 import { useState, useEffect } from 'react'
 import { LuSearch } from 'react-icons/lu'
@@ -115,13 +116,13 @@ export default function AssetPage() {
   })
 
   // 메인 컨테이너 클래스
-  const mainContainerClasses = cn('min-h-screen', 'bg-gray-50', 'text-black')
+  const mainContainerClasses = clsx('min-h-screen', 'bg-gray-50', 'text-black')
 
   // 검색 컨테이너 클래스
-  const searchContainerClasses = cn('relative', 'w-80')
+  const searchContainerClasses = clsx('relative', 'w-80')
 
   // 검색 입력 클래스
-  const searchInputClasses = cn(
+  const searchInputClasses = clsx(
     'w-full',
     'pl-4',
     'pr-12', // 오른쪽 패딩을 늘려서 아이콘 공간 확보
@@ -141,7 +142,7 @@ export default function AssetPage() {
   )
 
   // 검색 아이콘 클래스
-  const searchIconClasses = cn(
+  const searchIconClasses = clsx(
     'absolute',
     'right-3',
     'top-1/2',
@@ -153,7 +154,7 @@ export default function AssetPage() {
 
   // 카테고리 버튼 클래스
   const getCategoryButtonClasses = (isActive: boolean) =>
-    cn(
+    clsx(
       'px-4',
       'py-2',
       'rounded-full',

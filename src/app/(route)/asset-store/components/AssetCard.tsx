@@ -1,7 +1,7 @@
 'use client'
 
+import { clsx } from 'clsx'
 import {
-  cn,
   logComponentWarning,
   TRANSITIONS,
   type BaseComponentProps,
@@ -44,7 +44,7 @@ export const AssetCard: React.FC<AssetCardProps> = ({
   }
 
   // 카드 컨테이너 클래스
-  const cardClasses = cn(
+  const cardClasses = clsx(
     'group',
     'cursor-pointer',
     'bg-white', // 화이트 배경
@@ -60,7 +60,7 @@ export const AssetCard: React.FC<AssetCardProps> = ({
   )
 
   // 썸네일 컨테이너 클래스
-  const thumbnailClasses = cn(
+  const thumbnailClasses = clsx(
     'aspect-[4/3]', // 정사각형에서 4:3 비율로 변경
     'rounded-lg',
     'bg-gray-50', // 더 밝은 배경
@@ -71,7 +71,7 @@ export const AssetCard: React.FC<AssetCardProps> = ({
   )
 
   // 플레이스홀더 클래스
-  const placeholderClasses = cn(
+  const placeholderClasses = clsx(
     'h-full',
     'flex',
     'items-center',
@@ -90,7 +90,7 @@ export const AssetCard: React.FC<AssetCardProps> = ({
         {/* 즐겨찾기 별 아이콘 */}
         <button
           onClick={handleFavoriteClick}
-          className={cn(
+          className={clsx(
             'absolute',
             'top-2',
             'right-2',
@@ -112,7 +112,7 @@ export const AssetCard: React.FC<AssetCardProps> = ({
           aria-label="즐겨찾기"
         >
           <span
-            className={cn(
+            className={clsx(
               'text-base',
               'leading-none',
               'transition-colors',
@@ -152,7 +152,7 @@ export const AssetCard: React.FC<AssetCardProps> = ({
           </h3>
           <div className="flex items-center space-x-2">
             <span
-              className={cn(
+              className={clsx(
                 'px-2',
                 'py-1',
                 'rounded-md',
@@ -166,7 +166,7 @@ export const AssetCard: React.FC<AssetCardProps> = ({
             </span>
             {asset.isPro && (
               <span
-                className={cn(
+                className={clsx(
                   'px-2',
                   'py-1',
                   'rounded-md',

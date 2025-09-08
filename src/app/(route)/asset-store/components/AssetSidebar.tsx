@@ -1,6 +1,7 @@
 'use client'
 
-import { cn, TRANSITIONS, type BaseComponentProps } from '@/lib/utils'
+import { clsx } from 'clsx'
+import { TRANSITIONS, type BaseComponentProps } from '@/lib/utils'
 import React from 'react'
 
 // Asset 사이드바 Props 타입
@@ -24,7 +25,7 @@ export const AssetSidebar: React.FC<AssetSidebarProps> = ({
   className,
 }) => {
   // 사이드바 클래스
-  const sidebarClasses = cn(
+  const sidebarClasses = clsx(
     'w-48', // 폭 축소 (256px -> 192px)
     'bg-white', // 화이트 배경
     'border-r',
@@ -38,7 +39,7 @@ export const AssetSidebar: React.FC<AssetSidebarProps> = ({
 
   // 카테고리 버튼 클래스 생성 함수
   const getCategoryButtonClasses = (category: string) =>
-    cn(
+    clsx(
       'w-full',
       'text-left',
       'px-4',
@@ -55,7 +56,7 @@ export const AssetSidebar: React.FC<AssetSidebarProps> = ({
     )
 
   // 즐겨찾기 버튼 클래스
-  const favoriteButtonClasses = cn(
+  const favoriteButtonClasses = clsx(
     'w-full',
     'text-left',
     'px-4',
@@ -73,7 +74,7 @@ export const AssetSidebar: React.FC<AssetSidebarProps> = ({
   )
 
   // 업로드 버튼 클래스
-  const uploadButtonClasses = cn(
+  const uploadButtonClasses = clsx(
     'w-full',
     'px-4',
     'py-3',

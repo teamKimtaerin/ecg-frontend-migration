@@ -1,7 +1,7 @@
 'use client'
 
+import { clsx } from 'clsx'
 import {
-  cn,
   logComponentWarning,
   TRANSITIONS,
   type BaseComponentProps,
@@ -34,7 +34,7 @@ export const Modal: React.FC<ModalProps> = ({
   }
 
   // 모달 오버레이 클래스
-  const overlayClasses = cn(
+  const overlayClasses = clsx(
     'fixed',
     'inset-0',
     'z-50',
@@ -44,7 +44,7 @@ export const Modal: React.FC<ModalProps> = ({
   )
 
   // 배경 클래스
-  const backdropClasses = cn(
+  const backdropClasses = clsx(
     'absolute',
     'inset-0',
     'bg-black/60',
@@ -52,7 +52,7 @@ export const Modal: React.FC<ModalProps> = ({
   )
 
   // 모달 컨테이너 클래스
-  const modalClasses = cn(
+  const modalClasses = clsx(
     'relative',
     'bg-white',
     'rounded-lg',
@@ -72,7 +72,7 @@ export const Modal: React.FC<ModalProps> = ({
   )
 
   // 헤더 클래스
-  const headerClasses = cn(
+  const headerClasses = clsx(
     'flex',
     'items-center',
     'justify-between',
@@ -90,7 +90,7 @@ export const Modal: React.FC<ModalProps> = ({
           <h2 className="text-xl font-semibold text-white">{title}</h2>
           <button
             onClick={onClose}
-            className={cn(
+            className={clsx(
               'text-gray-400',
               'hover:text-white',
               'text-2xl',
