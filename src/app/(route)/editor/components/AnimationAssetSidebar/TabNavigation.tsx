@@ -7,8 +7,8 @@ const TabNavigation: React.FC = () => {
   const { activeAssetTab, setActiveAssetTab } = useEditorStore()
 
   const tabs = [
-    { id: 'free' as const, label: '무료 템플릿' },
-    { id: 'my' as const, label: '내 템플릿' },
+    { id: 'free' as const, label: '사용중 에셋' },
+    { id: 'my' as const, label: '에셋 리스트' },
   ]
 
   return (

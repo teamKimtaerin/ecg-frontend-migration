@@ -13,7 +13,7 @@ const SidebarHeader: React.FC = () => {
 
   return (
     <div className="flex items-center justify-between px-4 py-3 border-b border-slate-600/40">
-      <h2 className="text-lg font-semibold text-white">애니메이션 템플릿</h2>
+      <h2 className="text-lg font-semibold text-white">애니메이션 에셋</h2>
       <button
         onClick={handleClose}
         className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded transition-colors duration-200"

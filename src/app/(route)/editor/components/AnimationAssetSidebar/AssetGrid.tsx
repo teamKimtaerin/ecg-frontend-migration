@@ -93,15 +93,12 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
 
   // Filter assets based on tab, category, and search query
   const filteredAssets = mockGlitchAssets.filter((asset) => {
-    // Filter by tab
-    if (
-      activeAssetTab === 'free' &&
-      asset.type !== 'free' &&
-      asset.type !== 'premium'
-    ) {
+    // Filter by tab based on usage status
+    const isUsedAsset = selectedGlitchAssets.includes(asset.id)
+    if (activeAssetTab === 'free' && !isUsedAsset) {
       return false
     }
-    if (activeAssetTab === 'my' && asset.type !== 'my') {
+    if (activeAssetTab === 'my' && isUsedAsset) {
       return false
     }
 

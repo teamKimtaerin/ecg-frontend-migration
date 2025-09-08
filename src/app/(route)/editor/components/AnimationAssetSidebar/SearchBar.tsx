@@ -21,7 +21,7 @@ const SearchBar: React.FC = () => {
           type="text"
           value={assetSearchQuery}
           onChange={handleSearchChange}
-          placeholder="ex) 글리치, 회전, 반짝이는"
+          placeholder="ex) Rotation, TypeWriter, Glitch"
           className="w-full pl-10 pr-3 py-2 text-sm bg-slate-700/90 border border-slate-500/70 rounded-md text-white placeholder-slate-400 focus:border-slate-400 focus:ring-1 focus:ring-blue-200 focus:outline-none transition-colors duration-200"
         />
       </div>
