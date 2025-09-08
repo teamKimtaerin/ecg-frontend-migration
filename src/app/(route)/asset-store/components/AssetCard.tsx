@@ -6,21 +6,8 @@ import {
   TRANSITIONS,
   type BaseComponentProps,
 } from '@/lib/utils'
+import { AssetItem } from '@/types/asset-store'
 import React from 'react'
-
-// Asset 타입 정의
-export interface AssetItem {
-  id: string
-  title: string
-  category: string
-  rating: number
-  downloads: number
-  likes?: number
-  thumbnail: string
-  isPro?: boolean
-  configFile?: string
-  isFavorite?: boolean
-}
 
 // Asset 카드 Props 타입
 interface AssetCardProps extends BaseComponentProps {

@@ -1,7 +1,8 @@
 // Schema 속성 타입 정의
 export interface SchemaProperty {
-  type: 'string' | 'number' | 'boolean'
+  type: 'string' | 'number' | 'boolean' | 'select' | 'color'
   default: string | number | boolean
+  label?: string
   min?: number
   max?: number
   step?: number

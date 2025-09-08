@@ -10,9 +10,59 @@ import { AssetMetadata, SchemaProperty } from '@/types/asset-store'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 
 // GSAP 타입 선언
+interface GSAPTimeline {
+  to: (
+    target: string | Element | HTMLElement | Record<string, unknown>,
+    vars: Record<string, unknown>,
+    position?: string | number
+  ) => GSAPTimeline
+  set: (
+    target: string | Element | HTMLElement | Record<string, unknown>,
+    vars: Record<string, unknown>,
+    position?: string | number
+  ) => GSAPTimeline
+  from: (
+    target: string | Element | HTMLElement | Record<string, unknown>,
+    vars: Record<string, unknown>,
+    position?: string | number
+  ) => GSAPTimeline
+  fromTo: (
+    target: string | Element | HTMLElement | Record<string, unknown>,
+    fromVars: Record<string, unknown>,
+    toVars: Record<string, unknown>,
+    position?: string | number
+  ) => GSAPTimeline
+  call: (
+    callback: () => void,
+    params?: unknown[],
+    scope?: unknown,
+    position?: string | number
+  ) => GSAPTimeline
+  duration: {
+    (): number
+    (value: number): GSAPTimeline
+  }
+}
+
 interface GSAP {
-  set: (target: string | HTMLElement, vars: Record<string, unknown>) => void
-  to: (target: string | HTMLElement, vars: Record<string, unknown>) => void
+  set: (
+    target: string | Element | HTMLElement | Record<string, unknown>,
+    vars: Record<string, unknown>
+  ) => void
+  to: (
+    target: string | Element | HTMLElement | Record<string, unknown>,
+    vars: Record<string, unknown>
+  ) => void
+  from: (
+    target: string | Element | HTMLElement | Record<string, unknown>,
+    vars: Record<string, unknown>
+  ) => void
+  fromTo: (
+    target: string | Element | HTMLElement | Record<string, unknown>,
+    fromVars: Record<string, unknown>,
+    toVars: Record<string, unknown>
+  ) => void
+  timeline: (options?: Record<string, unknown>) => GSAPTimeline
   killTweensOf: (target: string | HTMLElement) => void
 }
 
@@ -516,7 +566,7 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
 
     words.forEach((word, index) => {
       // 초기 상태 설정
-      window.gsap.set(word, {
+      window.gsap.set(word as HTMLElement, {
         scale: startScale,
         y: 20,
         opacity: 0,
@@ -524,7 +574,7 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
       })
 
       // 바운스 애니메이션
-      window.gsap.to(word, {
+      window.gsap.to(word as HTMLElement, {
         scale: overshoot,
         y: 0,
         opacity: 1,
@@ -533,7 +583,7 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
         ease: 'back.out(2)',
         onComplete: () => {
           // 오버슈트에서 정상 크기로 복귀
-          window.gsap.to(word, {
+          window.gsap.to(word as HTMLElement, {
             scale: 1,
             duration: animationDuration * 0.3,
             ease: `elastic.out(${bounceStrength}, 0.3)`,
@@ -542,7 +592,7 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
       })
 
       // 미묘한 y축 바운스 추가
-      window.gsap.to(word, {
+      window.gsap.to(word as HTMLElement, {
         y: -5,
         duration: animationDuration * 0.2,
         delay: index * staggerDelay + animationDuration * 0.4,
@@ -777,7 +827,7 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
       const scatterY = Math.sin(angle) * distance
 
       // 초기 상태: 흩어진 상태
-      window.gsap.set(char, {
+      window.gsap.set(char as HTMLElement, {
         x: scatterX,
         y: scatterY,
         opacity: 0,
@@ -789,7 +839,7 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
       const timeline = window.gsap.timeline()
 
       // 1단계: 나타나기
-      timeline.to(char, {
+      timeline.to(char as HTMLElement, {
         opacity: 1,
         duration: 0.2,
         delay: index * staggerDelay,
@@ -809,14 +859,14 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
           onComplete: () => {
             if (elasticEffect) {
               // 3단계: 탄성 복귀
-              window.gsap.to(char, {
+              window.gsap.to(char as HTMLElement, {
                 scale: 1,
                 duration: 0.6,
                 ease: 'elastic.out(1, 0.4)',
               })
 
               // 미묘한 바운스 효과
-              window.gsap.to(char, {
+              window.gsap.to(char as HTMLElement, {
                 y: -3,
                 duration: 0.15,
                 ease: 'power2.out',
@@ -825,7 +875,7 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
               })
             } else {
               // 단순한 스케일 복귀
-              window.gsap.to(char, {
+              window.gsap.to(char as HTMLElement, {
                 scale: 1,
                 duration: 0.3,
                 ease: 'power2.out',
@@ -901,14 +951,14 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
 
     chars.forEach((char, index) => {
       // 초기 상태 설정 (순수 페이드인 - 슬라이드 없음)
-      window.gsap.set(char, {
+      window.gsap.set(char as HTMLElement, {
         opacity: startOpacity,
         scale: scaleStart,
         transformOrigin: 'center center',
       })
 
       // 순수 페이드 인 애니메이션
-      window.gsap.to(char, {
+      window.gsap.to(char as HTMLElement, {
         opacity: 1,
         scale: 1,
         duration: animationDuration,
@@ -916,12 +966,13 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
         ease: ease,
         // 미묘한 색상 변화 효과
         onStart: () => {
-          char.style.filter = 'brightness(1.3)'
-          char.style.textShadow = '0 0 5px rgba(255,255,255,0.3)'
+          ;(char as HTMLElement).style.filter = 'brightness(1.3)'
+          ;(char as HTMLElement).style.textShadow =
+            '0 0 5px rgba(255,255,255,0.3)'
         },
         onComplete: () => {
           // 밝기와 글로우 효과 제거
-          window.gsap.to(char, {
+          window.gsap.to(char as HTMLElement, {
             filter: 'brightness(1)',
             textShadow: '0 0 0px rgba(255,255,255,0)',
             duration: 0.4,
@@ -931,7 +982,7 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
       })
 
       // 미묘한 펄스 효과 (스케일 변동)
-      window.gsap.to(char, {
+      window.gsap.to(char as HTMLElement, {
         scale: 1.03,
         duration: animationDuration * 0.2,
         delay: index * staggerDelay + animationDuration * 0.6,
@@ -942,7 +993,7 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
 
       // 색상 그라데이션 효과
       window.gsap.fromTo(
-        char,
+        char as HTMLElement,
         {
           color: '#999999',
         },
@@ -1010,7 +1061,7 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
       const randomRotation = (Math.random() - 0.5) * rotationAmount * 2
 
       // 초기 상태 설정
-      window.gsap.set(char, {
+      window.gsap.set(char as HTMLElement, {
         scale: startScale,
         opacity: 0,
         rotation: randomRotation * 0.5,
@@ -1022,7 +1073,7 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
       const timeline = window.gsap.timeline()
 
       // 1단계: 나타나면서 오버스케일
-      timeline.to(char, {
+      timeline.to(char as HTMLElement, {
         scale: maxScale,
         opacity: 1,
         rotation: randomRotation,
@@ -1032,19 +1083,20 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
         ease: 'back.out(2)',
         onStart: () => {
           // 글로우 효과 추가
-          char.style.textShadow = '0 0 10px rgba(255,255,255,0.5)'
+          ;(char as HTMLElement).style.textShadow =
+            '0 0 10px rgba(255,255,255,0.5)'
         },
       })
 
       // 2단계: 정상 크기로 복귀
-      timeline.to(char, {
+      timeline.to(char as HTMLElement, {
         scale: 1,
         rotation: 0,
         duration: popDuration * 0.4,
         ease: 'elastic.out(1, 0.4)',
         onComplete: () => {
           // 글로우 효과 제거
-          window.gsap.to(char, {
+          window.gsap.to(char as HTMLElement, {
             textShadow: '0 0 0px rgba(255,255,255,0)',
             duration: 0.3,
             ease: 'power1.out',
@@ -1074,15 +1126,15 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
           duration: popDuration,
           ease: 'power1.inOut',
           onStart: () => {
-            char.style.color = '#e74c3c' // 시작 색상
+            ;(char as HTMLElement).style.color = '#e74c3c' // 시작 색상
           },
-          onUpdate: function () {
+          onUpdate: function (this: { progress(): number }) {
             // 진행률에 따라 색상 변화
             const progress = this.progress()
             const r = Math.floor(231 + (255 - 231) * progress) // 231 -> 255
             const g = Math.floor(76 + (255 - 76) * progress) // 76 -> 255
             const b = Math.floor(60 + (255 - 60) * progress) // 60 -> 255
-            char.style.color = `rgb(${r}, ${g}, ${b})`
+            ;(char as HTMLElement).style.color = `rgb(${r}, ${g}, ${b})`
           },
         },
         0
@@ -1143,7 +1195,7 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
 
     chars.forEach((char, index) => {
       // 초기 상태 설정
-      window.gsap.set(char, {
+      window.gsap.set(char as HTMLElement, {
         y: slideDistance,
         opacity: 0,
         scale: 0.95,
@@ -1155,7 +1207,7 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
       const timeline = window.gsap.timeline()
 
       // 1단계: 슬라이드 업 (오버슈트 포함)
-      timeline.to(char, {
+      timeline.to(char as HTMLElement, {
         y: overshoot > 0 ? -overshoot : 0,
         opacity: 1,
         scale: 1,
@@ -1166,21 +1218,22 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
         onStart: () => {
           // 슬라이딩 시작 시 미묘한 글로우 효과
           if (blurEffect) {
-            char.style.textShadow = '0 0 8px rgba(255,255,255,0.3)'
+            ;(char as HTMLElement).style.textShadow =
+              '0 0 8px rgba(255,255,255,0.3)'
           }
         },
       })
 
       // 2단계: 정확한 위치로 복귀 (오버슈트가 있는 경우만)
       if (overshoot > 0) {
-        timeline.to(char, {
+        timeline.to(char as HTMLElement, {
           y: 0,
           duration: animationDuration * 0.3,
           ease: 'power2.out',
           onComplete: () => {
             // 글로우 효과 제거
             if (blurEffect) {
-              window.gsap.to(char, {
+              window.gsap.to(char as HTMLElement, {
                 textShadow: '0 0 0px rgba(255,255,255,0)',
                 duration: 0.4,
                 ease: 'power1.out',
@@ -1192,7 +1245,7 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
         // 오버슈트가 없는 경우 글로우 제거
         timeline.call(() => {
           if (blurEffect) {
-            window.gsap.to(char, {
+            window.gsap.to(char as HTMLElement, {
               textShadow: '0 0 0px rgba(255,255,255,0)',
               duration: 0.4,
               ease: 'power1.out',
@@ -1234,7 +1287,7 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
     // 전체 컨테이너에 미묘한 효과
     if (blurEffect) {
       window.gsap.fromTo(
-        textElement,
+        textElement as HTMLElement,
         {
           filter: 'brightness(0.8)',
         },
