@@ -71,41 +71,27 @@ const AssetCard: React.FC<AssetCardProps> = ({ asset, onClick }) => {
       className="group relative bg-slate-700/50 rounded-lg p-3 cursor-pointer hover:bg-slate-600/50 transition-all duration-200 border border-slate-600/30 hover:border-slate-500/50"
       onClick={handleClick}
     >
-      {/* Preview Area */}
-      <div className="aspect-[4/3] mb-3 rounded-lg overflow-hidden">
+      {/* Preview Area with Badge Overlay */}
+      <div className="relative aspect-[4/3] mb-3 rounded-lg overflow-hidden">
         {renderPreview()}
+        {asset.isUsed && (
+          <span className="absolute top-2 right-2 inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-medium bg-green-500/90 text-white backdrop-blur-sm shadow-sm">
+            사용중
+          </span>
+        )}
       </div>
 
       {/* Asset Info */}
       <div className="space-y-1">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="text-sm font-medium text-white leading-tight">
-            {asset.name}
-          </h3>
-          {asset.isUsed && (
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-              사용중
-            </span>
-          )}
-        </div>
+        <h3 className="text-sm font-medium text-white leading-tight">
+          {asset.name}
+        </h3>
 
         {asset.description && (
           <p className="text-xs text-slate-400 leading-tight">
             {asset.description}
           </p>
         )}
-
-        {/* Type indicator */}
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-slate-500 capitalize">
-            {asset.type === 'free'
-              ? '무료'
-              : asset.type === 'premium'
-                ? '프리미엄'
-                : '내 에셋'}
-          </span>
-          <span className="text-xs text-slate-500">{asset.category}</span>
-        </div>
       </div>
     </div>
   )

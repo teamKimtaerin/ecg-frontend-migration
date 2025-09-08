@@ -9,8 +9,13 @@ interface AssetGridProps {
 }
 
 const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
-  const { activeAssetTab, selectedAssetCategory, assetSearchQuery } =
-    useEditorStore()
+  const {
+    activeAssetTab,
+    selectedAssetCategory,
+    assetSearchQuery,
+    selectedGlitchAssets,
+    setSelectedGlitchAssets,
+  } = useEditorStore()
 
   // Mock data for glitch assets - 실제 구현에서는 API에서 가져오거나 다른 데이터 소스를 사용
   const mockGlitchAssets: AssetItem[] = [
@@ -72,7 +77,6 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
         secondary: '#FFA500',
       },
       description: '반짝이는 파티클 효과',
-      isUsed: true,
     },
     {
       id: 'typewriter-effect',
@@ -123,15 +127,39 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
   })
 
   const handleAssetClick = (asset: AssetItem) => {
-    console.log('Asset selected:', asset)
+    // 토글 로직: 이미 선택되어 있으면 제거, 없으면 추가
+    const isCurrentlySelected = selectedGlitchAssets.includes(asset.id)
+
+    if (isCurrentlySelected) {
+      // 제거
+      setSelectedGlitchAssets(
+        selectedGlitchAssets.filter((id) => id !== asset.id)
+      )
+    } else {
+      // 추가
+      setSelectedGlitchAssets([...selectedGlitchAssets, asset.id])
+    }
+
+    console.log(
+      'Asset toggled:',
+      asset.name,
+      isCurrentlySelected ? 'removed' : 'added'
+    )
     onAssetSelect?.(asset)
   }
 
   return (
     <div className="px-4 pb-4">
-      <div className="grid grid-cols-1 gap-3">
+      <div className="grid grid-cols-2 gap-3">
         {filteredAssets.map((asset) => (
-          <AssetCard key={asset.id} asset={asset} onClick={handleAssetClick} />
+          <AssetCard
+            key={asset.id}
+            asset={{
+              ...asset,
+              isUsed: selectedGlitchAssets.includes(asset.id),
+            }}
+            onClick={handleAssetClick}
+          />
         ))}
       </div>
 
