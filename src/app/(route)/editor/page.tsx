@@ -21,6 +21,7 @@ import { loadTranscriptionData } from '@/utils/transcription/segmentConverter'
 
 // Types
 import { EditorTab } from './types'
+import { ClipItem } from './components/ClipComponent/types'
 
 // Hooks
 import { useUploadModal } from '@/hooks/useUploadModal'
@@ -50,6 +51,9 @@ import { DeleteClipCommand } from '@/utils/editor/commands/DeleteClipCommand'
 import { RemoveSpeakerCommand } from '@/utils/editor/commands/RemoveSpeakerCommand'
 import { ChangeSpeakerCommand } from '@/utils/editor/commands/ChangeSpeakerCommand'
 import { BatchChangeSpeakerCommand } from '@/utils/editor/commands/BatchChangeSpeakerCommand'
+import { CutClipsCommand } from '@/utils/editor/commands/CutClipsCommand'
+import { CopyClipsCommand } from '@/utils/editor/commands/CopyClipsCommand'
+import { PasteClipsCommand } from '@/utils/editor/commands/PasteClipsCommand'
 import { showToast } from '@/utils/ui/toast'
 
 export default function EditorPage() {
@@ -91,6 +95,7 @@ export default function EditorPage() {
   const [scrollProgress, setScrollProgress] = useState(0) // 스크롤 진행도
   const [speakers, setSpeakers] = useState<string[]>([]) // Speaker 리스트 전역 관리
   const [isSpeakerManagementOpen, setIsSpeakerManagementOpen] = useState(false) // 화자 관리 사이드바 상태
+  const [clipboard, setClipboard] = useState<ClipItem[]>([]) // 클립보드 상태
 
   // Get media actions from store
   const { setMediaInfo } = useEditorStore()
@@ -359,8 +364,15 @@ export default function EditorPage() {
   }
 
   const handleAddSpeaker = (name: string) => {
+    console.log('handleAddSpeaker called with:', name)
+    console.log('Current speakers before adding:', speakers)
+
     if (!speakers.includes(name)) {
-      setSpeakers([...speakers, name])
+      const newSpeakers = [...speakers, name]
+      setSpeakers(newSpeakers)
+      console.log('Speaker added successfully. New speakers:', newSpeakers)
+    } else {
+      console.log('Speaker already exists, skipping addition')
     }
   }
 
@@ -713,6 +725,80 @@ export default function EditorPage() {
     }
   }, [activeClipId, clips, setClips, editorHistory, setActiveClipId])
 
+  // Cut clips handler
+  const handleCutClips = useCallback(() => {
+    try {
+      const selectedIds = Array.from(selectedClipIds)
+
+      if (selectedIds.length === 0) {
+        showToast('잘라낼 클립을 선택해주세요.')
+        return
+      }
+
+      // Create and execute cut command
+      const command = new CutClipsCommand(
+        clips,
+        selectedIds,
+        setClips,
+        setClipboard
+      )
+
+      editorHistory.executeCommand(command)
+      clearSelection() // Clear selection after cutting
+      showToast(`${selectedIds.length}개 클립을 잘라냈습니다.`, 'success')
+    } catch (error) {
+      console.error('클립 잘라내기 오류:', error)
+      showToast('클립 잘라내기 중 오류가 발생했습니다.')
+    }
+  }, [
+    clips,
+    selectedClipIds,
+    setClips,
+    setClipboard,
+    editorHistory,
+    clearSelection,
+  ])
+
+  // Copy clips handler
+  const handleCopyClips = useCallback(() => {
+    try {
+      const selectedIds = Array.from(selectedClipIds)
+
+      if (selectedIds.length === 0) {
+        showToast('복사할 클립을 선택해주세요.')
+        return
+      }
+
+      // Create and execute copy command
+      const command = new CopyClipsCommand(clips, selectedIds, setClipboard)
+
+      command.execute() // Copy command doesn't need undo/redo
+      showToast(`${selectedIds.length}개 클립을 복사했습니다.`, 'success')
+    } catch (error) {
+      console.error('클립 복사 오류:', error)
+      showToast('클립 복사 중 오류가 발생했습니다.')
+    }
+  }, [clips, selectedClipIds, setClipboard])
+
+  // Paste clips handler
+  const handlePasteClips = useCallback(() => {
+    try {
+      if (clipboard.length === 0) {
+        showToast('붙여넣을 클립이 없습니다.')
+        return
+      }
+
+      // Create and execute paste command
+      const command = new PasteClipsCommand(clips, clipboard, setClips)
+
+      editorHistory.executeCommand(command)
+      showToast(`${clipboard.length}개 클립을 붙여넣었습니다.`, 'success')
+    } catch (error) {
+      console.error('클립 붙여넣기 오류:', error)
+      showToast('클립 붙여넣기 중 오류가 발생했습니다.')
+    }
+  }, [clips, clipboard, setClips, editorHistory])
+
   // TODO : 자동 저장 기능 나중에 사용
   // 3초마다 자동 저장
   useEffect(() => {
@@ -785,10 +871,28 @@ export default function EditorPage() {
         event.preventDefault()
         handleMergeClips()
       }
-      // Command/Ctrl+X (cut/delete clip) - 윈도우에서는 Ctrl+X, Mac에서는 Command+X
+      // Command/Ctrl+X (cut clips) - 윈도우에서는 Ctrl+X, Mac에서는 Command+X
       else if (cmdOrCtrl && event.key === 'x') {
         event.preventDefault()
-        handleDeleteClip()
+        if (selectedClipIds.size > 0) {
+          handleCutClips()
+        } else {
+          handleDeleteClip() // 선택된 클립이 없으면 기존처럼 삭제
+        }
+      }
+      // Command/Ctrl+C (copy clips)
+      else if (cmdOrCtrl && event.key === 'c') {
+        event.preventDefault()
+        if (selectedClipIds.size > 0) {
+          handleCopyClips()
+        }
+      }
+      // Command/Ctrl+V (paste clips)
+      else if (cmdOrCtrl && event.key === 'v') {
+        event.preventDefault()
+        if (clipboard.length > 0) {
+          handlePasteClips()
+        }
       }
       // Enter (split clip) - 포커싱된 클립 나누기
       else if (event.key === 'Enter' && !cmdOrCtrl) {
@@ -808,6 +912,11 @@ export default function EditorPage() {
     handleMergeClips,
     handleSplitClip,
     handleDeleteClip,
+    handleCutClips,
+    handleCopyClips,
+    handlePasteClips,
+    selectedClipIds,
+    clipboard,
     editorHistory,
     markAsSaved,
   ])
@@ -925,9 +1034,9 @@ export default function EditorPage() {
           onMergeClips={handleMergeClips}
           onUndo={handleUndo}
           onRedo={handleRedo}
-          onCut={() => console.log('Cut clips')}
-          onCopy={() => console.log('Copy clips')}
-          onPaste={() => console.log('Paste clips')}
+          onCut={handleCutClips}
+          onCopy={handleCopyClips}
+          onPaste={handlePasteClips}
           onSplitClip={handleSplitClip}
         />
 

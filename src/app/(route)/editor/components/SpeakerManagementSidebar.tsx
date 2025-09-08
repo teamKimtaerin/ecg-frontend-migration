@@ -78,9 +78,29 @@ export default function SpeakerManagementSidebar({
     }
   }, [editingSpeaker])
 
-  const handleAddSpeaker = () => {
-    const nextSpeakerNumber = speakers.length + 1
-    const newSpeakerName = `화자${nextSpeakerNumber}`
+  const handleAddSpeaker = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation() // 이벤트 전파 방지
+
+    // 현재 존재하는 화자 번호들을 추출
+    const existingNumbers = speakers
+      .map((speaker) => {
+        const match = speaker.match(/^화자(\d+)$/)
+        return match ? parseInt(match[1], 10) : 0
+      })
+      .filter((num) => num > 0)
+
+    // 가장 작은 빈 번호 찾기 (1부터 시작)
+    let nextNumber = 1
+    while (existingNumbers.includes(nextNumber)) {
+      nextNumber++
+    }
+
+    const newSpeakerName = `화자${nextNumber}`
+    console.log('Adding speaker:', newSpeakerName)
+    console.log('Current speakers:', speakers)
+    console.log('Existing numbers:', existingNumbers)
+
     onAddSpeaker(newSpeakerName)
   }
 
@@ -99,6 +119,7 @@ export default function SpeakerManagementSidebar({
       return
     }
 
+    console.log('Renaming speaker:', editingSpeaker, '->', trimmedName)
     onRenameSpeaker(editingSpeaker, trimmedName)
     setEditingSpeaker(null)
     setEditingName('')
