@@ -1007,9 +1007,11 @@ export default function EditorPage() {
           isOpen={isSpeakerManagementOpen}
           onClose={handleCloseSpeakerManagement}
           speakers={speakers}
+          clips={clips}
           onAddSpeaker={handleAddSpeaker}
           onRemoveSpeaker={handleRemoveSpeaker}
           onRenameSpeaker={handleRenameSpeaker}
+          onBatchSpeakerChange={handleBatchSpeakerChange}
         />
       </div>
 

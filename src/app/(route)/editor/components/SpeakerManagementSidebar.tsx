@@ -1,26 +1,76 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { LuX, LuPlus, LuTrash2 } from 'react-icons/lu'
+import { LuX, LuPlus, LuTrash2, LuUserX, LuArrowRight } from 'react-icons/lu'
+
+interface ClipItem {
+  id: string
+  timeline: string
+  speaker: string
+  fullText: string
+}
 
 interface SpeakerManagementSidebarProps {
   isOpen: boolean
   onClose: () => void
   speakers: string[]
+  clips: ClipItem[]
   onAddSpeaker: (name: string) => void
   onRemoveSpeaker: (name: string) => void
   onRenameSpeaker: (oldName: string, newName: string) => void
+  onBatchSpeakerChange: (clipIds: string[], newSpeaker: string) => void
 }
 
 export default function SpeakerManagementSidebar({
   isOpen,
   onClose,
   speakers,
+  clips,
   onAddSpeaker,
   onRemoveSpeaker,
   onRenameSpeaker,
+  onBatchSpeakerChange,
 }: SpeakerManagementSidebarProps) {
   const [editingSpeaker, setEditingSpeaker] = useState<string | null>(null)
   const [editingName, setEditingName] = useState('')
+  const [selectedUnassignedClips, setSelectedUnassignedClips] = useState<
+    Set<string>
+  >(new Set())
+  const [showUnassignedPanel, setShowUnassignedPanel] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  // 미지정 클립들 필터링
+  const unassignedClips = clips.filter(
+    (clip) => !clip.speaker || clip.speaker.trim() === ''
+  )
+
+  // 미지정 클립 선택/해제 핸들러
+  const handleUnassignedClipToggle = (clipId: string) => {
+    const newSelected = new Set(selectedUnassignedClips)
+    if (newSelected.has(clipId)) {
+      newSelected.delete(clipId)
+    } else {
+      newSelected.add(clipId)
+    }
+    setSelectedUnassignedClips(newSelected)
+  }
+
+  // 전체 선택/해제
+  const handleSelectAllUnassigned = () => {
+    if (selectedUnassignedClips.size === unassignedClips.length) {
+      setSelectedUnassignedClips(new Set())
+    } else {
+      setSelectedUnassignedClips(
+        new Set(unassignedClips.map((clip) => clip.id))
+      )
+    }
+  }
+
+  // 선택된 미지정 클립들에 화자 일괄 적용
+  const handleAssignSpeakerToSelected = (speakerName: string) => {
+    if (selectedUnassignedClips.size > 0) {
+      onBatchSpeakerChange(Array.from(selectedUnassignedClips), speakerName)
+      setSelectedUnassignedClips(new Set())
+    }
+  }
 
   useEffect(() => {
     if (editingSpeaker && inputRef.current) {
@@ -111,9 +161,101 @@ export default function SpeakerManagementSidebar({
         </div>
 
         {/* Content */}
-        <div className="p-4">
+        <div className="p-4 space-y-6">
+          {/* 미지정 클립 관리 패널 */}
+          {unassignedClips.length > 0 && (
+            <div className="bg-gray-800 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <LuUserX className="w-5 h-5 text-orange-400" />
+                  <h3 className="text-sm font-semibold text-white">
+                    미지정 클립 ({unassignedClips.length}개)
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setShowUnassignedPanel(!showUnassignedPanel)}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <LuArrowRight
+                    className={`w-4 h-4 transition-transform ${showUnassignedPanel ? 'rotate-90' : ''}`}
+                  />
+                </button>
+              </div>
+
+              {showUnassignedPanel && (
+                <div className="space-y-3">
+                  {/* 전체 선택 체크박스 */}
+                  <div className="flex items-center justify-between text-sm">
+                    <label className="flex items-center gap-2 text-gray-300 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={
+                          selectedUnassignedClips.size ===
+                            unassignedClips.length && unassignedClips.length > 0
+                        }
+                        onChange={handleSelectAllUnassigned}
+                        className="w-4 h-4 rounded"
+                      />
+                      전체 선택
+                    </label>
+                    <span className="text-gray-400">
+                      {selectedUnassignedClips.size}개 선택됨
+                    </span>
+                  </div>
+
+                  {/* 클립 리스트 */}
+                  <div className="max-h-32 overflow-y-auto space-y-1">
+                    {unassignedClips.map((clip) => (
+                      <label
+                        key={clip.id}
+                        className="flex items-start gap-2 p-2 rounded hover:bg-gray-700 transition-colors cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedUnassignedClips.has(clip.id)}
+                          onChange={() => handleUnassignedClipToggle(clip.id)}
+                          className="w-4 h-4 rounded mt-0.5 flex-shrink-0"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <div className="text-xs text-gray-400 mb-1">
+                            {clip.timeline}
+                          </div>
+                          <div className="text-sm text-gray-300 truncate">
+                            {clip.fullText}
+                          </div>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+
+                  {/* 화자 할당 버튼들 */}
+                  {selectedUnassignedClips.size > 0 && (
+                    <div className="border-t border-gray-700 pt-3">
+                      <div className="text-xs text-gray-400 mb-2">
+                        선택된 클립에 화자 할당:
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {speakers.map((speaker) => (
+                          <button
+                            key={speaker}
+                            onClick={() =>
+                              handleAssignSpeakerToSelected(speaker)
+                            }
+                            className="px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 rounded transition-colors"
+                          >
+                            {speaker}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Speaker List */}
-          <div className="space-y-3 mb-6">
+          <div className="space-y-3">
             {speakers.map((speaker, index) => (
               <div
                 key={speaker}
@@ -161,18 +303,18 @@ export default function SpeakerManagementSidebar({
                 등록된 화자가 없습니다
               </div>
             )}
-          </div>
 
-          {/* Add Speaker */}
-          <button
-            onClick={handleAddSpeaker}
-            className="w-full p-3 border-2 border-dashed border-gray-600 rounded-lg
-                      text-gray-400 hover:text-white hover:border-gray-500
-                      transition-all flex items-center justify-center space-x-2"
-          >
-            <LuPlus className="w-5 h-5" />
-            <span>화자 추가하기</span>
-          </button>
+            {/* Add Speaker */}
+            <button
+              onClick={handleAddSpeaker}
+              className="w-full p-3 border-2 border-dashed border-gray-600 rounded-lg
+                        text-gray-400 hover:text-white hover:border-gray-500
+                        transition-all flex items-center justify-center space-x-2"
+            >
+              <LuPlus className="w-5 h-5" />
+              <span>화자 추가하기</span>
+            </button>
+          </div>
         </div>
       </div>
     </>

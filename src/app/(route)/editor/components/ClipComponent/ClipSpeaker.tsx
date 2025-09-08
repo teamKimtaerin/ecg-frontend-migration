@@ -279,7 +279,7 @@ export default function ClipSpeaker({
               className={`truncate overflow-hidden whitespace-nowrap ${!speaker ? 'text-orange-400' : ''}`}
               style={{ maxWidth: '80px', minWidth: '80px' }}
             >
-              {speaker || 'Speaker 등록 필요'}
+              {speaker || '미지정'}
             </span>
             <ChevronDownIcon
               className={`w-4 h-4 transition-transform flex-shrink-0 ml-2 ${isOpen ? 'rotate-180' : ''}`}
