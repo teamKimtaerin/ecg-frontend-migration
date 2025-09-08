@@ -23,8 +23,6 @@ export interface UISlice {
   setIsAssetSidebarOpen: (open: boolean) => void
   assetSidebarWidth: number
   setAssetSidebarWidth: (width: number) => void
-  selectedAssetCategory: string
-  setSelectedAssetCategory: (category: string) => void
   assetSearchQuery: string
   setAssetSearchQuery: (query: string) => void
   activeAssetTab: 'free' | 'my'
@@ -55,9 +53,6 @@ export const createUISlice: StateCreator<UISlice> = (set) => ({
   setIsAssetSidebarOpen: (open) => set({ isAssetSidebarOpen: open }),
   assetSidebarWidth: 320, // Default width
   setAssetSidebarWidth: (width) => set({ assetSidebarWidth: width }),
-  selectedAssetCategory: '전체 클립',
-  setSelectedAssetCategory: (category) =>
-    set({ selectedAssetCategory: category }),
   assetSearchQuery: '',
   setAssetSearchQuery: (query) => set({ assetSearchQuery: query }),
   activeAssetTab: 'free',

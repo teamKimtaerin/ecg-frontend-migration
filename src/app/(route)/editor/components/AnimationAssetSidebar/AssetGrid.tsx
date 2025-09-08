@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import AssetCard, { AssetItem } from './AssetCard'
 import { useEditorStore } from '../../store'
 
@@ -8,105 +8,75 @@ interface AssetGridProps {
   onAssetSelect?: (asset: AssetItem) => void
 }
 
+interface AssetDatabaseItem {
+  id: string
+  title: string
+  category: string
+  description: string
+  thumbnail: string
+  isPro: boolean
+}
+
+interface AssetDatabase {
+  assets: AssetDatabaseItem[]
+}
+
 const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
   const {
     activeAssetTab,
-    selectedAssetCategory,
     assetSearchQuery,
     selectedGlitchAssets,
     setSelectedGlitchAssets,
   } = useEditorStore()
 
-  // Mock data for glitch assets - 실제 구현에서는 API에서 가져오거나 다른 데이터 소스를 사용
-  const mockGlitchAssets: AssetItem[] = [
-    {
-      id: 'ci-glitch',
-      name: 'Caption with Intention 템플릿',
-      category: '글리치',
-      type: 'free',
-      preview: {
-        type: 'color',
-        value: '#000000',
-      },
-      description: '간단한 CI 글리치 효과',
-    },
-    {
-      id: 'colorful-gradient',
-      name: '화려한 그라데이션 노랑',
-      category: '배경',
-      type: 'free',
-      preview: {
-        type: 'gradient',
-        value: '#FFA500',
-        secondary: '#FF6B6B',
-      },
-      description: '밝고 화려한 그라데이션 배경',
-    },
-    {
-      id: 'text-glitch-1',
-      name: '텍스트 글리치 효과 1',
-      category: '글리치',
-      type: 'premium',
-      preview: {
-        type: 'gradient',
-        value: '#FF0080',
-        secondary: '#00FF80',
-      },
-      description: 'RGB 분리 글리치 효과',
-    },
-    {
-      id: 'rotation-effect',
-      name: '회전 애니메이션',
-      category: '트랜지션',
-      type: 'free',
-      preview: {
-        type: 'gradient',
-        value: '#4F46E5',
-        secondary: '#7C3AED',
-      },
-      description: '부드러운 회전 트랜지션',
-    },
-    {
-      id: 'sparkle-effect',
-      name: '반짝이는 효과',
-      category: '텍스트 효과',
-      type: 'premium',
-      preview: {
-        type: 'gradient',
-        value: '#FFD700',
-        secondary: '#FFA500',
-      },
-      description: '반짝이는 파티클 효과',
-    },
-    {
-      id: 'typewriter-effect',
-      name: '타이핑 효과',
-      category: '텍스트 효과',
-      type: 'my',
-      preview: {
-        type: 'color',
-        value: '#22C55E',
-      },
-      description: '타이프라이터 애니메이션',
-    },
-  ]
+  const [assets, setAssets] = useState<AssetItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Fetch assets from JSON file
+  useEffect(() => {
+    const fetchAssets = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch('/asset-store/assets-database.json')
+        if (!response.ok) {
+          throw new Error('Failed to fetch assets')
+        }
+        const data: AssetDatabase = await response.json()
+
+        // Transform JSON data to AssetItem format
+        const transformedAssets: AssetItem[] = data.assets.map((asset) => ({
+          id: asset.id,
+          name: asset.title,
+          category: asset.category,
+          type: 'free' as const,
+          preview: {
+            type: 'image' as const,
+            value: asset.thumbnail,
+          },
+          description: asset.description,
+        }))
+
+        setAssets(transformedAssets)
+        setError(null)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Unknown error occurred')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchAssets()
+  }, [])
 
   // Filter assets based on tab, category, and search query
-  const filteredAssets = mockGlitchAssets.filter((asset) => {
+  const filteredAssets = assets.filter((asset) => {
     // Filter by tab based on usage status
     const isUsedAsset = selectedGlitchAssets.includes(asset.id)
     if (activeAssetTab === 'free' && !isUsedAsset) {
       return false
     }
     if (activeAssetTab === 'my' && isUsedAsset) {
-      return false
-    }
-
-    // Filter by category
-    if (
-      selectedAssetCategory !== '전체 클립' &&
-      asset.category !== selectedAssetCategory
-    ) {
       return false
     }
 
@@ -145,6 +115,31 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
     onAssetSelect?.(asset)
   }
 
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="px-4 pb-4">
+        <div className="text-center py-8">
+          <p className="text-slate-400 text-sm">에셋을 불러오는 중...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="px-4 pb-4">
+        <div className="text-center py-8">
+          <p className="text-red-400 text-sm">
+            에셋을 불러오는데 실패했습니다.
+          </p>
+          <p className="text-slate-400 text-xs mt-1">{error}</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="px-4 pb-4">
       <div className="grid grid-cols-2 gap-3">
@@ -160,7 +155,7 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
         ))}
       </div>
 
-      {filteredAssets.length === 0 && (
+      {!loading && !error && filteredAssets.length === 0 && (
         <div className="text-center py-8">
           <p className="text-slate-400 text-sm">
             {assetSearchQuery

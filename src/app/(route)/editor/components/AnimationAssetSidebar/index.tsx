@@ -5,8 +5,8 @@ import { useEditorStore } from '../../store'
 
 // Components
 import SidebarHeader from './SidebarHeader'
-import CategoryFilter from './CategoryFilter'
 import SearchBar from './SearchBar'
+import UsedAssetsStrip from './UsedAssetsStrip'
 import TabNavigation from './TabNavigation'
 import AssetGrid from './AssetGrid'
 import { AssetItem } from './AssetCard'
@@ -45,8 +45,11 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
 
       {/* Filter Controls */}
       <div className="flex-shrink-0 pt-4">
-        <CategoryFilter />
         <SearchBar />
+
+        {/* Used Assets Strip */}
+        <UsedAssetsStrip />
+
         <TabNavigation />
       </div>
 

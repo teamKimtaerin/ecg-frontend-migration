@@ -58,10 +58,14 @@ const AssetCard: React.FC<AssetCardProps> = ({ asset, onClick }) => {
       )
     }
 
-    // For image type (future use)
+    // For image type
     return (
-      <div className="w-full h-full rounded-lg bg-slate-600 flex items-center justify-center text-slate-400">
-        <span className="text-xs">이미지</span>
+      <div className="w-full h-full rounded-lg bg-slate-800/50 flex items-center justify-center overflow-hidden">
+        <img
+          src={preview.value}
+          alt={asset.name}
+          className="w-full h-full object-cover rounded-lg"
+        />
       </div>
     )
   }
