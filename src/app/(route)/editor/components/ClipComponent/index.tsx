@@ -17,7 +17,6 @@ export default function ClipComponent({
   isChecked = false,
   isMultiSelected = false,
   enableDragAndDrop = false,
-  isGroupSelecting = false,
   speakers = [],
   onSelect,
   onCheck,
@@ -27,8 +26,6 @@ export default function ClipComponent({
   onOpenSpeakerManagement,
   onAddSpeaker,
   onRenameSpeaker,
-  onMouseDown,
-  onMouseEnter,
 }: ClipComponentProps) {
   const [isHovered, setIsHovered] = useState(false)
   const { dragProps, isDragging } = useClipDragAndDrop(
@@ -40,7 +37,7 @@ export default function ClipComponent({
       isSelected,
       isChecked,
       isMultiSelected,
-      isHovered: isHovered || isGroupSelecting,
+      isHovered,
       isDragging,
     })
 
@@ -50,50 +47,18 @@ export default function ClipComponent({
     onSelect(clip.id)
   }
 
-  const handleLeftSideClick = (e: React.MouseEvent) => {
-    // Stop propagation to prevent parent click handlers
-    e.stopPropagation()
-
-    // If onCheck is available, toggle the checkbox
-    if (onCheck) {
-      onCheck(clip.id, !isChecked)
-    }
-
-    // Also trigger clip selection
-    onSelect(clip.id)
-  }
-
-  const handlePointerDown = (e: React.PointerEvent) => {
-    // Start group selection for all clips (using pointer event to avoid conflict with dnd-kit)
-    if (onMouseDown) {
-      onMouseDown()
-    }
-  }
-
-  const handleMouseEnter = () => {
-    setIsHovered(true)
-    if (onMouseEnter) {
-      onMouseEnter()
-    }
-  }
-
   return (
     <div
       {...dragProps}
       className={`sortable-clip ${containerClassName}`}
       data-clip-id={clip.id}
       onClick={handleClick}
-      onPointerDownCapture={handlePointerDown}
-      onMouseEnter={handleMouseEnter}
+      onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="flex">
         {/* Left sidebar */}
-        <div
-          className={`${sidebarClassName} cursor-pointer`}
-          onClick={handleLeftSideClick}
-          title="클릭하여 클립 선택/해제"
-        >
+        <div className={sidebarClassName}>
           <ClipTimeline index={index} />
           <ClipCheckbox
             clipId={clip.id}
