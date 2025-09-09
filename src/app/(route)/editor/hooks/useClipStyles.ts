@@ -32,7 +32,7 @@ export function useClipStyles({
 
   const getSidebarClassName = () => {
     const baseClasses =
-      'w-16 flex items-center justify-center bg-[#4D4D59] rounded-l-lg border-r border-[#383842] relative transition-all'
+      'w-16 flex flex-col items-center justify-between bg-[#4D4D59] rounded-l-lg border-r border-[#383842] relative transition-all min-h-[64px] py-2 gap-2'
     const hoverClasses = 'hover:bg-[#5D5D69] hover:shadow-sm'
 
     return `${baseClasses} ${hoverClasses}`

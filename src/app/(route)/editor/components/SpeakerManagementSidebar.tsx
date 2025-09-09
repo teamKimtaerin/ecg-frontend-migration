@@ -82,6 +82,12 @@ export default function SpeakerManagementSidebar({
     e.preventDefault()
     e.stopPropagation() // 이벤트 전파 방지
 
+    // 최대 화자 수 제한 체크 (9명)
+    if (speakers.length >= 9) {
+      alert('최대 9명의 화자까지만 추가할 수 있습니다.')
+      return
+    }
+
     // 현재 존재하는 화자 번호들을 추출
     const existingNumbers = speakers
       .map((speaker) => {
@@ -155,189 +161,192 @@ export default function SpeakerManagementSidebar({
   if (!isOpen) return null
 
   return (
-    <>
-      {/* Overlay */}
-      <div
-        className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-        onClick={onClose}
-      />
-
-      {/* Sidebar */}
-      <div
-        className={`
-        fixed right-0 top-0 h-full w-80 bg-gray-900 border-l border-gray-700 z-50
-        transform transition-transform duration-300 ease-in-out
-        ${isOpen ? 'translate-x-0' : 'translate-x-full'}
-      `}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-700">
+    <div className="w-80 bg-gray-900 border-l border-gray-700 flex flex-col h-full">
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b border-gray-700 flex-shrink-0">
+        <div>
           <h2 className="text-lg font-semibold text-white">화자 관리</h2>
-          <button
-            onClick={onClose}
-            className="p-1 text-gray-400 hover:text-white transition-colors"
-          >
-            <LuX className="w-5 h-5" />
-          </button>
+          <p className="text-sm text-gray-400 mt-1">
+            {speakers.length}/9명
+            {speakers.length >= 9 && (
+              <span className="text-yellow-400 ml-1">(최대)</span>
+            )}
+          </p>
         </div>
+        <button
+          onClick={onClose}
+          className="p-1 text-gray-400 hover:text-white transition-colors"
+        >
+          <LuX className="w-5 h-5" />
+        </button>
+      </div>
 
-        {/* Content */}
-        <div className="p-4 space-y-6">
-          {/* 미지정 클립 관리 패널 */}
-          {unassignedClips.length > 0 && (
-            <div className="bg-gray-800 rounded-lg p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <LuUserX className="w-5 h-5 text-orange-400" />
-                  <h3 className="text-sm font-semibold text-white">
-                    미지정 클립 ({unassignedClips.length}개)
-                  </h3>
-                </div>
-                <button
-                  onClick={() => setShowUnassignedPanel(!showUnassignedPanel)}
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  <LuArrowRight
-                    className={`w-4 h-4 transition-transform ${showUnassignedPanel ? 'rotate-90' : ''}`}
-                  />
-                </button>
+      {/* Content */}
+      <div className="p-4 space-y-6 overflow-y-auto flex-1">
+        {/* 미지정 클립 관리 패널 */}
+        {unassignedClips.length > 0 && (
+          <div className="bg-gray-800 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <LuUserX className="w-5 h-5 text-orange-400" />
+                <h3 className="text-sm font-semibold text-white">
+                  미지정 클립 ({unassignedClips.length}개)
+                </h3>
               </div>
+              <button
+                onClick={() => setShowUnassignedPanel(!showUnassignedPanel)}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <LuArrowRight
+                  className={`w-4 h-4 transition-transform ${showUnassignedPanel ? 'rotate-90' : ''}`}
+                />
+              </button>
+            </div>
 
-              {showUnassignedPanel && (
-                <div className="space-y-3">
-                  {/* 전체 선택 체크박스 */}
-                  <div className="flex items-center justify-between text-sm">
-                    <label className="flex items-center gap-2 text-gray-300 cursor-pointer">
+            {showUnassignedPanel && (
+              <div className="space-y-3">
+                {/* 전체 선택 체크박스 */}
+                <div className="flex items-center justify-between text-sm">
+                  <label className="flex items-center gap-2 text-gray-300 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={
+                        selectedUnassignedClips.size ===
+                          unassignedClips.length && unassignedClips.length > 0
+                      }
+                      onChange={handleSelectAllUnassigned}
+                      className="w-4 h-4 rounded"
+                    />
+                    전체 선택
+                  </label>
+                  <span className="text-gray-400">
+                    {selectedUnassignedClips.size}개 선택됨
+                  </span>
+                </div>
+
+                {/* 클립 리스트 */}
+                <div className="max-h-32 overflow-y-auto space-y-1">
+                  {unassignedClips.map((clip) => (
+                    <label
+                      key={clip.id}
+                      className="flex items-start gap-2 p-2 rounded hover:bg-gray-700 transition-colors cursor-pointer"
+                    >
                       <input
                         type="checkbox"
-                        checked={
-                          selectedUnassignedClips.size ===
-                            unassignedClips.length && unassignedClips.length > 0
-                        }
-                        onChange={handleSelectAllUnassigned}
-                        className="w-4 h-4 rounded"
+                        checked={selectedUnassignedClips.has(clip.id)}
+                        onChange={() => handleUnassignedClipToggle(clip.id)}
+                        className="w-4 h-4 rounded mt-0.5 flex-shrink-0"
                       />
-                      전체 선택
-                    </label>
-                    <span className="text-gray-400">
-                      {selectedUnassignedClips.size}개 선택됨
-                    </span>
-                  </div>
-
-                  {/* 클립 리스트 */}
-                  <div className="max-h-32 overflow-y-auto space-y-1">
-                    {unassignedClips.map((clip) => (
-                      <label
-                        key={clip.id}
-                        className="flex items-start gap-2 p-2 rounded hover:bg-gray-700 transition-colors cursor-pointer"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={selectedUnassignedClips.has(clip.id)}
-                          onChange={() => handleUnassignedClipToggle(clip.id)}
-                          className="w-4 h-4 rounded mt-0.5 flex-shrink-0"
-                        />
-                        <div className="min-w-0 flex-1">
-                          <div className="text-xs text-gray-400 mb-1">
-                            {clip.timeline}
-                          </div>
-                          <div className="text-sm text-gray-300 truncate">
-                            {clip.fullText}
-                          </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs text-gray-400 mb-1">
+                          {clip.timeline}
                         </div>
-                      </label>
-                    ))}
-                  </div>
-
-                  {/* 화자 할당 버튼들 */}
-                  {selectedUnassignedClips.size > 0 && (
-                    <div className="border-t border-gray-700 pt-3">
-                      <div className="text-xs text-gray-400 mb-2">
-                        선택된 클립에 화자 할당:
+                        <div className="text-sm text-gray-300 truncate">
+                          {clip.fullText}
+                        </div>
                       </div>
-                      <div className="flex flex-wrap gap-1">
-                        {speakers.map((speaker) => (
-                          <button
-                            key={speaker}
-                            onClick={() =>
-                              handleAssignSpeakerToSelected(speaker)
-                            }
-                            className="px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 rounded transition-colors"
-                          >
-                            {speaker}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                    </label>
+                  ))}
                 </div>
+
+                {/* 화자 할당 버튼들 */}
+                {selectedUnassignedClips.size > 0 && (
+                  <div className="border-t border-gray-700 pt-3">
+                    <div className="text-xs text-gray-400 mb-2">
+                      선택된 클립에 화자 할당:
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {speakers.map((speaker) => (
+                        <button
+                          key={speaker}
+                          onClick={() => handleAssignSpeakerToSelected(speaker)}
+                          className="px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 rounded transition-colors"
+                        >
+                          {speaker}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Speaker List */}
+        <div className="space-y-3">
+          {speakers.map((speaker, index) => (
+            <div
+              key={speaker}
+              className="flex items-center justify-between p-3 bg-gray-800 rounded-lg min-h-[52px]"
+            >
+              <div className="flex items-center space-x-3 flex-1 min-w-0">
+                <div
+                  className={`w-4 h-4 rounded-full flex-shrink-0 ${getSpeakerColor(index)}`}
+                />
+                {editingSpeaker === speaker ? (
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    value={editingName}
+                    onChange={(e) => setEditingName(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    onBlur={handleSaveEdit}
+                    className="flex-1 bg-transparent text-white font-medium border-b border-cyan-500 outline-none min-w-0 truncate"
+                    style={{ maxWidth: 'calc(100% - 60px)' }}
+                  />
+                ) : (
+                  <span
+                    className="text-white font-medium cursor-pointer hover:text-cyan-400 transition-colors flex-1 truncate overflow-hidden whitespace-nowrap"
+                    onClick={() => handleStartEdit(speaker)}
+                    style={{ maxWidth: 'calc(100% - 60px)' }}
+                  >
+                    {speaker}
+                  </span>
+                )}
+              </div>
+              {editingSpeaker !== speaker && (
+                <button
+                  onClick={() => onRemoveSpeaker(speaker)}
+                  className="p-1 text-gray-400 hover:text-red-400 transition-colors flex-shrink-0"
+                  title="삭제"
+                >
+                  <LuTrash2 className="w-4 h-4" />
+                </button>
               )}
+            </div>
+          ))}
+
+          {speakers.length === 0 && (
+            <div className="text-center py-8 text-gray-400">
+              등록된 화자가 없습니다
             </div>
           )}
 
-          {/* Speaker List */}
-          <div className="space-y-3">
-            {speakers.map((speaker, index) => (
-              <div
-                key={speaker}
-                className="flex items-center justify-between p-3 bg-gray-800 rounded-lg min-h-[52px]"
-              >
-                <div className="flex items-center space-x-3 flex-1 min-w-0">
-                  <div
-                    className={`w-4 h-4 rounded-full flex-shrink-0 ${getSpeakerColor(index)}`}
-                  />
-                  {editingSpeaker === speaker ? (
-                    <input
-                      ref={inputRef}
-                      type="text"
-                      value={editingName}
-                      onChange={(e) => setEditingName(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      onBlur={handleSaveEdit}
-                      className="flex-1 bg-transparent text-white font-medium border-b border-cyan-500 outline-none min-w-0 truncate"
-                      style={{ maxWidth: 'calc(100% - 60px)' }}
-                    />
-                  ) : (
-                    <span
-                      className="text-white font-medium cursor-pointer hover:text-cyan-400 transition-colors flex-1 truncate overflow-hidden whitespace-nowrap"
-                      onClick={() => handleStartEdit(speaker)}
-                      style={{ maxWidth: 'calc(100% - 60px)' }}
-                    >
-                      {speaker}
-                    </span>
-                  )}
-                </div>
-                {editingSpeaker !== speaker && (
-                  <button
-                    onClick={() => onRemoveSpeaker(speaker)}
-                    className="p-1 text-gray-400 hover:text-red-400 transition-colors flex-shrink-0"
-                    title="삭제"
-                  >
-                    <LuTrash2 className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-            ))}
-
-            {speakers.length === 0 && (
-              <div className="text-center py-8 text-gray-400">
-                등록된 화자가 없습니다
-              </div>
-            )}
-
-            {/* Add Speaker */}
-            <button
-              onClick={handleAddSpeaker}
-              className="w-full p-3 border-2 border-dashed border-gray-600 rounded-lg
-                        text-gray-400 hover:text-white hover:border-gray-500
-                        transition-all flex items-center justify-center space-x-2"
-            >
-              <LuPlus className="w-5 h-5" />
-              <span>화자 추가하기</span>
-            </button>
-          </div>
+          {/* Add Speaker */}
+          <button
+            onClick={handleAddSpeaker}
+            disabled={speakers.length >= 9}
+            className={`w-full p-3 border-2 border-dashed rounded-lg
+                        transition-all flex items-center justify-center space-x-2
+                        ${
+                          speakers.length >= 9
+                            ? 'border-gray-700 text-gray-500 cursor-not-allowed'
+                            : 'border-gray-600 text-gray-400 hover:text-white hover:border-gray-500'
+                        }`}
+            title={
+              speakers.length >= 9
+                ? '최대 9명의 화자까지만 추가할 수 있습니다.'
+                : '화자 추가하기'
+            }
+          >
+            <LuPlus className="w-5 h-5" />
+            <span>
+              {speakers.length >= 9 ? '화자 추가 제한 (9/9)' : '화자 추가하기'}
+            </span>
+          </button>
         </div>
       </div>
-    </>
+    </div>
   )
 }
