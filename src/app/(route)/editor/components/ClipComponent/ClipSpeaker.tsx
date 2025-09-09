@@ -1,15 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { LuSquareX } from 'react-icons/lu'
+import { createPortal } from 'react-dom'
 import { ChevronDownIcon } from '@/components/icons'
 import { EDITOR_COLORS } from '../../constants/colors'
+import { showToast } from '@/utils/ui/toast'
 
 interface ClipSpeakerProps {
   clipId: string
   speaker: string
   speakers: string[]
   onSpeakerChange?: (clipId: string, newSpeaker: string) => void
-  onSpeakerRemove?: (speaker: string) => void
   onBatchSpeakerChange?: (clipIds: string[], newSpeaker: string) => void
+  onOpenSpeakerManagement?: () => void
+  onAddSpeaker?: (name: string) => void
+  onRenameSpeaker?: (oldName: string, newName: string) => void
 }
 
 export default function ClipSpeaker({
@@ -17,26 +20,55 @@ export default function ClipSpeaker({
   speaker,
   speakers,
   onSpeakerChange,
-  onSpeakerRemove,
   onBatchSpeakerChange,
+  onOpenSpeakerManagement,
+  onAddSpeaker,
+  onRenameSpeaker,
 }: ClipSpeakerProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const [hoveredSpeaker, setHoveredSpeaker] = useState<string | null>(null)
-  const [isAddingNew, setIsAddingNew] = useState(false)
-  const [newSpeakerName, setNewSpeakerName] = useState('')
-  const [showApplyModal, setShowApplyModal] = useState(false)
+  const [editingSpeaker, setEditingSpeaker] = useState<string | null>(null)
+  const [editingName, setEditingName] = useState('')
+  const [showRenameModal, setShowRenameModal] = useState(false)
+  const [pendingRename, setPendingRename] = useState<{
+    oldName: string
+    newName: string
+  } | null>(null)
+  const [lastErrorName, setLastErrorName] = useState<string | null>(null) // 마지막 에러가 발생한 이름
   const dropdownRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   // 외부 클릭 감지
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false)
+      const target = event.target as Node
+
+      // 드롭다운 버튼 클릭인 경우 무시
+      if (dropdownRef.current && dropdownRef.current.contains(target)) {
+        return
       }
+
+      // Portal로 렌더링된 드롭다운 내부 클릭인 경우 무시
+      const portalDropdown = document.querySelector(
+        '.fixed.rounded.bg-gray-800'
+      )
+      if (portalDropdown && portalDropdown.contains(target)) {
+        return
+      }
+
+      // 모달 내부 클릭인 경우 무시
+      const modal = document.querySelector('[role="dialog"], .fixed.inset-0')
+      if (modal && modal.contains(target)) {
+        return
+      }
+
+      // 체크박스나 ClipComponent의 다른 상호작용 요소 클릭인 경우 무시
+      const checkbox = (target as Element).closest('input[type="checkbox"]')
+      if (checkbox) {
+        return
+      }
+
+      // 그 외의 경우 드롭다운 닫기
+      setIsOpen(false)
     }
 
     if (isOpen) {
@@ -46,208 +78,346 @@ export default function ClipSpeaker({
   }, [isOpen])
 
   const handleSpeakerSelect = (value: string) => {
-    if (!onSpeakerChange) return
-
     if (value === 'add_new') {
-      setIsAddingNew(true)
+      // 자동으로 새 화자 생성
+      const nextSpeakerNumber = speakers.length + 1
+      const newSpeakerName = `화자${nextSpeakerNumber}`
+
+      if (onAddSpeaker) {
+        onAddSpeaker(newSpeakerName)
+      }
+
+      // 빈 speaker가 있는 클립이 있는지 확인
+      const hasEmptyClips = !speaker
+
+      if (hasEmptyClips && onBatchSpeakerChange) {
+        onBatchSpeakerChange([clipId], newSpeakerName)
+      } else if (onSpeakerChange) {
+        onSpeakerChange(clipId, newSpeakerName)
+      }
+
+      setIsOpen(false)
+    } else if (value === 'manage_speakers') {
+      if (onOpenSpeakerManagement) {
+        onOpenSpeakerManagement()
+      }
+      setIsOpen(false)
+    } else if (value.startsWith('edit_')) {
+      // 화자 편집 모드
+      const speakerToEdit = value.replace('edit_', '')
+      setEditingSpeaker(speakerToEdit)
+      setEditingName(speakerToEdit)
       setIsOpen(false)
       setTimeout(() => inputRef.current?.focus(), 100)
     } else {
-      onSpeakerChange(clipId, value)
+      if (onSpeakerChange) {
+        onSpeakerChange(clipId, value)
+      }
       setIsOpen(false)
     }
   }
 
-  const handleApplyNewSpeaker = () => {
-    if (!newSpeakerName.trim()) return
+  const handleSaveEdit = () => {
+    if (!editingName.trim() || !editingSpeaker) {
+      // 빈 값이면 편집 취소
+      handleCancelEdit()
+      return
+    }
 
-    // 빈 speaker가 있는 클립이 있는지 확인 (모달 표시 여부 결정)
-    const hasEmptyClips = !speaker // 현재 클립이 빈 경우만 체크
+    const trimmedName = editingName.trim()
 
-    if (hasEmptyClips && onBatchSpeakerChange) {
-      setShowApplyModal(true)
-    } else {
-      // 현재 클립에만 적용
-      if (onSpeakerChange) {
-        onSpeakerChange(clipId, newSpeakerName.trim())
+    // 이름이 변경되지 않았으면 그냥 종료
+    if (trimmedName === editingSpeaker) {
+      setEditingSpeaker(null)
+      setEditingName('')
+      // 포커스 초기화
+      if (inputRef.current) {
+        inputRef.current.blur()
       }
-      setIsAddingNew(false)
-      setNewSpeakerName('')
+      return
+    }
+
+    // 중복 체크 (기존 화자명과 동일한 경우는 제외)
+    if (speakers.includes(trimmedName) && trimmedName !== editingSpeaker) {
+      // 같은 이름에 대해 처음 에러가 발생하는 경우에만 토스트 표시
+      if (lastErrorName !== trimmedName) {
+        showToast('이미 존재하는 화자명입니다', 'error')
+        setLastErrorName(trimmedName)
+      }
+      // 원래 이름으로 되돌리기
+      setEditingName(editingSpeaker)
+      return
+    }
+
+    // 모달을 통해 적용 범위 확인
+    setPendingRename({ oldName: editingSpeaker, newName: trimmedName })
+    setShowRenameModal(true)
+    // 편집 상태 완전 리셋
+    setEditingSpeaker(null)
+    setEditingName('')
+    setLastErrorName(null)
+    setIsOpen(false)
+
+    // 포커스 초기화
+    if (inputRef.current) {
+      inputRef.current.blur()
     }
   }
 
-  const handleModalChoice = (applyToAll: boolean) => {
-    const trimmedName = newSpeakerName.trim()
+  const handleRenameChoice = (applyToAll: boolean) => {
+    if (!pendingRename) return
 
-    if (applyToAll && onBatchSpeakerChange) {
-      // 빈 speaker를 가진 모든 클립에 적용
-      // EditorPage에서 빈 클립 ID들을 찾아서 전달할 것임
-      // 임시로 현재 클립 ID만 전달 (EditorPage에서 처리)
-      onBatchSpeakerChange([clipId], trimmedName)
-    } else if (onSpeakerChange) {
-      // 현재 클립에만 적용
-      onSpeakerChange(clipId, trimmedName)
+    if (applyToAll) {
+      // 전체 적용: 기존 화자를 새 이름으로 대체
+      if (onRenameSpeaker) {
+        onRenameSpeaker(pendingRename.oldName, pendingRename.newName)
+      }
+    } else {
+      // 개별 적용: 새 화자 생성 후 현재 클립에만 적용
+      if (onAddSpeaker) {
+        onAddSpeaker(pendingRename.newName)
+      }
+      if (onSpeakerChange) {
+        onSpeakerChange(clipId, pendingRename.newName)
+      }
     }
 
-    setShowApplyModal(false)
-    setIsAddingNew(false)
-    setNewSpeakerName('')
+    // 모든 상태 완전 리셋
+    setShowRenameModal(false)
+    setPendingRename(null)
+    setEditingSpeaker(null)
+    setEditingName('')
+    setLastErrorName(null)
+    setIsOpen(false)
+
+    // 포커스 초기화
+    if (inputRef.current) {
+      inputRef.current.blur()
+    }
+    // 드롭다운 버튼에서도 포커스 제거
+    if (dropdownRef.current) {
+      const button = dropdownRef.current.querySelector('button')
+      if (button) {
+        button.blur()
+      }
+    }
   }
 
-  const handleSpeakerRemove = (
-    e: React.MouseEvent,
-    speakerToRemove: string
-  ) => {
-    e.stopPropagation() // 클릭 이벤트 전파 방지
-    if (onSpeakerRemove) {
-      onSpeakerRemove(speakerToRemove)
+  const handleCancelEdit = () => {
+    setEditingSpeaker(null)
+    setEditingName('')
+    setLastErrorName(null)
+    setIsOpen(false)
+
+    // 포커스 초기화
+    if (inputRef.current) {
+      inputRef.current.blur()
+    }
+    if (dropdownRef.current) {
+      const button = dropdownRef.current.querySelector('button')
+      if (button) {
+        button.blur()
+      }
     }
   }
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 flex-shrink-0">
       {/* 화자 앞의 동그라미 표시 */}
       <div
         className={`w-2 h-2 rounded-full bg-[${EDITOR_COLORS.clip.accent}] flex-shrink-0`}
       />
 
-      {/* 커스텀 드롭다운 */}
-      <div ref={dropdownRef} className="relative">
-        <button
-          type="button"
-          className="inline-flex items-center justify-between h-8 px-3 text-sm font-medium
-                     bg-gray-800 text-gray-300 border border-gray-600 rounded
-                     hover:bg-gray-700 hover:border-gray-500 transition-all
-                     focus:outline-none focus:ring-2 focus:ring-blue-500"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          <span
-            className={`truncate mr-2 ${!speaker ? 'text-orange-400' : ''}`}
-          >
-            {speaker || 'Speaker 등록 필요'}
-          </span>
-          <ChevronDownIcon
-            className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
-          />
-        </button>
-
-        {/* 드롭다운 메뉴 */}
-        {isOpen && (
-          <div className="absolute z-50 mt-1 w-full min-w-[150px] rounded bg-gray-800 border border-gray-600 shadow-lg">
-            {/* Speaker 옵션들 */}
-            {speakers.map((s) => (
-              <div
-                key={s}
-                className="relative px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 cursor-pointer
-                          transition-colors flex items-center justify-between group"
-                onClick={() => handleSpeakerSelect(s)}
-                onMouseEnter={() => setHoveredSpeaker(s)}
-                onMouseLeave={() => setHoveredSpeaker(null)}
-              >
-                <span
-                  className={speaker === s ? 'text-blue-400 font-medium' : ''}
-                >
-                  {s}
-                </span>
-                {/* 호버 시 삭제 버튼 표시 - 오른쪽 위 */}
-                {hoveredSpeaker === s && (
-                  <button
-                    onClick={(e) => handleSpeakerRemove(e, s)}
-                    className="absolute -right-1 -top-1 text-gray-400 
-                              hover:text-red-500 hover:bg-red-500/20 
-                              transition-all duration-200 rounded p-0.5"
-                    title={`${s} 삭제`}
-                  >
-                    <LuSquareX className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-            ))}
-
-            {/* 구분선 */}
-            <div className="border-t border-gray-700 my-1" />
-
-            {/* 새 Speaker 추가 옵션 */}
-            <div
-              className="px-3 py-2 text-sm text-blue-400 hover:bg-gray-700 cursor-pointer
-                        transition-colors font-medium"
-              onClick={() => handleSpeakerSelect('add_new')}
-            >
-              + Speaker 추가
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* 확장형 입력 UI */}
-      {isAddingNew && (
-        <div className="flex items-center gap-2 ml-2 animate-slide-right">
+      {/* 커스텀 드롭다운 또는 편집 입력 필드 */}
+      {editingSpeaker ? (
+        <div className="relative flex-shrink-0">
           <input
             ref={inputRef}
             type="text"
-            value={newSpeakerName}
-            onChange={(e) => setNewSpeakerName(e.target.value)}
+            value={editingName}
+            onChange={(e) => {
+              setEditingName(e.target.value)
+              // 타이핑할 때마다 에러 이름 리셋 (새로운 이름에 대해서는 다시 에러 표시 가능)
+              setLastErrorName(null)
+            }}
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') handleApplyNewSpeaker()
-              if (e.key === 'Escape') {
-                setIsAddingNew(false)
-                setNewSpeakerName('')
-              }
+              e.stopPropagation()
+              if (e.key === 'Enter') handleSaveEdit()
+              if (e.key === 'Escape') handleCancelEdit()
             }}
-            placeholder="Speaker 이름 입력"
-            className="h-8 px-3 text-sm bg-gray-800 text-gray-300 border border-gray-600 rounded
-                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            onBlur={(e) => {
+              // 포커스가 모달로 이동하는 경우 무시
+              setTimeout(() => handleSaveEdit(), 100)
+            }}
+            placeholder="화자 이름 입력"
+            className="h-8 px-3 text-sm bg-gray-800 text-gray-300 rounded
+                      focus:outline-none focus:ring-2 focus:border-transparent 
+                      w-[120px] flex-shrink-0 border-gray-600 focus:ring-blue-500
+                      overflow-hidden whitespace-nowrap"
+            style={{ maxWidth: '120px', minWidth: '120px' }}
           />
+        </div>
+      ) : (
+        <div ref={dropdownRef} className="relative flex-shrink-0">
           <button
-            onClick={handleApplyNewSpeaker}
-            disabled={!newSpeakerName.trim()}
-            className="h-8 px-4 text-sm font-medium text-white bg-blue-600 rounded
-                      hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed
-                      transition-colors"
-          >
-            적용하기
-          </button>
-          <button
-            onClick={() => {
-              setIsAddingNew(false)
-              setNewSpeakerName('')
+            type="button"
+            className="inline-flex items-center justify-between h-8 px-3 text-sm font-medium
+                       bg-gray-800 text-gray-300 border border-gray-600 rounded
+                       hover:bg-gray-700 hover:border-gray-500 transition-all
+                       focus:outline-none focus:ring-2 focus:ring-blue-500
+                       w-[120px] flex-shrink-0"
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              setIsOpen(!isOpen)
             }}
-            className="h-8 px-3 text-sm text-gray-400 hover:text-gray-300 transition-colors"
+            onMouseDown={(e) => e.stopPropagation()}
           >
-            취소
+            <span
+              className={`truncate overflow-hidden whitespace-nowrap ${!speaker ? 'text-orange-400' : ''}`}
+              style={{ maxWidth: '80px', minWidth: '80px' }}
+            >
+              {speaker || '미지정'}
+            </span>
+            <ChevronDownIcon
+              className={`w-4 h-4 transition-transform flex-shrink-0 ml-2 ${isOpen ? 'rotate-180' : ''}`}
+            />
           </button>
+
+          {/* 드롭다운 메뉴 - React Portal로 body에 렌더링 */}
+          {isOpen &&
+            typeof window !== 'undefined' &&
+            createPortal(
+              <div
+                className="fixed rounded bg-gray-800 border border-gray-600 shadow-lg"
+                style={{
+                  zIndex: 99999,
+                  left: dropdownRef.current?.getBoundingClientRect().left || 0,
+                  top:
+                    (dropdownRef.current?.getBoundingClientRect().bottom || 0) +
+                    4,
+                  width: '120px',
+                  minWidth: '120px',
+                  maxWidth: '120px',
+                }}
+                onClick={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
+              >
+                {/* Speaker 옵션들 */}
+                {speakers.map((s) => (
+                  <div key={s} className="group">
+                    <div
+                      className="px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 cursor-pointer
+                            transition-colors flex items-center justify-between"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        handleSpeakerSelect(s)
+                      }}
+                      onMouseDown={(e) => e.stopPropagation()}
+                    >
+                      <span
+                        className={`truncate overflow-hidden whitespace-nowrap ${speaker === s ? 'text-blue-400 font-medium' : ''}`}
+                        style={{ maxWidth: '60px' }}
+                      >
+                        {s}
+                      </span>
+                      <button
+                        className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-white
+                              text-xs px-1 py-0.5 rounded transition-all flex-shrink-0"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          handleSpeakerSelect(`edit_${s}`)
+                        }}
+                        onMouseDown={(e) => e.stopPropagation()}
+                      >
+                        편집
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+                {/* 구분선 */}
+                <div className="border-t border-gray-700 my-1" />
+
+                {/* 새 Speaker 추가 옵션 */}
+                <div
+                  className="px-3 py-2 text-sm text-blue-400 hover:bg-gray-700 cursor-pointer
+                        transition-colors font-medium"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    handleSpeakerSelect('add_new')
+                  }}
+                  onMouseDown={(e) => e.stopPropagation()}
+                >
+                  + 화자 추가하기
+                </div>
+
+                {/* 화자 관리 옵션 */}
+                <div
+                  className="px-3 py-2 text-sm text-green-400 hover:bg-gray-700 cursor-pointer
+                        transition-colors font-medium"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    handleSpeakerSelect('manage_speakers')
+                  }}
+                  onMouseDown={(e) => e.stopPropagation()}
+                >
+                  화자 관리
+                </div>
+              </div>,
+              document.body
+            )}
         </div>
       )}
 
-      {/* 적용 범위 선택 모달 */}
-      {showApplyModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]">
-          <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4 border border-gray-700">
-            <h3 className="text-lg font-semibold text-white mb-4">
-              Speaker 적용 범위 선택
-            </h3>
-            <p className="text-gray-300 mb-6">
-              &ldquo;{newSpeakerName}&rdquo;를 어떻게 적용하시겠습니까?
-            </p>
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => handleModalChoice(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-700 rounded
+      {/* 화자 이름 변경 적용 범위 확인 모달 */}
+      {showRenameModal &&
+        pendingRename &&
+        typeof window !== 'undefined' &&
+        createPortal(
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center"
+            style={{ zIndex: 99999 }}
+          >
+            <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4 border border-gray-700">
+              <h3 className="text-lg font-semibold text-white mb-4">
+                화자 이름 변경 적용 범위
+              </h3>
+              <div className="text-gray-300 mb-6 space-y-2">
+                <p>
+                  &ldquo;{pendingRename.oldName}&rdquo;을 &ldquo;
+                  {pendingRename.newName}&rdquo;로 변경합니다.
+                </p>
+                <p className="text-sm text-gray-400">
+                  이 화자를 사용하는 다른 클립에도 변경사항을 적용하시겠습니까?
+                </p>
+              </div>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => handleRenameChoice(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-700 rounded
                           hover:bg-gray-600 transition-colors"
-              >
-                현재 클립만
-              </button>
-              <button
-                onClick={() => handleModalChoice(true)}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded
+                >
+                  아니오 (현재 클립만)
+                </button>
+                <button
+                  onClick={() => handleRenameChoice(true)}
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded
                           hover:bg-blue-700 transition-colors"
-              >
-                Speaker가 없는 모든 클립
-              </button>
+                >
+                  예 (모든 클립)
+                </button>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </div>
   )
 }

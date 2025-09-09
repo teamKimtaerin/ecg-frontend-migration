@@ -30,13 +30,28 @@ function TextFormattingGroup() {
 
   // 외부 클릭시 드롭다운들 닫기
   useEffect(() => {
-    const handleClickOutside = () => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node
+
+      // 화자 편집 관련 요소들 클릭 시 무시
+      const speakerDropdown = document.querySelector(
+        '.fixed.rounded.bg-gray-800'
+      )
+      const speakerModal = document.querySelector('.fixed.inset-0.bg-black')
+
+      if (
+        (speakerDropdown && speakerDropdown.contains(target)) ||
+        (speakerModal && speakerModal.contains(target))
+      ) {
+        return
+      }
+
       setActiveDropdown(null)
     }
 
     if (activeDropdown) {
-      document.addEventListener('click', handleClickOutside)
-      return () => document.removeEventListener('click', handleClickOutside)
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [activeDropdown])
 
@@ -224,7 +239,7 @@ function TextFormattingGroup() {
               style={{
                 top: sizeDropdownPosition.top,
                 left: sizeDropdownPosition.left,
-                zIndex: 99999,
+                zIndex: 50,
               }}
               onClick={(e) => e.stopPropagation()}
             >
@@ -283,7 +298,7 @@ function TextFormattingGroup() {
               style={{
                 top: colorDropdownPosition.top,
                 left: colorDropdownPosition.left,
-                zIndex: 99999,
+                zIndex: 50,
               }}
               onClick={(e) => e.stopPropagation()}
             >

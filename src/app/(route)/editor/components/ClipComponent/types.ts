@@ -30,8 +30,10 @@ export interface ClipComponentProps {
   onCheck?: (clipId: string, checked: boolean) => void
   onWordEdit: (clipId: string, wordId: string, newText: string) => void
   onSpeakerChange?: (clipId: string, newSpeaker: string) => void
-  onSpeakerRemove?: (speaker: string) => void
   onBatchSpeakerChange?: (clipIds: string[], newSpeaker: string) => void
+  onOpenSpeakerManagement?: () => void
+  onAddSpeaker?: (name: string) => void
+  onRenameSpeaker?: (oldName: string, newName: string) => void
 }
 
 export interface ClipStyleState {

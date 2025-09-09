@@ -13,8 +13,10 @@ interface SubtitleEditListProps {
   onClipCheck?: (clipId: string, checked: boolean) => void
   onWordEdit: (clipId: string, wordId: string, newText: string) => void
   onSpeakerChange?: (clipId: string, newSpeaker: string) => void
-  onSpeakerRemove?: (speaker: string) => void
   onBatchSpeakerChange?: (clipIds: string[], newSpeaker: string) => void
+  onOpenSpeakerManagement?: () => void
+  onAddSpeaker?: (name: string) => void
+  onRenameSpeaker?: (oldName: string, newName: string) => void
   onEmptySpaceClick?: () => void
 }
 
@@ -27,8 +29,10 @@ export default function SubtitleEditList({
   onClipCheck,
   onWordEdit,
   onSpeakerChange,
-  onSpeakerRemove,
   onBatchSpeakerChange,
+  onOpenSpeakerManagement,
+  onAddSpeaker,
+  onRenameSpeaker,
   onEmptySpaceClick,
 }: SubtitleEditListProps) {
   // 빈 공간 클릭 핸들러
@@ -62,8 +66,10 @@ export default function SubtitleEditList({
               onCheck={onClipCheck}
               onWordEdit={onWordEdit}
               onSpeakerChange={onSpeakerChange}
-              onSpeakerRemove={onSpeakerRemove}
               onBatchSpeakerChange={onBatchSpeakerChange}
+              onOpenSpeakerManagement={onOpenSpeakerManagement}
+              onAddSpeaker={onAddSpeaker}
+              onRenameSpeaker={onRenameSpeaker}
             />
           ))}
         </div>

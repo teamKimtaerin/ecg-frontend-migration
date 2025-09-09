@@ -21,6 +21,7 @@ import { loadTranscriptionData } from '@/utils/transcription/segmentConverter'
 
 // Types
 import { EditorTab } from './types'
+import { ClipItem } from './components/ClipComponent/types'
 
 // Hooks
 import { useUploadModal } from '@/hooks/useUploadModal'
@@ -39,6 +40,7 @@ import EditorHeaderTabs from './components/EditorHeaderTabs'
 import SubtitleEditList from './components/SubtitleEditList'
 import VideoSection from './components/VideoSection'
 import EmptyState from './components/EmptyState'
+import SpeakerManagementSidebar from './components/SpeakerManagementSidebar'
 
 // Utils
 import { EditorHistory } from '@/utils/editor/EditorHistory'
@@ -49,6 +51,9 @@ import { DeleteClipCommand } from '@/utils/editor/commands/DeleteClipCommand'
 import { RemoveSpeakerCommand } from '@/utils/editor/commands/RemoveSpeakerCommand'
 import { ChangeSpeakerCommand } from '@/utils/editor/commands/ChangeSpeakerCommand'
 import { BatchChangeSpeakerCommand } from '@/utils/editor/commands/BatchChangeSpeakerCommand'
+import { CutClipsCommand } from '@/utils/editor/commands/CutClipsCommand'
+import { CopyClipsCommand } from '@/utils/editor/commands/CopyClipsCommand'
+import { PasteClipsCommand } from '@/utils/editor/commands/PasteClipsCommand'
 import { showToast } from '@/utils/ui/toast'
 
 export default function EditorPage() {
@@ -89,6 +94,9 @@ export default function EditorPage() {
   const [isRecovering, setIsRecovering] = useState(true) // 초기값을 true로 설정
   const [scrollProgress, setScrollProgress] = useState(0) // 스크롤 진행도
   const [speakers, setSpeakers] = useState<string[]>([]) // Speaker 리스트 전역 관리
+  const [isSpeakerManagementOpen, setIsSpeakerManagementOpen] = useState(false) // 화자 관리 사이드바 상태
+  const [clipboard, setClipboard] = useState<ClipItem[]>([]) // 클립보드 상태
+  const [skipAutoFocus, setSkipAutoFocus] = useState(false) // 자동 포커스 스킵 플래그
 
   // Get media actions from store
   const { setMediaInfo } = useEditorStore()
@@ -114,11 +122,27 @@ export default function EditorPage() {
           )
           setClips(transcriptionClips)
 
-          // Extract unique speakers from clips
-          const uniqueSpeakers = Array.from(
+          // Extract unique speakers from clips and rename them with numbers
+          const originalSpeakers = Array.from(
             new Set(transcriptionClips.map((clip) => clip.speaker))
           )
-          setSpeakers(uniqueSpeakers)
+
+          // Create mapping for speaker names (original -> numbered)
+          const speakerMapping: Record<string, string> = {}
+          originalSpeakers.forEach((speaker, index) => {
+            speakerMapping[speaker] = `화자${index + 1}`
+          })
+
+          // Update clips with new speaker names
+          const updatedClips = transcriptionClips.map((clip) => ({
+            ...clip,
+            speaker: speakerMapping[clip.speaker] || clip.speaker,
+          }))
+
+          const numberedSpeakers = Object.values(speakerMapping)
+
+          setClips(updatedClips)
+          setSpeakers(numberedSpeakers)
         }
 
         // Check for project to recover
@@ -299,18 +323,6 @@ export default function EditorPage() {
     editorHistory.executeCommand(command)
   }
 
-  const handleSpeakerRemove = (speakerToRemove: string) => {
-    // Use Command pattern for undo/redo support
-    const command = new RemoveSpeakerCommand(
-      clips,
-      speakers,
-      speakerToRemove,
-      setClips,
-      setSpeakers
-    )
-    editorHistory.executeCommand(command)
-  }
-
   const handleBatchSpeakerChange = (clipIds: string[], newSpeaker: string) => {
     // If only one clipId is passed, check if we should apply to all empty clips
     let targetClipIds = clipIds
@@ -341,6 +353,61 @@ export default function EditorPage() {
       setSpeakers
     )
     editorHistory.executeCommand(command)
+  }
+
+  // 화자 관리 사이드바 핸들러들
+  const handleOpenSpeakerManagement = () => {
+    setIsSpeakerManagementOpen(true)
+  }
+
+  const handleCloseSpeakerManagement = () => {
+    setIsSpeakerManagementOpen(false)
+  }
+
+  const handleAddSpeaker = (name: string) => {
+    console.log('handleAddSpeaker called with:', name)
+    console.log('Current speakers before adding:', speakers)
+
+    // 최대 화자 수 제한 체크 (9명)
+    if (speakers.length >= 9) {
+      console.log('Maximum speaker limit reached (9), cannot add more')
+      return
+    }
+
+    if (!speakers.includes(name)) {
+      const newSpeakers = [...speakers, name]
+      setSpeakers(newSpeakers)
+      console.log('Speaker added successfully. New speakers:', newSpeakers)
+    } else {
+      console.log('Speaker already exists, skipping addition')
+    }
+  }
+
+  const handleRemoveSpeaker = (name: string) => {
+    // Use Command pattern for speaker removal
+    const command = new RemoveSpeakerCommand(
+      clips,
+      speakers,
+      name,
+      setClips,
+      setSpeakers
+    )
+    editorHistory.executeCommand(command)
+  }
+
+  const handleRenameSpeaker = (oldName: string, newName: string) => {
+    // Update clips with the new speaker name
+    const updatedClips = clips.map((clip) =>
+      clip.speaker === oldName ? { ...clip, speaker: newName } : clip
+    )
+
+    // Update speakers list
+    const updatedSpeakers = speakers.map((speaker) =>
+      speaker === oldName ? newName : speaker
+    )
+
+    setClips(updatedClips)
+    setSpeakers(updatedSpeakers)
   }
 
   const handleClipCheck = (clipId: string, checked: boolean) => {
@@ -505,6 +572,20 @@ export default function EditorPage() {
 
         editorHistory.executeCommand(command)
         clearSelection()
+
+        // 자동 포커스 스킵 설정 및 합쳐진 클립에 포커스
+        setSkipAutoFocus(true)
+        setTimeout(() => {
+          // Command에서 합쳐진 클립의 ID 가져오기
+          const mergedClipId = command.getMergedClipId()
+          if (mergedClipId) {
+            setActiveClipId(mergedClipId)
+            console.log(
+              'Merge completed, focused on merged clip:',
+              mergedClipId
+            )
+          }
+        }, 100) // 상태 업데이트 완료 대기
         return
       }
 
@@ -534,6 +615,20 @@ export default function EditorPage() {
 
       editorHistory.executeCommand(command)
       clearSelection()
+
+      // 자동 포커스 스킵 설정 및 합쳐진 클립에 포커스
+      setSkipAutoFocus(true)
+      setTimeout(() => {
+        // Command에서 합쳐진 클립의 ID 가져오기
+        const mergedClipId = command.getMergedClipId()
+        if (mergedClipId) {
+          setActiveClipId(mergedClipId)
+          console.log(
+            'Single merge completed, focused on merged clip:',
+            mergedClipId
+          )
+        }
+      }, 100) // 상태 업데이트 완료 대기
     } catch (error) {
       console.error('클립 합치기 오류:', error)
       showToast(
@@ -576,19 +671,21 @@ export default function EditorPage() {
       const command = new SplitClipCommand(clips, activeClipId, setClips)
       editorHistory.executeCommand(command)
 
-      // 나눈 후 첫 번째 클립에 포커스 유지 (새로 생성된 첫 번째 클립)
-      // SplitClipCommand가 실행되면 원본 클립이 두 개로 나뉘므로
-      // 첫 번째 나뉜 클립의 ID를 찾아서 포커스
+      // 자동 포커스 스킵 설정 및 분할된 첫 번째 클립에 포커스
+      setSkipAutoFocus(true)
       setTimeout(() => {
-        const updatedClips = clips
-        const originalIndex = clips.findIndex(
-          (clip) => clip.id === activeClipId
-        )
-        if (originalIndex !== -1 && updatedClips.length > originalIndex) {
-          const newFirstClip = updatedClips[originalIndex]
-          setActiveClipId(newFirstClip.id)
+        // SplitClipCommand에서 반환받은 첫 번째 분할 클립 ID로 포커스 설정
+        const firstSplitClipId = command.getFirstSplitClipId()
+        if (firstSplitClipId) {
+          setActiveClipId(firstSplitClipId)
+          console.log(
+            'Split completed, focused on first split clip:',
+            firstSplitClipId
+          )
+        } else {
+          console.log('Split completed, but could not get first split clip ID')
         }
-      }, 0)
+      }, 100) // 상태 업데이트 완료 대기
     } catch (error) {
       console.error('클립 나누기 오류:', error)
       showToast(
@@ -639,6 +736,9 @@ export default function EditorPage() {
       const command = new DeleteClipCommand(clips, activeClipId, setClips)
       editorHistory.executeCommand(command)
 
+      // 자동 포커스 스킵 설정 및 적절한 클립에 포커스
+      setSkipAutoFocus(true)
+
       // 삭제 후 포커스 이동: 다음 클립이 있으면 다음, 없으면 이전 클립
       let nextFocusIndex = targetClipIndex
       if (targetClipIndex >= clips.length - 1) {
@@ -651,6 +751,10 @@ export default function EditorPage() {
         const updatedClips = clips.filter((clip) => clip.id !== activeClipId)
         if (updatedClips.length > 0 && nextFocusIndex < updatedClips.length) {
           setActiveClipId(updatedClips[nextFocusIndex].id)
+          console.log(
+            'Delete completed, focused on clip at index:',
+            nextFocusIndex
+          )
         }
       }, 0)
 
@@ -664,6 +768,124 @@ export default function EditorPage() {
       )
     }
   }, [activeClipId, clips, setClips, editorHistory, setActiveClipId])
+
+  // Cut clips handler
+  const handleCutClips = useCallback(() => {
+    try {
+      const selectedIds = Array.from(selectedClipIds)
+
+      if (selectedIds.length === 0) {
+        showToast('잘라낼 클립을 선택해주세요.')
+        return
+      }
+
+      // 잘라낼 클립들의 첫 번째 인덱스 저장 (포커스 이동용)
+      const firstCutIndex = clips.findIndex((clip) =>
+        selectedIds.includes(clip.id)
+      )
+
+      // Create and execute cut command
+      const command = new CutClipsCommand(
+        clips,
+        selectedIds,
+        setClips,
+        setClipboard
+      )
+
+      editorHistory.executeCommand(command)
+      clearSelection() // Clear selection after cutting
+
+      // 자동 포커스 스킵 설정 및 적절한 클립에 포커스
+      setSkipAutoFocus(true)
+      setTimeout(() => {
+        const remainingClips = clips.filter(
+          (clip) => !selectedIds.includes(clip.id)
+        )
+        if (remainingClips.length > 0) {
+          // 잘라낸 위치의 다음 클립에 포커스, 없으면 이전 클립
+          let nextFocusIndex = firstCutIndex
+          if (nextFocusIndex >= remainingClips.length) {
+            nextFocusIndex = Math.max(0, remainingClips.length - 1)
+          }
+          setActiveClipId(remainingClips[nextFocusIndex].id)
+          console.log(
+            'Cut completed, focused on clip at index:',
+            nextFocusIndex
+          )
+        }
+      }, 0)
+
+      showToast(`${selectedIds.length}개 클립을 잘라냈습니다.`, 'success')
+    } catch (error) {
+      console.error('클립 잘라내기 오류:', error)
+      showToast('클립 잘라내기 중 오류가 발생했습니다.')
+    }
+  }, [
+    clips,
+    selectedClipIds,
+    setClips,
+    setClipboard,
+    editorHistory,
+    clearSelection,
+  ])
+
+  // Copy clips handler
+  const handleCopyClips = useCallback(() => {
+    try {
+      const selectedIds = Array.from(selectedClipIds)
+
+      if (selectedIds.length === 0) {
+        showToast('복사할 클립을 선택해주세요.')
+        return
+      }
+
+      // Create and execute copy command
+      const command = new CopyClipsCommand(clips, selectedIds, setClipboard)
+
+      command.execute() // Copy command doesn't need undo/redo
+      showToast(`${selectedIds.length}개 클립을 복사했습니다.`, 'success')
+    } catch (error) {
+      console.error('클립 복사 오류:', error)
+      showToast('클립 복사 중 오류가 발생했습니다.')
+    }
+  }, [clips, selectedClipIds, setClipboard])
+
+  // Paste clips handler
+  const handlePasteClips = useCallback(() => {
+    try {
+      if (clipboard.length === 0) {
+        showToast('붙여넣을 클립이 없습니다.')
+        return
+      }
+
+      // Create and execute paste command
+      const command = new PasteClipsCommand(clips, clipboard, setClips)
+
+      editorHistory.executeCommand(command)
+
+      // 자동 포커스 스킵 설정 및 붙여넣은 마지막 클립에 포커스
+      setSkipAutoFocus(true)
+      setTimeout(() => {
+        // 붙여넣은 클립들은 기존 클립들 뒤에 추가되므로
+        // 마지막에 붙여넣은 클립에 포커스
+        const newTotalClips = clips.length + clipboard.length
+        if (newTotalClips > clips.length) {
+          const lastPastedIndex = newTotalClips - 1
+          // 실제로는 붙여넣은 클립들의 새 ID를 알아야 함
+          console.log(
+            'Paste completed, should focus on last pasted clip at index:',
+            lastPastedIndex
+          )
+          // PasteClipsCommand에서 생성된 클립 ID들을 반환받아서 마지막 클립에 포커스해야 함
+        }
+      }, 0)
+
+      showToast(`${clipboard.length}개 클립을 붙여넣었습니다.`, 'success')
+    } catch (error) {
+      console.error('클립 붙여넣기 오류:', error)
+      showToast('클립 붙여넣기 중 오류가 발생했습니다.')
+    }
+  }, [clips, clipboard, setClips, editorHistory])
 
   // TODO : 자동 저장 기능 나중에 사용
   // 3초마다 자동 저장
@@ -737,10 +959,28 @@ export default function EditorPage() {
         event.preventDefault()
         handleMergeClips()
       }
-      // Command/Ctrl+X (cut/delete clip) - 윈도우에서는 Ctrl+X, Mac에서는 Command+X
+      // Command/Ctrl+X (cut clips) - 윈도우에서는 Ctrl+X, Mac에서는 Command+X
       else if (cmdOrCtrl && event.key === 'x') {
         event.preventDefault()
-        handleDeleteClip()
+        if (selectedClipIds.size > 0) {
+          handleCutClips()
+        } else {
+          handleDeleteClip() // 선택된 클립이 없으면 기존처럼 삭제
+        }
+      }
+      // Command/Ctrl+C (copy clips)
+      else if (cmdOrCtrl && event.key === 'c') {
+        event.preventDefault()
+        if (selectedClipIds.size > 0) {
+          handleCopyClips()
+        }
+      }
+      // Command/Ctrl+V (paste clips)
+      else if (cmdOrCtrl && event.key === 'v') {
+        event.preventDefault()
+        if (clipboard.length > 0) {
+          handlePasteClips()
+        }
       }
       // Enter (split clip) - 포커싱된 클립 나누기
       else if (event.key === 'Enter' && !cmdOrCtrl) {
@@ -760,6 +1000,11 @@ export default function EditorPage() {
     handleMergeClips,
     handleSplitClip,
     handleDeleteClip,
+    handleCutClips,
+    handleCopyClips,
+    handlePasteClips,
+    selectedClipIds,
+    clipboard,
     editorHistory,
     markAsSaved,
   ])
@@ -784,6 +1029,11 @@ export default function EditorPage() {
 
   // 에디터 페이지 진입 시 튜토리얼 모달 표시 (첫 방문자용)
   useEffect(() => {
+    // TODO: localStorage 대신 DB에서 사용자의 튜토리얼 완료 상태를 확인하도록 변경
+    // - 사용자 인증 상태 확인 후 API 호출
+    // - GET /api/user/tutorial-status 또는 사용자 프로필에서 튜토리얼 완료 여부 확인
+    // - 로그인하지 않은 사용자의 경우 localStorage 사용 (임시)
+    // - 튜토리얼 타입별 완료 상태 관리 (editor, upload, export 등)
     const hasSeenEditorTutorial = localStorage.getItem('hasSeenEditorTutorial')
     if (!hasSeenEditorTutorial && clips.length > 0) {
       setShowTutorialModal(true)
@@ -791,6 +1041,10 @@ export default function EditorPage() {
   }, [clips])
 
   const handleTutorialClose = () => {
+    // TODO: localStorage 대신 DB에 튜토리얼 완료 상태 저장하도록 변경
+    // - POST /api/user/tutorial-status API 호출
+    // - 사용자가 로그인된 경우 DB에 저장, 미로그인 시 localStorage 사용
+    // - 튜토리얼 완료 날짜/시간, 완료 단계도 함께 저장
     setShowTutorialModal(false)
     localStorage.setItem('hasSeenEditorTutorial', 'true')
   }
@@ -823,11 +1077,17 @@ export default function EditorPage() {
       return
     }
 
+    // 자동 포커스 스킵이 설정된 경우 리셋하고 건너뛰기
+    if (skipAutoFocus) {
+      setSkipAutoFocus(false)
+      return
+    }
+
     // 현재 포커싱된 클립이 없거나 존재하지 않으면 첫 번째 클립에 포커스
     if (!activeClipId || !clips.find((clip) => clip.id === activeClipId)) {
       setActiveClipId(clips[0].id)
     }
-  }, [clips, activeClipId, setActiveClipId])
+  }, [clips, activeClipId, setActiveClipId, skipAutoFocus])
 
   // 복구 중일 때 로딩 화면 표시
   if (isRecovering) {
@@ -868,14 +1128,14 @@ export default function EditorPage() {
           onMergeClips={handleMergeClips}
           onUndo={handleUndo}
           onRedo={handleRedo}
-          onCut={() => console.log('Cut clips')}
-          onCopy={() => console.log('Copy clips')}
-          onPaste={() => console.log('Paste clips')}
+          onCut={handleCutClips}
+          onCopy={handleCopyClips}
+          onPaste={handlePasteClips}
           onSplitClip={handleSplitClip}
         />
 
         <div className="flex h-[calc(100vh-120px)] relative">
-          <div className="sticky top-0 h-fit">
+          <div className="sticky top-0 h-[calc(100vh-120px)]">
             <VideoSection width={videoPanelWidth} />
           </div>
 
@@ -907,8 +1167,10 @@ export default function EditorPage() {
               onClipCheck={handleClipCheck}
               onWordEdit={handleWordEdit}
               onSpeakerChange={handleSpeakerChange}
-              onSpeakerRemove={handleSpeakerRemove}
               onBatchSpeakerChange={handleBatchSpeakerChange}
+              onOpenSpeakerManagement={handleOpenSpeakerManagement}
+              onAddSpeaker={handleAddSpeaker}
+              onRenameSpeaker={handleRenameSpeaker}
               onEmptySpaceClick={handleEmptySpaceClick}
             />
 
@@ -920,6 +1182,22 @@ export default function EditorPage() {
               isSelecting={isSelecting}
             />
           </div>
+
+          {/* Right sidebar - Speaker Management */}
+          {isSpeakerManagementOpen && (
+            <div className="sticky top-0 h-[calc(100vh-120px)]">
+              <SpeakerManagementSidebar
+                isOpen={isSpeakerManagementOpen}
+                onClose={handleCloseSpeakerManagement}
+                speakers={speakers}
+                clips={clips}
+                onAddSpeaker={handleAddSpeaker}
+                onRemoveSpeaker={handleRemoveSpeaker}
+                onRenameSpeaker={handleRenameSpeaker}
+                onBatchSpeakerChange={handleBatchSpeakerChange}
+              />
+            </div>
+          )}
         </div>
 
         <NewUploadModal
