@@ -5,12 +5,26 @@ import { useEditorStore } from '../../store/editorStore'
 import { mediaStorage } from '@/utils/storage/mediaStorage'
 import { log } from '@/utils/logger'
 import { VIDEO_PLAYER_CONSTANTS } from '@/lib/utils/constants'
+import VideoOverlay from '../VideoOverlay'
+import { LayerElement } from '../../types/layer'
 
 interface VideoPlayerProps {
   className?: string
+  layers?: LayerElement[]
+  activeClipId?: string | null
+  isEditingMode?: boolean
+  onLayerSelect?: (layerId: string) => void
+  onLayerUpdate?: (layerId: string, changes: Partial<LayerElement>) => void
 }
 
-const VideoPlayer: React.FC<VideoPlayerProps> = ({ className = '' }) => {
+const VideoPlayer: React.FC<VideoPlayerProps> = ({
+  className = '',
+  layers = [],
+  activeClipId = null,
+  isEditingMode = false,
+  onLayerSelect,
+  onLayerUpdate,
+}) => {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
@@ -301,6 +315,16 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ className = '' }) => {
           >
             비디오를 지원하지 않는 브라우저입니다.
           </video>
+
+          {/* Video Layers Overlay */}
+          <VideoOverlay
+            layers={layers}
+            currentTime={currentTime}
+            activeClipId={activeClipId}
+            isEditingMode={isEditingMode}
+            onLayerSelect={onLayerSelect}
+            onLayerUpdate={onLayerUpdate}
+          />
 
           {/* Subtitle Overlay */}
           <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-3 py-1 rounded text-sm">

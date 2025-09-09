@@ -22,6 +22,7 @@ import { loadTranscriptionData } from '@/utils/transcription/segmentConverter'
 // Types
 import { EditorTab } from './types'
 import { ClipItem } from './components/ClipComponent/types'
+import { LayerElement } from './types/layer'
 
 // Hooks
 import { useUploadModal } from '@/hooks/useUploadModal'
@@ -97,6 +98,8 @@ export default function EditorPage() {
   const [isSpeakerManagementOpen, setIsSpeakerManagementOpen] = useState(false) // 화자 관리 사이드바 상태
   const [clipboard, setClipboard] = useState<ClipItem[]>([]) // 클립보드 상태
   const [skipAutoFocus, setSkipAutoFocus] = useState(false) // 자동 포커스 스킵 플래그
+  const [layers, setLayers] = useState<LayerElement[]>([]) // 레이어 상태 관리
+  const [isEditingMode, setIsEditingMode] = useState(false) // 레이어 편집 모드
 
   // Get media actions from store
   const { setMediaInfo } = useEditorStore()
@@ -409,6 +412,46 @@ export default function EditorPage() {
     setClips(updatedClips)
     setSpeakers(updatedSpeakers)
   }
+
+  // 레이어 관련 핸들러들
+  const handleAddLayer = useCallback(
+    (newLayer: LayerElement) => {
+      setLayers((prev) => [...prev, newLayer])
+      setHasUnsavedChanges(true)
+    },
+    [setHasUnsavedChanges]
+  )
+
+  const handleLayerSelect = useCallback((layerId: string) => {
+    // TODO: 선택된 레이어 관리 (추후 구현)
+    console.log('Layer selected:', layerId)
+  }, [])
+
+  const handleLayerUpdate = useCallback(
+    (layerId: string, changes: Partial<LayerElement>) => {
+      setLayers((prev) =>
+        prev.map((layer) =>
+          layer.id === layerId
+            ? {
+                ...layer,
+                ...changes,
+                metadata: {
+                  ...layer.metadata,
+                  updatedAt: new Date().toISOString(),
+                },
+              }
+            : layer
+        )
+      )
+      setHasUnsavedChanges(true)
+    },
+    [setHasUnsavedChanges]
+  )
+
+  // Insert 탭일 때 편집 모드 자동 활성화
+  useEffect(() => {
+    setIsEditingMode(activeTab === 'insert')
+  }, [activeTab])
 
   const handleClipCheck = (clipId: string, checked: boolean) => {
     if (checked) {
@@ -1132,11 +1175,19 @@ export default function EditorPage() {
           onCopy={handleCopyClips}
           onPaste={handlePasteClips}
           onSplitClip={handleSplitClip}
+          onAddLayer={handleAddLayer}
         />
 
         <div className="flex h-[calc(100vh-120px)] relative">
           <div className="sticky top-0 h-[calc(100vh-120px)]">
-            <VideoSection width={videoPanelWidth} />
+            <VideoSection
+              width={videoPanelWidth}
+              layers={layers}
+              activeClipId={activeClipId}
+              isEditingMode={isEditingMode}
+              onLayerSelect={handleLayerSelect}
+              onLayerUpdate={handleLayerUpdate}
+            />
           </div>
 
           <ResizablePanelDivider

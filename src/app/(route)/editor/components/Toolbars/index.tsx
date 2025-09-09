@@ -2,9 +2,11 @@
 
 import React from 'react'
 import { EditorTab, ClipItem } from '../../types'
+import { LayerElement } from '../../types/layer'
 import HomeToolbar from './HomeToolbar'
 import EditToolbar from './EditToolbar'
 import FormatToolbar from './FormatToolbar'
+import InsertToolbar from './InsertToolbar'
 
 import ToolbarWrapper from './shared/ToolbarWrapper'
 
@@ -24,6 +26,7 @@ interface ToolbarsProps {
   onCopy?: () => void
   onPaste?: () => void
   onSplitClip?: () => void
+  onAddLayer?: (layer: LayerElement) => void
 }
 
 /**
@@ -46,6 +49,7 @@ export default function Toolbars({
   onCopy,
   onPaste,
   onSplitClip,
+  onAddLayer,
 }: ToolbarsProps) {
   // 공통 props
   const commonProps = {
@@ -104,10 +108,13 @@ export default function Toolbars({
       )
 
     case 'insert':
-      // TODO: InsertToolbar 구현
       return (
         <ToolbarWrapper variant="base" onExport={handleExport}>
-          <HomeToolbar {...commonProps} onNewClick={onNewClick} />
+          <InsertToolbar
+            {...commonProps}
+            activeClipId={activeClipId}
+            onAddLayer={onAddLayer}
+          />
         </ToolbarWrapper>
       )
 
