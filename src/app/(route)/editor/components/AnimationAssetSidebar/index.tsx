@@ -20,7 +20,21 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
   className,
   onAssetSelect,
 }) => {
-  const { isAssetSidebarOpen, assetSidebarWidth } = useEditorStore()
+  const { isAssetSidebarOpen, assetSidebarWidth, selectedWordId, clips } =
+    useEditorStore()
+
+  // Find selected word info
+  const selectedWordInfo = React.useMemo(() => {
+    if (!selectedWordId) return null
+
+    for (const clip of clips) {
+      const word = clip.words.find((w) => w.id === selectedWordId)
+      if (word) {
+        return { word, clipId: clip.id }
+      }
+    }
+    return null
+  }, [selectedWordId, clips])
 
   if (!isAssetSidebarOpen) {
     return null
@@ -42,6 +56,18 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
     >
       {/* Header */}
       <SidebarHeader />
+
+      {/* Word Selection Indicator */}
+      {selectedWordInfo && (
+        <div className="px-4 py-2 bg-blue-500/10 border-b border-blue-500/20">
+          <div className="text-xs text-blue-300">
+            선택된 단어:{' '}
+            <span className="font-medium text-blue-100">
+              &ldquo;{selectedWordInfo.word.text}&rdquo;
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Filter Controls */}
       <div className="flex-shrink-0 pt-4">

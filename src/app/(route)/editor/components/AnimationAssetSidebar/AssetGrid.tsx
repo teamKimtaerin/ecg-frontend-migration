@@ -27,6 +27,9 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
     assetSearchQuery,
     selectedGlitchAssets,
     setSelectedGlitchAssets,
+    selectedWordId,
+    applyAssetsToWord,
+    clips,
   } = useEditorStore()
 
   const [assets, setAssets] = useState<AssetItem[]>([])
@@ -96,15 +99,28 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
   const handleAssetClick = (asset: AssetItem) => {
     // 토글 로직: 이미 선택되어 있으면 제거, 없으면 추가
     const isCurrentlySelected = selectedGlitchAssets.includes(asset.id)
+    let newSelectedAssets: string[]
 
     if (isCurrentlySelected) {
       // 제거
-      setSelectedGlitchAssets(
-        selectedGlitchAssets.filter((id) => id !== asset.id)
-      )
+      newSelectedAssets = selectedGlitchAssets.filter((id) => id !== asset.id)
     } else {
       // 추가
-      setSelectedGlitchAssets([...selectedGlitchAssets, asset.id])
+      newSelectedAssets = [...selectedGlitchAssets, asset.id]
+    }
+
+    setSelectedGlitchAssets(newSelectedAssets)
+
+    // If a word is selected, apply the current asset selection to it
+    if (selectedWordId) {
+      // Find the clip containing the selected word
+      const targetClip = clips.find((clip) =>
+        clip.words.some((word) => word.id === selectedWordId)
+      )
+
+      if (targetClip) {
+        applyAssetsToWord(targetClip.id, selectedWordId, newSelectedAssets)
+      }
     }
 
     console.log(

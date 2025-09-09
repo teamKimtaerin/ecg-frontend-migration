@@ -14,6 +14,11 @@ export interface ClipSlice {
   currentProject: ProjectData | null
   setClips: (clips: ClipItem[]) => void
   updateClipWords: (clipId: string, wordId: string, newText: string) => void
+  applyAssetsToWord: (
+    clipId: string,
+    wordId: string,
+    assetIds: string[]
+  ) => void
   reorderClips: (
     activeId: string,
     overId: string,
@@ -49,6 +54,21 @@ export const createClipSlice: StateCreator<
               fullText: clip.words
                 .map((word) => (word.id === wordId ? newText : word.text))
                 .join(' '),
+            }
+          : clip
+      ),
+    }))
+  },
+
+  applyAssetsToWord: (clipId, wordId, assetIds) => {
+    set((state) => ({
+      clips: state.clips.map((clip) =>
+        clip.id === clipId
+          ? {
+              ...clip,
+              words: clip.words.map((word) =>
+                word.id === wordId ? { ...word, appliedAssets: assetIds } : word
+              ),
             }
           : clip
       ),

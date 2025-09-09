@@ -29,6 +29,10 @@ export interface UISlice {
   setActiveAssetTab: (tab: 'free' | 'my') => void
   selectedGlitchAssets: string[]
   setSelectedGlitchAssets: (assets: string[]) => void
+
+  // Word selection state
+  selectedWordId: string | null
+  setSelectedWordId: (wordId: string | null) => void
 }
 
 export const createUISlice: StateCreator<UISlice> = (set) => ({
@@ -59,4 +63,8 @@ export const createUISlice: StateCreator<UISlice> = (set) => ({
   setActiveAssetTab: (tab) => set({ activeAssetTab: tab }),
   selectedGlitchAssets: [],
   setSelectedGlitchAssets: (assets) => set({ selectedGlitchAssets: assets }),
+
+  // Word selection state
+  selectedWordId: null,
+  setSelectedWordId: (wordId) => set({ selectedWordId: wordId }),
 })
