@@ -1,6 +1,12 @@
 'use client'
 
 import React, { useState, useRef, useCallback, useEffect } from 'react'
+import { useEditorStore } from '../../store/editorStore'
+import { mediaStorage } from '@/utils/storage/mediaStorage'
+import { log } from '@/utils/logger'
+import { VIDEO_PLAYER_CONSTANTS } from '@/lib/utils/constants'
+import { videoSegmentManager } from '@/utils/video/segmentManager'
+import API_CONFIG from '@/config/api.config'
 
 interface VideoPlayerProps {
   className?: string
@@ -16,11 +22,70 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ className = '' }) => {
   const [isMuted, setIsMuted] = useState(false)
   const [showVolumeSlider, setShowVolumeSlider] = useState(false)
   const [isDraggingVolume, setIsDraggingVolume] = useState(false)
+  const [videoSrc, setVideoSrc] = useState<string | null>(null)
+  const [currentSubtitle, setCurrentSubtitle] = useState<string | null>(null)
+
+  // Get media state from store
+  const {
+    mediaId,
+    videoUrl,
+    videoName,
+    setVideoLoading,
+    setVideoError,
+    clips,
+    deletedClipIds,
+  } = useEditorStore()
+
+  // Load video from IndexedDB or URL
+  useEffect(() => {
+    const loadVideo = async () => {
+      // First check if we have a video URL from store
+      if (videoUrl) {
+        log('VideoPlayer.tsx', `Using video URL from store: ${videoUrl}`)
+        setVideoSrc(videoUrl)
+        return
+      }
+
+      // Check if we have a media ID from store
+      if (mediaId) {
+        log(
+          'VideoPlayer.tsx',
+          `Loading video from IndexedDB with mediaId: ${mediaId}`
+        )
+        setVideoLoading(true)
+
+        try {
+          const blobUrl = await mediaStorage.createBlobUrl(mediaId)
+          if (blobUrl) {
+            log(
+              'VideoPlayer.tsx',
+              `Video loaded from IndexedDB: ${videoName || 'unknown'}`
+            )
+            setVideoSrc(blobUrl)
+          } else {
+            setVideoError('Failed to load video from storage')
+          }
+        } catch (error) {
+          console.error('Failed to load video:', error)
+          setVideoError('Failed to load video')
+        } finally {
+          setVideoLoading(false)
+        }
+        return
+      }
+
+      // Fallback to friends.mp4 if no media
+      log('VideoPlayer.tsx', 'No media found, using friends.mp4')
+      setVideoSrc(API_CONFIG.MOCK_VIDEO_PATH)
+    }
+
+    loadVideo()
+  }, [mediaId, videoUrl, videoName, setVideoLoading, setVideoError])
 
   // 비디오 상태 체크를 위한 useEffect
   useEffect(() => {
     const video = videoRef.current
-    if (video) {
+    if (video && videoSrc) {
       if (process.env.NODE_ENV === 'development') {
         console.log('Video element found:', video)
         console.log('Video readyState:', video.readyState)
@@ -46,7 +111,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ className = '' }) => {
           console.log('Video can play')
         }
       }
-      const handleError = (e: Event) => console.error('Video error:', e)
+      const handleError = (e: Event) => {
+        console.error('Video error:', e)
+        setVideoError('Video playback error')
+      }
 
       video.addEventListener('loadstart', handleLoadStart)
       video.addEventListener('canplay', handleCanPlay)
@@ -58,7 +126,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ className = '' }) => {
         video.removeEventListener('error', handleError)
       }
     }
-  }, [])
+  }, [videoSrc, setVideoError])
 
   // 재생/일시정지 토글
   const togglePlay = async () => {
@@ -85,7 +153,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ className = '' }) => {
     if (videoRef.current) {
       videoRef.current.currentTime = Math.max(
         0,
-        videoRef.current.currentTime - 10
+        videoRef.current.currentTime - VIDEO_PLAYER_CONSTANTS.SKIP_TIME_SECONDS
       )
     }
   }
@@ -95,15 +163,15 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ className = '' }) => {
     if (videoRef.current) {
       videoRef.current.currentTime = Math.min(
         duration,
-        videoRef.current.currentTime + 10
+        videoRef.current.currentTime + VIDEO_PLAYER_CONSTANTS.SKIP_TIME_SECONDS
       )
     }
   }
 
   // 재생 속도 변경
   const changePlaybackRate = () => {
-    const rates = [0.5, 1, 1.25, 1.5, 2]
-    const currentIndex = rates.indexOf(playbackRate)
+    const rates = VIDEO_PLAYER_CONSTANTS.PLAYBACK_RATES
+    const currentIndex = rates.indexOf(playbackRate as (typeof rates)[number])
     const nextRate = rates[(currentIndex + 1) % rates.length]
     setPlaybackRate(nextRate)
     if (videoRef.current) {
@@ -187,22 +255,36 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ className = '' }) => {
     }
   }
 
-  // 시간 업데이트
+  // 시간 업데이트 및 자막 동기화
   const handleTimeUpdate = () => {
     if (videoRef.current) {
       const newTime = videoRef.current.currentTime
       const newDuration = videoRef.current.duration
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Time update:', newTime, 'Duration:', newDuration)
-      }
+
       setCurrentTime(newTime)
       if (newDuration && !isNaN(newDuration)) {
         setDuration(newDuration)
       }
+
+      // Update subtitles based on current time
+      if (clips.length > 0) {
+        const subtitle = videoSegmentManager.getActiveSubtitles(newTime, clips)
+        if (subtitle) {
+          setCurrentSubtitle(subtitle.text)
+        } else {
+          setCurrentSubtitle(null)
+        }
+
+        // Check if we should skip deleted segments
+        const skipInfo = videoSegmentManager.shouldSkipSegment(newTime)
+        if (skipInfo.skip && skipInfo.skipTo !== undefined) {
+          videoRef.current.currentTime = skipInfo.skipTo
+        }
+      }
     }
   }
 
-  // 메타데이터 로드
+  // 메타데이터 로드 및 세그먼트 매니저 초기화
   const handleLoadedMetadata = () => {
     if (videoRef.current) {
       const videoDuration = videoRef.current.duration
@@ -211,16 +293,41 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ className = '' }) => {
       }
       if (videoDuration && !isNaN(videoDuration)) {
         setDuration(videoDuration)
+
+        // Initialize segment manager when we have clips
+        if (clips.length > 0) {
+          videoSegmentManager.initialize(clips, videoDuration)
+        }
       }
     }
   }
 
   // 시간 포맷팅 함수
   const formatTime = (time: number) => {
-    const minutes = Math.floor(time / 60)
+    const minutes = Math.floor(time / VIDEO_PLAYER_CONSTANTS.SECONDS_PER_MINUTE)
     const seconds = Math.floor(time % 60)
     return `${minutes}:${seconds.toString().padStart(2, '0')}`
   }
+
+  // Update segment manager when clips change
+  useEffect(() => {
+    if (clips.length > 0 && duration > 0) {
+      videoSegmentManager.initialize(clips, duration)
+    }
+  }, [clips, duration])
+
+  // Handle deleted clips
+  useEffect(() => {
+    if (deletedClipIds) {
+      // Clear all deletions first
+      videoSegmentManager.clearDeletions()
+
+      // Mark deleted clips
+      deletedClipIds.forEach((clipId) => {
+        videoSegmentManager.deleteClip(clipId)
+      })
+    }
+  }, [deletedClipIds])
 
   return (
     <div
@@ -232,27 +339,22 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ className = '' }) => {
           <video
             ref={videoRef}
             className="w-full h-full rounded-lg"
+            src={videoSrc || undefined}
             onTimeUpdate={handleTimeUpdate}
             onLoadedMetadata={handleLoadedMetadata}
             onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
             crossOrigin="anonymous"
           >
-            <source
-              src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
-              type="video/mp4"
-            />
-            <source
-              src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4"
-              type="video/mp4"
-            />
             비디오를 지원하지 않는 브라우저입니다.
           </video>
 
           {/* Subtitle Overlay */}
-          <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-3 py-1 rounded text-sm">
-            {/* 자막이 여기에 표시됩니다 */}
-          </div>
+          {currentSubtitle && (
+            <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-4 py-2 rounded text-base max-w-[80%] text-center">
+              {currentSubtitle}
+            </div>
+          )}
         </div>
 
         {/* Progress Bar */}
@@ -280,7 +382,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ className = '' }) => {
             <button
               onClick={skipBackward}
               className="text-white hover:text-slate-300 transition-colors"
-              title="10초 뒤로"
+              title={`${VIDEO_PLAYER_CONSTANTS.SKIP_TIME_SECONDS}초 뒤로`}
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" />
@@ -314,7 +416,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ className = '' }) => {
             <button
               onClick={skipForward}
               className="text-white hover:text-slate-300 transition-colors"
-              title="10초 앞으로"
+              title={`${VIDEO_PLAYER_CONSTANTS.SKIP_TIME_SECONDS}초 앞으로`}
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z" />

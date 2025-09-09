@@ -8,6 +8,7 @@ export class SplitClipCommand implements EditorCommand {
   private clipId: string
   private setClips: (clips: ClipItem[]) => void
   public description: string
+  private firstSplitClipId: string | null = null
 
   constructor(
     clips: ClipItem[],
@@ -27,8 +28,18 @@ export class SplitClipCommand implements EditorCommand {
 
   execute(): void {
     try {
+      // 원본 클립의 인덱스 찾기
+      const originalIndex = this.originalClips.findIndex(
+        (clip) => clip.id === this.clipId
+      )
+
       this.splitClips = splitSelectedClip(this.originalClips, this.clipId)
       this.setClips(this.splitClips)
+
+      // 분할된 첫 번째 클립의 ID 저장 (원본 클립이 있던 위치의 첫 번째 클립)
+      if (originalIndex !== -1 && this.splitClips.length > originalIndex) {
+        this.firstSplitClipId = this.splitClips[originalIndex].id
+      }
     } catch (error) {
       console.error('클립 나누기 실행 중 오류:', error)
       throw error
@@ -37,5 +48,9 @@ export class SplitClipCommand implements EditorCommand {
 
   undo(): void {
     this.setClips(this.originalClips)
+  }
+
+  getFirstSplitClipId(): string | null {
+    return this.firstSplitClipId
   }
 }
