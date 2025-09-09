@@ -9,7 +9,7 @@ interface ShapeLayerProps {
   onUpdate?: (changes: Partial<LayerElement>) => void
 }
 
-export default function ShapeLayer({ layer, isEditingMode }: ShapeLayerProps) {
+export default function ShapeLayer({ layer }: ShapeLayerProps) {
   const content = layer.content as ShapeContent
 
   const shapeStyle: React.CSSProperties = {

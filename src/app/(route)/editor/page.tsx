@@ -40,7 +40,6 @@ import DragOverlayContent from './components/DragOverlayContent'
 import EditorHeaderTabs from './components/EditorHeaderTabs'
 import SubtitleEditList from './components/SubtitleEditList'
 import VideoSection from './components/VideoSection'
-import EmptyState from './components/EmptyState'
 import SpeakerManagementSidebar from './components/SpeakerManagementSidebar'
 
 // Utils
@@ -98,11 +97,16 @@ export default function EditorPage() {
   const [isSpeakerManagementOpen, setIsSpeakerManagementOpen] = useState(false) // 화자 관리 사이드바 상태
   const [clipboard, setClipboard] = useState<ClipItem[]>([]) // 클립보드 상태
   const [skipAutoFocus, setSkipAutoFocus] = useState(false) // 자동 포커스 스킵 플래그
-  const [layers, setLayers] = useState<LayerElement[]>([]) // 레이어 상태 관리
-  const [isEditingMode, setIsEditingMode] = useState(false) // 레이어 편집 모드
-
-  // Get media actions from store
-  const { setMediaInfo } = useEditorStore()
+  // Get media and layer actions from store
+  const {
+    setMediaInfo,
+    layers,
+    isEditingMode,
+    addLayer,
+    selectLayer,
+    updateLayer,
+    setEditingMode,
+  } = useEditorStore()
 
   // Track unsaved changes
   useUnsavedChanges(hasUnsavedChanges)
@@ -260,8 +264,7 @@ export default function EditorPage() {
   const dndContextId = useId()
 
   // Upload modal hook
-  const { isTranscriptionLoading, handleFileSelect, handleStartTranscription } =
-    useUploadModal()
+  const { isTranscriptionLoading, handleFileSelect } = useUploadModal()
 
   // DnD functionality
   const { sensors, handleDragStart, handleDragEnd, handleDragCancel } =
@@ -413,45 +416,35 @@ export default function EditorPage() {
     setSpeakers(updatedSpeakers)
   }
 
-  // 레이어 관련 핸들러들
+  // Layer handlers using store
   const handleAddLayer = useCallback(
     (newLayer: LayerElement) => {
-      setLayers((prev) => [...prev, newLayer])
+      addLayer(newLayer)
       setHasUnsavedChanges(true)
     },
-    [setHasUnsavedChanges]
+    [addLayer, setHasUnsavedChanges]
   )
 
-  const handleLayerSelect = useCallback((layerId: string) => {
-    // TODO: 선택된 레이어 관리 (추후 구현)
-    console.log('Layer selected:', layerId)
-  }, [])
+  const handleLayerSelect = useCallback(
+    (layerId: string) => {
+      selectLayer(layerId)
+      setEditingMode(true)
+    },
+    [selectLayer, setEditingMode]
+  )
 
   const handleLayerUpdate = useCallback(
     (layerId: string, changes: Partial<LayerElement>) => {
-      setLayers((prev) =>
-        prev.map((layer) =>
-          layer.id === layerId
-            ? {
-                ...layer,
-                ...changes,
-                metadata: {
-                  ...layer.metadata,
-                  updatedAt: new Date().toISOString(),
-                },
-              }
-            : layer
-        )
-      )
+      updateLayer(layerId, changes)
       setHasUnsavedChanges(true)
     },
-    [setHasUnsavedChanges]
+    [updateLayer, setHasUnsavedChanges]
   )
 
   // Insert 탭일 때 편집 모드 자동 활성화
   useEffect(() => {
-    setIsEditingMode(activeTab === 'insert')
-  }, [activeTab])
+    setEditingMode(activeTab === 'insert')
+  }, [activeTab, setEditingMode])
 
   const handleClipCheck = (clipId: string, checked: boolean) => {
     if (checked) {
@@ -484,10 +477,7 @@ export default function EditorPage() {
   }
 
   // Upload modal handler
-  const wrappedHandleStartTranscription = async (data: {
-    files: File[]
-    settings: { language: string }
-  }) => {
+  const wrappedHandleStartTranscription = async () => {
     try {
       // Close modal first
       setIsUploadModalOpen(false)
@@ -687,6 +677,7 @@ export default function EditorPage() {
     clearSelection,
     setClips,
     editorHistory,
+    setActiveClipId,
   ])
 
   // Split clip handler
@@ -870,6 +861,7 @@ export default function EditorPage() {
     setClipboard,
     editorHistory,
     clearSelection,
+    setActiveClipId,
   ])
 
   // Copy clips handler

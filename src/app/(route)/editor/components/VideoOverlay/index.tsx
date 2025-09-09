@@ -60,8 +60,13 @@ export default function VideoOverlay({
       return false
     }
 
-    // 레이어의 시간 범위 내에 있는지 확인 (현재는 간단하게 구현)
-    return layer.metadata.visible
+    // 레이어의 시간 범위 내에 있는지 확인
+    const isInTimeRange =
+      currentTime >= layer.timing.startTime &&
+      currentTime <= layer.timing.endTime
+
+    // 보이는 상태이고 시간 범위 내에 있는 레이어만 표시
+    return layer.metadata.visible && isInTimeRange
   })
 
   // 정규화된 좌표를 실제 픽셀로 변환
