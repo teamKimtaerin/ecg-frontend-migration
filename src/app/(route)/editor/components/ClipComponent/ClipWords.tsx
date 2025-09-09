@@ -1,4 +1,9 @@
-import React from 'react'
+import React, { useCallback } from 'react'
+import { DndContext, closestCenter, DragOverlay } from '@dnd-kit/core'
+import {
+  SortableContext,
+  horizontalListSortingStrategy,
+} from '@dnd-kit/sortable'
 import {
   IoRefresh,
   IoDocument,
@@ -9,7 +14,10 @@ import {
   IoExpand,
   IoTrendingUp,
 } from 'react-icons/io5'
-import { Word } from '../../types'
+import { Word } from './types'
+import ClipWord from './ClipWord'
+import { useWordDragAndDrop } from '../../hooks/useWordDragAndDrop'
+import { useWordGrouping } from '../../hooks/useWordGrouping'
 import { useEditorStore } from '../../store'
 
 interface ClipWordsProps {
@@ -18,7 +26,7 @@ interface ClipWordsProps {
   onWordEdit: (clipId: string, wordId: string, newText: string) => void
 }
 
-// Asset icon mapping (same as UsedAssetsStrip.tsx)
+// Asset icon mapping (from feat/editor-asset-sidebar)
 const getAssetIcon = (assetName: string) => {
   const iconMap = {
     'Rotation Text': IoRefresh,
@@ -39,6 +47,13 @@ export default function ClipWords({
   onWordEdit,
 }: ClipWordsProps) {
   const {
+    setFocusedWord,
+    clearWordFocus,
+    focusedWordId,
+    focusedClipId,
+    draggedWordId,
+    setActiveClipId,
+    // Asset-related state from feat/editor-asset-sidebar
     selectedWordId,
     setSelectedWordId,
     currentWordAssets,
@@ -46,11 +61,12 @@ export default function ClipWords({
     selectedWordAssets,
     applyAssetsToWord,
   } = useEditorStore()
+
   const [allAssets, setAllAssets] = React.useState<
     Array<{ id: string; title: string }>
   >([])
 
-  // Fetch assets database for asset names
+  // Fetch assets database for asset names (from feat/editor-asset-sidebar)
   React.useEffect(() => {
     const fetchAssets = async () => {
       try {
@@ -66,68 +82,150 @@ export default function ClipWords({
     fetchAssets()
   }, [])
 
-  // Get asset name by ID
+  // Get asset name by ID (from feat/editor-asset-sidebar)
   const getAssetNameById = (id: string) => {
     const asset = allAssets.find((a) => a.id === id)
     return asset?.title || ''
   }
 
-  const handleWordClick = (e: React.MouseEvent, word: Word) => {
-    e.stopPropagation()
+  // Setup drag and drop for words (from dev)
+  const {
+    sensors,
+    handleWordDragStart,
+    handleWordDragOver,
+    handleWordDragEnd,
+    handleWordDragCancel,
+  } = useWordDragAndDrop(clipId)
 
-    // If word is already selected and has no current assets, trigger edit
-    if (selectedWordId === word.id && currentWordAssets.length === 0) {
-      onWordEdit(clipId, word.id, word.text)
-    } else {
-      // Select word and load its current assets
-      setSelectedWordId(word.id)
+  // Setup grouping functionality (from dev)
+  const {
+    containerRef,
+    isDragging: isGroupDragging,
+    handleMouseDown,
+    handleKeyDown,
+    groupedWordIds,
+  } = useWordGrouping({
+    clipId,
+    onGroupChange: (groupedIds) => {
+      // Optional: Handle group change
+    },
+  })
 
-      // Load existing assets for this word from selectedWordAssets or appliedAssets
-      const wordAssets = selectedWordAssets[word.id] || word.appliedAssets || []
-      setCurrentWordAssets(wordAssets)
-    }
-  }
+  // Handle word click - merged logic from both branches
+  const handleWordClick = useCallback(
+    (wordId: string, isCenter: boolean) => {
+      const word = words.find((w) => w.id === wordId)
+      if (!word) return
+
+      if (isCenter) {
+        // From dev branch: Focus the word and its parent clip
+        setFocusedWord(clipId, wordId)
+        setActiveClipId(clipId)
+
+        // From feat/editor-asset-sidebar: Also handle asset selection
+        if (selectedWordId === wordId && currentWordAssets.length === 0) {
+          onWordEdit(clipId, wordId, word.text)
+        } else {
+          setSelectedWordId(wordId)
+          const wordAssets =
+            selectedWordAssets[wordId] || word.appliedAssets || []
+          setCurrentWordAssets(wordAssets)
+        }
+      } else {
+        // Focus only the clip component
+        clearWordFocus()
+        setActiveClipId(clipId)
+      }
+    },
+    [
+      clipId,
+      words,
+      setFocusedWord,
+      clearWordFocus,
+      setActiveClipId,
+      selectedWordId,
+      setSelectedWordId,
+      currentWordAssets,
+      setCurrentWordAssets,
+      selectedWordAssets,
+      onWordEdit,
+    ]
+  )
+
+  // Create sortable items for DnD
+  const sortableItems = words.map((word) => `${clipId}-${word.id}`)
+
+  // Find the dragged word for overlay
+  const draggedWord = words.find((w) => w.id === draggedWordId)
 
   return (
-    <div className="flex flex-wrap gap-1">
-      {words.map((word) => {
-        const isSelected = selectedWordId === word.id
-        const appliedAssets = word.appliedAssets || []
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragStart={handleWordDragStart}
+      onDragOver={handleWordDragOver}
+      onDragEnd={handleWordDragEnd}
+      onDragCancel={handleWordDragCancel}
+    >
+      <SortableContext
+        items={sortableItems}
+        strategy={horizontalListSortingStrategy}
+      >
+        <div
+          ref={containerRef}
+          className="flex flex-wrap gap-1 relative"
+          onMouseDown={handleMouseDown}
+          onKeyDown={handleKeyDown}
+          tabIndex={0}
+        >
+          {words.map((word, index) => (
+            <React.Fragment key={word.id}>
+              <ClipWord
+                word={word}
+                clipId={clipId}
+                index={index}
+                onWordClick={handleWordClick}
+                onWordEdit={onWordEdit}
+              />
 
-        return (
-          <React.Fragment key={word.id}>
-            <button
-              className={`${
-                isSelected
-                  ? 'bg-[#4A5AF0] border border-[#6366F1]'
-                  : 'bg-[#383842] border border-[#4D4D59] hover:border-[#9999A6]'
-              } rounded px-2 py-1 text-sm text-[#F2F2F2] transition-colors`}
-              onClick={(e) => handleWordClick(e, word)}
-            >
-              {word.text}
-            </button>
+              {/* Render asset icons after each word (from feat/editor-asset-sidebar) */}
+              {word.appliedAssets && word.appliedAssets.length > 0 && (
+                <div className="flex gap-1 items-center">
+                  {word.appliedAssets.map((assetId: string) => {
+                    const assetName = getAssetNameById(assetId)
+                    const IconComponent = getAssetIcon(assetName)
+                    return IconComponent ? (
+                      <div
+                        key={assetId}
+                        className="w-3 h-3 bg-slate-600/50 rounded-sm flex items-center justify-center"
+                        title={assetName}
+                      >
+                        <IconComponent size={10} className="text-slate-300" />
+                      </div>
+                    ) : null
+                  })}
+                </div>
+              )}
+            </React.Fragment>
+          ))}
 
-            {/* Render asset icons after each word */}
-            {appliedAssets.length > 0 && (
-              <div className="flex gap-1 items-center">
-                {appliedAssets.map((assetId: string) => {
-                  const assetName = getAssetNameById(assetId)
-                  const IconComponent = getAssetIcon(assetName)
-                  return IconComponent ? (
-                    <div
-                      key={assetId}
-                      className="w-3 h-3 bg-slate-600/50 rounded-sm flex items-center justify-center"
-                      title={assetName}
-                    >
-                      <IconComponent size={10} className="text-slate-300" />
-                    </div>
-                  ) : null
-                })}
-              </div>
-            )}
-          </React.Fragment>
-        )
-      })}
-    </div>
+          {/* Visual feedback for group selection */}
+          {isGroupDragging && (
+            <div className="absolute inset-0 bg-blue-500/10 pointer-events-none rounded" />
+          )}
+        </div>
+      </SortableContext>
+
+      {/* Drag overlay for better visual feedback */}
+      <DragOverlay>
+        {draggedWord && (
+          <div className="bg-blue-500 text-white px-2 py-1 rounded text-sm shadow-lg opacity-90">
+            {groupedWordIds.size > 1
+              ? `${groupedWordIds.size} words`
+              : draggedWord.text}
+          </div>
+        )}
+      </DragOverlay>
+    </DndContext>
   )
 }
