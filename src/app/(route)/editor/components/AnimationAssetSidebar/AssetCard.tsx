@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { IoStar } from 'react-icons/io5'
 
 export interface AssetItem {
   id: string
@@ -13,6 +14,7 @@ export interface AssetItem {
     secondary?: string
   }
   isUsed?: boolean
+  isFavorite?: boolean
   description?: string
 }
 
@@ -78,8 +80,17 @@ const AssetCard: React.FC<AssetCardProps> = ({ asset, onClick }) => {
       {/* Preview Area with Badge Overlay */}
       <div className="relative aspect-[4/3] mb-3 rounded-lg overflow-hidden">
         {renderPreview()}
+
+        {/* Star Icon for Favorites */}
+        {asset.isFavorite && (
+          <div className="absolute top-2 right-2 w-6 h-6 bg-yellow-500 rounded-md flex items-center justify-center shadow-lg">
+            <IoStar size={14} className="text-white" />
+          </div>
+        )}
+
+        {/* Used Badge */}
         {asset.isUsed && (
-          <span className="absolute top-2 right-2 inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-medium bg-green-500/90 text-white backdrop-blur-sm shadow-sm">
+          <span className="absolute top-2 left-2 inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-medium bg-green-500/90 text-white backdrop-blur-sm shadow-sm">
             사용중
           </span>
         )}

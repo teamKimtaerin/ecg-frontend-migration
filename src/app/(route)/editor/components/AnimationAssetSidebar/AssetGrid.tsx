@@ -32,6 +32,13 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
     clips,
   } = useEditorStore()
 
+  // Hardcoded favorite assets for '담은 에셋' tab
+  const favoriteAssetNames = [
+    'TypeWriter Effect',
+    'Rotation Text',
+    'Elastic Bounce',
+  ]
+
   const [assets, setAssets] = useState<AssetItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -74,13 +81,17 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
 
   // Filter assets based on tab, category, and search query
   const filteredAssets = assets.filter((asset) => {
-    // Filter by tab based on usage status for current word
-    const isUsedAsset = currentWordAssets.includes(asset.id)
-    if (activeAssetTab === 'my' && !isUsedAsset) {
-      return false
-    }
-    if (activeAssetTab === 'free' && isUsedAsset) {
-      return false
+    // Filter by tab
+    if (activeAssetTab === 'my') {
+      // '담은 에셋' tab - show only favorite assets
+      if (!favoriteAssetNames.includes(asset.name)) {
+        return false
+      }
+    } else if (activeAssetTab === 'free') {
+      // '무료 에셋' tab - show all assets EXCEPT favorites
+      if (favoriteAssetNames.includes(asset.name)) {
+        return false
+      }
     }
 
     // Filter by search query
@@ -166,6 +177,7 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
             asset={{
               ...asset,
               isUsed: currentWordAssets.includes(asset.id),
+              isFavorite: favoriteAssetNames.includes(asset.name),
             }}
             onClick={handleAssetClick}
           />
