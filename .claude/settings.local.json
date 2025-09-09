@@ -20,6 +20,6 @@
     "deny": [],
     "ask": []
   },
-  "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": ["shadcn-ui"]
+  "enabledMcpjsonServers": ["shadcn-ui"],
+  "enableAllProjectMcpServers": true
 }
