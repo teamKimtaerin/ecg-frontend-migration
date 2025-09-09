@@ -1,21 +1,21 @@
 'use client'
 
 import React from 'react'
-import { IoSettings, IoRefresh, IoCheckmark, IoClose } from 'react-icons/io5'
+import { IoCheckmark, IoClose, IoRefresh, IoSettings } from 'react-icons/io5'
+import SelectControl from './controls/SelectControl'
+import SliderControl from './controls/SliderControl'
+import ToggleControl from './controls/ToggleControl'
 import {
   AssetSettings,
-  RotationTextSettings,
-  TypeWriterSettings,
   ElasticBounceSettings,
-  GlitchEffectSettings,
-  ScalePopSettings,
   FadeInStaggerSettings,
-  SlideUpSettings,
+  GlitchEffectSettings,
   MagneticPullSettings,
+  RotationTextSettings,
+  ScalePopSettings,
+  SlideUpSettings,
+  TypeWriterSettings,
 } from './types'
-import SliderControl from './controls/SliderControl'
-import SelectControl from './controls/SelectControl'
-import ToggleControl from './controls/ToggleControl'
 
 interface AssetControlPanelProps {
   assetName: string
@@ -93,7 +93,7 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
   const [elasticEffect, setElasticEffect] = React.useState(true)
 
   const isRotationText = assetName === 'Rotation Text'
-  const isTypeWriter = assetName === 'TypeWriter Text'
+  const isTypeWriter = assetName === 'TypeWriter Effect'
   const isElasticBounce = assetName === 'Elastic Bounce'
   const isGlitchEffect = assetName === 'Glitch Effect'
   const isScalePop = assetName === 'Scale Pop'
