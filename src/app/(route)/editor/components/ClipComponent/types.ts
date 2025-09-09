@@ -5,6 +5,7 @@ export interface Word {
   end: number
   isEditable: boolean
   confidence?: number
+  appliedAssets?: string[]
 }
 
 export interface ClipItem {
