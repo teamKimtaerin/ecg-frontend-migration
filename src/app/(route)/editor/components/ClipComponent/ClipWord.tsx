@@ -10,6 +10,7 @@ interface ClipWordProps {
   index: number
   onWordClick: (wordId: string, isCenter: boolean) => void
   onWordEdit: (clipId: string, wordId: string, newText: string) => void
+  isSelected?: boolean
 }
 
 export default function ClipWord({
@@ -18,6 +19,7 @@ export default function ClipWord({
   index,
   onWordClick,
   onWordEdit,
+  isSelected = false,
 }: ClipWordProps) {
   const wordRef = useRef<HTMLButtonElement>(null)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
