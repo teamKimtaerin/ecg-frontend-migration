@@ -1,9 +1,8 @@
 'use client'
 
 import { AssetCard } from '@/app/(route)/asset-store/components/AssetCard'
-import { Modal } from '@/app/(route)/asset-store/components/AssetModal'
+import { AssetModal } from '@/app/(route)/asset-store/components/AssetModal'
 import { AssetSidebar } from '@/app/(route)/asset-store/components/AssetSidebar'
-import { GSAPTextEditor } from '@/app/(route)/asset-store/components/GSAPTextEditor'
 import Header from '@/components/NewLandingPage/Header'
 import { clsx } from 'clsx'
 import { TRANSITIONS } from '@/lib/utils'
@@ -253,17 +252,12 @@ export default function AssetPage() {
         </main>
       </div>
 
-      <Modal
+      <AssetModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={selectedAsset?.title || ''}
-        variant="large"
-      >
-        <GSAPTextEditor
-          onAddToCart={handleAddToCart}
-          configFile={selectedAsset?.configFile}
-        />
-      </Modal>
+        asset={selectedAsset}
+        onAddToCart={handleAddToCart}
+      />
     </div>
   )
 }
