@@ -1,171 +1,102 @@
 'use client'
 
-import React, { useState, useRef, useEffect, useCallback } from 'react'
+import React, { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { NewLandingPage } from '@/components/NewLandingPage'
+import WelcomeModal from '@/components/WelcomeModal'
+import { useAuthStatus } from '@/hooks/useAuthStatus'
 
-import EditTranscriptionSection from '@/components/LandingPage/EditTranscriptionSection'
-import FastTranscriptionSection from '@/components/LandingPage/FastTranscriptionSection'
-import Footer from '@/components/LandingPage/Footer'
-import HeroSection from '@/components/LandingPage/HeroSection'
-import OpenLibrarySection from '@/components/LandingPage/OpenLibrarySection'
-import SubtitleEditorSection from '@/components/LandingPage/SubtitleEditorSection'
-import VoTSection from '@/components/LandingPage/VoTSection'
-import Header from '@/components/ui/Header'
-import UploadModal from '@/components/UploadModal'
-import { useUploadModal } from '@/hooks/useUploadModal'
+const TERMS_AGREEMENT_KEY = 'coup-terms-agreed'
 
 export default function Home() {
-  const [isHeaderVisible, setIsHeaderVisible] = useState(true)
-  const [lastScrollY, setLastScrollY] = useState(0)
-  const [isTranscriptionModalOpen, setIsTranscriptionModalOpen] =
-    useState(false)
-  const { isTranscriptionLoading, handleFileSelect, handleStartTranscription } =
-    useUploadModal()
+  const router = useRouter()
+  const { isLoggedIn, user, isLoading } = useAuthStatus()
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false)
+  const [hasAgreedTerms, setHasAgreedTerms] = useState(false)
 
-  const heroRef = useRef<HTMLElement>(null)
-  const featuresRef = useRef<HTMLElement>(null)
-  const editRef = useRef<HTMLElement>(null)
-  const subtitleRef = useRef<HTMLElement>(null)
-  const votRef = useRef<HTMLElement>(null)
-  const libraryRef = useRef<HTMLElement>(null)
-
-  const handleScroll = useCallback(() => {
-    const currentScrollY = window.scrollY
-
-    if (currentScrollY < 50) {
-      if (!isHeaderVisible) setIsHeaderVisible(true)
-    } else if (Math.abs(currentScrollY - lastScrollY) > 15) {
-      const shouldShow = currentScrollY < lastScrollY
-      if (shouldShow !== isHeaderVisible) {
-        setIsHeaderVisible(shouldShow)
-        setLastScrollY(currentScrollY)
-      }
-    }
-  }, [lastScrollY, isHeaderVisible])
-
+  // 페이지 로드 시 약관 동의 상태 확인
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout
-    const throttledScroll = () => {
-      clearTimeout(timeoutId)
-      timeoutId = setTimeout(handleScroll, 16) // ~60fps
-    }
-
-    window.addEventListener('scroll', throttledScroll, { passive: true })
-    return () => {
-      window.removeEventListener('scroll', throttledScroll)
-      clearTimeout(timeoutId)
-    }
-  }, [handleScroll])
-
-  // Intersection Observer for section fade-in animations
-  useEffect(() => {
-    const fadeObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('visible')
-            if (process.env.NODE_ENV === 'development') {
-              console.log('Section became visible:', entry.target)
-            }
-          }
-        })
-      },
-      {
-        rootMargin: '0px 0px -100px 0px',
-        threshold: 0.2,
-      }
-    )
-
-    const refs = [
-      heroRef,
-      featuresRef,
-      editRef,
-      subtitleRef,
-      votRef,
-      libraryRef,
-    ]
-
-    refs.forEach((ref) => {
-      if (ref.current) {
-        fadeObserver.observe(ref.current)
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Observing element:', ref.current)
-        }
-      }
-    })
-
-    return () => {
-      fadeObserver.disconnect()
+    // TODO: localStorage 대신 DB에서 사용자의 약관 동의 상태를 확인하도록 변경
+    // - 사용자 인증 상태 확인 후 API 호출
+    // - GET /api/user/terms-agreement 또는 사용자 프로필에서 약관 동의 여부 확인
+    // - 로그인하지 않은 사용자의 경우 localStorage 사용 (임시)
+    if (typeof window !== 'undefined') {
+      const agreed = localStorage.getItem(TERMS_AGREEMENT_KEY)
+      setHasAgreedTerms(agreed === 'true')
     }
   }, [])
+  const handleTryClick = () => {
+    console.log('Try button clicked')
+    if (hasAgreedTerms) {
+      // 이미 동의한 사용자는 바로 에디터로 이동
+      router.push('/editor')
+    } else {
+      // 처음 사용자는 약관 동의 모달 표시
+      setShowWelcomeModal(true)
+    }
+  }
 
-  const wrappedHandleStartTranscription = (
-    data: Parameters<typeof handleStartTranscription>[0]
-  ) => {
-    return handleStartTranscription(
-      data,
-      () => setIsTranscriptionModalOpen(false),
-      true
-    )
+  const handleLoginClick = () => {
+    console.log('Login button clicked')
+    router.push('/auth')
+  }
+
+  const handleQuickStartClick = () => {
+    console.log('Quick start button clicked')
+    if (hasAgreedTerms) {
+      // 이미 동의한 사용자는 바로 에디터로 이동
+      router.push('/editor')
+    } else {
+      // 처음 사용자는 약관 동의 모달 표시
+      setShowWelcomeModal(true)
+    }
+  }
+
+  const handleApplyDynamicSubtitleClick = () => {
+    console.log('Apply dynamic subtitle button clicked')
+    // Add navigation logic here
+  }
+
+  const handleCustomEditingQuickStartClick = () => {
+    console.log('Custom editing quick start button clicked')
+    // Add navigation logic here
+  }
+
+  const handleTryAutoSubtitleClick = () => {
+    console.log('Try auto subtitle button clicked')
+    // Add navigation logic here
   }
 
   return (
-    <div className="font-sans min-h-screen bg-black text-white overflow-x-hidden relative">
-      {/* Animated Background */}
-      <div className="fixed inset-0 z-0 overflow-hidden">
-        <div className="absolute -inset-10 opacity-40">
-          <div className="absolute bottom-1/4 left-3/11 w-86 h-86 bg-primary rounded-full filter blur-3xl bg-blob animate-blob animation-delay-0"></div>
-          <div className="absolute top-1/3 left-4/7 w-72 h-72 bg-primary-light rounded-full filter blur-3xl bg-blob animate-blob animation-delay-1000"></div>
-          <div className="absolute bottom-1/7 left-6/11 w-64 h-64 bg-amber-300 rounded-full filter blur-3xl bg-blob animate-blob animation-delay-2500"></div>
-          <div className="absolute bottom-2/4 left-4/11 w-86 h-86 bg-red-500 rounded-full filter blur-3xl bg-blob animate-blob animation-delay-4000"></div>
-          <div className="absolute bottom-1/9 left-1/11 w-56 h-56 bg-green-500 rounded-full filter blur-3xl bg-blob animate-blob animation-delay-5000"></div>
-          <div className="absolute bottom-1/3 left-5/11 w-56 h-56 bg-white rounded-full filter blur-3xl bg-blob animate-blob animation-delay-2000"></div>
-          <div className="absolute bottom-6/11 left-9/11 w-56 h-56 bg-fuchsia-600 rounded-full filter blur-3xl bg-blob animate-blob animation-delay-3000"></div>
-        </div>
-      </div>
-
-      {/* Main content with higher z-index */}
-      <div className="relative z-10">
-        {/* Header */}
-        <Header isVisible={isHeaderVisible} />
-
-        {/* Hero Section */}
-        <HeroSection heroRef={heroRef} />
-
-        {/* Fast Transcription Section */}
-        <FastTranscriptionSection
-          featuresRef={featuresRef}
-          onTranscriptionClick={() => setIsTranscriptionModalOpen(true)}
-        />
-
-        {/* Edit Transcription Section */}
-        <EditTranscriptionSection editRef={editRef} />
-
-        {/* Subtitle Editor Section */}
-        <SubtitleEditorSection subtitleRef={subtitleRef} />
-
-        {/* VoT Section */}
-        <VoTSection votRef={votRef} />
-
-        {/* Open Library Section */}
-        <OpenLibrarySection libraryRef={libraryRef} />
-
-        {/* Footer */}
-        <Footer />
-      </div>
-
-      {/* Upload Modal */}
-      <UploadModal
-        isOpen={isTranscriptionModalOpen}
-        onClose={() =>
-          !isTranscriptionLoading && setIsTranscriptionModalOpen(false)
-        }
-        onFileSelect={handleFileSelect}
-        onStartTranscription={wrappedHandleStartTranscription}
-        acceptedTypes={['audio/*', 'video/*']}
-        maxFileSize={100 * 1024 * 1024} // 100MB
-        multiple={true}
-        isLoading={isTranscriptionLoading}
+    <>
+      <NewLandingPage
+        onTryClick={handleTryClick}
+        onLoginClick={handleLoginClick}
+        onQuickStartClick={handleQuickStartClick}
+        onApplyDynamicSubtitleClick={handleApplyDynamicSubtitleClick}
+        onCustomEditingQuickStartClick={handleCustomEditingQuickStartClick}
+        onTryAutoSubtitleClick={handleTryAutoSubtitleClick}
+        isLoggedIn={isLoggedIn}
+        user={user}
+        isLoading={isLoading}
       />
-    </div>
+
+      <WelcomeModal
+        isOpen={showWelcomeModal}
+        onClose={() => setShowWelcomeModal(false)}
+        onAgreeAndStart={() => {
+          // TODO: localStorage 대신 DB에 약관 동의 상태 저장하도록 변경
+          // - POST /api/user/terms-agreement API 호출
+          // - 사용자가 로그인된 경우 DB에 저장, 미로그인 시 localStorage 사용
+          // - 약관 동의 날짜/시간도 함께 저장하여 추후 약관 변경 시 재동의 요청 가능
+          localStorage.setItem(TERMS_AGREEMENT_KEY, 'true')
+          setHasAgreedTerms(true)
+          setShowWelcomeModal(false)
+          // Navigate to editor page
+          router.push('/editor')
+        }}
+        onGoBack={() => setShowWelcomeModal(false)}
+      />
+    </>
   )
 }

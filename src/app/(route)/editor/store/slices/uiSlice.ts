@@ -1,5 +1,6 @@
 import { StateCreator } from 'zustand'
 import { EditorTab } from '../../types'
+import { UI_PANEL_DEFAULTS } from '@/lib/utils/constants'
 
 export interface UISlice {
   // Tab state
@@ -9,6 +10,8 @@ export interface UISlice {
   // DnD state
   activeId: string | null
   setActiveId: (id: string | null) => void
+  overId: string | null
+  setOverId: (id: string | null) => void
 
   // Other UI states can be added here
   isVideoPlaying: boolean
@@ -51,13 +54,15 @@ export const createUISlice: StateCreator<UISlice> = (set) => ({
   // DnD state
   activeId: null,
   setActiveId: (id) => set({ activeId: id }),
+  overId: null,
+  setOverId: (id) => set({ overId: id }),
 
   // Video state
   isVideoPlaying: false,
   setIsVideoPlaying: (playing) => set({ isVideoPlaying: playing }),
 
   // Panel resize state
-  videoPanelWidth: 300, // Default width (minimum width)
+  videoPanelWidth: UI_PANEL_DEFAULTS.VIDEO_PANEL_MIN_WIDTH, // Default width (minimum width)
   setVideoPanelWidth: (width) => set({ videoPanelWidth: width }),
 
   // Animation Asset Sidebar state

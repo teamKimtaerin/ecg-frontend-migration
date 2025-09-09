@@ -49,20 +49,30 @@ npm run test:e2e:ui # Run Playwright with UI mode
 ```
 src/
 ├── app/                    # Next.js App Router
-│   ├── editor/            # Main editor page
+│   ├── (route)/editor/    # Main editor page (route group)
 │   │   ├── components/    # Editor-specific components
-│   │   │   └── ClipComponent/ # Modular clip component
+│   │   │   ├── ClipComponent/ # Modular clip component
+│   │   │   ├── VideoSection.tsx
+│   │   │   ├── SubtitleEditList.tsx
+│   │   │   └── EditorHeaderTabs.tsx
 │   │   ├── hooks/         # Custom hooks (DnD, selection)
 │   │   ├── store/         # Zustand store with slices
-│   │   └── types/         # TypeScript types
-│   └── components/        # Page-level components
+│   │   │   ├── editorStore.ts
+│   │   │   └── slices/    # Individual state slices
+│   │   ├── types/         # TypeScript types
+│   │   └── page.tsx       # Editor page component
+│   ├── (main)/           # Main route group
+│   └── auth/             # Authentication pages
 ├── components/
-│   ├── ui/               # Reusable UI components
-│   ├── icons/           # Icon components (react-icons wrapper)
+│   ├── ui/               # Reusable UI components (29+ components)
+│   ├── icons/           # Icon components (Lucide wrapper)
 │   └── DnD/             # Drag & drop components
 ├── lib/
+│   ├── store/           # Global stores (authStore)
 │   └── utils/           # Utility functions
 │       └── colors.ts    # Color system utilities
+├── services/            # API services
+├── utils/               # General utilities
 └── hooks/               # Global custom hooks
 ```
 
@@ -76,7 +86,10 @@ store/
 └── slices/
     ├── clipSlice.ts     # Clip data and operations
     ├── selectionSlice.ts # Multi-selection state
-    └── uiSlice.ts       # UI state (tabs, modals)
+    ├── uiSlice.ts       # UI state (tabs, modals)
+    ├── saveSlice.ts     # Save/autosave state
+    ├── mediaSlice.ts    # Media/video state
+    └── wordSlice.ts     # Word-level editing state
 ```
 
 ### Component Architecture
@@ -108,30 +121,39 @@ Before creating new components, check if these existing UI components can be use
 
 - `Button` - Standard button with variants
 - `Dropdown` - Select/dropdown component
+- `EditableDropdown` - Editable select component
 - `Tab/TabItem` - Tab navigation
 - `AlertDialog` - Modal dialogs
 - `AlertBanner` - Notification banners
 - `Badge` - Status badges
 - `Checkbox` - Checkbox input
+- `RadioButton` - Radio input
 - `HelpText` - Help/error messages
-- `ProgressBar` - Progress indicators
-- `RadioGroup` - Radio button groups
+- `ProgressBar/ProgressCircle` - Progress indicators
 - `StatusLight` - Status indicators
-- `TextField` - Text input fields
-- `Toolbar` - Toolbar component
+- `Input` - Text input fields
+- `ColorPicker` - Color selection
+- `FontDropdown` - Font selection
+- `Modal` - General modal component
+- `Slider` - Range input
+- `Switch/ToggleButton` - Toggle controls
+- `Tag` - Label/tag component
+- `Tooltip` - Hover information
+- `ResizablePanelDivider` - Panel resizing
 
 ### Color System
 
 Use the centralized color system from `lib/utils/colors.ts`:
 
-- Access semantic colors: `SEMANTIC_COLORS`
-- Use color palette: `colorPalette`
-- Apply transitions: `TRANSITIONS`
+- Color variants: `primary`, `secondary`, `accent`, `neutral`, `positive`, `negative`, `notice`, `informative`
+- Color intensities: `light`, `medium`, `dark`, `very-light`, `very-dark`
+- Utility function: `getColorVar(variant, intensity?)`
 
 Example:
 
 ```typescript
-import { SEMANTIC_COLORS, colorPalette } from '@/lib/utils/colors'
+import { getColorVar, type ColorVariant } from '@/lib/utils/colors'
+const primaryColor = getColorVar('primary', 'medium')
 ```
 
 ### Icon Usage
@@ -142,7 +164,7 @@ Icons are centralized in `components/icons/`:
 import { ChevronDownIcon, InfoIcon /* etc */ } from '@/components/icons'
 ```
 
-All icons use react-icons/lu (Lucide) internally but are wrapped for consistency.
+All icons use Lucide React internally but are wrapped for consistency. Available icons include `ChevronDownIcon`, `InfoIcon`, `XIcon`, `PlusIcon`, `AlertCircleIcon`, etc.
 
 ### Drag & Drop Implementation
 
@@ -190,23 +212,69 @@ The editor uses @dnd-kit for drag-and-drop:
 
 ## 📝 Git Workflow & PR Automation
 
-### Quick PR Creation
+### Automated PR Creation Scripts
+
+The project includes two powerful PR automation scripts in `.claude/scripts/`:
+
+#### `prm` - Full PR Creation Workflow
 
 ```bash
-# 1. Stage changes
-git add .
-
-# 2. Create PR with auto commit + push
+# Creates commit, pushes, and generates PR with Claude Code analysis
 prm "Feat: Your feature description"
-
-# 3. Follow prompts for Claude Code analysis
 ```
 
-### Branch Naming
+**Features:**
 
-- `feature/` - New features
-- `fix/` - Bug fixes
-- `refactor/` - Code refactoring
+- Validates git status and branch
+- Creates commit with Claude Code co-authorship
+- Pushes to remote branch
+- Generates Claude Code prompt for analysis
+- Handles large diffs with temporary files (>1000 lines)
+- Interactive PR title/body input
+- Auto-opens PR in browser
+
+#### `pronly` - PR from Existing Commits
+
+```bash
+# Creates PR from already committed changes
+pronly                    # Analyze all commits since dev branch
+pronly abc123             # Analyze commits since specific hash
+```
+
+**Features:**
+
+- Analyzes existing commit history
+- Works with already pushed branches
+- Flexible diff analysis (branch comparison or specific commit)
+- Same Claude Code integration as `prm`
+
+### Script Workflow
+
+1. **Analysis Phase**:
+   - Git status validation
+   - Change detection and statistics
+   - Diff generation for Claude Code
+
+2. **Claude Integration**:
+   - Auto-generates structured prompts
+   - Copies to clipboard (macOS)
+   - Handles large diffs with temporary files
+   - Provides step-by-step instructions
+
+3. **PR Creation**:
+   - Interactive title/body input
+   - Fallback templates if no input
+   - GitHub CLI integration
+   - Browser opening option
+
+### Branch Workflow
+
+- **Base Branch**: `dev` (all PRs target dev, not main)
+- **Branch Protection**: Cannot create PRs from main/dev branches
+- **Branch Naming**:
+  - `feature/` - New features
+  - `fix/` - Bug fixes
+  - `refactor/` - Code refactoring
 
 ### Commit Convention
 
@@ -215,6 +283,8 @@ prm "Feat: Your feature description"
 - `[Refactor]` - Code refactoring
 - `[Docs]` - Documentation
 - `[Test]` - Tests
+
+**Auto-generated commits include Claude Code co-authorship**
 
 ## 🐳 Docker Support
 
@@ -234,3 +304,5 @@ docker build --target prod -t ecg-frontend:prod .
 3. Development server may use port 3001 if 3000 is occupied
 4. Husky pre-commit hooks run automatically
 5. The editor page (`/editor`) is the main feature - handle with care
+6. Scripts in `.claude/scripts/` are executable PR automation tools
+7. Always run type-check and lint commands after code changes

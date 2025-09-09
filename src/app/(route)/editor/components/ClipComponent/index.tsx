@@ -7,7 +7,6 @@ import ClipCheckbox from './ClipCheckbox'
 import ClipSpeaker from './ClipSpeaker'
 import ClipWords from './ClipWords'
 import ClipText from './ClipText'
-import { useSpeakerManagement } from '../../hooks/useSpeakerManagement'
 import { useClipDragAndDrop } from '../../hooks/useClipDragAndDrop'
 import { useClipStyles } from '../../hooks/useClipStyles'
 
@@ -18,14 +17,17 @@ export default function ClipComponent({
   isChecked = false,
   isMultiSelected = false,
   enableDragAndDrop = false,
+  speakers = [],
   onSelect,
   onCheck,
   onWordEdit,
   onSpeakerChange,
+  onBatchSpeakerChange,
+  onOpenSpeakerManagement,
+  onAddSpeaker,
+  onRenameSpeaker,
 }: ClipComponentProps) {
   const [isHovered, setIsHovered] = useState(false)
-
-  const { speakers } = useSpeakerManagement()
   const { dragProps, isDragging } = useClipDragAndDrop(
     clip.id,
     enableDragAndDrop
@@ -45,6 +47,19 @@ export default function ClipComponent({
     onSelect(clip.id)
   }
 
+  const handleLeftSideClick = (e: React.MouseEvent) => {
+    // Stop propagation to prevent parent click handlers
+    e.stopPropagation()
+
+    // If onCheck is available, toggle the checkbox
+    if (onCheck) {
+      onCheck(clip.id, !isChecked)
+    }
+
+    // Also trigger clip selection
+    onSelect(clip.id)
+  }
+
   return (
     <div
       {...dragProps}
@@ -56,7 +71,11 @@ export default function ClipComponent({
     >
       <div className="flex">
         {/* Left sidebar */}
-        <div className={sidebarClassName}>
+        <div
+          className={`${sidebarClassName} cursor-pointer`}
+          onClick={handleLeftSideClick}
+          title="클릭하여 클립 선택/해제"
+        >
           <ClipTimeline index={index} />
           <ClipCheckbox
             clipId={clip.id}
@@ -69,15 +88,20 @@ export default function ClipComponent({
         <div className={contentClassName}>
           {/* Upper section */}
           <div className="p-3">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center flex-1 pl-4">
+            <div className="grid grid-cols-[180px_1fr] gap-3 items-center">
+              <div className="flex items-center gap-3 pl-4 h-8 flex-shrink-0">
                 <ClipSpeaker
                   clipId={clip.id}
                   speaker={clip.speaker}
                   speakers={speakers}
                   onSpeakerChange={onSpeakerChange}
+                  onBatchSpeakerChange={onBatchSpeakerChange}
+                  onOpenSpeakerManagement={onOpenSpeakerManagement}
+                  onAddSpeaker={onAddSpeaker}
+                  onRenameSpeaker={onRenameSpeaker}
                 />
-                <div className="w-12" />
+              </div>
+              <div className="overflow-hidden min-w-0 min-h-[32px] flex items-center">
                 <ClipWords
                   clipId={clip.id}
                   words={clip.words}

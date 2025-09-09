@@ -14,21 +14,18 @@ echo "🔍 Git 상태 확인 중..."
 
 # 현재 브랜치 확인
 CURRENT_BRANCH=$(git branch --show-current)
-if [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "master" ]; then
-    echo "❌ main/master 브랜치에서는 PR을 생성할 수 없습니다."
+if [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "dev" ]; then
+    echo "❌ main/dev 브랜치에서는 PR을 생성할 수 없습니다."
     echo "   feature 브랜치로 이동해주세요."
     exit 1
 fi
 
-# 원격 브랜치 확인
-MAIN_BRANCH=$(git remote show origin 2>/dev/null | grep "HEAD branch" | cut -d' ' -f5)
-if [ -z "$MAIN_BRANCH" ]; then
-    MAIN_BRANCH="main"
-fi
+# 항상 dev를 사용
+DEV_BRANCH="dev"
 
 echo "📊 브랜치 정보:"
 echo "  - 현재 브랜치: $CURRENT_BRANCH"
-echo "  - 베이스 브랜치: $MAIN_BRANCH"
+echo "  - 베이스 브랜치: $DEV_BRANCH"
 
 # staged 파일 확인
 STAGED_FILES=$(git diff --cached --name-only)
@@ -88,22 +85,7 @@ fi
 echo "✅ Push 완료"
 
 # Claude Code용 프롬프트 생성
-CLAUDE_PROMPT="다음 Git 변경사항을 분석해서 한글로 상세한 PR 설명을 작성해주세요.
-
-## 작업 요약
-$SUMMARY
-
-## 변경 통계
-- 변경된 파일: $CHANGED_FILES
-- 추가: +$ADDED_LINES lines
-- 삭제: -$DELETED_LINES lines
-
-## 변경사항 Diff
-\`\`\`diff
-$DIFF_CONTENT
-\`\`\`
-
-## 작성 요구사항
+CLAUDE_PROMPT="## 작성 요구사항
 다음 형식으로 한글 PR 설명을 작성해주세요:
 
 ### PR 제목
@@ -135,31 +117,93 @@ $DIFF_CONTENT
 리뷰어가 특별히 확인해야 할 부분
 
 ---
-🤖 Generated with Claude Code"
+🤖 Generated with Claude Code
 
-# 프롬프트를 클립보드에 복사 (macOS)
-if command -v pbcopy &> /dev/null; then
-    echo "$CLAUDE_PROMPT" | pbcopy
-    echo ""
-    echo "✅ 프롬프트가 클립보드에 복사되었습니다!"
-    echo ""
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo "🤖 다음 단계를 따라주세요:"
-    echo ""
-    echo "1. Claude Code (claude.ai/code) 열기"
-    echo "2. Cmd+V로 프롬프트 붙여넣기 (이미 복사됨)"
-    echo "3. Claude의 분석 결과 복사"
-    echo "4. 아래에서 Enter 누르고 결과 붙여넣기"
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+다음 Git 변경사항을 분석해서 위 요구사항에 따라 한글로 상세한 PR 설명을 작성해주세요.
+
+## 작업 요약
+$SUMMARY
+
+## 변경 통계
+- 변경된 파일: $CHANGED_FILES
+- 추가: +$ADDED_LINES lines
+- 삭제: -$DELETED_LINES lines
+
+## 변경사항 Diff
+\`\`\`diff
+$DIFF_CONTENT
+\`\`\`"
+
+# 프롬프트 라인 수 체크
+PROMPT_LINE_COUNT=$(echo "$CLAUDE_PROMPT" | wc -l | xargs)
+
+if [ "$PROMPT_LINE_COUNT" -gt 1000 ]; then
+    # 임시 디렉토리 생성
+    TEMP_DIR=".claude/tmp"
+    mkdir -p "$TEMP_DIR"
+    
+    # 타임스탬프 기반 파일명 생성
+    TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+    TEMP_FILE="$TEMP_DIR/prompt_$TIMESTAMP.md"
+    
+    # 프롬프트를 임시 파일에 저장
+    echo "$CLAUDE_PROMPT" > "$TEMP_FILE"
+    
+    # 클립보드에 파일 참조 명령어 복사
+    FILE_REF_COMMAND="@$TEMP_FILE 파일을 읽고 지시사항을 수행해주세요"
+    
+    if command -v pbcopy &> /dev/null; then
+        echo "$FILE_REF_COMMAND" | pbcopy
+        echo ""
+        echo "📁 프롬프트가 너무 길어서 임시 파일에 저장했습니다!"
+        echo "   파일 위치: $TEMP_FILE"
+        echo "✅ 파일 참조 명령어가 클립보드에 복사되었습니다!"
+        echo ""
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "🤖 다음 단계를 따라주세요:"
+        echo ""
+        echo "1. Claude Code (claude.ai/code) 열기"
+        echo "2. Cmd+V로 파일 참조 명령어 붙여넣기 (이미 복사됨)"
+        echo "3. Claude가 파일을 읽고 분석 결과 생성"
+        echo "4. 아래에서 Enter 누르고 결과 붙여넣기"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    else
+        echo ""
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "🤖 Claude Code 명령어:"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "$FILE_REF_COMMAND"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo ""
+        echo "📁 프롬프트 파일: $TEMP_FILE"
+        echo "위 명령어를 복사해서 Claude Code에 붙여넣으세요."
+    fi
 else
-    echo ""
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo "🤖 Claude Code 프롬프트:"
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo "$CLAUDE_PROMPT"
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo ""
-    echo "위 프롬프트를 복사해서 Claude Code에 붙여넣으세요."
+    # 기존 로직: 1000줄 이하일 경우 전체 내용 복사
+    if command -v pbcopy &> /dev/null; then
+        echo "$CLAUDE_PROMPT" | pbcopy
+        echo ""
+        echo "✅ 프롬프트가 클립보드에 복사되었습니다!"
+        echo ""
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "🤖 다음 단계를 따라주세요:"
+        echo ""
+        echo "1. Claude Code (claude.ai/code) 열기"
+        echo "2. Cmd+V로 프롬프트 붙여넣기 (이미 복사됨)"
+        echo "3. Claude의 분석 결과 복사"
+        echo "4. 아래에서 Enter 누르고 결과 붙여넣기"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    else
+        echo ""
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "🤖 Claude Code 프롬프트:"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "$CLAUDE_PROMPT"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo ""
+        echo "위 프롬프트를 복사해서 Claude Code에 붙여넣으세요."
+    fi
 fi
 
 echo ""
@@ -219,7 +263,7 @@ echo "🚀 PR 생성 중..."
 gh pr create \
     --title "$PR_TITLE" \
     --body "$PR_BODY" \
-    --base "$MAIN_BRANCH" \
+    --base "$DEV_BRANCH" \
     --head "$CURRENT_BRANCH"
 
 if [ $? -eq 0 ]; then
@@ -243,7 +287,7 @@ else
     echo "❌ PR 생성 실패. GitHub CLI 설정을 확인해주세요."
     echo ""
     echo "💡 수동으로 PR을 생성하려면:"
-    echo "gh pr create --title \"$PR_TITLE\" --base \"$MAIN_BRANCH\" --head \"$CURRENT_BRANCH\""
+    echo "gh pr create --title \"$PR_TITLE\" --base \"$DEV_BRANCH\" --head \"$CURRENT_BRANCH\""
 fi
 
 echo ""
