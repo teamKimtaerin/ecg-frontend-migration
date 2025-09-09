@@ -29,7 +29,13 @@ interface AssetDatabase {
 }
 
 const UsedAssetsStrip: React.FC = () => {
-  const { selectedGlitchAssets, setSelectedGlitchAssets } = useEditorStore()
+  const {
+    currentWordAssets,
+    setCurrentWordAssets,
+    selectedWordId,
+    applyAssetsToWord,
+    clips,
+  } = useEditorStore()
 
   const [allAssets, setAllAssets] = useState<AssetItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -70,7 +76,7 @@ const UsedAssetsStrip: React.FC = () => {
   }, [])
 
   // Get used assets in selection order (left to right: 1, 2, 3...)
-  const usedAssets = selectedGlitchAssets
+  const usedAssets = currentWordAssets
     .map((id) => allAssets.find((asset) => asset.id === id))
     .filter((asset) => asset !== undefined) as AssetItem[]
 
@@ -95,7 +101,19 @@ const UsedAssetsStrip: React.FC = () => {
   }
 
   const handleRemoveAsset = (assetId: string) => {
-    setSelectedGlitchAssets(selectedGlitchAssets.filter((id) => id !== assetId))
+    const newAssets = currentWordAssets.filter((id) => id !== assetId)
+    setCurrentWordAssets(newAssets)
+
+    // If a word is selected, apply the changes to the word
+    if (selectedWordId) {
+      const targetClip = clips.find((clip) =>
+        clip.words.some((word) => word.id === selectedWordId)
+      )
+
+      if (targetClip) {
+        applyAssetsToWord(targetClip.id, selectedWordId, newAssets)
+      }
+    }
   }
 
   if (loading) {

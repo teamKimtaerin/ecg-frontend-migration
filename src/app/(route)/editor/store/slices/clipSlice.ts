@@ -8,6 +8,7 @@ import { StateCreator } from 'zustand'
 import { ClipItem, INITIAL_CLIPS } from '../../types'
 import { ProjectData } from '../../types/project'
 import { SaveSlice } from './saveSlice'
+import { UISlice } from './uiSlice'
 
 export interface ClipSlice {
   clips: ClipItem[]
@@ -32,7 +33,7 @@ export interface ClipSlice {
 }
 
 export const createClipSlice: StateCreator<
-  ClipSlice & SaveSlice,
+  ClipSlice & SaveSlice & UISlice,
   [],
   [],
   ClipSlice
@@ -61,18 +62,30 @@ export const createClipSlice: StateCreator<
   },
 
   applyAssetsToWord: (clipId, wordId, assetIds) => {
-    set((state) => ({
-      clips: state.clips.map((clip) =>
-        clip.id === clipId
-          ? {
-              ...clip,
-              words: clip.words.map((word) =>
-                word.id === wordId ? { ...word, appliedAssets: assetIds } : word
-              ),
-            }
-          : clip
-      ),
-    }))
+    set((state) => {
+      const updatedState = {
+        clips: state.clips.map((clip) =>
+          clip.id === clipId
+            ? {
+                ...clip,
+                words: clip.words.map((word) =>
+                  word.id === wordId
+                    ? { ...word, appliedAssets: assetIds }
+                    : word
+                ),
+              }
+            : clip
+        ),
+      }
+
+      // Update UI state for word assets tracking
+      const currentState = get() as ClipSlice & SaveSlice & UISlice
+      if (currentState.updateWordAssets) {
+        currentState.updateWordAssets(wordId, assetIds)
+      }
+
+      return updatedState
+    })
   },
 
   reorderClips: (activeId, overId, selectedIds) => {

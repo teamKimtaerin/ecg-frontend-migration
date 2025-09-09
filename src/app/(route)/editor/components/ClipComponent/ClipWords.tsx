@@ -41,7 +41,9 @@ export default function ClipWords({
   const {
     selectedWordId,
     setSelectedWordId,
-    selectedGlitchAssets,
+    currentWordAssets,
+    setCurrentWordAssets,
+    selectedWordAssets,
     applyAssetsToWord,
   } = useEditorStore()
   const [allAssets, setAllAssets] = React.useState<
@@ -73,15 +75,16 @@ export default function ClipWords({
   const handleWordClick = (e: React.MouseEvent, word: Word) => {
     e.stopPropagation()
 
-    // If word is already selected and has current assets, trigger edit
-    if (selectedWordId === word.id && selectedGlitchAssets.length === 0) {
+    // If word is already selected and has no current assets, trigger edit
+    if (selectedWordId === word.id && currentWordAssets.length === 0) {
       onWordEdit(clipId, word.id, word.text)
     } else {
-      // Select word and apply current assets if any
+      // Select word and load its current assets
       setSelectedWordId(word.id)
-      if (selectedGlitchAssets.length > 0) {
-        applyAssetsToWord(clipId, word.id, selectedGlitchAssets)
-      }
+
+      // Load existing assets for this word from selectedWordAssets or appliedAssets
+      const wordAssets = selectedWordAssets[word.id] || word.appliedAssets || []
+      setCurrentWordAssets(wordAssets)
     }
   }
 

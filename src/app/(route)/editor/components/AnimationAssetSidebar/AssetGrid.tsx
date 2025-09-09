@@ -25,8 +25,8 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
   const {
     activeAssetTab,
     assetSearchQuery,
-    selectedGlitchAssets,
-    setSelectedGlitchAssets,
+    currentWordAssets,
+    setCurrentWordAssets,
     selectedWordId,
     applyAssetsToWord,
     clips,
@@ -74,12 +74,12 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
 
   // Filter assets based on tab, category, and search query
   const filteredAssets = assets.filter((asset) => {
-    // Filter by tab based on usage status
-    const isUsedAsset = selectedGlitchAssets.includes(asset.id)
-    if (activeAssetTab === 'free' && !isUsedAsset) {
+    // Filter by tab based on usage status for current word
+    const isUsedAsset = currentWordAssets.includes(asset.id)
+    if (activeAssetTab === 'my' && !isUsedAsset) {
       return false
     }
-    if (activeAssetTab === 'my' && isUsedAsset) {
+    if (activeAssetTab === 'free' && isUsedAsset) {
       return false
     }
 
@@ -98,20 +98,21 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
 
   const handleAssetClick = (asset: AssetItem) => {
     // 토글 로직: 이미 선택되어 있으면 제거, 없으면 추가
-    const isCurrentlySelected = selectedGlitchAssets.includes(asset.id)
+    const isCurrentlySelected = currentWordAssets.includes(asset.id)
     let newSelectedAssets: string[]
 
     if (isCurrentlySelected) {
       // 제거
-      newSelectedAssets = selectedGlitchAssets.filter((id) => id !== asset.id)
+      newSelectedAssets = currentWordAssets.filter((id) => id !== asset.id)
     } else {
       // 추가
-      newSelectedAssets = [...selectedGlitchAssets, asset.id]
+      newSelectedAssets = [...currentWordAssets, asset.id]
     }
 
-    setSelectedGlitchAssets(newSelectedAssets)
+    // Update current word assets in UI state
+    setCurrentWordAssets(newSelectedAssets)
 
-    // If a word is selected, apply the current asset selection to it
+    // If a word is selected, apply the asset changes to it
     if (selectedWordId) {
       // Find the clip containing the selected word
       const targetClip = clips.find((clip) =>
@@ -164,7 +165,7 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
             key={asset.id}
             asset={{
               ...asset,
-              isUsed: selectedGlitchAssets.includes(asset.id),
+              isUsed: currentWordAssets.includes(asset.id),
             }}
             onClick={handleAssetClick}
           />

@@ -27,8 +27,12 @@ export interface UISlice {
   setAssetSearchQuery: (query: string) => void
   activeAssetTab: 'free' | 'my'
   setActiveAssetTab: (tab: 'free' | 'my') => void
-  selectedGlitchAssets: string[]
-  setSelectedGlitchAssets: (assets: string[]) => void
+  // Word-specific asset selection
+  selectedWordAssets: Record<string, string[]>
+  setSelectedWordAssets: (wordAssets: Record<string, string[]>) => void
+  currentWordAssets: string[]
+  setCurrentWordAssets: (assets: string[]) => void
+  updateWordAssets: (wordId: string, assets: string[]) => void
 
   // Word selection state
   selectedWordId: string | null
@@ -61,8 +65,22 @@ export const createUISlice: StateCreator<UISlice> = (set) => ({
   setAssetSearchQuery: (query) => set({ assetSearchQuery: query }),
   activeAssetTab: 'free',
   setActiveAssetTab: (tab) => set({ activeAssetTab: tab }),
-  selectedGlitchAssets: [],
-  setSelectedGlitchAssets: (assets) => set({ selectedGlitchAssets: assets }),
+
+  // Word-specific asset selection
+  selectedWordAssets: {},
+  setSelectedWordAssets: (wordAssets) =>
+    set({ selectedWordAssets: wordAssets }),
+  currentWordAssets: [],
+  setCurrentWordAssets: (assets) => set({ currentWordAssets: assets }),
+  updateWordAssets: (wordId, assets) =>
+    set((state) => ({
+      selectedWordAssets: {
+        ...state.selectedWordAssets,
+        [wordId]: assets,
+      },
+      currentWordAssets:
+        state.selectedWordId === wordId ? assets : state.currentWordAssets,
+    })),
 
   // Word selection state
   selectedWordId: null,
