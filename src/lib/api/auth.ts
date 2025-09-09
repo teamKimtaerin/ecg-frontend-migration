@@ -47,6 +47,7 @@ export class AuthAPI {
       method: 'POST',
       headers: this.getHeaders(),
       body: JSON.stringify(data),
+      credentials: 'include',
     })
 
     if (!response.ok) {
@@ -94,6 +95,7 @@ export class AuthAPI {
       method: 'POST',
       headers: this.getHeaders(),
       body: JSON.stringify(data),
+      credentials: 'include',
     })
 
     if (!response.ok) {
@@ -108,6 +110,7 @@ export class AuthAPI {
     const response = await fetch(`${BASE_URL}/api/auth/me`, {
       method: 'GET',
       headers: this.getHeaders(token),
+      credentials: 'include',
     })
 
     if (!response.ok) {

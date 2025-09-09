@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
 import { useAuthStore } from '@/lib/store/authStore'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Suspense, useEffect, useState } from 'react'
 
 function AuthCallbackContent() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>(
@@ -21,8 +21,9 @@ function AuthCallbackContent() {
     const handleAuthCallback = async () => {
       setIsProcessed(true)
       try {
-        // URL에서 토큰 파라미터 확인
-        const token = searchParams.get('token')
+        // URL에서 파라미터 확인
+        const success = searchParams.get('success')
+        const access_token = searchParams.get('access_token')
         const error = searchParams.get('error')
 
         if (error) {
@@ -34,9 +35,20 @@ function AuthCallbackContent() {
           return
         }
 
-        if (!token) {
+        // OAuth 성공 시 access_token이 있어야 함
+        if (success === 'true' && !access_token) {
           setStatus('error')
           setMessage('토큰이 없습니다. 다시 로그인해주세요.')
+          setTimeout(() => {
+            router.push('/auth?mode=login')
+          }, 3000)
+          return
+        }
+
+        // access_token이 null이면 return (위에서 체크했지만 타입스크립트 때문에)
+        if (!access_token) {
+          setStatus('error')
+          setMessage('유효하지 않은 토큰입니다.')
           setTimeout(() => {
             router.push('/auth?mode=login')
           }, 3000)
@@ -48,16 +60,17 @@ function AuthCallbackContent() {
           `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/me`,
           {
             headers: {
-              Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${access_token}`,
             },
+            credentials: 'include', // 쿠키 포함
           }
         )
 
         if (userResponse.ok) {
           const userData = await userResponse.json()
 
-          // Zustand store에 토큰과 사용자 정보 저장
-          authStore.setAuthData(userData, token)
+          // Zustand store에 토큰과 사용자 정보 저장 (메모리에만)
+          authStore.setAuthData(userData, access_token)
 
           console.log('✅ Google OAuth 로그인 성공:', userData.username)
 
