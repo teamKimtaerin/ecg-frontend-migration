@@ -5,6 +5,7 @@ export interface Word {
   end: number
   isEditable: boolean
   confidence?: number
+  appliedAssets?: string[]
 }
 
 export interface ClipItem {
@@ -25,10 +26,15 @@ export interface ClipComponentProps {
   isChecked?: boolean
   isMultiSelected?: boolean
   enableDragAndDrop?: boolean
+  speakers?: string[]
   onSelect: (clipId: string) => void
   onCheck?: (clipId: string, checked: boolean) => void
   onWordEdit: (clipId: string, wordId: string, newText: string) => void
   onSpeakerChange?: (clipId: string, newSpeaker: string) => void
+  onBatchSpeakerChange?: (clipIds: string[], newSpeaker: string) => void
+  onOpenSpeakerManagement?: () => void
+  onAddSpeaker?: (name: string) => void
+  onRenameSpeaker?: (oldName: string, newName: string) => void
 }
 
 export interface ClipStyleState {
