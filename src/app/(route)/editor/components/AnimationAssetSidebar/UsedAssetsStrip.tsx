@@ -14,6 +14,8 @@ import {
 } from 'react-icons/io5'
 import { useEditorStore } from '../../store'
 import { AssetItem } from './AssetCard'
+import AssetControlPanel from './AssetControlPanel'
+import { AssetSettings } from './types'
 
 interface AssetDatabaseItem {
   id: string
@@ -35,6 +37,8 @@ const UsedAssetsStrip: React.FC = () => {
     selectedWordId,
     applyAssetsToWord,
     clips,
+    expandedAssetId,
+    setExpandedAssetId,
   } = useEditorStore()
 
   const [allAssets, setAllAssets] = useState<AssetItem[]>([])
@@ -104,6 +108,11 @@ const UsedAssetsStrip: React.FC = () => {
     const newAssets = currentWordAssets.filter((id) => id !== assetId)
     setCurrentWordAssets(newAssets)
 
+    // Close control panel if removing the expanded asset
+    if (expandedAssetId === assetId) {
+      setExpandedAssetId(null)
+    }
+
     // If a word is selected, apply the changes to the word
     if (selectedWordId) {
       const targetClip = clips.find((clip) =>
@@ -114,6 +123,20 @@ const UsedAssetsStrip: React.FC = () => {
         applyAssetsToWord(targetClip.id, selectedWordId, newAssets)
       }
     }
+  }
+
+  const handleAssetClick = (assetId: string) => {
+    // Toggle expansion: if already expanded, close it; otherwise expand it
+    setExpandedAssetId(expandedAssetId === assetId ? null : assetId)
+  }
+
+  const handleControlPanelClose = () => {
+    setExpandedAssetId(null)
+  }
+
+  const handleSettingsChange = (assetId: string, settings: AssetSettings) => {
+    console.log(`Settings changed for asset ${assetId}:`, settings)
+    // TODO: Apply settings to the actual asset animation
   }
 
   if (loading) {
@@ -136,77 +159,99 @@ const UsedAssetsStrip: React.FC = () => {
           사용중인 에셋이 없습니다.
         </div>
       ) : (
-        <div className="flex gap-6 overflow-x-auto pb-2 pt-6 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
-          {usedAssets.map((asset, index) => (
-            <div
-              key={asset.id}
-              className="flex-shrink-0 relative group bg-slate-700/50 rounded-lg overflow-visible"
-              style={{ width: '80px' }}
-            >
-              {/* Characteristic Icon */}
-              {(() => {
-                const IconComponent = getAssetIcon(asset.name)
-                return IconComponent ? (
-                  <div
-                    className="absolute -top-5 left-1/2 transform -translate-x-1/2 bg-slate-800/90 rounded-full w-6 h-6 flex items-center justify-center shadow-sm"
-                    style={{ zIndex: 10 }}
-                  >
-                    <IconComponent size={14} className="text-slate-300" />
+        <div className="space-y-4">
+          <div className="flex gap-6 overflow-x-auto pb-2 pt-6 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
+            {usedAssets.map((asset, index) => (
+              <div key={asset.id} className="flex-shrink-0">
+                <div
+                  className={`relative group bg-slate-700/50 rounded-lg overflow-visible cursor-pointer transition-all duration-200 ${
+                    expandedAssetId === asset.id
+                      ? 'ring-2 ring-blue-500/50 bg-slate-600/50'
+                      : 'hover:bg-slate-600/50'
+                  }`}
+                  style={{ width: '80px' }}
+                  onClick={() => handleAssetClick(asset.id)}
+                >
+                  {/* Characteristic Icon */}
+                  {(() => {
+                    const IconComponent = getAssetIcon(asset.name)
+                    return IconComponent ? (
+                      <div
+                        className="absolute -top-5 left-1/2 transform -translate-x-1/2 bg-slate-800/90 rounded-full w-6 h-6 flex items-center justify-center shadow-sm"
+                        style={{ zIndex: 10 }}
+                      >
+                        <IconComponent size={14} className="text-slate-300" />
+                      </div>
+                    ) : null
+                  })()}
+
+                  {/* Thumbnail */}
+                  <div className="aspect-[4/3] bg-slate-800/50 flex items-center justify-center overflow-hidden">
+                    <img
+                      src={asset.preview.value}
+                      alt={asset.name}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
-                ) : null
-              })()}
 
-              {/* Thumbnail */}
-              <div className="aspect-[4/3] bg-slate-800/50 flex items-center justify-center overflow-hidden">
-                <img
-                  src={asset.preview.value}
-                  alt={asset.name}
-                  className="w-full h-full object-cover"
-                />
+                  {/* Order Badge */}
+                  <div
+                    className="absolute -top-1 -left-1 w-5 h-5 bg-blue-500 rounded-md flex items-center justify-center text-white text-xs font-bold shadow-lg flex-shrink-0"
+                    style={{
+                      width: '20px',
+                      height: '20px',
+                      borderRadius: '4px',
+                      minWidth: '20px',
+                      minHeight: '20px',
+                      fontSize: '10px',
+                      boxSizing: 'border-box',
+                    }}
+                    aria-label={`선택 순서 ${getAssetOrder(index)}번`}
+                  >
+                    {getAssetOrder(index)}
+                  </div>
+
+                  {/* Asset Name */}
+                  <div className="px-1 py-1">
+                    <p className="text-xs text-white truncate leading-tight">
+                      {asset.name}
+                    </p>
+                  </div>
+
+                  {/* Remove Button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleRemoveAsset(asset.id)
+                    }}
+                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg flex-shrink-0"
+                    style={{
+                      width: '24px',
+                      height: '24px',
+                      borderRadius: '4px',
+                      minWidth: '24px',
+                      minHeight: '24px',
+                      boxSizing: 'border-box',
+                    }}
+                    aria-label={`${asset.name} 제거`}
+                  >
+                    <IoClose size={14} className="text-white" />
+                  </button>
+                </div>
+
+                {/* Expanded Control Panel */}
+                {expandedAssetId === asset.id && (
+                  <AssetControlPanel
+                    assetName={asset.name}
+                    onClose={handleControlPanelClose}
+                    onSettingsChange={(settings) =>
+                      handleSettingsChange(asset.id, settings)
+                    }
+                  />
+                )}
               </div>
-
-              {/* Order Badge */}
-              <div
-                className="absolute -top-1 -left-1 w-5 h-5 bg-blue-500 rounded-md flex items-center justify-center text-white text-xs font-bold shadow-lg flex-shrink-0"
-                style={{
-                  width: '20px',
-                  height: '20px',
-                  borderRadius: '4px',
-                  minWidth: '20px',
-                  minHeight: '20px',
-                  fontSize: '10px',
-                  boxSizing: 'border-box',
-                }}
-                aria-label={`선택 순서 ${getAssetOrder(index)}번`}
-              >
-                {getAssetOrder(index)}
-              </div>
-
-              {/* Asset Name */}
-              <div className="px-1 py-1">
-                <p className="text-xs text-white truncate leading-tight">
-                  {asset.name}
-                </p>
-              </div>
-
-              {/* Remove Button */}
-              <button
-                onClick={() => handleRemoveAsset(asset.id)}
-                className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg flex-shrink-0"
-                style={{
-                  width: '24px',
-                  height: '24px',
-                  borderRadius: '4px',
-                  minWidth: '24px',
-                  minHeight: '24px',
-                  boxSizing: 'border-box',
-                }}
-                aria-label={`${asset.name} 제거`}
-              >
-                <IoClose size={14} className="text-white" />
-              </button>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
     </div>

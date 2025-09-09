@@ -34,6 +34,10 @@ export interface UISlice {
   setCurrentWordAssets: (assets: string[]) => void
   updateWordAssets: (wordId: string, assets: string[]) => void
 
+  // Asset expansion state
+  expandedAssetId: string | null
+  setExpandedAssetId: (assetId: string | null) => void
+
   // Word selection state
   selectedWordId: string | null
   setSelectedWordId: (wordId: string | null) => void
@@ -81,6 +85,10 @@ export const createUISlice: StateCreator<UISlice> = (set) => ({
       currentWordAssets:
         state.selectedWordId === wordId ? assets : state.currentWordAssets,
     })),
+
+  // Asset expansion state
+  expandedAssetId: null,
+  setExpandedAssetId: (assetId) => set({ expandedAssetId: assetId }),
 
   // Word selection state
   selectedWordId: null,
