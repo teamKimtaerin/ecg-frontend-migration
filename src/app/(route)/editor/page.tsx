@@ -37,6 +37,7 @@ import Toolbars from './components/Toolbars'
 import EditorHeaderTabs from './components/EditorHeaderTabs'
 import SubtitleEditList from './components/SubtitleEditList'
 import VideoSection from './components/VideoSection'
+import AnimationAssetSidebar from './components/AnimationAssetSidebar'
 import SpeakerManagementSidebar from './components/SpeakerManagementSidebar'
 
 // Utils
@@ -74,6 +75,9 @@ export default function EditorPage() {
     hasUnsavedChanges,
     setHasUnsavedChanges,
     markAsSaved,
+    isAssetSidebarOpen,
+    assetSidebarWidth,
+    setAssetSidebarWidth,
   } = useEditorStore()
 
   // Local state
@@ -350,6 +354,28 @@ export default function EditorPage() {
       }
     },
     [videoPanelWidth, windowWidth, setVideoPanelWidth]
+  )
+
+  // Asset sidebar resize handler
+  const handleAssetSidebarResize = useCallback(
+    (delta: number) => {
+      const newWidth = assetSidebarWidth - delta // Reverse delta for right sidebar
+      const minWidth = 280 // Minimum width
+      const maxWidth = windowWidth / 2 // Maximum 50% of viewport
+
+      // Constrain the width between min and max
+      const constrainedWidth = Math.max(minWidth, Math.min(maxWidth, newWidth))
+      setAssetSidebarWidth(constrainedWidth)
+
+      // Save to localStorage for persistence
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(
+          'editor-asset-sidebar-width',
+          constrainedWidth.toString()
+        )
+      }
+    },
+    [assetSidebarWidth, windowWidth, setAssetSidebarWidth]
   )
 
   // Edit handlers
@@ -1005,8 +1031,25 @@ export default function EditorPage() {
           setVideoPanelWidth(width)
         }
       }
+
+      // Restore asset sidebar width from localStorage
+      const savedAssetSidebarWidth = localStorage.getItem(
+        'editor-asset-sidebar-width'
+      )
+      if (savedAssetSidebarWidth) {
+        const width = parseInt(savedAssetSidebarWidth, 10)
+        if (!isNaN(width)) {
+          setAssetSidebarWidth(width)
+        }
+      }
     }
-  }, [clips, activeClipId, setActiveClipId, setVideoPanelWidth])
+  }, [
+    clips,
+    activeClipId,
+    setActiveClipId,
+    setVideoPanelWidth,
+    setAssetSidebarWidth,
+  ])
 
   // 에디터 페이지 진입 시 튜토리얼 모달 표시 (첫 방문자용)
   useEffect(() => {
@@ -1043,13 +1086,23 @@ export default function EditorPage() {
       if (videoPanelWidth > maxWidth) {
         setVideoPanelWidth(maxWidth)
       }
+
+      // Adjust asset sidebar width if it exceeds new max
+      if (assetSidebarWidth > maxWidth) {
+        setAssetSidebarWidth(maxWidth)
+      }
     }
 
     if (typeof window !== 'undefined') {
       window.addEventListener('resize', handleResize)
       return () => window.removeEventListener('resize', handleResize)
     }
-  }, [videoPanelWidth, setVideoPanelWidth])
+  }, [
+    videoPanelWidth,
+    setVideoPanelWidth,
+    assetSidebarWidth,
+    setAssetSidebarWidth,
+  ])
 
   // 클립이 변경되었을 때 포커스 유지/이동 로직
   useEffect(() => {
@@ -1165,6 +1218,23 @@ export default function EditorPage() {
               isSelecting={isSelecting}
             />
           </div>
+
+          {/* Asset Sidebar with Resizer */}
+          {isAssetSidebarOpen && (
+            <>
+              <ResizablePanelDivider
+                orientation="vertical"
+                onResize={handleAssetSidebarResize}
+                className="z-10"
+              />
+              <AnimationAssetSidebar
+                onAssetSelect={(asset) => {
+                  console.log('Asset selected in editor:', asset)
+                  // TODO: Apply asset effect to focused clip
+                }}
+              />
+            </>
+          )}
 
           {/* Right sidebar - Speaker Management */}
           {isSpeakerManagementOpen && (
