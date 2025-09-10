@@ -51,9 +51,19 @@ describe('VideoSegmentManager time mapping', () => {
     const ranges = videoSegmentManager.getPlayableRanges()
     expect(ranges).toHaveLength(2)
     // first playable: 0-5s maps to adjusted 0-5
-    expect(ranges[0]).toEqual({ start: 0, end: 5, originalStart: 0, originalEnd: 5 })
+    expect(ranges[0]).toEqual({
+      start: 0,
+      end: 5,
+      originalStart: 0,
+      originalEnd: 5,
+    })
     // second playable: 10-15s maps to adjusted 5-10
-    expect(ranges[1]).toEqual({ start: 5, end: 10, originalStart: 10, originalEnd: 15 })
+    expect(ranges[1]).toEqual({
+      start: 5,
+      end: 10,
+      originalStart: 10,
+      originalEnd: 15,
+    })
 
     // map adjusted 6s -> original 11s (skips deleted)
     expect(videoSegmentManager.mapToOriginalTime(6)).toBeCloseTo(11)

@@ -1,5 +1,8 @@
 // @ts-nocheck
-import { generatePreviewScenario, validateAndNormalizeParams } from '@/app/shared/motiontext/utils/scenarioGenerator'
+import {
+  generatePreviewScenario,
+  validateAndNormalizeParams,
+} from '@/app/shared/motiontext/utils/scenarioGenerator'
 
 describe('scenarioGenerator', () => {
   test('generatePreviewScenario builds a valid config with pluginChain', () => {
@@ -33,10 +36,33 @@ describe('scenarioGenerator', () => {
       pluginApi: '2.1',
       targets: ['text'],
       schema: {
-        strength: { type: 'number', label: 'Strength', description: '', default: 50, min: 0, max: 100 },
-        enabled: { type: 'boolean', label: 'Enabled', description: '', default: true },
-        mode: { type: 'select', label: 'Mode', description: '', default: 'in', enum: ['in', 'out'] },
-        label: { type: 'string', label: 'Label', description: '', default: 'x' },
+        strength: {
+          type: 'number',
+          label: 'Strength',
+          description: '',
+          default: 50,
+          min: 0,
+          max: 100,
+        },
+        enabled: {
+          type: 'boolean',
+          label: 'Enabled',
+          description: '',
+          default: true,
+        },
+        mode: {
+          type: 'select',
+          label: 'Mode',
+          description: '',
+          default: 'in',
+          enum: ['in', 'out'],
+        },
+        label: {
+          type: 'string',
+          label: 'Label',
+          description: '',
+          default: 'x',
+        },
       },
     } as const
 

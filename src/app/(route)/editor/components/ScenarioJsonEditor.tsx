@@ -9,10 +9,10 @@ interface ScenarioJsonEditorProps {
   className?: string
 }
 
-export default function ScenarioJsonEditor({ 
-  initialScenario, 
-  onApply, 
-  className = '' 
+export default function ScenarioJsonEditor({
+  initialScenario,
+  onApply,
+  className = '',
 }: ScenarioJsonEditorProps) {
   const [jsonText, setJsonText] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -42,7 +42,7 @@ export default function ScenarioJsonEditor({
   return (
     <div className={`bg-gray-800 rounded-lg overflow-hidden ${className}`}>
       {/* Header */}
-      <div 
+      <div
         className="flex items-center justify-between px-4 py-2 bg-gray-700 cursor-pointer hover:bg-gray-650"
         onClick={() => setIsExpanded(!isExpanded)}
       >
@@ -50,9 +50,7 @@ export default function ScenarioJsonEditor({
           <span className="text-gray-400">⚙️</span>
           <span className="text-sm font-medium text-gray-200">설정 (JSON)</span>
         </div>
-        <span className="text-gray-400 text-sm">
-          {isExpanded ? '▼' : '▶'}
-        </span>
+        <span className="text-gray-400 text-sm">{isExpanded ? '▼' : '▶'}</span>
       </div>
 
       {/* Editor Content */}

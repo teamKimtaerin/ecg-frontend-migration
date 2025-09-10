@@ -19,7 +19,8 @@ function toSeconds(v) {
   if (typeof v === 'number') return v
   if (typeof v === 'string' && v.includes(':')) {
     const parts = v.split(':').map(Number)
-    if (parts.length === 3) return (parts[0] || 0) * 3600 + (parts[1] || 0) * 60 + (parts[2] || 0)
+    if (parts.length === 3)
+      return (parts[0] || 0) * 3600 + (parts[1] || 0) * 60 + (parts[2] || 0)
     if (parts.length === 2) return (parts[0] || 0) * 60 + (parts[1] || 0)
   }
   return Number(v) || 0
@@ -94,8 +95,14 @@ function main() {
   const args = process.argv.slice(2)
   const inIdx = args.indexOf('--in')
   const outIdx = args.indexOf('--out')
-  const inPath = path.resolve(process.cwd(), inIdx >= 0 ? args[inIdx + 1] : 'public/real.json')
-  const outPath = path.resolve(process.cwd(), outIdx >= 0 ? args[outIdx + 1] : 'public/scenario.json')
+  const inPath = path.resolve(
+    process.cwd(),
+    inIdx >= 0 ? args[inIdx + 1] : 'public/real.json'
+  )
+  const outPath = path.resolve(
+    process.cwd(),
+    outIdx >= 0 ? args[outIdx + 1] : 'public/scenario.json'
+  )
 
   if (!fs.existsSync(inPath)) {
     console.error(`Input not found: ${inPath}`)
@@ -113,4 +120,3 @@ function main() {
 }
 
 if (require.main === module) main()
-

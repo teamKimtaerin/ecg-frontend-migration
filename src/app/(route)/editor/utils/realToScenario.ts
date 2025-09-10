@@ -24,7 +24,8 @@ function toSeconds(v: number | string): number {
   if (typeof v === 'number') return v
   if (typeof v === 'string' && v.includes(':')) {
     const parts = v.split(':').map(Number)
-    if (parts.length === 3) return (parts[0] || 0) * 3600 + (parts[1] || 0) * 60 + (parts[2] || 0)
+    if (parts.length === 3)
+      return (parts[0] || 0) * 3600 + (parts[1] || 0) * 60 + (parts[2] || 0)
     if (parts.length === 2) return (parts[0] || 0) * 60 + (parts[1] || 0)
   }
   return Number(v) || 0
@@ -36,7 +37,7 @@ export function buildScenarioFromReal(
 ): RendererConfig {
   console.log('[buildScenarioFromReal] Starting conversion with data:', {
     segmentsCount: real.segments?.length || 0,
-    opts
+    opts,
   })
 
   const stageW = 640
@@ -54,7 +55,7 @@ export function buildScenarioFromReal(
       const start = toSeconds(seg.start_time)
       const end = toSeconds(seg.end_time)
       const text = seg.text || ''
-      
+
       console.log(`[buildScenarioFromReal] Processing segment ${i}:`, {
         start_time: seg.start_time,
         end_time: seg.end_time,
@@ -62,59 +63,63 @@ export function buildScenarioFromReal(
         convertedStart: start,
         convertedEnd: end,
         finalText: text,
-        isValid: end > start
+        isValid: end > start,
       })
-      
+
       // Skip segments with invalid timing or empty text
       if (end <= start) {
-        console.warn(`[buildScenarioFromReal] Skipping segment ${i} - invalid timing: start=${start}, end=${end}`)
+        console.warn(
+          `[buildScenarioFromReal] Skipping segment ${i} - invalid timing: start=${start}, end=${end}`
+        )
         return null
       }
-      
+
       if (!text.trim()) {
-        console.warn(`[buildScenarioFromReal] Skipping segment ${i} - empty text`)
+        console.warn(
+          `[buildScenarioFromReal] Skipping segment ${i} - empty text`
+        )
         return null
       }
-      
+
       return {
-      id: `cue-${i}`,
-      track: 'editor',
-      hintTime: { start, end },
-      root: {
-        e_type: 'group',
-        layout: {
-          position: { x: centerX / stageW, y: centerY / stageH },
-          anchor: 'cc',
-          size: { width: boxW / stageW, height: boxH / stageH },
-        },
-        children: [
-          {
-            e_type: 'text',
-            text,
-            absStart: start,
-            absEnd: Math.max(end, start + 0.1), // Ensure absEnd is always greater than absStart
-            layout: {
-              position: { x: 0.5, y: 0.5 },
-              anchor: 'cc',
-              size: { width: 'auto', height: 'auto' },
-              overflow: 'visible',
-            },
-            style: {
-              fontSizeRel,
-              fontFamily: 'Arial, sans-serif',
-              color: '#ffffff',
-              align: 'center',
-              whiteSpace: 'nowrap',
-            },
-            pluginChain: [
-              { name: pluginName, params: {}, relStartPct: 0, relEndPct: 1 },
-            ],
+        id: `cue-${i}`,
+        track: 'editor',
+        hintTime: { start, end },
+        root: {
+          e_type: 'group',
+          layout: {
+            position: { x: centerX / stageW, y: centerY / stageH },
+            anchor: 'cc',
+            size: { width: boxW / stageW, height: boxH / stageH },
           },
-        ],
-      },
-    }
-  })
-  .filter((cue): cue is NonNullable<typeof cue> => cue !== null)
+          children: [
+            {
+              e_type: 'text',
+              text,
+              absStart: start,
+              absEnd: Math.max(end, start + 0.1), // Ensure absEnd is always greater than absStart
+              layout: {
+                position: { x: 0.5, y: 0.5 },
+                anchor: 'cc',
+                size: { width: 'auto', height: 'auto' },
+                overflow: 'visible',
+              },
+              style: {
+                fontSizeRel,
+                fontFamily: 'Arial, sans-serif',
+                color: '#ffffff',
+                align: 'center',
+                whiteSpace: 'nowrap',
+              },
+              pluginChain: [
+                { name: pluginName, params: {}, relStartPct: 0, relEndPct: 1 },
+              ],
+            },
+          ],
+        },
+      }
+    })
+    .filter((cue): cue is NonNullable<typeof cue> => cue !== null)
 
   const config = {
     version: '1.3' as const,
@@ -126,9 +131,8 @@ export function buildScenarioFromReal(
 
   console.log('[buildScenarioFromReal] Generated scenario config:', {
     totalCues: cues.length,
-    config
+    config,
   })
 
   return config
 }
-

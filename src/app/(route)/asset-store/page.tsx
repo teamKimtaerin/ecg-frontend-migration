@@ -3,14 +3,17 @@
 import { AssetCard } from '@/app/(route)/asset-store/components/AssetCard'
 import { AssetModal } from '@/app/(route)/asset-store/components/AssetModal'
 import { AssetSidebar } from '@/app/(route)/asset-store/components/AssetSidebar'
-import { clsx } from 'clsx'
+import Header from '@/components/NewLandingPage/Header'
 import { TRANSITIONS } from '@/lib/utils'
 import { AssetItem } from '@/types/asset-store'
-import { useState, useEffect } from 'react'
+import { clsx } from 'clsx'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import { LuSearch } from 'react-icons/lu'
 
 // 메인 페이지 컴포넌트
 export default function AssetPage() {
+  const router = useRouter()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedAsset, setSelectedAsset] = useState<AssetItem | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -63,6 +66,15 @@ export default function AssetPage() {
 
   const handleUploadClick = () => {
     console.log('에셋 업로드 클릭됨')
+  }
+
+  // Header event handlers
+  const handleTryClick = () => {
+    router.push('/editor')
+  }
+
+  const handleLoginClick = () => {
+    router.push('/auth')
   }
 
   const handleAddToCart = () => {
@@ -164,6 +176,8 @@ export default function AssetPage() {
 
   return (
     <div className={mainContainerClasses}>
+      <Header onTryClick={handleTryClick} onLoginClick={handleLoginClick} />
+
       <div className="flex">
         <AssetSidebar
           selectedCategory={selectedCategory}

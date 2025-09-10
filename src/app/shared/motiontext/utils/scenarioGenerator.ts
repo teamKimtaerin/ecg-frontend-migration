@@ -77,12 +77,18 @@ export async function loadPluginManifest(
     const mode: ManifestLoadMode = opts.mode ?? 'auto'
     const serverBase = (opts.serverBase ?? '').replace(/\/$/, '')
     const localBase = opts.localBase ?? ''
-    const f = opts.fetchImpl ?? (typeof fetch !== 'undefined' ? fetch.bind(window) : undefined)
-    if (!f) throw new Error('No fetch implementation available in this environment')
+    const f =
+      opts.fetchImpl ??
+      (typeof fetch !== 'undefined' ? fetch.bind(window) : undefined)
+    if (!f)
+      throw new Error('No fetch implementation available in this environment')
 
     const tryUrls: string[] = []
     if (mode === 'server' || mode === 'auto') {
-      if (serverBase) tryUrls.push(`${serverBase}/plugins/${encodeURIComponent(key)}/manifest.json`)
+      if (serverBase)
+        tryUrls.push(
+          `${serverBase}/plugins/${encodeURIComponent(key)}/manifest.json`
+        )
       if (serverBase) tryUrls.push(`${serverBase}/plugins/${key}/manifest.json`)
     }
     if (mode === 'local' || mode === 'auto') {
@@ -111,14 +117,18 @@ export async function loadPluginManifest(
         lastErr = e
       }
     }
-    throw new Error(`Failed to load manifest for ${pluginName}. Tried ${tryUrls.join(', ')}. Last error: ${String(lastErr)}`)
+    throw new Error(
+      `Failed to load manifest for ${pluginName}. Tried ${tryUrls.join(', ')}. Last error: ${String(lastErr)}`
+    )
   } catch (error) {
     console.error(`Error loading manifest for ${pluginName}:`, error)
     throw error
   }
 }
 
-export function getDefaultParameters(manifest: PluginManifest): Record<string, unknown> {
+export function getDefaultParameters(
+  manifest: PluginManifest
+): Record<string, unknown> {
   const params: Record<string, unknown> = {}
   Object.entries(manifest.schema).forEach(([key, property]) => {
     params[key] = property.default
@@ -200,7 +210,12 @@ export function generateLoopedScenario(
   const relW = Math.max(0, Math.min(1, settings.size.width / 640))
   const relH = Math.max(0, Math.min(1, settings.size.height / 360))
   const pluginChain = [
-    { name: pluginName, params: settings.pluginParams, relStartPct: 0.0, relEndPct: 1.0 },
+    {
+      name: pluginName,
+      params: settings.pluginParams,
+      relStartPct: 0.0,
+      relEndPct: 1.0,
+    },
   ]
   const scenario = {
     version: '1.3',
@@ -218,7 +233,9 @@ export function generateLoopedScenario(
             anchor: 'cc',
             size: { width: relW, height: relH },
             transform:
-              settings.rotationDeg != null ? { rotate: { deg: settings.rotationDeg } } : undefined,
+              settings.rotationDeg != null
+                ? { rotate: { deg: settings.rotationDeg } }
+                : undefined,
             transformOrigin: '50% 50%',
           },
           children: [
@@ -261,11 +278,16 @@ export function validateAndNormalizeParams(
       case 'number': {
         let numValue = Number(value as number)
         if (!Number.isFinite(numValue)) {
-          const d = typeof property.default === 'number' ? property.default : Number(property.default as number)
+          const d =
+            typeof property.default === 'number'
+              ? property.default
+              : Number(property.default as number)
           numValue = Number.isFinite(d) ? (d as number) : 0
         }
-        if (property.min !== undefined) numValue = Math.max(property.min, numValue)
-        if (property.max !== undefined) numValue = Math.min(property.max, numValue)
+        if (property.min !== undefined)
+          numValue = Math.max(property.min, numValue)
+        if (property.max !== undefined)
+          numValue = Math.min(property.max, numValue)
         normalized[key] = numValue
         break
       }
@@ -290,4 +312,3 @@ export function validateAndNormalizeParams(
 export function convertConfigFileToManifest(configFile: string): string {
   return configFile.replace('/config.json', '/manifest.json')
 }
-

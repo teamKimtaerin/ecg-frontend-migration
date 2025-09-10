@@ -2,7 +2,10 @@
  * Local plugin loader for MotionText (shared)
  */
 import type { RendererConfig } from './scenarioGenerator'
-import { configurePluginSource, registerExternalPlugin } from 'motiontext-renderer'
+import {
+  configurePluginSource,
+  registerExternalPlugin,
+} from 'motiontext-renderer'
 
 export interface TLHandle {
   pause?: () => TLHandle
@@ -71,19 +74,30 @@ function resolveKey(name: string): string {
   return name.includes('@') ? name : `${name}@1.0.0`
 }
 
-export async function loadLocalPlugin(name: string): Promise<PluginRuntimeModule> {
+export async function loadLocalPlugin(
+  name: string
+): Promise<PluginRuntimeModule> {
   if (!name) throw new Error('Plugin name is required')
   const key = resolveKey(name)
   if (cache.has(key)) return cache.get(key) as PluginRuntimeModule
 
-  const url = new URL(`/plugin/${encodeURIComponent(key)}/index.mjs`, window.location.origin).toString()
-  const mod: PluginRuntimeModule = await import(/* webpackIgnore: true */ /* @vite-ignore */ url)
+  const url = new URL(
+    `/plugin/${encodeURIComponent(key)}/index.mjs`,
+    window.location.origin
+  ).toString()
+  const mod: PluginRuntimeModule = await import(
+    /* webpackIgnore: true */ /* @vite-ignore */ url
+  )
   cache.set(key, mod)
 
   if (!registeredPlugins.has(key)) {
     try {
-      const manifestResponse = await fetch(`/plugin/${encodeURIComponent(key)}/manifest.json`)
-      const manifest = manifestResponse.ok ? await manifestResponse.json() : { version: '1.0.0' }
+      const manifestResponse = await fetch(
+        `/plugin/${encodeURIComponent(key)}/manifest.json`
+      )
+      const manifest = manifestResponse.ok
+        ? await manifestResponse.json()
+        : { version: '1.0.0' }
       const pluginNameWithoutVersion = key.split('@')[0]
       registerExternalPlugin({
         name: pluginNameWithoutVersion,
@@ -93,7 +107,9 @@ export async function loadLocalPlugin(name: string): Promise<PluginRuntimeModule
         manifest: manifest,
       })
       registeredPlugins.add(key)
-      console.log(`[PluginLoader] Registered plugin with motiontext-renderer: ${key}@${manifest.version}`)
+      console.log(
+        `[PluginLoader] Registered plugin with motiontext-renderer: ${key}@${manifest.version}`
+      )
     } catch (error) {
       console.error(`[PluginLoader] Failed to register plugin ${key}:`, error)
     }
@@ -139,11 +155,17 @@ export async function preloadPluginsForScenario(scenario: RendererConfig) {
     try {
       await loadLocalPlugin(pluginName)
     } catch (error) {
-      console.warn(`[PluginLoader] Failed to load required plugin ${pluginName}:`, error)
+      console.warn(
+        `[PluginLoader] Failed to load required plugin ${pluginName}:`,
+        error
+      )
     }
   }
   if (typeof window !== 'undefined' && (window as any).__motionTextPlugins) {
-    console.log('[PluginLoader] Available plugins:', Object.keys((window as any).__motionTextPlugins))
+    console.log(
+      '[PluginLoader] Available plugins:',
+      Object.keys((window as any).__motionTextPlugins)
+    )
   }
 }
 

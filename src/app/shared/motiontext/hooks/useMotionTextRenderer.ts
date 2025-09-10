@@ -117,7 +117,11 @@ export function useMotionTextRenderer(
       if (!rendererRef.current) throw new Error('Failed to initialize renderer')
       try {
         if (!opts?.silent) {
-          updateState({ isLoading: true, status: 'loading scenario', error: null })
+          updateState({
+            isLoading: true,
+            status: 'loading scenario',
+            error: null,
+          })
         }
         if (loopTimeoutRef.current) clearTimeout(loopTimeoutRef.current)
         await preloadPluginsForScenario(config)
@@ -233,4 +237,3 @@ export function useMotionTextRenderer(
     dispose,
   }
 }
-

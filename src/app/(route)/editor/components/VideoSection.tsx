@@ -34,11 +34,9 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
         className="bg-black rounded-lg mb-4 relative flex-shrink-0 overflow-hidden"
         style={{ aspectRatio: '16/9' }}
       >
-        <VideoPlayer
-          className="w-full h-full rounded-lg overflow-hidden"
-        />
+        <VideoPlayer className="w-full h-full rounded-lg overflow-hidden" />
         {/* MotionText overlay (legacy HTML overlay removed) */}
-        <EditorMotionTextOverlay 
+        <EditorMotionTextOverlay
           videoContainerRef={videoContainerRef}
           onScenarioUpdate={handleScenarioUpdate}
           scenarioOverride={scenarioOverride}
