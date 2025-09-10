@@ -49,20 +49,30 @@ npm run test:e2e:ui # Run Playwright with UI mode
 ```
 src/
 ├── app/                    # Next.js App Router
-│   ├── editor/            # Main editor page
+│   ├── (route)/editor/    # Main editor page (route group)
 │   │   ├── components/    # Editor-specific components
-│   │   │   └── ClipComponent/ # Modular clip component
+│   │   │   ├── ClipComponent/ # Modular clip component
+│   │   │   ├── VideoSection.tsx
+│   │   │   ├── SubtitleEditList.tsx
+│   │   │   └── EditorHeaderTabs.tsx
 │   │   ├── hooks/         # Custom hooks (DnD, selection)
 │   │   ├── store/         # Zustand store with slices
-│   │   └── types/         # TypeScript types
-│   └── components/        # Page-level components
+│   │   │   ├── editorStore.ts
+│   │   │   └── slices/    # Individual state slices
+│   │   ├── types/         # TypeScript types
+│   │   └── page.tsx       # Editor page component
+│   ├── (main)/           # Main route group
+│   └── auth/             # Authentication pages
 ├── components/
-│   ├── ui/               # Reusable UI components
-│   ├── icons/           # Icon components (react-icons wrapper)
+│   ├── ui/               # Reusable UI components (29+ components)
+│   ├── icons/           # Icon components (Lucide wrapper)
 │   └── DnD/             # Drag & drop components
 ├── lib/
+│   ├── store/           # Global stores (authStore)
 │   └── utils/           # Utility functions
 │       └── colors.ts    # Color system utilities
+├── services/            # API services
+├── utils/               # General utilities
 └── hooks/               # Global custom hooks
 ```
 
@@ -76,7 +86,10 @@ store/
 └── slices/
     ├── clipSlice.ts     # Clip data and operations
     ├── selectionSlice.ts # Multi-selection state
-    └── uiSlice.ts       # UI state (tabs, modals)
+    ├── uiSlice.ts       # UI state (tabs, modals)
+    ├── saveSlice.ts     # Save/autosave state
+    ├── mediaSlice.ts    # Media/video state
+    └── wordSlice.ts     # Word-level editing state
 ```
 
 ### Component Architecture
@@ -98,6 +111,123 @@ EditorPage
 └── SelectionBox
 ```
 
+### Animation Plugin System
+
+The editor features a sophisticated plugin-based animation system for dynamic subtitle effects:
+
+```
+public/plugin/
+├── elastic/           # Elastic bounce animations
+├── fadein/           # Fade-in effects
+├── glitch/           # Glitch/distortion effects
+├── magnetic/         # Magnetic attraction effects
+├── rotation/         # Rotation animations
+├── scalepop/         # Scale/pop effects
+├── slideup/          # Slide-up transitions
+└── typewriter/       # Typewriter effects
+```
+
+Each plugin contains:
+
+- `config.json` - Plugin metadata, parameters schema, and UI configuration
+- `*.mjs` - Plugin implementation with animation logic (ES modules)
+
+#### Plugin Structure
+
+- **Dependencies**: Most plugins use GSAP for smooth animations
+- **Schema**: Configurable parameters (duration, intensity, easing, etc.)
+- **Preview System**: Thumbnail and demo capabilities
+- **Dynamic Loading**: Plugins are loaded on-demand
+
+### Audio Analysis Integration
+
+The system supports dynamic subtitle animations based on audio analysis:
+
+#### Audio Analysis Data (`public/real.json`)
+
+```typescript
+{
+  metadata: { duration, speakers, emotions, processing_info },
+  speakers: { [speaker_id]: { duration, emotions, confidence } },
+  segments: [{
+    start_time, end_time, speaker, emotion, text,
+    words: [{
+      word, start, end, confidence,
+      volume_db,    // Volume level for animation intensity
+      pitch_hz,     // Pitch frequency for effect selection
+      harmonics_ratio, spectral_centroid
+    }]
+  }]
+}
+```
+
+#### Dynamic Animation Application
+
+- **Baseline Calculation**: Real-time average calculation for thresholds
+- **Rule-Based Selection**: Conditions determine which animations apply
+- **Intensity Scaling**: Audio metadata drives animation parameters
+- **Emotion Integration**: Speaker emotions influence effect selection
+
+### Animation Asset Sidebar Architecture
+
+Complex sidebar system for managing subtitle animations:
+
+```
+AnimationAssetSidebar/
+├── AssetCard.tsx           # Individual plugin cards
+├── AssetGrid.tsx           # Grid layout for plugins
+├── AssetControlPanel.tsx   # Dynamic parameter controls
+├── TabNavigation.tsx       # Category filtering
+├── SearchBar.tsx          # Plugin search
+├── UsedAssetsStrip.tsx    # Recent/active animations
+└── controls/              # Reusable control components
+    ├── SliderControl.tsx   # Numeric parameters
+    ├── ColorControl.tsx    # Color selection
+    ├── SelectControl.tsx   # Dropdown options
+    ├── ToggleControl.tsx   # Boolean flags
+    └── ButtonGroup.tsx     # Multiple choice options
+```
+
+#### Key Features
+
+1. **Dynamic UI Generation**: Controls generated from plugin schemas
+2. **Real-time Preview**: Live animation previews
+3. **Parameter Persistence**: Settings saved per plugin instance
+4. **Asset Management**: Track used animations per project
+
+### Video Player & Subtitle Rendering Pipeline
+
+#### Video Player Architecture
+
+- **VideoPlayer Component**: HTML5 video with custom controls
+- **Subtitle Overlay**: Positioned text rendering with animations
+- **Timeline Synchronization**: Frame-accurate subtitle timing
+- **Audio Waveform**: Visual audio representation (optional)
+
+#### Subtitle Rendering Process
+
+1. **Data Loading**: Parse audio analysis and subtitle data
+2. **Timeline Processing**: Calculate word-level timings
+3. **Animation Selection**: Apply rules based on audio metadata
+4. **Dynamic Rendering**: Real-time animation application
+5. **Performance Optimization**: Efficient DOM updates and animation cleanup
+
+### Word-Level Editing System
+
+#### Word Manipulation
+
+- **Inline Editing**: Direct text modification
+- **Drag & Drop**: Word reordering within and between clips
+- **Group Operations**: Multi-word selection and editing
+- **Timing Adjustment**: Word-level timestamp editing
+
+#### Speaker Management
+
+- **Speaker Detection**: Automatic speaker identification from audio
+- **Manual Assignment**: User can reassign speakers
+- **Speaker Styling**: Different visual styles per speaker
+- **Confidence Tracking**: Speaker assignment confidence levels
+
 ## 💡 Development Guidelines
 
 ### Component Development
@@ -108,30 +238,39 @@ Before creating new components, check if these existing UI components can be use
 
 - `Button` - Standard button with variants
 - `Dropdown` - Select/dropdown component
+- `EditableDropdown` - Editable select component
 - `Tab/TabItem` - Tab navigation
 - `AlertDialog` - Modal dialogs
 - `AlertBanner` - Notification banners
 - `Badge` - Status badges
 - `Checkbox` - Checkbox input
+- `RadioButton` - Radio input
 - `HelpText` - Help/error messages
-- `ProgressBar` - Progress indicators
-- `RadioGroup` - Radio button groups
+- `ProgressBar/ProgressCircle` - Progress indicators
 - `StatusLight` - Status indicators
-- `TextField` - Text input fields
-- `Toolbar` - Toolbar component
+- `Input` - Text input fields
+- `ColorPicker` - Color selection
+- `FontDropdown` - Font selection
+- `Modal` - General modal component
+- `Slider` - Range input
+- `Switch/ToggleButton` - Toggle controls
+- `Tag` - Label/tag component
+- `Tooltip` - Hover information
+- `ResizablePanelDivider` - Panel resizing
 
 ### Color System
 
 Use the centralized color system from `lib/utils/colors.ts`:
 
-- Access semantic colors: `SEMANTIC_COLORS`
-- Use color palette: `colorPalette`
-- Apply transitions: `TRANSITIONS`
+- Color variants: `primary`, `secondary`, `accent`, `neutral`, `positive`, `negative`, `notice`, `informative`
+- Color intensities: `light`, `medium`, `dark`, `very-light`, `very-dark`
+- Utility function: `getColorVar(variant, intensity?)`
 
 Example:
 
 ```typescript
-import { SEMANTIC_COLORS, colorPalette } from '@/lib/utils/colors'
+import { getColorVar, type ColorVariant } from '@/lib/utils/colors'
+const primaryColor = getColorVar('primary', 'medium')
 ```
 
 ### Icon Usage
@@ -142,7 +281,7 @@ Icons are centralized in `components/icons/`:
 import { ChevronDownIcon, InfoIcon /* etc */ } from '@/components/icons'
 ```
 
-All icons use react-icons/lu (Lucide) internally but are wrapped for consistency.
+All icons use Lucide React internally but are wrapped for consistency. Available icons include `ChevronDownIcon`, `InfoIcon`, `XIcon`, `PlusIcon`, `AlertCircleIcon`, etc.
 
 ### Drag & Drop Implementation
 
@@ -151,6 +290,47 @@ The editor uses @dnd-kit for drag-and-drop:
 1. Clips are wrapped with `SortableContext`
 2. Multi-selection is supported via Zustand store
 3. Group dragging moves all selected items together
+
+### Plugin Development
+
+When working with the animation plugin system:
+
+#### Creating New Plugins
+
+1. **Plugin Structure**: Follow existing plugin patterns in `public/plugin/`
+2. **Configuration Schema**: Define parameters in `config.json` with proper types and constraints
+3. **ES Module Format**: Use `.mjs` extensions for plugin implementations
+4. **GSAP Integration**: Leverage existing GSAP dependency for animations
+5. **Performance**: Ensure proper cleanup and memory management
+
+#### Plugin Configuration Schema
+
+```json
+{
+  "name": "Plugin Name",
+  "version": "1.0.0",
+  "description": "Plugin description",
+  "pluginFile": "/plugin/folder/file.mjs",
+  "className": "PluginClassName",
+  "dependencies": ["gsap"],
+  "schema": {
+    "parameterName": {
+      "type": "number|string|boolean|select",
+      "label": "Display Name",
+      "default": "defaultValue",
+      "min": 0,
+      "max": 100,
+      "step": 0.1
+    }
+  }
+}
+```
+
+#### Audio Analysis Integration
+
+- Access word-level audio metadata (volume_db, pitch_hz) for dynamic effects
+- Use baseline calculation utilities for threshold-based triggers
+- Consider speaker emotions and confidence levels for effect intensity
 
 ### Key Features
 
@@ -190,23 +370,69 @@ The editor uses @dnd-kit for drag-and-drop:
 
 ## 📝 Git Workflow & PR Automation
 
-### Quick PR Creation
+### Automated PR Creation Scripts
+
+The project includes two powerful PR automation scripts in `.claude/scripts/`:
+
+#### `prm` - Full PR Creation Workflow
 
 ```bash
-# 1. Stage changes
-git add .
-
-# 2. Create PR with auto commit + push
+# Creates commit, pushes, and generates PR with Claude Code analysis
 prm "Feat: Your feature description"
-
-# 3. Follow prompts for Claude Code analysis
 ```
 
-### Branch Naming
+**Features:**
 
-- `feature/` - New features
-- `fix/` - Bug fixes
-- `refactor/` - Code refactoring
+- Validates git status and branch
+- Creates commit with Claude Code co-authorship
+- Pushes to remote branch
+- Generates Claude Code prompt for analysis
+- Handles large diffs with temporary files (>1000 lines)
+- Interactive PR title/body input
+- Auto-opens PR in browser
+
+#### `pronly` - PR from Existing Commits
+
+```bash
+# Creates PR from already committed changes
+pronly                    # Analyze all commits since dev branch
+pronly abc123             # Analyze commits since specific hash
+```
+
+**Features:**
+
+- Analyzes existing commit history
+- Works with already pushed branches
+- Flexible diff analysis (branch comparison or specific commit)
+- Same Claude Code integration as `prm`
+
+### Script Workflow
+
+1. **Analysis Phase**:
+   - Git status validation
+   - Change detection and statistics
+   - Diff generation for Claude Code
+
+2. **Claude Integration**:
+   - Auto-generates structured prompts
+   - Copies to clipboard (macOS)
+   - Handles large diffs with temporary files
+   - Provides step-by-step instructions
+
+3. **PR Creation**:
+   - Interactive title/body input
+   - Fallback templates if no input
+   - GitHub CLI integration
+   - Browser opening option
+
+### Branch Workflow
+
+- **Base Branch**: `dev` (all PRs target dev, not main)
+- **Branch Protection**: Cannot create PRs from main/dev branches
+- **Branch Naming**:
+  - `feature/` - New features
+  - `fix/` - Bug fixes
+  - `refactor/` - Code refactoring
 
 ### Commit Convention
 
@@ -215,6 +441,8 @@ prm "Feat: Your feature description"
 - `[Refactor]` - Code refactoring
 - `[Docs]` - Documentation
 - `[Test]` - Tests
+
+**Auto-generated commits include Claude Code co-authorship**
 
 ## 🐳 Docker Support
 
@@ -234,3 +462,15 @@ docker build --target prod -t ecg-frontend:prod .
 3. Development server may use port 3001 if 3000 is occupied
 4. Husky pre-commit hooks run automatically
 5. The editor page (`/editor`) is the main feature - handle with care
+6. Scripts in `.claude/scripts/` are executable PR automation tools
+7. Always run type-check and lint commands after code changes
+8. **Plugin System**: Animation plugins use ES modules (.mjs) and must follow the established schema
+9. **Audio Analysis**: `public/real.json` contains audio metadata for dynamic animation triggers
+10. **Performance**: Animation cleanup is critical - ensure proper disposal of GSAP timelines and DOM listeners
+
+# important-instruction-reminders
+
+Do what has been asked; nothing more, nothing less.
+NEVER create files unless they're absolutely necessary for achieving your goal.
+ALWAYS prefer editing an existing file to creating a new one.
+NEVER proactively create documentation files (\*.md) or README files. Only create documentation files if explicitly requested by the User.

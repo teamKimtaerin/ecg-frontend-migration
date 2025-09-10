@@ -1,11 +1,6 @@
 'use client'
 
-import {
-  DndContext,
-  DragOverlay,
-  closestCenter,
-  defaultDropAnimationSideEffects,
-} from '@dnd-kit/core'
+import { DndContext, closestCenter } from '@dnd-kit/core'
 import { useCallback, useEffect, useId, useState } from 'react'
 
 // Store
@@ -17,7 +12,10 @@ import { projectStorage } from '@/utils/storage/projectStorage'
 import { AutosaveManager } from '@/utils/managers/AutosaveManager'
 import { projectInfoManager } from '@/utils/managers/ProjectInfoManager'
 import { log } from '@/utils/logger'
-import { loadTranscriptionData } from '@/utils/transcription/segmentConverter'
+
+// API Services
+import { transcriptionService } from '@/services/api/transcriptionService'
+import { API_CONFIG } from '@/config/api.config'
 
 // Types
 import { EditorTab } from './types'
@@ -34,12 +32,12 @@ import SelectionBox from '@/components/DragDrop/SelectionBox'
 import NewUploadModal from '@/components/NewUploadModal'
 import TutorialModal from '@/components/TutorialModal'
 import ResizablePanelDivider from '@/components/ui/ResizablePanelDivider'
+import AlertDialog from '@/components/ui/AlertDialog'
 import Toolbars from './components/Toolbars'
-import DragOverlayContent from './components/DragOverlayContent'
 import EditorHeaderTabs from './components/EditorHeaderTabs'
 import SubtitleEditList from './components/SubtitleEditList'
 import VideoSection from './components/VideoSection'
-import EmptyState from './components/EmptyState'
+import AnimationAssetSidebar from './components/AnimationAssetSidebar'
 import SpeakerManagementSidebar from './components/SpeakerManagementSidebar'
 
 // Utils
@@ -59,9 +57,12 @@ import { showToast } from '@/utils/ui/toast'
 export default function EditorPage() {
   // Store state for DnD and selection
   const {
-    activeId,
     clips,
     setClips,
+    setOriginalClips,
+    restoreOriginalClips,
+    saveOriginalClipsToStorage,
+    loadOriginalClipsFromStorage,
     selectedClipIds,
     setSelectedClipIds,
     clearSelection,
@@ -74,6 +75,9 @@ export default function EditorPage() {
     hasUnsavedChanges,
     setHasUnsavedChanges,
     markAsSaved,
+    isAssetSidebarOpen,
+    assetSidebarWidth,
+    setAssetSidebarWidth,
   } = useEditorStore()
 
   // Local state
@@ -97,6 +101,7 @@ export default function EditorPage() {
   const [isSpeakerManagementOpen, setIsSpeakerManagementOpen] = useState(false) // 화자 관리 사이드바 상태
   const [clipboard, setClipboard] = useState<ClipItem[]>([]) // 클립보드 상태
   const [skipAutoFocus, setSkipAutoFocus] = useState(false) // 자동 포커스 스킵 플래그
+  const [showRestoreModal, setShowRestoreModal] = useState(false) // 복원 확인 모달 상태
 
   // Get media actions from store
   const { setMediaInfo } = useEditorStore()
@@ -113,14 +118,15 @@ export default function EditorPage() {
         // Initialize AutosaveManager
         const autosaveManager = AutosaveManager.getInstance()
 
-        // Load real.json data first (temporary for development)
-        const transcriptionClips = await loadTranscriptionData('/real.json')
+        // Load transcription data using the TranscriptionService
+        // This provides an extensible interface for switching between mock and API data
+        const transcriptionClips =
+          await transcriptionService.loadTranscriptionClips()
         if (transcriptionClips.length > 0) {
           log(
             'EditorPage.tsx',
-            `Loaded ${transcriptionClips.length} clips from real.json`
+            `Loaded ${transcriptionClips.length} clips via TranscriptionService`
           )
-          setClips(transcriptionClips)
 
           // Extract unique speakers from clips and rename them with numbers
           const originalSpeakers = Array.from(
@@ -133,7 +139,7 @@ export default function EditorPage() {
             speakerMapping[speaker] = `화자${index + 1}`
           })
 
-          // Update clips with new speaker names
+          // Update clips with new speaker names (only change speaker field, preserve all text)
           const updatedClips = transcriptionClips.map((clip) => ({
             ...clip,
             speaker: speakerMapping[clip.speaker] || clip.speaker,
@@ -142,7 +148,28 @@ export default function EditorPage() {
           const numberedSpeakers = Object.values(speakerMapping)
 
           setClips(updatedClips)
+          setOriginalClips(updatedClips) // 메모리에 원본 클립 데이터 저장
           setSpeakers(numberedSpeakers)
+
+          // IndexedDB에도 원본 클립 저장 (세션 간 유지)
+          saveOriginalClipsToStorage().catch((error) => {
+            console.error('Failed to save original clips to IndexedDB:', error)
+          })
+
+          // Set media info when in mock mode
+          if (API_CONFIG.USE_MOCK_DATA) {
+            setMediaInfo({
+              videoUrl: API_CONFIG.MOCK_VIDEO_PATH,
+              videoName: 'friends.mp4',
+              videoType: 'video/mp4',
+              videoDuration: 143.39,
+            })
+          }
+        } else {
+          log(
+            'EditorPage.tsx',
+            'Failed to load transcription data from service'
+          )
         }
 
         // Check for project to recover
@@ -196,6 +223,17 @@ export default function EditorPage() {
               log('EditorPage.tsx', `Recovered project: ${savedProject.name}`)
               setClips(savedProject.clips)
 
+              // 프로젝트 복구 시 IndexedDB에서 원본 클립 로드 시도
+              if (projectId) {
+                loadOriginalClipsFromStorage().catch((error) => {
+                  console.warn(
+                    'Failed to load original clips from storage:',
+                    error
+                  )
+                  // 실패해도 프로젝트 복구는 계속 진행
+                })
+              }
+
               // Restore media information if available
               if (savedProject.mediaId || savedProject.videoUrl) {
                 setMediaInfo({
@@ -234,7 +272,7 @@ export default function EditorPage() {
             autosaveManager.setProject(currentProject.id, 'browser')
           } else {
             // New project
-            const newProjectId = `project_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+            const newProjectId = `project_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
             log('EditorPage.tsx', `Creating new project: ${newProjectId}`)
             autosaveManager.setProject(newProjectId, 'browser')
             projectInfoManager.notifyFileOpen('browser', 'newProject')
@@ -244,6 +282,9 @@ export default function EditorPage() {
         // Clear session storage after recovery
         sessionStorage.removeItem('currentProjectId')
         sessionStorage.removeItem('currentMediaId')
+      } catch (error) {
+        console.error('Failed to initialize editor:', error)
+        showToast('에디터 초기화에 실패했습니다', 'error')
       } finally {
         // Always set recovering to false
         setIsRecovering(false)
@@ -251,18 +292,28 @@ export default function EditorPage() {
     }
 
     initializeEditor()
-  }, [setClips, setMediaInfo])
+  }, [
+    setClips,
+    setOriginalClips,
+    setMediaInfo,
+    saveOriginalClipsToStorage,
+    loadOriginalClipsFromStorage,
+  ])
 
   // Generate stable ID for DndContext to prevent hydration mismatch
   const dndContextId = useId()
 
   // Upload modal hook
-  const { isTranscriptionLoading, handleFileSelect, handleStartTranscription } =
-    useUploadModal()
+  const { isTranscriptionLoading, handleFileSelect } = useUploadModal()
 
   // DnD functionality
-  const { sensors, handleDragStart, handleDragEnd, handleDragCancel } =
-    useDragAndDrop()
+  const {
+    sensors,
+    handleDragStart,
+    handleDragOver,
+    handleDragEnd,
+    handleDragCancel,
+  } = useDragAndDrop()
 
   // Selection box functionality
   const {
@@ -303,6 +354,28 @@ export default function EditorPage() {
       }
     },
     [videoPanelWidth, windowWidth, setVideoPanelWidth]
+  )
+
+  // Asset sidebar resize handler
+  const handleAssetSidebarResize = useCallback(
+    (delta: number) => {
+      const newWidth = assetSidebarWidth - delta // Reverse delta for right sidebar
+      const minWidth = 280 // Minimum width
+      const maxWidth = windowWidth / 2 // Maximum 50% of viewport
+
+      // Constrain the width between min and max
+      const constrainedWidth = Math.max(minWidth, Math.min(maxWidth, newWidth))
+      setAssetSidebarWidth(constrainedWidth)
+
+      // Save to localStorage for persistence
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(
+          'editor-asset-sidebar-width',
+          constrainedWidth.toString()
+        )
+      }
+    },
+    [assetSidebarWidth, windowWidth, setAssetSidebarWidth]
   )
 
   // Edit handlers
@@ -415,10 +488,12 @@ export default function EditorPage() {
       const newSet = new Set(selectedClipIds)
       newSet.add(clipId)
       setSelectedClipIds(newSet)
+      // 체크 시에는 포커싱을 변경하지 않음 (포커스와 선택을 분리)
     } else {
       const newSet = new Set(selectedClipIds)
       newSet.delete(clipId)
       setSelectedClipIds(newSet)
+      // 체크 해제 시에도 포커싱 유지
     }
   }
 
@@ -429,6 +504,23 @@ export default function EditorPage() {
       setActiveClipId(null) // 선택 해제 시 포커스도 해제
     } else {
       setActiveClipId(clipId)
+
+      // 선택된 클립의 시작 시간으로 비디오 이동
+      const selectedClip = clips.find((c) => c.id === clipId)
+      if (selectedClip && selectedClip.timeline) {
+        // timeline 형식: "00:00 → 00:07"
+        const [startTimeStr] = selectedClip.timeline.split(' → ')
+        const [mins, secs] = startTimeStr.split(':').map(Number)
+        const timeInSeconds = mins * 60 + secs
+
+        // 비디오 플레이어로 시간 이동
+        const videoPlayer = (
+          window as { videoPlayer?: { seekTo: (time: number) => void } }
+        ).videoPlayer
+        if (videoPlayer) {
+          videoPlayer.seekTo(timeInSeconds)
+        }
+      }
     }
   }
 
@@ -440,110 +532,11 @@ export default function EditorPage() {
     }
   }
 
-  // Upload modal handler
-  const wrappedHandleStartTranscription = async (data: {
-    files: File[]
-    settings: { language: string }
-  }) => {
-    try {
-      // Close modal first
-      setIsUploadModalOpen(false)
-
-      // Create sample clips for demo purposes
-      const sampleClips = [
-        {
-          id: 'clip-1',
-          timeline: '00:00-00:05',
-          speaker: '화자1',
-          subtitle: '안녕하세요, 오늘은',
-          fullText: '안녕하세요, 오늘은',
-          duration: '5초',
-          thumbnail: '/placeholder.jpg',
-          words: [
-            {
-              id: 'word-1-1',
-              text: '안녕하세요,',
-              start: 0,
-              end: 2,
-              isEditable: true,
-            },
-            {
-              id: 'word-1-2',
-              text: '오늘은',
-              start: 2.5,
-              end: 5,
-              isEditable: true,
-            },
-          ],
-        },
-        {
-          id: 'clip-2',
-          timeline: '00:05-00:10',
-          speaker: '화자1',
-          subtitle: '좋은 날씨네요',
-          fullText: '좋은 날씨네요',
-          duration: '5초',
-          thumbnail: '/placeholder.jpg',
-          words: [
-            {
-              id: 'word-2-1',
-              text: '좋은',
-              start: 5,
-              end: 6.5,
-              isEditable: true,
-            },
-            {
-              id: 'word-2-2',
-              text: '날씨네요',
-              start: 7,
-              end: 10,
-              isEditable: true,
-            },
-          ],
-        },
-        {
-          id: 'clip-3',
-          timeline: '00:10-00:15',
-          speaker: '화자2',
-          subtitle: '네, 정말 좋네요',
-          fullText: '네, 정말 좋네요',
-          duration: '5초',
-          thumbnail: '/placeholder.jpg',
-          words: [
-            {
-              id: 'word-3-1',
-              text: '네,',
-              start: 10,
-              end: 11,
-              isEditable: true,
-            },
-            {
-              id: 'word-3-2',
-              text: '정말',
-              start: 11.5,
-              end: 13,
-              isEditable: true,
-            },
-            {
-              id: 'word-3-3',
-              text: '좋네요',
-              start: 13.5,
-              end: 15,
-              isEditable: true,
-            },
-          ],
-        },
-      ]
-
-      // Set the clips in the store
-      setClips(sampleClips)
-
-      // Show success message
-      console.log('Demo clips created successfully!')
-    } catch (error) {
-      console.error('Failed to create demo clips:', error)
-      throw error
-    }
+  // Upload modal handler - currently not used, placeholder for future implementation
+  const wrappedHandleStartTranscription = async () => {
+    // TODO: Implement actual file upload and transcription logic
+    setIsUploadModalOpen(false)
+    showToast('파일 업로드 기능은 준비 중입니다')
   }
 
   // Merge clips handler
@@ -644,6 +637,7 @@ export default function EditorPage() {
     clearSelection,
     setClips,
     editorHistory,
+    setActiveClipId,
   ])
 
   // Split clip handler
@@ -827,6 +821,7 @@ export default function EditorPage() {
     setClipboard,
     editorHistory,
     clearSelection,
+    setActiveClipId,
   ])
 
   // Copy clips handler
@@ -887,8 +882,20 @@ export default function EditorPage() {
     }
   }, [clips, clipboard, setClips, editorHistory])
 
-  // TODO : 자동 저장 기능 나중에 사용
-  // 3초마다 자동 저장
+  // 원본 복원 핸들러
+  const handleRestore = useCallback(() => {
+    setShowRestoreModal(true)
+  }, [])
+
+  const handleConfirmRestore = useCallback(() => {
+    restoreOriginalClips()
+    clearSelection()
+    setActiveClipId(null)
+    setShowRestoreModal(false)
+    showToast('원본으로 복원되었습니다.', 'success')
+  }, [restoreOriginalClips, clearSelection, setActiveClipId])
+
+  // Auto-save every 3 seconds
   useEffect(() => {
     if (!clips.length) return
 
@@ -1024,8 +1031,25 @@ export default function EditorPage() {
           setVideoPanelWidth(width)
         }
       }
+
+      // Restore asset sidebar width from localStorage
+      const savedAssetSidebarWidth = localStorage.getItem(
+        'editor-asset-sidebar-width'
+      )
+      if (savedAssetSidebarWidth) {
+        const width = parseInt(savedAssetSidebarWidth, 10)
+        if (!isNaN(width)) {
+          setAssetSidebarWidth(width)
+        }
+      }
     }
-  }, [clips, activeClipId, setActiveClipId, setVideoPanelWidth])
+  }, [
+    clips,
+    activeClipId,
+    setActiveClipId,
+    setVideoPanelWidth,
+    setAssetSidebarWidth,
+  ])
 
   // 에디터 페이지 진입 시 튜토리얼 모달 표시 (첫 방문자용)
   useEffect(() => {
@@ -1062,13 +1086,23 @@ export default function EditorPage() {
       if (videoPanelWidth > maxWidth) {
         setVideoPanelWidth(maxWidth)
       }
+
+      // Adjust asset sidebar width if it exceeds new max
+      if (assetSidebarWidth > maxWidth) {
+        setAssetSidebarWidth(maxWidth)
+      }
     }
 
     if (typeof window !== 'undefined') {
       window.addEventListener('resize', handleResize)
       return () => window.removeEventListener('resize', handleResize)
     }
-  }, [videoPanelWidth, setVideoPanelWidth])
+  }, [
+    videoPanelWidth,
+    setVideoPanelWidth,
+    assetSidebarWidth,
+    setAssetSidebarWidth,
+  ])
 
   // 클립이 변경되었을 때 포커스 유지/이동 로직
   useEffect(() => {
@@ -1107,6 +1141,7 @@ export default function EditorPage() {
       sensors={sensors}
       collisionDetection={closestCenter}
       onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
@@ -1132,6 +1167,7 @@ export default function EditorPage() {
           onCopy={handleCopyClips}
           onPaste={handlePasteClips}
           onSplitClip={handleSplitClip}
+          onRestore={handleRestore}
         />
 
         <div className="flex h-[calc(100vh-120px)] relative">
@@ -1183,6 +1219,23 @@ export default function EditorPage() {
             />
           </div>
 
+          {/* Asset Sidebar with Resizer */}
+          {isAssetSidebarOpen && (
+            <>
+              <ResizablePanelDivider
+                orientation="vertical"
+                onResize={handleAssetSidebarResize}
+                className="z-10"
+              />
+              <AnimationAssetSidebar
+                onAssetSelect={(asset) => {
+                  console.log('Asset selected in editor:', asset)
+                  // TODO: Apply asset effect to focused clip
+                }}
+              />
+            </>
+          )}
+
           {/* Right sidebar - Speaker Management */}
           {isSpeakerManagementOpen && (
             <div className="sticky top-0 h-[calc(100vh-120px)]">
@@ -1221,23 +1274,20 @@ export default function EditorPage() {
           onClose={handleTutorialClose}
           onComplete={handleTutorialComplete}
         />
-      </div>
 
-      <DragOverlay
-        dropAnimation={{
-          sideEffects: defaultDropAnimationSideEffects({
-            styles: {
-              active: {
-                opacity: '0.3',
-              },
-            },
-          }),
-          duration: 200,
-          easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
-        }}
-      >
-        {activeId && <DragOverlayContent />}
-      </DragOverlay>
+        {/* 원본 복원 확인 모달 */}
+        <AlertDialog
+          isOpen={showRestoreModal}
+          title="원본으로 복원"
+          description="원본으로 돌아가시겠습니까? 모든 변경사항이 초기화됩니다."
+          variant="warning"
+          primaryActionLabel="예"
+          cancelActionLabel="아니오"
+          onPrimaryAction={handleConfirmRestore}
+          onCancel={() => setShowRestoreModal(false)}
+          onClose={() => setShowRestoreModal(false)}
+        />
+      </div>
     </DndContext>
   )
 }
