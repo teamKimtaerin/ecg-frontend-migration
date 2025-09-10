@@ -19,7 +19,7 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
       {/* Video Player with Subtitles */}
       <div
         ref={videoContainerRef}
-        className="bg-black rounded-lg mb-4 relative flex-shrink-0"
+        className="bg-black rounded-lg mb-4 relative flex-shrink-0 overflow-hidden"
         style={{ aspectRatio: '16/9' }}
       >
         <VideoPlayer

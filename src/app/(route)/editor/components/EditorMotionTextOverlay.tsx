@@ -13,7 +13,7 @@ import { videoSegmentManager } from '@/utils/video/segmentManager'
 import { buildScenarioFromReal, type RealJson } from '../utils/realToScenario'
 
 interface EditorMotionTextOverlayProps {
-  videoContainerRef: React.RefObject<HTMLDivElement>
+  videoContainerRef: React.RefObject<HTMLDivElement | null>
 }
 
 /**
@@ -162,17 +162,9 @@ export default function EditorMotionTextOverlay({ videoContainerRef }: EditorMot
         params
       })
 
-      // Map editor UI → positioning and font size
-      const stageW = 640
-      const stageH = 360
-      const marginY = 32
-      const boxW = Math.round(stageW * 0.88)
-      const boxH = 64
-      const centerX = Math.round(stageW / 2)
-      const centerY =
-        subtitlePosition === 'top'
-          ? Math.max(0, Math.min(stageH, marginY + boxH / 2))
-          : Math.max(0, Math.min(stageH, stageH - marginY - boxH / 2))
+      // Map editor UI → positioning and font size (using relative coordinates like demo)
+      const centerX = 0.5 // Always center horizontally
+      const centerY = subtitlePosition === 'top' ? 0.15 : 0.85 // 15% from top or 85% from top (15% from bottom)
 
       const fontSizeRel =
         subtitleSize === 'small' ? 0.05 : subtitleSize === 'large' ? 0.09 : 0.07
@@ -218,9 +210,9 @@ export default function EditorMotionTextOverlay({ videoContainerRef }: EditorMot
           root: {
             e_type: 'group',
             layout: {
-              position: { x: centerX / stageW, y: centerY / stageH },
-              anchor: 'cc',
-              size: { width: boxW / stageW, height: boxH / stageH },
+              anchor: 'bc',
+              position: { x: centerX, y: centerY },
+              safeAreaClamp: true
             },
             children: [
               {
@@ -229,17 +221,7 @@ export default function EditorMotionTextOverlay({ videoContainerRef }: EditorMot
                 absStart: adjStart,
                 absEnd: adjEnd,
                 layout: {
-                  position: { x: 0.5, y: 0.5 },
-                  anchor: 'cc',
-                  size: { width: 'auto', height: 'auto' },
-                  overflow: 'visible',
-                },
-                style: {
-                  fontSizeRel,
-                  fontFamily: 'Arial, sans-serif',
-                  color: '#ffffff',
-                  align: 'center',
-                  whiteSpace: 'nowrap',
+                  anchor: 'bc'
                 },
                 pluginChain: [
                   { name: pluginName, params, relStartPct: 0, relEndPct: 1 },
@@ -254,7 +236,16 @@ export default function EditorMotionTextOverlay({ videoContainerRef }: EditorMot
         version: '1.3',
         timebase: { unit: 'seconds' },
         stage: { baseAspect: '16:9' },
-        tracks: [{ id: 'editor', type: 'free', layer: 1 }],
+        tracks: [{
+          id: 'editor',
+          type: 'subtitle',
+          layer: 1,
+          defaultStyle: {
+            fontSizeRel,
+            fontFamily: 'Arial, sans-serif',
+            color: '#ffffff'
+          }
+        }],
         cues,
       }
       
