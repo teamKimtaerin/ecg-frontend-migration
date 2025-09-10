@@ -21,7 +21,14 @@ export default function VideoPlayer({
   const [duration, setDuration] = useState(0)
   const [isToggling, setIsToggling] = useState(false)
 
-  const { videoUrl, videoName, clips, deletedClipIds } = useEditorStore()
+  const {
+    videoUrl,
+    videoName,
+    isSegmentPlayback,
+    segmentStart,
+    segmentEnd,
+    stopSegmentPlayback,
+  } = useEditorStore()
 
   // Handle time update
   const handleTimeUpdate = useCallback(() => {
@@ -35,15 +42,20 @@ export default function VideoPlayer({
         currentTime: time,
       })
 
-      // Skip deleted segments if necessary
-      if (clips.length > 0) {
-        const skipInfo = videoSegmentManager.shouldSkipSegment(time)
-        if (skipInfo.skip && skipInfo.skipTo !== undefined) {
-          videoRef.current.currentTime = skipInfo.skipTo
-        }
+      // Check segment playback boundaries
+      if (isSegmentPlayback && segmentEnd !== null && time >= segmentEnd) {
+        videoRef.current.pause()
+        videoRef.current.currentTime = segmentStart || 0
+        stopSegmentPlayback()
       }
     }
-  }, [onTimeUpdate, clips])
+  }, [
+    onTimeUpdate,
+    isSegmentPlayback,
+    segmentStart,
+    segmentEnd,
+    stopSegmentPlayback,
+  ])
 
   // Handle loaded metadata
   const handleLoadedMetadata = useCallback(() => {
@@ -149,6 +161,16 @@ export default function VideoPlayer({
     return () => window.removeEventListener('keydown', handleKeyPress)
   }, [togglePlayPause, seekTo, currentTime])
 
+  // Handle segment playback control
+  useEffect(() => {
+    if (isSegmentPlayback && segmentStart !== null && videoRef.current) {
+      videoRef.current.currentTime = segmentStart
+      videoRef.current.play().catch((err) => {
+        console.warn('Failed to start segment playback:', err)
+      })
+    }
+  }, [isSegmentPlayback, segmentStart])
+
   // Expose methods to parent via ref (optional)
   useEffect(() => {
     // Store video ref globally for external control
@@ -160,7 +182,7 @@ export default function VideoPlayer({
             pause: () => void
             seekTo: (time: number) => void
             getCurrentTime: () => number
-            getElement?: () => HTMLVideoElement | null
+            playSegment: (start: number, end: number) => void
           }
         }
       ).videoPlayer = {
@@ -168,7 +190,9 @@ export default function VideoPlayer({
         pause: () => videoRef.current?.pause(),
         seekTo,
         getCurrentTime: () => videoRef.current?.currentTime || 0,
-        getElement: () => videoRef.current,
+        playSegment: (start: number, end: number) => {
+          useEditorStore.getState().playSegment(start, end)
+        },
       }
     }
   }, [seekTo])
@@ -220,13 +244,13 @@ export default function VideoPlayer({
       <video
         ref={videoRef}
         src={videoUrl}
-        className="w-full h-full object-contain"
+        className="w-full h-full object-contain cursor-pointer"
+        onClick={togglePlayPause}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
       />
-
     </div>
   )
 }

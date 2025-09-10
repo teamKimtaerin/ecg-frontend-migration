@@ -25,6 +25,9 @@ export interface MediaState {
   // Playback state
   currentTime: number
   isPlaying: boolean
+  segmentStart: number | null
+  segmentEnd: number | null
+  isSegmentPlayback: boolean
 
   // Subtitle state
   showSubtitles: boolean
@@ -41,8 +44,14 @@ export interface MediaActions {
   // Playback actions
   setCurrentTime: (time: number) => void
   setIsPlaying: (playing: boolean) => void
+  playSegment: (start: number, end: number) => void
+  stopSegmentPlayback: () => void
 
-  // Subtitle actions (removed unused functions)
+  // Subtitle actions
+  setActiveSubtitleIndex: (index: number | null) => void
+  toggleSubtitles: () => void
+  setSubtitleSize: (size: 'small' | 'medium' | 'large') => void
+  setSubtitlePosition: (position: 'top' | 'bottom') => void
 }
 
 export type MediaSlice = MediaState & MediaActions
@@ -60,6 +69,9 @@ const initialState: MediaState = {
   // Playback state
   currentTime: 0,
   isPlaying: false,
+  segmentStart: null,
+  segmentEnd: null,
+  isSegmentPlayback: false,
 
   // Subtitle state
   showSubtitles: true,
@@ -107,5 +119,41 @@ export const createMediaSlice: StateCreator<MediaSlice> = (set) => ({
     set({ isPlaying: playing })
   },
 
-  // Subtitle actions (removed unused functions)
+  playSegment: (start, end) => {
+    set({
+      segmentStart: start,
+      segmentEnd: end,
+      isSegmentPlayback: true,
+      isPlaying: true,
+      currentTime: start,
+    })
+    log('mediaSlice.ts', `Playing segment from ${start} to ${end}`)
+  },
+
+  stopSegmentPlayback: () => {
+    set({
+      isSegmentPlayback: false,
+      isPlaying: false,
+      segmentStart: null,
+      segmentEnd: null,
+    })
+    log('mediaSlice.ts', 'Segment playback stopped')
+  },
+
+  // Subtitle actions
+  setActiveSubtitleIndex: (index) => {
+    set({ activeSubtitleIndex: index })
+  },
+
+  toggleSubtitles: () => {
+    set((state) => ({ showSubtitles: !state.showSubtitles }))
+  },
+
+  setSubtitleSize: (size) => {
+    set({ subtitleSize: size })
+  },
+
+  setSubtitlePosition: (position) => {
+    set({ subtitlePosition: position })
+  },
 })
