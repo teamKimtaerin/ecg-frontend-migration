@@ -31,7 +31,7 @@
     "gsap": "^3.13.0",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.542.0",
-    "motiontext-renderer": "^0.3.1",
+    "motiontext-renderer": "^0.3.2",
     "next": "^15.5.2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",

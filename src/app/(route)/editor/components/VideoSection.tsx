@@ -1,8 +1,9 @@
 'use client'
 
-import React, { useRef } from 'react'
+import React, { useRef, useState, useCallback } from 'react'
 import VideoPlayer from './VideoPlayer'
 import EditorMotionTextOverlay from './EditorMotionTextOverlay'
+import ScenarioJsonEditor from './ScenarioJsonEditor'
 
 interface VideoSectionProps {
   width?: number
@@ -10,6 +11,17 @@ interface VideoSectionProps {
 
 const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
   const videoContainerRef = useRef<HTMLDivElement>(null)
+  const [currentScenario, setCurrentScenario] = useState<any>(null)
+  const [scenarioOverride, setScenarioOverride] = useState<any>(null)
+
+  const handleScenarioUpdate = useCallback((scenario: any) => {
+    setCurrentScenario(scenario)
+  }, [])
+
+  const handleScenarioApply = useCallback((newScenario: any) => {
+    console.log('[VideoSection] Applying new scenario:', newScenario)
+    setScenarioOverride(newScenario)
+  }, [])
 
   return (
     <div
@@ -26,9 +38,19 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
           className="w-full h-full rounded-lg overflow-hidden"
         />
         {/* MotionText overlay (legacy HTML overlay removed) */}
-        <EditorMotionTextOverlay videoContainerRef={videoContainerRef} />
+        <EditorMotionTextOverlay 
+          videoContainerRef={videoContainerRef}
+          onScenarioUpdate={handleScenarioUpdate}
+          scenarioOverride={scenarioOverride}
+        />
       </div>
 
+      {/* JSON Editor */}
+      <ScenarioJsonEditor
+        initialScenario={currentScenario}
+        onApply={handleScenarioApply}
+        className="flex-shrink-0"
+      />
     </div>
   )
 }
