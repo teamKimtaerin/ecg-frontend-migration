@@ -1,0 +1,1443 @@
+{
+  "version": "1.3",
+  "timebase": {
+    "unit": "seconds"
+  },
+  "stage": {
+    "baseAspect": "16:9"
+  },
+  "tracks": [
+    {
+      "id": "editor",
+      "type": "free",
+      "layer": 1
+    }
+  ],
+  "cues": [
+    {
+      "id": "cue-0",
+      "track": "editor",
+      "hintTime": {
+        "start": 4.908,
+        "end": 8.754
+      },
+      "root": {
+        "e_type": "group",
+        "layout": {
+          "position": {
+            "x": 0.5,
+            "y": 0.8222222222222222
+          },
+          "anchor": "cc",
+          "size": {
+            "width": 0.8796875,
+            "height": 0.17777777777777778
+          }
+        },
+        "children": [
+          {
+            "e_type": "text",
+            "text": "You know, we should all do. Go see a musical.",
+            "absStart": 4.908,
+            "absEnd": 8.754,
+            "layout": {
+              "position": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "anchor": "cc",
+              "size": {
+                "width": "auto",
+                "height": "auto"
+              },
+              "overflow": "visible"
+            },
+            "style": {
+              "fontSizeRel": 0.07,
+              "fontFamily": "Arial, sans-serif",
+              "color": "#ffffff",
+              "align": "center",
+              "whiteSpace": "nowrap"
+            },
+            "pluginChain": [
+              {
+                "name": "elastic@1.0.0",
+                "params": {},
+                "relStartPct": 0,
+                "relEndPct": 1
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "cue-1",
+      "track": "editor",
+      "hintTime": {
+        "start": 12.279,
+        "end": 12.74
+      },
+      "root": {
+        "e_type": "group",
+        "layout": {
+          "position": {
+            "x": 0.5,
+            "y": 0.8222222222222222
+          },
+          "anchor": "cc",
+          "size": {
+            "width": 0.8796875,
+            "height": 0.17777777777777778
+          }
+        },
+        "children": [
+          {
+            "e_type": "text",
+            "text": "Sure.",
+            "absStart": 12.279,
+            "absEnd": 12.74,
+            "layout": {
+              "position": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "anchor": "cc",
+              "size": {
+                "width": "auto",
+                "height": "auto"
+              },
+              "overflow": "visible"
+            },
+            "style": {
+              "fontSizeRel": 0.07,
+              "fontFamily": "Arial, sans-serif",
+              "color": "#ffffff",
+              "align": "center",
+              "whiteSpace": "nowrap"
+            },
+            "pluginChain": [
+              {
+                "name": "elastic@1.0.0",
+                "params": {},
+                "relStartPct": 0,
+                "relEndPct": 1
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "cue-2",
+      "track": "editor",
+      "hintTime": {
+        "start": 12.78,
+        "end": 20.351
+      },
+      "root": {
+        "e_type": "group",
+        "layout": {
+          "position": {
+            "x": 0.5,
+            "y": 0.8222222222222222
+          },
+          "anchor": "cc",
+          "size": {
+            "width": 0.8796875,
+            "height": 0.17777777777777778
+          }
+        },
+        "children": [
+          {
+            "e_type": "text",
+            "text": "And you know which one we should see? The 1996 Tony Award winner.",
+            "absStart": 12.78,
+            "absEnd": 20.351,
+            "layout": {
+              "position": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "anchor": "cc",
+              "size": {
+                "width": "auto",
+                "height": "auto"
+              },
+              "overflow": "visible"
+            },
+            "style": {
+              "fontSizeRel": 0.07,
+              "fontFamily": "Arial, sans-serif",
+              "color": "#ffffff",
+              "align": "center",
+              "whiteSpace": "nowrap"
+            },
+            "pluginChain": [
+              {
+                "name": "elastic@1.0.0",
+                "params": {},
+                "relStartPct": 0,
+                "relEndPct": 1
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "cue-3",
+      "track": "editor",
+      "hintTime": {
+        "start": 22.474,
+        "end": 23.996
+      },
+      "root": {
+        "e_type": "group",
+        "layout": {
+          "position": {
+            "x": 0.5,
+            "y": 0.8222222222222222
+          },
+          "anchor": "cc",
+          "size": {
+            "width": 0.8796875,
+            "height": 0.17777777777777778
+          }
+        },
+        "children": [
+          {
+            "e_type": "text",
+            "text": "Do you happen to know the name of that one?",
+            "absStart": 22.474,
+            "absEnd": 23.996,
+            "layout": {
+              "position": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "anchor": "cc",
+              "size": {
+                "width": "auto",
+                "height": "auto"
+              },
+              "overflow": "visible"
+            },
+            "style": {
+              "fontSizeRel": 0.07,
+              "fontFamily": "Arial, sans-serif",
+              "color": "#ffffff",
+              "align": "center",
+              "whiteSpace": "nowrap"
+            },
+            "pluginChain": [
+              {
+                "name": "elastic@1.0.0",
+                "params": {},
+                "relStartPct": 0,
+                "relEndPct": 1
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "cue-4",
+      "track": "editor",
+      "hintTime": {
+        "start": 25.378,
+        "end": 26.22
+      },
+      "root": {
+        "e_type": "group",
+        "layout": {
+          "position": {
+            "x": 0.5,
+            "y": 0.8222222222222222
+          },
+          "anchor": "cc",
+          "size": {
+            "width": 0.8796875,
+            "height": 0.17777777777777778
+          }
+        },
+        "children": [
+          {
+            "e_type": "text",
+            "text": "I don't know, Greece.",
+            "absStart": 25.378,
+            "absEnd": 26.22,
+            "layout": {
+              "position": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "anchor": "cc",
+              "size": {
+                "width": "auto",
+                "height": "auto"
+              },
+              "overflow": "visible"
+            },
+            "style": {
+              "fontSizeRel": 0.07,
+              "fontFamily": "Arial, sans-serif",
+              "color": "#ffffff",
+              "align": "center",
+              "whiteSpace": "nowrap"
+            },
+            "pluginChain": [
+              {
+                "name": "elastic@1.0.0",
+                "params": {},
+                "relStartPct": 0,
+                "relEndPct": 1
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "cue-5",
+      "track": "editor",
+      "hintTime": {
+        "start": 28.563,
+        "end": 29.004
+      },
+      "root": {
+        "e_type": "group",
+        "layout": {
+          "position": {
+            "x": 0.5,
+            "y": 0.8222222222222222
+          },
+          "anchor": "cc",
+          "size": {
+            "width": 0.8796875,
+            "height": 0.17777777777777778
+          }
+        },
+        "children": [
+          {
+            "e_type": "text",
+            "text": "No.",
+            "absStart": 28.563,
+            "absEnd": 29.004,
+            "layout": {
+              "position": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "anchor": "cc",
+              "size": {
+                "width": "auto",
+                "height": "auto"
+              },
+              "overflow": "visible"
+            },
+            "style": {
+              "fontSizeRel": 0.07,
+              "fontFamily": "Arial, sans-serif",
+              "color": "#ffffff",
+              "align": "center",
+              "whiteSpace": "nowrap"
+            },
+            "pluginChain": [
+              {
+                "name": "elastic@1.0.0",
+                "params": {},
+                "relStartPct": 0,
+                "relEndPct": 1
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "cue-6",
+      "track": "editor",
+      "hintTime": {
+        "start": 32.028,
+        "end": 32.569
+      },
+      "root": {
+        "e_type": "group",
+        "layout": {
+          "position": {
+            "x": 0.5,
+            "y": 0.8222222222222222
+          },
+          "anchor": "cc",
+          "size": {
+            "width": 0.8796875,
+            "height": 0.17777777777777778
+          }
+        },
+        "children": [
+          {
+            "e_type": "text",
+            "text": "Rent.",
+            "absStart": 32.028,
+            "absEnd": 32.569,
+            "layout": {
+              "position": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "anchor": "cc",
+              "size": {
+                "width": "auto",
+                "height": "auto"
+              },
+              "overflow": "visible"
+            },
+            "style": {
+              "fontSizeRel": 0.07,
+              "fontFamily": "Arial, sans-serif",
+              "color": "#ffffff",
+              "align": "center",
+              "whiteSpace": "nowrap"
+            },
+            "pluginChain": [
+              {
+                "name": "elastic@1.0.0",
+                "params": {},
+                "relStartPct": 0,
+                "relEndPct": 1
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "cue-7",
+      "track": "editor",
+      "hintTime": {
+        "start": 33.815,
+        "end": 36.579
+      },
+      "root": {
+        "e_type": "group",
+        "layout": {
+          "position": {
+            "x": 0.5,
+            "y": 0.8222222222222222
+          },
+          "anchor": "cc",
+          "size": {
+            "width": 0.8796875,
+            "height": 0.17777777777777778
+          }
+        },
+        "children": [
+          {
+            "e_type": "text",
+            "text": "Yes! Rent!",
+            "absStart": 33.815,
+            "absEnd": 36.579,
+            "layout": {
+              "position": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "anchor": "cc",
+              "size": {
+                "width": "auto",
+                "height": "auto"
+              },
+              "overflow": "visible"
+            },
+            "style": {
+              "fontSizeRel": 0.07,
+              "fontFamily": "Arial, sans-serif",
+              "color": "#ffffff",
+              "align": "center",
+              "whiteSpace": "nowrap"
+            },
+            "pluginChain": [
+              {
+                "name": "elastic@1.0.0",
+                "params": {},
+                "relStartPct": 0,
+                "relEndPct": 1
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "cue-8",
+      "track": "editor",
+      "hintTime": {
+        "start": 36.599,
+        "end": 37.68
+      },
+      "root": {
+        "e_type": "group",
+        "layout": {
+          "position": {
+            "x": 0.5,
+            "y": 0.8222222222222222
+          },
+          "anchor": "cc",
+          "size": {
+            "width": 0.8796875,
+            "height": 0.17777777777777778
+          }
+        },
+        "children": [
+          {
+            "e_type": "text",
+            "text": "Okay, so when do you want to go?",
+            "absStart": 36.599,
+            "absEnd": 37.68,
+            "layout": {
+              "position": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "anchor": "cc",
+              "size": {
+                "width": "auto",
+                "height": "auto"
+              },
+              "overflow": "visible"
+            },
+            "style": {
+              "fontSizeRel": 0.07,
+              "fontFamily": "Arial, sans-serif",
+              "color": "#ffffff",
+              "align": "center",
+              "whiteSpace": "nowrap"
+            },
+            "pluginChain": [
+              {
+                "name": "elastic@1.0.0",
+                "params": {},
+                "relStartPct": 0,
+                "relEndPct": 1
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "cue-9",
+      "track": "editor",
+      "hintTime": {
+        "start": 38.161,
+        "end": 40.464
+      },
+      "root": {
+        "e_type": "group",
+        "layout": {
+          "position": {
+            "x": 0.5,
+            "y": 0.8222222222222222
+          },
+          "anchor": "cc",
+          "size": {
+            "width": 0.8796875,
+            "height": 0.17777777777777778
+          }
+        },
+        "children": [
+          {
+            "e_type": "text",
+            "text": "What? Oh, I'm sorry I can't, I'm busy.",
+            "absStart": 38.161,
+            "absEnd": 40.464,
+            "layout": {
+              "position": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "anchor": "cc",
+              "size": {
+                "width": "auto",
+                "height": "auto"
+              },
+              "overflow": "visible"
+            },
+            "style": {
+              "fontSizeRel": 0.07,
+              "fontFamily": "Arial, sans-serif",
+              "color": "#ffffff",
+              "align": "center",
+              "whiteSpace": "nowrap"
+            },
+            "pluginChain": [
+              {
+                "name": "elastic@1.0.0",
+                "params": {},
+                "relStartPct": 0,
+                "relEndPct": 1
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "cue-10",
+      "track": "editor",
+      "hintTime": {
+        "start": 44.229,
+        "end": 48.995
+      },
+      "root": {
+        "e_type": "group",
+        "layout": {
+          "position": {
+            "x": 0.5,
+            "y": 0.8222222222222222
+          },
+          "anchor": "cc",
+          "size": {
+            "width": 0.8796875,
+            "height": 0.17777777777777778
+          }
+        },
+        "children": [
+          {
+            "e_type": "text",
+            "text": "Hey, man, it is so hard to shop for girls.",
+            "absStart": 44.229,
+            "absEnd": 48.995,
+            "layout": {
+              "position": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "anchor": "cc",
+              "size": {
+                "width": "auto",
+                "height": "auto"
+              },
+              "overflow": "visible"
+            },
+            "style": {
+              "fontSizeRel": 0.07,
+              "fontFamily": "Arial, sans-serif",
+              "color": "#ffffff",
+              "align": "center",
+              "whiteSpace": "nowrap"
+            },
+            "pluginChain": [
+              {
+                "name": "elastic@1.0.0",
+                "params": {},
+                "relStartPct": 0,
+                "relEndPct": 1
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "cue-11",
+      "track": "editor",
+      "hintTime": {
+        "start": 50.738,
+        "end": 52.861
+      },
+      "root": {
+        "e_type": "group",
+        "layout": {
+          "position": {
+            "x": 0.5,
+            "y": 0.8222222222222222
+          },
+          "anchor": "cc",
+          "size": {
+            "width": 0.8796875,
+            "height": 0.17777777777777778
+          }
+        },
+        "children": [
+          {
+            "e_type": "text",
+            "text": "Yes, it is at office max.",
+            "absStart": 50.738,
+            "absEnd": 52.861,
+            "layout": {
+              "position": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "anchor": "cc",
+              "size": {
+                "width": "auto",
+                "height": "auto"
+              },
+              "overflow": "visible"
+            },
+            "style": {
+              "fontSizeRel": 0.07,
+              "fontFamily": "Arial, sans-serif",
+              "color": "#ffffff",
+              "align": "center",
+              "whiteSpace": "nowrap"
+            },
+            "pluginChain": [
+              {
+                "name": "elastic@1.0.0",
+                "params": {},
+                "relStartPct": 0,
+                "relEndPct": 1
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "cue-12",
+      "track": "editor",
+      "hintTime": {
+        "start": 55.905,
+        "end": 56.646
+      },
+      "root": {
+        "e_type": "group",
+        "layout": {
+          "position": {
+            "x": 0.5,
+            "y": 0.8222222222222222
+          },
+          "anchor": "cc",
+          "size": {
+            "width": 0.8796875,
+            "height": 0.17777777777777778
+          }
+        },
+        "children": [
+          {
+            "e_type": "text",
+            "text": "What did you get her?",
+            "absStart": 55.905,
+            "absEnd": 56.646,
+            "layout": {
+              "position": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "anchor": "cc",
+              "size": {
+                "width": "auto",
+                "height": "auto"
+              },
+              "overflow": "visible"
+            },
+            "style": {
+              "fontSizeRel": 0.07,
+              "fontFamily": "Arial, sans-serif",
+              "color": "#ffffff",
+              "align": "center",
+              "whiteSpace": "nowrap"
+            },
+            "pluginChain": [
+              {
+                "name": "elastic@1.0.0",
+                "params": {},
+                "relStartPct": 0,
+                "relEndPct": 1
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "cue-13",
+      "track": "editor",
+      "hintTime": {
+        "start": 56.686,
+        "end": 64.618
+      },
+      "root": {
+        "e_type": "group",
+        "layout": {
+          "position": {
+            "x": 0.5,
+            "y": 0.8222222222222222
+          },
+          "anchor": "cc",
+          "size": {
+            "width": 0.8796875,
+            "height": 0.17777777777777778
+          }
+        },
+        "children": [
+          {
+            "e_type": "text",
+            "text": "A pen. It's two gifts in one. It's a pen. That's also a clock.",
+            "absStart": 56.686,
+            "absEnd": 64.618,
+            "layout": {
+              "position": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "anchor": "cc",
+              "size": {
+                "width": "auto",
+                "height": "auto"
+              },
+              "overflow": "visible"
+            },
+            "style": {
+              "fontSizeRel": 0.07,
+              "fontFamily": "Arial, sans-serif",
+              "color": "#ffffff",
+              "align": "center",
+              "whiteSpace": "nowrap"
+            },
+            "pluginChain": [
+              {
+                "name": "elastic@1.0.0",
+                "params": {},
+                "relStartPct": 0,
+                "relEndPct": 1
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "cue-14",
+      "track": "editor",
+      "hintTime": {
+        "start": 67.624,
+        "end": 74.757
+      },
+      "root": {
+        "e_type": "group",
+        "layout": {
+          "position": {
+            "x": 0.5,
+            "y": 0.8222222222222222
+          },
+          "anchor": "cc",
+          "size": {
+            "width": 0.8796875,
+            "height": 0.17777777777777778
+          }
+        },
+        "children": [
+          {
+            "e_type": "text",
+            "text": "You can't give her that. Why not? Because she's not 11. And it's not the seventh night of Hanukkah.",
+            "absStart": 67.624,
+            "absEnd": 74.757,
+            "layout": {
+              "position": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "anchor": "cc",
+              "size": {
+                "width": "auto",
+                "height": "auto"
+              },
+              "overflow": "visible"
+            },
+            "style": {
+              "fontSizeRel": 0.07,
+              "fontFamily": "Arial, sans-serif",
+              "color": "#ffffff",
+              "align": "center",
+              "whiteSpace": "nowrap"
+            },
+            "pluginChain": [
+              {
+                "name": "elastic@1.0.0",
+                "params": {},
+                "relStartPct": 0,
+                "relEndPct": 1
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "cue-15",
+      "track": "editor",
+      "hintTime": {
+        "start": 78.179,
+        "end": 84.669
+      },
+      "root": {
+        "e_type": "group",
+        "layout": {
+          "position": {
+            "x": 0.5,
+            "y": 0.8222222222222222
+          },
+          "anchor": "cc",
+          "size": {
+            "width": 0.8796875,
+            "height": 0.17777777777777778
+          }
+        },
+        "children": [
+          {
+            "e_type": "text",
+            "text": "Honey, what he means by that is, while this is a very nice gift, maybe it's just not something a boyfriend gives?",
+            "absStart": 78.179,
+            "absEnd": 84.669,
+            "layout": {
+              "position": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "anchor": "cc",
+              "size": {
+                "width": "auto",
+                "height": "auto"
+              },
+              "overflow": "visible"
+            },
+            "style": {
+              "fontSizeRel": 0.07,
+              "fontFamily": "Arial, sans-serif",
+              "color": "#ffffff",
+              "align": "center",
+              "whiteSpace": "nowrap"
+            },
+            "pluginChain": [
+              {
+                "name": "elastic@1.0.0",
+                "params": {},
+                "relStartPct": 0,
+                "relEndPct": 1
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "cue-16",
+      "track": "editor",
+      "hintTime": {
+        "start": 85.05,
+        "end": 91.861
+      },
+      "root": {
+        "e_type": "group",
+        "layout": {
+          "position": {
+            "x": 0.5,
+            "y": 0.8222222222222222
+          },
+          "anchor": "cc",
+          "size": {
+            "width": 0.8796875,
+            "height": 0.17777777777777778
+          }
+        },
+        "children": [
+          {
+            "e_type": "text",
+            "text": "Sure it is. She needs a pen for work. She's writing. She turns it over. Whoa! It's time for my date with Joey!",
+            "absStart": 85.05,
+            "absEnd": 91.861,
+            "layout": {
+              "position": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "anchor": "cc",
+              "size": {
+                "width": "auto",
+                "height": "auto"
+              },
+              "overflow": "visible"
+            },
+            "style": {
+              "fontSizeRel": 0.07,
+              "fontFamily": "Arial, sans-serif",
+              "color": "#ffffff",
+              "align": "center",
+              "whiteSpace": "nowrap"
+            },
+            "pluginChain": [
+              {
+                "name": "elastic@1.0.0",
+                "params": {},
+                "relStartPct": 0,
+                "relEndPct": 1
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "cue-17",
+      "track": "editor",
+      "hintTime": {
+        "start": 94.866,
+        "end": 99.093
+      },
+      "root": {
+        "e_type": "group",
+        "layout": {
+          "position": {
+            "x": 0.5,
+            "y": 0.8222222222222222
+          },
+          "anchor": "cc",
+          "size": {
+            "width": 0.8796875,
+            "height": 0.17777777777777778
+          }
+        },
+        "children": [
+          {
+            "e_type": "text",
+            "text": "All right, look, look. What did you get for Angela Delvecchio for her birthday?",
+            "absStart": 94.866,
+            "absEnd": 99.093,
+            "layout": {
+              "position": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "anchor": "cc",
+              "size": {
+                "width": "auto",
+                "height": "auto"
+              },
+              "overflow": "visible"
+            },
+            "style": {
+              "fontSizeRel": 0.07,
+              "fontFamily": "Arial, sans-serif",
+              "color": "#ffffff",
+              "align": "center",
+              "whiteSpace": "nowrap"
+            },
+            "pluginChain": [
+              {
+                "name": "elastic@1.0.0",
+                "params": {},
+                "relStartPct": 0,
+                "relEndPct": 1
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "cue-18",
+      "track": "editor",
+      "hintTime": {
+        "start": 99.894,
+        "end": 103.039
+      },
+      "root": {
+        "e_type": "group",
+        "layout": {
+          "position": {
+            "x": 0.5,
+            "y": 0.8222222222222222
+          },
+          "anchor": "cc",
+          "size": {
+            "width": 0.8796875,
+            "height": 0.17777777777777778
+          }
+        },
+        "children": [
+          {
+            "e_type": "text",
+            "text": "She didn't have a birthday while we were going out. For three years,",
+            "absStart": 99.894,
+            "absEnd": 103.039,
+            "layout": {
+              "position": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "anchor": "cc",
+              "size": {
+                "width": "auto",
+                "height": "auto"
+              },
+              "overflow": "visible"
+            },
+            "style": {
+              "fontSizeRel": 0.07,
+              "fontFamily": "Arial, sans-serif",
+              "color": "#ffffff",
+              "align": "center",
+              "whiteSpace": "nowrap"
+            },
+            "pluginChain": [
+              {
+                "name": "elastic@1.0.0",
+                "params": {},
+                "relStartPct": 0,
+                "relEndPct": 1
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "cue-19",
+      "track": "editor",
+      "hintTime": {
+        "start": 106.276,
+        "end": 110.762
+      },
+      "root": {
+        "e_type": "group",
+        "layout": {
+          "position": {
+            "x": 0.5,
+            "y": 0.8222222222222222
+          },
+          "anchor": "cc",
+          "size": {
+            "width": 0.8796875,
+            "height": 0.17777777777777778
+          }
+        },
+        "children": [
+          {
+            "e_type": "text",
+            "text": "Look, it's too late and I got an audition. I can't shop anymore.",
+            "absStart": 106.276,
+            "absEnd": 110.762,
+            "layout": {
+              "position": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "anchor": "cc",
+              "size": {
+                "width": "auto",
+                "height": "auto"
+              },
+              "overflow": "visible"
+            },
+            "style": {
+              "fontSizeRel": 0.07,
+              "fontFamily": "Arial, sans-serif",
+              "color": "#ffffff",
+              "align": "center",
+              "whiteSpace": "nowrap"
+            },
+            "pluginChain": [
+              {
+                "name": "elastic@1.0.0",
+                "params": {},
+                "relStartPct": 0,
+                "relEndPct": 1
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "cue-20",
+      "track": "editor",
+      "hintTime": {
+        "start": 110.802,
+        "end": 117.771
+      },
+      "root": {
+        "e_type": "group",
+        "layout": {
+          "position": {
+            "x": 0.5,
+            "y": 0.8222222222222222
+          },
+          "anchor": "cc",
+          "size": {
+            "width": 0.8796875,
+            "height": 0.17777777777777778
+          }
+        },
+        "children": [
+          {
+            "e_type": "text",
+            "text": "I will go out and I will try to find something for her, okay? Thanks, man.",
+            "absStart": 110.802,
+            "absEnd": 117.771,
+            "layout": {
+              "position": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "anchor": "cc",
+              "size": {
+                "width": "auto",
+                "height": "auto"
+              },
+              "overflow": "visible"
+            },
+            "style": {
+              "fontSizeRel": 0.07,
+              "fontFamily": "Arial, sans-serif",
+              "color": "#ffffff",
+              "align": "center",
+              "whiteSpace": "nowrap"
+            },
+            "pluginChain": [
+              {
+                "name": "elastic@1.0.0",
+                "params": {},
+                "relStartPct": 0,
+                "relEndPct": 1
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "cue-21",
+      "track": "editor",
+      "hintTime": {
+        "start": 118.472,
+        "end": 120.694
+      },
+      "root": {
+        "e_type": "group",
+        "layout": {
+          "position": {
+            "x": 0.5,
+            "y": 0.8222222222222222
+          },
+          "anchor": "cc",
+          "size": {
+            "width": 0.8796875,
+            "height": 0.17777777777777778
+          }
+        },
+        "children": [
+          {
+            "e_type": "text",
+            "text": "And oh, while you're at it, could you get her a card?",
+            "absStart": 118.472,
+            "absEnd": 120.694,
+            "layout": {
+              "position": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "anchor": "cc",
+              "size": {
+                "width": "auto",
+                "height": "auto"
+              },
+              "overflow": "visible"
+            },
+            "style": {
+              "fontSizeRel": 0.07,
+              "fontFamily": "Arial, sans-serif",
+              "color": "#ffffff",
+              "align": "center",
+              "whiteSpace": "nowrap"
+            },
+            "pluginChain": [
+              {
+                "name": "elastic@1.0.0",
+                "params": {},
+                "relStartPct": 0,
+                "relEndPct": 1
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "cue-22",
+      "track": "editor",
+      "hintTime": {
+        "start": 122.296,
+        "end": 124.399
+      },
+      "root": {
+        "e_type": "group",
+        "layout": {
+          "position": {
+            "x": 0.5,
+            "y": 0.8222222222222222
+          },
+          "anchor": "cc",
+          "size": {
+            "width": 0.8796875,
+            "height": 0.17777777777777778
+          }
+        },
+        "children": [
+          {
+            "e_type": "text",
+            "text": "Would you like me to write her a little poem as well?",
+            "absStart": 122.296,
+            "absEnd": 124.399,
+            "layout": {
+              "position": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "anchor": "cc",
+              "size": {
+                "width": "auto",
+                "height": "auto"
+              },
+              "overflow": "visible"
+            },
+            "style": {
+              "fontSizeRel": 0.07,
+              "fontFamily": "Arial, sans-serif",
+              "color": "#ffffff",
+              "align": "center",
+              "whiteSpace": "nowrap"
+            },
+            "pluginChain": [
+              {
+                "name": "elastic@1.0.0",
+                "params": {},
+                "relStartPct": 0,
+                "relEndPct": 1
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "cue-23",
+      "track": "editor",
+      "hintTime": {
+        "start": 125.861,
+        "end": 128.284
+      },
+      "root": {
+        "e_type": "group",
+        "layout": {
+          "position": {
+            "x": 0.5,
+            "y": 0.8222222222222222
+          },
+          "anchor": "cc",
+          "size": {
+            "width": 0.8796875,
+            "height": 0.17777777777777778
+          }
+        },
+        "children": [
+          {
+            "e_type": "text",
+            "text": "Or just get a card that has a poem already in it?",
+            "absStart": 125.861,
+            "absEnd": 128.284,
+            "layout": {
+              "position": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "anchor": "cc",
+              "size": {
+                "width": "auto",
+                "height": "auto"
+              },
+              "overflow": "visible"
+            },
+            "style": {
+              "fontSizeRel": 0.07,
+              "fontFamily": "Arial, sans-serif",
+              "color": "#ffffff",
+              "align": "center",
+              "whiteSpace": "nowrap"
+            },
+            "pluginChain": [
+              {
+                "name": "elastic@1.0.0",
+                "params": {},
+                "relStartPct": 0,
+                "relEndPct": 1
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "cue-24",
+      "track": "editor",
+      "hintTime": {
+        "start": 142.473,
+        "end": 143.439
+      },
+      "root": {
+        "e_type": "group",
+        "layout": {
+          "position": {
+            "x": 0.5,
+            "y": 0.8222222222222222
+          },
+          "anchor": "cc",
+          "size": {
+            "width": 0.8796875,
+            "height": 0.17777777777777778
+          }
+        },
+        "children": [
+          {
+            "e_type": "text",
+            "text": "you",
+            "absStart": 142.473,
+            "absEnd": 143.439,
+            "layout": {
+              "position": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "anchor": "cc",
+              "size": {
+                "width": "auto",
+                "height": "auto"
+              },
+              "overflow": "visible"
+            },
+            "style": {
+              "fontSizeRel": 0.07,
+              "fontFamily": "Arial, sans-serif",
+              "color": "#ffffff",
+              "align": "center",
+              "whiteSpace": "nowrap"
+            },
+            "pluginChain": [
+              {
+                "name": "elastic@1.0.0",
+                "params": {},
+                "relStartPct": 0,
+                "relEndPct": 1
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

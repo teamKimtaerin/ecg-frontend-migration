@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react'
 import VideoPlayer from './VideoPlayer'
-import SubtitleOverlay from './SubtitleOverlay'
+import EditorMotionTextOverlay from './EditorMotionTextOverlay'
 import { useEditorStore } from '../store'
 
 interface VideoSectionProps {
@@ -112,8 +112,8 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
           className="w-full h-full rounded-lg overflow-hidden"
           onTimeUpdate={setCurrentTime}
         />
-
-        <SubtitleOverlay subtitles={subtitles} currentTime={currentTime} />
+        {/* MotionText overlay (legacy HTML overlay removed) */}
+        <EditorMotionTextOverlay />
       </div>
 
       {/* Subtitle Controls */}
