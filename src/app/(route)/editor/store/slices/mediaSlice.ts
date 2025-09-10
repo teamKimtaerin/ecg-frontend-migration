@@ -30,7 +30,6 @@ export interface MediaState {
   isSegmentPlayback: boolean
 
   // Subtitle state
-  activeSubtitleIndex: number | null
   showSubtitles: boolean
   subtitleSize: 'small' | 'medium' | 'large'
   subtitlePosition: 'top' | 'bottom'
@@ -48,11 +47,7 @@ export interface MediaActions {
   playSegment: (start: number, end: number) => void
   stopSegmentPlayback: () => void
 
-  // Subtitle actions
-  setActiveSubtitleIndex: (index: number | null) => void
-  toggleSubtitles: () => void
-  setSubtitleSize: (size: 'small' | 'medium' | 'large') => void
-  setSubtitlePosition: (position: 'top' | 'bottom') => void
+  // Subtitle actions (removed unused functions)
 }
 
 export type MediaSlice = MediaState & MediaActions
@@ -75,7 +70,6 @@ const initialState: MediaState = {
   isSegmentPlayback: false,
 
   // Subtitle state
-  activeSubtitleIndex: null,
   showSubtitles: true,
   subtitleSize: 'medium',
   subtitlePosition: 'bottom',
@@ -142,20 +136,5 @@ export const createMediaSlice: StateCreator<MediaSlice> = (set) => ({
     log('mediaSlice.ts', 'Segment playback stopped')
   },
 
-  // Subtitle actions
-  setActiveSubtitleIndex: (index) => {
-    set({ activeSubtitleIndex: index })
-  },
-
-  toggleSubtitles: () => {
-    set((state) => ({ showSubtitles: !state.showSubtitles }))
-  },
-
-  setSubtitleSize: (size) => {
-    set({ subtitleSize: size })
-  },
-
-  setSubtitlePosition: (position) => {
-    set({ subtitlePosition: position })
-  },
+  // Subtitle actions (removed unused functions)
 })
