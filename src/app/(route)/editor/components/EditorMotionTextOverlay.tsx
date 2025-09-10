@@ -14,6 +14,8 @@ import { buildScenarioFromReal, type RealJson } from '../utils/realToScenario'
 
 interface EditorMotionTextOverlayProps {
   videoContainerRef: React.RefObject<HTMLDivElement | null>
+  onScenarioUpdate?: (scenario: any) => void
+  scenarioOverride?: any
 }
 
 /**
@@ -22,7 +24,11 @@ interface EditorMotionTextOverlayProps {
  * - Skeleton only: initializes renderer and attaches to the existing <video>
  * - Scenario loading is added in later milestones
  */
-export default function EditorMotionTextOverlay({ videoContainerRef }: EditorMotionTextOverlayProps) {
+export default function EditorMotionTextOverlay({ 
+  videoContainerRef,
+  onScenarioUpdate,
+  scenarioOverride
+}: EditorMotionTextOverlayProps) {
   
   const {
     containerRef,
@@ -306,6 +312,10 @@ export default function EditorMotionTextOverlay({ videoContainerRef }: EditorMot
         setUsingExternalScenario(true)
         await loadScenario(json)
         console.log('[EditorMotionTextOverlay] External scenario loaded')
+        // Send scenario to parent for JSON editor
+        if (onScenarioUpdate) {
+          onScenarioUpdate(json)
+        }
         // Controller will handle synchronization automatically
       } catch (e) {
         // eslint-disable-next-line no-console
@@ -316,11 +326,19 @@ export default function EditorMotionTextOverlay({ videoContainerRef }: EditorMot
     return () => {
       cancelled = true
     }
-  }, [loadScenario]) // Removed videoEl and seek from dependencies to prevent re-runs
+  }, [loadScenario, onScenarioUpdate]) // Removed videoEl and seek from dependencies to prevent re-runs
+
+  // Handle scenario override from JSON editor
+  useEffect(() => {
+    if (scenarioOverride && renderer) {
+      console.log('[EditorMotionTextOverlay] Applying scenario override from JSON editor')
+      void loadScenario(scenarioOverride)
+    }
+  }, [scenarioOverride, renderer, loadScenario])
 
   // Option B: Convert real.json to scenario on the fly when requested
   useEffect(() => {
-    if (usingExternalScenario || isLoadingScenario) return
+    if (usingExternalScenario || isLoadingScenario || scenarioOverride) return
     const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '')
     const useReal = params.get('scenario') === 'real'
     
@@ -374,6 +392,11 @@ export default function EditorMotionTextOverlay({ videoContainerRef }: EditorMot
         await loadScenario(cfg)
         console.log('[EditorMotionTextOverlay] Scenario loaded successfully')
         
+        // Send scenario to parent for JSON editor
+        if (onScenarioUpdate) {
+          onScenarioUpdate(cfg)
+        }
+        
         console.log('[EditorMotionTextOverlay] Real.json scenario loaded')
         // Controller will handle synchronization automatically
         setUsingExternalScenario(true)
@@ -388,15 +411,21 @@ export default function EditorMotionTextOverlay({ videoContainerRef }: EditorMot
       cancelled = true
       setIsLoadingScenario(false)
     }
-  }, [usingExternalScenario, isLoadingScenario, videoEl, loadScenario, seek])
+  }, [usingExternalScenario, isLoadingScenario, scenarioOverride, videoEl, loadScenario, seek, onScenarioUpdate])
 
   // Load a multi-cue scenario for all visible clips (default path)
   useEffect(() => {
-    if (usingExternalScenario || isLoadingScenario) return
+    if (usingExternalScenario || isLoadingScenario || scenarioOverride) return
     if (!showSubtitles) return
     
     console.log('[EditorMotionTextOverlay] Loading default scenario from clips')
     const config = buildScenarioFromClips()
+    
+    // Send current scenario to parent for JSON editor
+    if (onScenarioUpdate) {
+      onScenarioUpdate(config)
+    }
+    
     const t = setTimeout(() => {
       void loadScenario(config)
         .then(() => {
@@ -409,7 +438,7 @@ export default function EditorMotionTextOverlay({ videoContainerRef }: EditorMot
         })
     }, 120)
     return () => clearTimeout(t)
-  }, [buildScenarioFromClips, showSubtitles, loadScenario, seek, usingExternalScenario, isLoadingScenario]) // Removed videoEl from dependencies
+  }, [buildScenarioFromClips, showSubtitles, loadScenario, seek, usingExternalScenario, isLoadingScenario, onScenarioUpdate, scenarioOverride]) // Removed videoEl from dependencies
 
   // Initialize MotionTextController when renderer and video are ready
   useEffect(() => {

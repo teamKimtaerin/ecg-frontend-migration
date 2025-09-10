@@ -48,19 +48,8 @@ export default function AssetPage() {
   const [isLoading, setIsLoading] = useState(true)
 
   const handleCardClick = (asset: AssetItem) => {
-    if (
-      asset.id === '1' ||
-      asset.id === '2' ||
-      asset.id === '3' ||
-      asset.id === '4' ||
-      asset.id === '5' ||
-      asset.id === '6' ||
-      asset.id === '7' ||
-      asset.id === '8'
-    ) {
-      setSelectedAsset(asset)
-      setIsModalOpen(true)
-    }
+    setSelectedAsset(asset)
+    setIsModalOpen(true)
   }
 
   const handleCategoryChange = (category: string) => {
