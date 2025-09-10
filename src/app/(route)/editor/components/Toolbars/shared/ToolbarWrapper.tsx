@@ -1,9 +1,11 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import ToolbarBase from './ToolbarBase'
 import { type ToolbarVariant } from '../../../constants/colors'
 import { AiOutlineExport } from 'react-icons/ai'
+import ExportModal from '../../Export/ExportModal'
+import { ExportFormat } from '../../Export/ExportTypes'
 
 interface ToolbarWrapperProps {
   variant?: ToolbarVariant
@@ -22,13 +24,20 @@ export default function ToolbarWrapper({
   onExport,
   className = '',
 }: ToolbarWrapperProps) {
-  const handleExport = () => {
-    // TODO: Implement export functionality
-    // - Export current project as subtitle file (SRT, VTT, etc.)
-    // - Show export format selection dialog
-    // - Handle export progress and completion
-    console.log('Export button clicked')
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false)
+
+  const handleExportClick = () => {
+    setIsExportModalOpen(true)
+  }
+
+  const handleExportConfirm = (format: ExportFormat) => {
+    // TODO: Implement actual export functionality based on format
+    console.log('Exporting in format:', format)
     onExport?.()
+  }
+
+  const handleCloseModal = () => {
+    setIsExportModalOpen(false)
   }
 
   return (
@@ -40,12 +49,19 @@ export default function ToolbarWrapper({
         {/* 내보내기 버튼 - 항상 오른쪽 끝에 고정 */}
         <button
           className="ml-4 px-4 py-2 bg-[#14B0DA] text-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200 hover:bg-[#12A0C8] flex items-center gap-2 font-medium"
-          onClick={handleExport}
+          onClick={handleExportClick}
         >
           <AiOutlineExport className="w-5 h-5" />
           내보내기
         </button>
       </div>
+
+      {/* Export Modal */}
+      <ExportModal
+        isOpen={isExportModalOpen}
+        onClose={handleCloseModal}
+        onExport={handleExportConfirm}
+      />
     </ToolbarBase>
   )
 }
