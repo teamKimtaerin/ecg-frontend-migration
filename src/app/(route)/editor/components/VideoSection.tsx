@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import VideoPlayer from './VideoPlayer'
 import EditorMotionTextOverlay from './EditorMotionTextOverlay'
 import { useEditorStore } from '../store'
@@ -11,6 +11,7 @@ interface VideoSectionProps {
 
 const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
   const [currentTime, setCurrentTime] = useState(0)
+  const videoContainerRef = useRef<HTMLDivElement>(null)
   interface SubtitleData {
     id: string
     startTime: number
@@ -105,6 +106,7 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
     >
       {/* Video Player with Subtitles */}
       <div
+        ref={videoContainerRef}
         className="bg-black rounded-lg mb-4 relative flex-shrink-0"
         style={{ aspectRatio: '16/9' }}
       >
@@ -113,7 +115,7 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
           onTimeUpdate={setCurrentTime}
         />
         {/* MotionText overlay (legacy HTML overlay removed) */}
-        <EditorMotionTextOverlay />
+        <EditorMotionTextOverlay videoContainerRef={videoContainerRef} />
       </div>
 
       {/* Subtitle Controls */}
