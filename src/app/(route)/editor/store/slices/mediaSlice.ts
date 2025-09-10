@@ -48,7 +48,6 @@ export interface MediaActions {
   stopSegmentPlayback: () => void
 
   // Subtitle actions
-  setActiveSubtitleIndex: (index: number | null) => void
   toggleSubtitles: () => void
   setSubtitleSize: (size: 'small' | 'medium' | 'large') => void
   setSubtitlePosition: (position: 'top' | 'bottom') => void
@@ -141,10 +140,6 @@ export const createMediaSlice: StateCreator<MediaSlice> = (set) => ({
   },
 
   // Subtitle actions
-  setActiveSubtitleIndex: (index) => {
-    set({ activeSubtitleIndex: index })
-  },
-
   toggleSubtitles: () => {
     set((state) => ({ showSubtitles: !state.showSubtitles }))
   },

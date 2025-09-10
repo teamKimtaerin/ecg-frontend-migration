@@ -63,6 +63,16 @@ export default function EditorMotionTextOverlay({ videoContainerRef }: EditorMot
   
   useEffect(() => {
     const getVideoElement = () => {
+      // Try to find video element from the container
+      if (videoContainerRef?.current) {
+        const video = videoContainerRef.current.querySelector('video')
+        if (video) {
+          console.log('[EditorMotionTextOverlay] Found video element from container')
+          return video
+        }
+      }
+      
+      // Fallback to global video player if available
       const vp = (window as unknown as {
         videoPlayer?: {
           getElement?: () => HTMLVideoElement | null
@@ -98,7 +108,7 @@ export default function EditorMotionTextOverlay({ videoContainerRef }: EditorMot
       clearInterval(interval)
       clearTimeout(timeout)
     }
-  }, [])
+  }, [videoContainerRef])
 
   useEffect(() => {
     if (!videoRef || !containerRef) return

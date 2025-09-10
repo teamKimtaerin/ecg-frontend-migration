@@ -28,6 +28,8 @@ export default function VideoPlayer({
     segmentStart,
     segmentEnd,
     stopSegmentPlayback,
+    clips,
+    deletedClipIds,
   } = useEditorStore()
 
   // Handle time update
