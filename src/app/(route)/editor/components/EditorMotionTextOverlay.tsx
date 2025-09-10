@@ -12,13 +12,17 @@ import {
 import { videoSegmentManager } from '@/utils/video/segmentManager'
 import { buildScenarioFromReal, type RealJson } from '../utils/realToScenario'
 
+interface EditorMotionTextOverlayProps {
+  videoContainerRef: React.RefObject<HTMLDivElement>
+}
+
 /**
  * EditorMotionTextOverlay
  * - Mounts a MotionText renderer over the editor VideoPlayer
  * - Skeleton only: initializes renderer and attaches to the existing <video>
  * - Scenario loading is added in later milestones
  */
-export default function EditorMotionTextOverlay() {
+export default function EditorMotionTextOverlay({ videoContainerRef }: EditorMotionTextOverlayProps) {
   
   const {
     containerRef,
@@ -424,7 +428,7 @@ export default function EditorMotionTextOverlay() {
         const controller = new MotionTextController(
           videoEl,
           renderer,
-          containerRef.current!.parentElement || containerRef.current!,
+          videoContainerRef.current || containerRef.current!.parentElement || containerRef.current!,
           { captionsVisible: true }
         )
         controller.mount()
