@@ -27,7 +27,6 @@ export interface MediaState {
   isPlaying: boolean
 
   // Subtitle state
-  activeSubtitleIndex: number | null
   showSubtitles: boolean
   subtitleSize: 'small' | 'medium' | 'large'
   subtitlePosition: 'top' | 'bottom'
@@ -43,11 +42,7 @@ export interface MediaActions {
   setCurrentTime: (time: number) => void
   setIsPlaying: (playing: boolean) => void
 
-  // Subtitle actions
-  setActiveSubtitleIndex: (index: number | null) => void
-  toggleSubtitles: () => void
-  setSubtitleSize: (size: 'small' | 'medium' | 'large') => void
-  setSubtitlePosition: (position: 'top' | 'bottom') => void
+  // Subtitle actions (removed unused functions)
 }
 
 export type MediaSlice = MediaState & MediaActions
@@ -67,7 +62,6 @@ const initialState: MediaState = {
   isPlaying: false,
 
   // Subtitle state
-  activeSubtitleIndex: null,
   showSubtitles: true,
   subtitleSize: 'medium',
   subtitlePosition: 'bottom',
@@ -113,20 +107,5 @@ export const createMediaSlice: StateCreator<MediaSlice> = (set) => ({
     set({ isPlaying: playing })
   },
 
-  // Subtitle actions
-  setActiveSubtitleIndex: (index) => {
-    set({ activeSubtitleIndex: index })
-  },
-
-  toggleSubtitles: () => {
-    set((state) => ({ showSubtitles: !state.showSubtitles }))
-  },
-
-  setSubtitleSize: (size) => {
-    set({ subtitleSize: size })
-  },
-
-  setSubtitlePosition: (position) => {
-    set({ subtitlePosition: position })
-  },
+  // Subtitle actions (removed unused functions)
 })
