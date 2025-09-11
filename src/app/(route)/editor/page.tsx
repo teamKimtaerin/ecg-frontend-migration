@@ -84,6 +84,7 @@ export default function EditorPage() {
   const [activeTab, setActiveTab] = useState<EditorTab>('home')
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
   const [showTutorialModal, setShowTutorialModal] = useState(false)
+  const [isToolbarVisible, setIsToolbarVisible] = useState(true)
   const [editorHistory] = useState(() => {
     const history = new EditorHistory()
     // Connect history to save state
@@ -1077,6 +1078,16 @@ export default function EditorPage() {
     console.log('Editor tutorial completed!')
   }
 
+  // Toolbar toggle handler
+  const handleToolbarToggle = () => {
+    setIsToolbarVisible(!isToolbarVisible)
+  }
+
+  // Show toolbar handler
+  const handleShowToolbar = () => {
+    setIsToolbarVisible(true)
+  }
+
   // Window resize handler to update max width constraint
   useEffect(() => {
     const handleResize = () => {
@@ -1126,10 +1137,10 @@ export default function EditorPage() {
   // 복구 중일 때 로딩 화면 표시
   if (isRecovering) {
     return (
-      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 text-gray-900 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-gray-600 border-t-white rounded-full animate-spin"></div>
-          <p className="text-gray-400">세션 복구 중...</p>
+          <div className="w-12 h-12 border-4 border-gray-200 border-t-black rounded-full animate-spin"></div>
+          <p className="text-gray-600">세션 복구 중...</p>
         </div>
       </div>
     )
@@ -1145,33 +1156,54 @@ export default function EditorPage() {
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
-      <div className="min-h-screen bg-gray-900 text-white">
+      <div className="min-h-screen bg-gray-50 text-gray-900">
         <EditorHeaderTabs
           activeTab={activeTab}
           onTabChange={(tabId: string) => setActiveTab(tabId as EditorTab)}
+          isToolbarVisible={isToolbarVisible}
+          onToolbarToggle={handleToolbarToggle}
+          onShowToolbar={handleShowToolbar}
         />
 
-        <Toolbars
-          activeTab={activeTab}
-          clips={clips}
-          selectedClipIds={selectedClipIds}
-          activeClipId={activeClipId}
-          canUndo={editorHistory.canUndo()}
-          canRedo={editorHistory.canRedo()}
-          onSelectionChange={setSelectedClipIds}
-          onNewClick={() => setIsUploadModalOpen(true)}
-          onMergeClips={handleMergeClips}
-          onUndo={handleUndo}
-          onRedo={handleRedo}
-          onCut={handleCutClips}
-          onCopy={handleCopyClips}
-          onPaste={handlePasteClips}
-          onSplitClip={handleSplitClip}
-          onRestore={handleRestore}
-        />
+        <div
+          className={`transition-all duration-300 ease-in-out overflow-hidden ${
+            isToolbarVisible ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+          }`}
+        >
+          <Toolbars
+            activeTab={activeTab}
+            clips={clips}
+            selectedClipIds={selectedClipIds}
+            activeClipId={activeClipId}
+            canUndo={editorHistory.canUndo()}
+            canRedo={editorHistory.canRedo()}
+            onSelectionChange={setSelectedClipIds}
+            onNewClick={() => setIsUploadModalOpen(true)}
+            onMergeClips={handleMergeClips}
+            onUndo={handleUndo}
+            onRedo={handleRedo}
+            onCut={handleCutClips}
+            onCopy={handleCopyClips}
+            onPaste={handlePasteClips}
+            onSplitClip={handleSplitClip}
+            onRestore={handleRestore}
+          />
+        </div>
 
-        <div className="flex h-[calc(100vh-120px)] relative">
-          <div className="sticky top-0 h-[calc(100vh-120px)]">
+        <div
+          className={`flex relative transition-all duration-300 ease-in-out ${
+            isToolbarVisible
+              ? 'h-[calc(100vh-176px)]' // ~56px for toolbar + ~120px for header tabs
+              : 'h-[calc(100vh-120px)]' // Only header tabs
+          }`}
+        >
+          <div
+            className={`sticky top-0 transition-all duration-300 ease-in-out ${
+              isToolbarVisible
+                ? 'h-[calc(100vh-176px)]'
+                : 'h-[calc(100vh-120px)]'
+            }`}
+          >
             <VideoSection width={videoPanelWidth} />
           </div>
 
@@ -1238,7 +1270,13 @@ export default function EditorPage() {
 
           {/* Right sidebar - Speaker Management */}
           {isSpeakerManagementOpen && (
-            <div className="sticky top-0 h-[calc(100vh-120px)]">
+            <div
+              className={`sticky top-0 transition-all duration-300 ease-in-out ${
+                isToolbarVisible
+                  ? 'h-[calc(100vh-176px)]'
+                  : 'h-[calc(100vh-120px)]'
+              }`}
+            >
               <SpeakerManagementSidebar
                 isOpen={isSpeakerManagementOpen}
                 onClose={handleCloseSpeakerManagement}

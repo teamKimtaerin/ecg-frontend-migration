@@ -161,12 +161,12 @@ export default function SpeakerManagementSidebar({
   if (!isOpen) return null
 
   return (
-    <div className="w-80 bg-gray-900 border-l border-gray-700 flex flex-col h-full">
+    <div className="w-80 bg-white border-l border-gray-200 flex flex-col h-full">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-700 flex-shrink-0">
         <div>
-          <h2 className="text-lg font-semibold text-white">화자 관리</h2>
-          <p className="text-sm text-gray-400 mt-1">
+          <h2 className="text-lg font-semibold text-black">화자 관리</h2>
+          <p className="text-sm text-gray-600 mt-1">
             {speakers.length}/9명
             {speakers.length >= 9 && (
               <span className="text-yellow-400 ml-1">(최대)</span>
@@ -175,7 +175,7 @@ export default function SpeakerManagementSidebar({
         </div>
         <button
           onClick={onClose}
-          className="p-1 text-gray-400 hover:text-white transition-colors"
+          className="p-1 text-gray-600 hover:text-black transition-colors"
         >
           <LuX className="w-5 h-5" />
         </button>
@@ -185,17 +185,17 @@ export default function SpeakerManagementSidebar({
       <div className="p-4 space-y-6 overflow-y-auto flex-1">
         {/* 미지정 클립 관리 패널 */}
         {unassignedClips.length > 0 && (
-          <div className="bg-gray-800 rounded-lg p-4">
+          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <LuUserX className="w-5 h-5 text-orange-400" />
-                <h3 className="text-sm font-semibold text-white">
+                <h3 className="text-sm font-semibold text-black">
                   미지정 클립 ({unassignedClips.length}개)
                 </h3>
               </div>
               <button
                 onClick={() => setShowUnassignedPanel(!showUnassignedPanel)}
-                className="text-gray-400 hover:text-white transition-colors"
+                className="text-gray-600 hover:text-black transition-colors"
               >
                 <LuArrowRight
                   className={`w-4 h-4 transition-transform ${showUnassignedPanel ? 'rotate-90' : ''}`}
@@ -207,7 +207,7 @@ export default function SpeakerManagementSidebar({
               <div className="space-y-3">
                 {/* 전체 선택 체크박스 */}
                 <div className="flex items-center justify-between text-sm">
-                  <label className="flex items-center gap-2 text-gray-300 cursor-pointer">
+                  <label className="flex items-center gap-2 text-gray-700 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={
@@ -219,7 +219,7 @@ export default function SpeakerManagementSidebar({
                     />
                     전체 선택
                   </label>
-                  <span className="text-gray-400">
+                  <span className="text-gray-600">
                     {selectedUnassignedClips.size}개 선택됨
                   </span>
                 </div>
@@ -229,7 +229,7 @@ export default function SpeakerManagementSidebar({
                   {unassignedClips.map((clip) => (
                     <label
                       key={clip.id}
-                      className="flex items-start gap-2 p-2 rounded hover:bg-gray-700 transition-colors cursor-pointer"
+                      className="flex items-start gap-2 p-2 rounded hover:bg-gray-100 transition-colors cursor-pointer"
                     >
                       <input
                         type="checkbox"
@@ -238,10 +238,10 @@ export default function SpeakerManagementSidebar({
                         className="w-4 h-4 rounded mt-0.5 flex-shrink-0"
                       />
                       <div className="min-w-0 flex-1">
-                        <div className="text-xs text-gray-400 mb-1">
+                        <div className="text-xs text-gray-600 mb-1">
                           {clip.timeline}
                         </div>
-                        <div className="text-sm text-gray-300 truncate">
+                        <div className="text-sm text-gray-700 truncate">
                           {clip.fullText}
                         </div>
                       </div>
@@ -252,7 +252,7 @@ export default function SpeakerManagementSidebar({
                 {/* 화자 할당 버튼들 */}
                 {selectedUnassignedClips.size > 0 && (
                   <div className="border-t border-gray-700 pt-3">
-                    <div className="text-xs text-gray-400 mb-2">
+                    <div className="text-xs text-gray-600 mb-2">
                       선택된 클립에 화자 할당:
                     </div>
                     <div className="flex flex-wrap gap-1">
@@ -260,7 +260,7 @@ export default function SpeakerManagementSidebar({
                         <button
                           key={speaker}
                           onClick={() => handleAssignSpeakerToSelected(speaker)}
-                          className="px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 rounded transition-colors"
+                          className="px-2 py-1 text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 rounded transition-colors"
                         >
                           {speaker}
                         </button>
@@ -278,7 +278,7 @@ export default function SpeakerManagementSidebar({
           {speakers.map((speaker, index) => (
             <div
               key={speaker}
-              className="flex items-center justify-between p-3 bg-gray-800 rounded-lg min-h-[52px]"
+              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg min-h-[52px] border border-gray-200"
             >
               <div className="flex items-center space-x-3 flex-1 min-w-0">
                 <div
@@ -292,12 +292,12 @@ export default function SpeakerManagementSidebar({
                     onChange={(e) => setEditingName(e.target.value)}
                     onKeyDown={handleKeyDown}
                     onBlur={handleSaveEdit}
-                    className="flex-1 bg-transparent text-white font-medium border-b border-cyan-500 outline-none min-w-0 truncate"
+                    className="flex-1 bg-transparent text-black font-medium border-b border-cyan-500 outline-none min-w-0 truncate"
                     style={{ maxWidth: 'calc(100% - 60px)' }}
                   />
                 ) : (
                   <span
-                    className="text-white font-medium cursor-pointer hover:text-cyan-400 transition-colors flex-1 truncate overflow-hidden whitespace-nowrap"
+                    className="text-black font-medium cursor-pointer hover:text-cyan-400 transition-colors flex-1 truncate overflow-hidden whitespace-nowrap"
                     onClick={() => handleStartEdit(speaker)}
                     style={{ maxWidth: 'calc(100% - 60px)' }}
                   >
@@ -308,7 +308,7 @@ export default function SpeakerManagementSidebar({
               {editingSpeaker !== speaker && (
                 <button
                   onClick={() => onRemoveSpeaker(speaker)}
-                  className="p-1 text-gray-400 hover:text-red-400 transition-colors flex-shrink-0"
+                  className="p-1 text-gray-600 hover:text-red-400 transition-colors flex-shrink-0"
                   title="삭제"
                 >
                   <LuTrash2 className="w-4 h-4" />
@@ -318,7 +318,7 @@ export default function SpeakerManagementSidebar({
           ))}
 
           {speakers.length === 0 && (
-            <div className="text-center py-8 text-gray-400">
+            <div className="text-center py-8 text-gray-600">
               등록된 화자가 없습니다
             </div>
           )}
@@ -332,7 +332,7 @@ export default function SpeakerManagementSidebar({
                         ${
                           speakers.length >= 9
                             ? 'border-gray-700 text-gray-500 cursor-not-allowed'
-                            : 'border-gray-600 text-gray-400 hover:text-white hover:border-gray-500'
+                            : 'border-gray-600 text-gray-600 hover:text-black hover:border-gray-500'
                         }`}
             title={
               speakers.length >= 9

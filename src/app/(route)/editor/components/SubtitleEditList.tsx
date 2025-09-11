@@ -53,14 +53,14 @@ export default function SubtitleEditList({
 
   return (
     <div
-      className="w-[800px] bg-gray-900 p-4 cursor-pointer"
+      className="w-[800px] bg-gray-50 p-4 cursor-pointer"
       onClick={handleEmptySpaceClick}
     >
       <SortableContext
         items={clips.map((c) => c.id)}
         strategy={verticalListSortingStrategy}
       >
-        <div className="space-y-3">
+        <div className="space-y-4">
           {clips.map((clip, index) => (
             <React.Fragment key={clip.id}>
               {/* 드롭 인디케이터 - 현재 위치 위에 표시 */}

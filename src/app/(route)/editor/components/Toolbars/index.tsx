@@ -92,14 +92,6 @@ export default function Toolbars({
         </ToolbarWrapper>
       )
 
-    case 'subtitle':
-      // TODO: SubtitleToolbar 구현
-      return (
-        <ToolbarWrapper variant="base" onExport={handleExport}>
-          <HomeToolbar {...commonProps} onNewClick={onNewClick} />
-        </ToolbarWrapper>
-      )
-
     case 'format':
       return (
         <ToolbarWrapper variant="base" onExport={handleExport}>
@@ -116,14 +108,6 @@ export default function Toolbars({
 
     case 'template':
       // TODO: TemplateToolbar 구현
-      return (
-        <ToolbarWrapper variant="base" onExport={handleExport}>
-          <HomeToolbar {...commonProps} onNewClick={onNewClick} />
-        </ToolbarWrapper>
-      )
-
-    case 'effect':
-      // TODO: EffectToolbar 구현
       return (
         <ToolbarWrapper variant="base" onExport={handleExport}>
           <HomeToolbar {...commonProps} onNewClick={onNewClick} />

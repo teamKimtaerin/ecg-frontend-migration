@@ -48,10 +48,10 @@ export default function ToolbarWrapper({
 
         {/* 내보내기 버튼 - 항상 오른쪽 끝에 고정 */}
         <button
-          className="ml-4 px-4 py-2 bg-[#14B0DA] text-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200 hover:bg-[#12A0C8] flex items-center gap-2 font-medium"
+          className="ml-4 px-3 py-1 bg-black text-white rounded hover:bg-gray-800 transition-all duration-200 flex items-center gap-1.5 text-xs font-medium"
           onClick={handleExportClick}
         >
-          <AiOutlineExport className="w-5 h-5" />
+          <AiOutlineExport className="w-4 h-4" />
           내보내기
         </button>
       </div>

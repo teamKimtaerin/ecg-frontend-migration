@@ -31,10 +31,10 @@ export default function ToolbarButton({
     flex flex-col items-center space-y-1 px-2 py-1 rounded cursor-pointer transition-colors
     ${
       disabled
-        ? 'text-slate-500 cursor-not-allowed'
+        ? 'text-gray-400 cursor-not-allowed'
         : active
-          ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30'
-          : `${EDITOR_COLORS.toolbar.base.hover} text-slate-300`
+          ? 'bg-black/10 text-black hover:bg-black/20'
+          : `${EDITOR_COLORS.toolbar.base.hover} text-gray-600`
     }
     ${className}
   `
@@ -42,12 +42,12 @@ export default function ToolbarButton({
   const content = (
     <div className={buttonClasses} onClick={disabled ? undefined : onClick}>
       <div
-        className={`w-5 h-5 ${disabled ? 'text-slate-500' : active ? 'text-blue-400' : 'text-slate-300'}`}
+        className={`w-5 h-5 ${disabled ? 'text-gray-400' : active ? 'text-black' : 'text-gray-600'}`}
       >
         {icon}
       </div>
       <span
-        className={`text-xs ${disabled ? 'text-slate-500' : active ? 'text-blue-400' : 'text-slate-300'}`}
+        className={`text-xs ${disabled ? 'text-gray-400' : active ? 'text-black' : 'text-gray-600'}`}
       >
         {label}
       </span>

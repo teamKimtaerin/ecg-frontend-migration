@@ -100,7 +100,7 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
 
   return (
     <div
-      className="bg-gray-900 p-4 flex-shrink-0 h-full flex flex-col"
+      className="bg-white p-4 flex-shrink-0 h-full flex flex-col border-r border-gray-200"
       style={{ width: `${width}px` }}
     >
       {/* Video Player with Subtitles */}
@@ -117,17 +117,17 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
       </div>
 
       {/* Subtitle Controls */}
-      <div className="bg-gray-800 rounded-lg p-3 mb-4">
+      <div className="bg-gray-50 rounded-lg p-3 mb-4 border border-gray-200">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm font-medium text-gray-300">
+          <h3 className="text-sm font-medium text-gray-700">
             Subtitle Settings
           </h3>
           <button
             onClick={toggleSubtitles}
             className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
               showSubtitles
-                ? 'bg-blue-500 text-white'
-                : 'bg-gray-600 text-gray-300'
+                ? 'bg-black text-white'
+                : 'bg-gray-200 text-gray-600'
             }`}
           >
             {showSubtitles ? 'ON' : 'OFF'}
@@ -138,7 +138,7 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
           <>
             {/* Size Control */}
             <div className="mb-2">
-              <label className="text-xs text-gray-400 mb-1 block">Size</label>
+              <label className="text-xs text-gray-600 mb-1 block">Size</label>
               <div className="flex gap-1">
                 {(['small', 'medium', 'large'] as const).map((size) => (
                   <button
@@ -146,8 +146,8 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
                     onClick={() => setSubtitleSize(size)}
                     className={`flex-1 px-2 py-1 text-xs rounded transition-colors ${
                       subtitleSize === size
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                        ? 'bg-black text-white'
+                        : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
                     }`}
                   >
                     {size.charAt(0).toUpperCase() + size.slice(1)}
@@ -158,7 +158,7 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
 
             {/* Position Control */}
             <div>
-              <label className="text-xs text-gray-400 mb-1 block">
+              <label className="text-xs text-gray-600 mb-1 block">
                 Position
               </label>
               <div className="flex gap-1">
@@ -168,8 +168,8 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
                     onClick={() => setSubtitlePosition(position)}
                     className={`flex-1 px-2 py-1 text-xs rounded transition-colors ${
                       subtitlePosition === position
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                        ? 'bg-black text-white'
+                        : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
                     }`}
                   >
                     {position.charAt(0).toUpperCase() + position.slice(1)}
@@ -182,8 +182,8 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
       </div>
 
       {/* Subtitle Timeline (optional) */}
-      <div className="flex-1 bg-gray-800 rounded-lg p-3 overflow-y-auto">
-        <h3 className="text-sm font-medium text-gray-300 mb-2">
+      <div className="flex-1 bg-gray-50 rounded-lg p-3 overflow-y-auto border border-gray-200">
+        <h3 className="text-sm font-medium text-gray-700 mb-2">
           Subtitle Timeline
         </h3>
         <div className="space-y-1">
@@ -200,8 +200,8 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
                 key={subtitle.id}
                 className={`p-2 rounded text-xs cursor-pointer transition-all ${
                   isActive
-                    ? 'bg-blue-500/20 border border-blue-500/50 text-white'
-                    : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
+                    ? 'bg-black/10 border border-black text-black'
+                    : 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-200'
                 }`}
                 onClick={() => {
                   // Seek to subtitle time when clicked
@@ -216,12 +216,12 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
                 }}
               >
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-gray-400">
+                  <span className="text-gray-500">
                     {formatTime(subtitle.startTime)} -{' '}
                     {formatTime(subtitle.endTime)}
                   </span>
                   {subtitle.speaker && (
-                    <span className="text-blue-400 text-xs">
+                    <span className="text-gray-600 text-xs">
                       {subtitle.speaker}
                     </span>
                   )}
