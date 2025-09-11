@@ -19,14 +19,14 @@ export interface RendererConfig {
     id: string
     type: 'subtitle' | 'free'
     layer: number
-    defaultStyle?: any
+    defaultStyle?: Record<string, unknown>
     safeArea?: { top?: number; bottom?: number; left?: number; right?: number }
   }>
   cues: Array<{
     id: string
     track: string
     hintTime?: { start?: number; end?: number }
-    root: any
+    root: Record<string, unknown>
   }>
 }
 
@@ -307,8 +307,4 @@ export function validateAndNormalizeParams(
     }
   })
   return normalized
-}
-
-export function convertConfigFileToManifest(configFile: string): string {
-  return configFile.replace('/config.json', '/manifest.json')
 }

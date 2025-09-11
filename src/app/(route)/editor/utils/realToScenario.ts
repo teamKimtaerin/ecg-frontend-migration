@@ -16,7 +16,7 @@ export type RendererConfig = {
     id: string
     track: string
     hintTime?: { start?: number; end?: number }
-    root: any
+    root: Record<string, unknown>
   }>
 }
 

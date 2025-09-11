@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 /**
  * MotionText Renderer 데모 페이지
@@ -16,7 +16,7 @@ export default function MotionTextDemo() {
       try {
         const response = await fetch('http://localhost:3000')
         setIsServerRunning(response.ok)
-      } catch (error) {
+      } catch {
         setIsServerRunning(false)
       } finally {
         setIsLoading(false)
@@ -91,7 +91,7 @@ export default function MotionTextDemo() {
       {/* 데모 임베딩 */}
       <div className="flex-1 relative">
         <iframe
-          src="http://localhost:3004"
+          src="http://localhost:3000"
           className="w-full h-full border-0"
           title="MotionText Renderer Demo"
           onLoad={handleIframeLoad}

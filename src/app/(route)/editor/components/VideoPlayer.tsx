@@ -23,7 +23,6 @@ export default function VideoPlayer({
 
   const {
     videoUrl,
-    videoName,
     isSegmentPlayback,
     segmentStart,
     segmentEnd,
@@ -125,13 +124,6 @@ export default function VideoPlayer({
     },
     [duration]
   )
-
-  // Format time for display
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = Math.floor(seconds % 60)
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
-  }
 
   // Keyboard shortcuts
   useEffect(() => {

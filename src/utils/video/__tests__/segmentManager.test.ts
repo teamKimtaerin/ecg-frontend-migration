@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { videoSegmentManager } from '@/utils/video/segmentManager'
 import type { ClipItem } from '@/app/(route)/editor/types'
 

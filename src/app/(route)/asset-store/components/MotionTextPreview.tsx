@@ -20,7 +20,7 @@ import {
 } from '../utils/scenarioGenerator'
 
 interface MotionTextPreviewProps extends BaseComponentProps {
-  configFile: string
+  manifestFile: string
   text?: string
   onParameterChange?: (params: Record<string, unknown>) => void
   onManifestLoad?: (manifest: PluginManifest) => void
@@ -33,7 +33,7 @@ export const MotionTextPreview = React.forwardRef<
 >(
   (
     {
-      configFile,
+      manifestFile,
       text = 'SAMPLE TEXT',
       onParameterChange,
       onManifestLoad,
@@ -97,7 +97,7 @@ export const MotionTextPreview = React.forwardRef<
     useEffect(() => {
       const loadManifest = async () => {
         try {
-          const pluginName = configFile.split('/').slice(-2, -1)[0] // '/plugin/rotation@1.0.0/config.json' -> 'rotation@1.0.0'
+          const pluginName = manifestFile.split('/').slice(-2, -1)[0] // '/plugin/rotation@1.0.0/manifest.json' -> 'rotation@1.0.0'
 
           const loadedManifest = await loadPluginManifest(pluginName)
           setManifest(loadedManifest)
@@ -124,10 +124,10 @@ export const MotionTextPreview = React.forwardRef<
         }
       }
 
-      if (configFile) {
+      if (manifestFile) {
         loadManifest()
       }
-    }, [configFile, onError, onParameterChange, onManifestLoad])
+    }, [manifestFile, onError, onParameterChange, onManifestLoad])
 
     /**
      * 렌더러 초기화

@@ -216,7 +216,7 @@ export const AssetModal: React.FC<AssetModalProps> = ({
             <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
               <MotionTextPreview
                 ref={previewRef}
-                configFile={asset.configFile || ''}
+                manifestFile={asset.manifestFile || ''}
                 text={text}
                 onParameterChange={handleParametersInit}
                 onManifestLoad={handlePreviewManifestLoad}

@@ -8,7 +8,7 @@ import { TRANSITIONS } from '@/lib/utils'
 import { AssetItem } from '@/types/asset-store'
 import { clsx } from 'clsx'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { LuSearch } from 'react-icons/lu'
 
 // 메인 페이지 컴포넌트
@@ -21,15 +21,30 @@ export default function AssetPage() {
   const [activeFilter, setActiveFilter] = useState('All')
   const [showFavorites, setShowFavorites] = useState(false)
 
-  // 카테고리 필터 버튼 목록
-  const categoryFilters = [
-    { id: 'All', label: 'All', count: 8 },
-    { id: 'Smooth', label: 'Smooth', count: 3 },
-    { id: 'Dynamic', label: 'Dynamic', count: 3 },
-    { id: 'Unique', label: 'Unique', count: 2 },
-  ]
-
   const [assets, setAssets] = useState<AssetItem[]>([])
+
+  // 카테고리 필터 버튼 목록 - 동적으로 계산
+  const categoryFilters = useMemo(
+    () => [
+      { id: 'All', label: 'All', count: assets.length },
+      {
+        id: 'Smooth',
+        label: 'Smooth',
+        count: assets.filter((asset) => asset.category === 'Smooth').length,
+      },
+      {
+        id: 'Dynamic',
+        label: 'Dynamic',
+        count: assets.filter((asset) => asset.category === 'Dynamic').length,
+      },
+      {
+        id: 'Unique',
+        label: 'Unique',
+        count: assets.filter((asset) => asset.category === 'Unique').length,
+      },
+    ],
+    [assets]
+  )
 
   useEffect(() => {
     const loadAssets = async () => {
