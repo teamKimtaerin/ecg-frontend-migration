@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useMotionTextRenderer } from '@/app/shared/motiontext'
 import { useEditorStore } from '../store'
 import {
@@ -8,14 +8,15 @@ import {
   getDefaultParameters,
   validateAndNormalizeParams,
   type RendererConfig,
+  type PluginManifest,
 } from '@/app/shared/motiontext'
 import { videoSegmentManager } from '@/utils/video/segmentManager'
 import { buildScenarioFromReal, type RealJson } from '../utils/realToScenario'
 
 interface EditorMotionTextOverlayProps {
   videoContainerRef: React.RefObject<HTMLDivElement | null>
-  onScenarioUpdate?: (scenario: any) => void
-  scenarioOverride?: any
+  onScenarioUpdate?: (scenario: RendererConfig) => void
+  scenarioOverride?: RendererConfig
 }
 
 /**
@@ -45,23 +46,20 @@ export default function EditorMotionTextOverlay({
   const {
     clips,
     deletedClipIds,
-    currentTime,
     showSubtitles,
     subtitleSize,
     subtitlePosition,
   } = useEditorStore()
 
   // Internal plugin state
-  const manifestRef = useRef<any | null>(null)
+  const manifestRef = useRef<(PluginManifest & { key?: string }) | null>(null)
   const defaultParamsRef = useRef<Record<string, unknown> | null>(null)
-  const lastClipIdRef = useRef<string | null>(null)
-  const lastTextRef = useRef<string | null>(null)
   const isInitRef = useRef(false)
   const [usingExternalScenario, setUsingExternalScenario] = useState(false)
   const [isLoadingScenario, setIsLoadingScenario] = useState(false)
   
   // MotionTextController for automatic video-renderer synchronization
-  const controllerRef = useRef<any | null>(null)
+  const controllerRef = useRef<{ destroy: () => void } | null>(null)
 
   // Obtain the existing video element from the global video controller
   // Add retry mechanism for video element detection
@@ -141,12 +139,13 @@ export default function EditorMotionTextOverlay({
           localBase: '/plugin/',
         })
         if (cancelled) return
-        manifestRef.current = { ...manifest, key: pluginName }
+        manifestRef.current = {
+          ...manifest,
+          key: pluginName,
+        } as PluginManifest & { key: string }
         defaultParamsRef.current = getDefaultParameters(manifest)
-        // eslint-disable-next-line no-console
         console.log('[EditorMotionTextOverlay] Loaded manifest:', pluginName)
       } catch (e) {
-        // eslint-disable-next-line no-console
         console.warn('[EditorMotionTextOverlay] Failed to load manifest', e)
       }
     }
@@ -318,8 +317,10 @@ export default function EditorMotionTextOverlay({
         }
         // Controller will handle synchronization automatically
       } catch (e) {
-        // eslint-disable-next-line no-console
-        console.warn('[EditorMotionTextOverlay] Failed to load external scenario', e)
+        console.warn(
+          '[EditorMotionTextOverlay] Failed to load external scenario',
+          e
+        )
       }
     }
     void load()
@@ -433,8 +434,10 @@ export default function EditorMotionTextOverlay({
           // Controller will handle synchronization automatically
         })
         .catch((e) => {
-          // eslint-disable-next-line no-console
-          console.warn('[EditorMotionTextOverlay] loadScenario (default) failed', e)
+          console.warn(
+            '[EditorMotionTextOverlay] loadScenario (default) failed',
+            e
+          )
         })
     }, 120)
     return () => clearTimeout(t)

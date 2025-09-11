@@ -3,9 +3,11 @@
 import React, { useState, useEffect } from 'react'
 import Button from '@/components/ui/Button'
 
+import type { RendererConfig } from '@/app/shared/motiontext'
+
 interface ScenarioJsonEditorProps {
-  initialScenario: any
-  onApply: (scenario: any) => void
+  initialScenario: RendererConfig
+  onApply: (scenario: RendererConfig) => void
   className?: string
 }
 

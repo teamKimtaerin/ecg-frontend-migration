@@ -117,9 +117,11 @@ export async function preloadAllPlugins() {
 function extractPluginNames(scenario: RendererConfig): Set<string> {
   const pluginNames = new Set<string>()
   scenario.cues?.forEach((cue) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const traverse = (node: any): void => {
       if (node?.plugin?.name) pluginNames.add(node.plugin.name)
       if (Array.isArray(node?.pluginChain)) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         node.pluginChain.forEach((p: any) => {
           if (p.name) pluginNames.add(p.name)
         })
@@ -142,8 +144,13 @@ export async function preloadPluginsForScenario(scenario: RendererConfig) {
       console.warn(`[PluginLoader] Failed to load required plugin ${pluginName}:`, error)
     }
   }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   if (typeof window !== 'undefined' && (window as any).__motionTextPlugins) {
-    console.log('[PluginLoader] Available plugins:', Object.keys((window as any).__motionTextPlugins))
+    console.log(
+      '[PluginLoader] Available plugins:',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      Object.keys((window as any).__motionTextPlugins)
+    )
   }
 }
 

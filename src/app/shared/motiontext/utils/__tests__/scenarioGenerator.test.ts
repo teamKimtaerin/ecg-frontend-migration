@@ -1,5 +1,7 @@
-// @ts-nocheck
-import { generatePreviewScenario, validateAndNormalizeParams } from '@/app/shared/motiontext/utils/scenarioGenerator'
+import {
+  generatePreviewScenario,
+  validateAndNormalizeParams,
+} from '@/app/shared/motiontext/utils/scenarioGenerator'
 
 describe('scenarioGenerator', () => {
   test('generatePreviewScenario builds a valid config with pluginChain', () => {
@@ -17,6 +19,7 @@ describe('scenarioGenerator', () => {
     expect(cfg.version).toBe('1.3')
     expect(cfg.stage.baseAspect).toBe('16:9')
     expect(cfg.cues.length).toBe(1)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const root: any = cfg.cues[0].root
     expect(root.e_type).toBe('group')
     const textNode = root.children[0]
@@ -41,7 +44,8 @@ describe('scenarioGenerator', () => {
     } as const
 
     const normalized = validateAndNormalizeParams(
-      { strength: 200, enabled: 0, mode: 'invalid', label: 123 as any },
+      { strength: 200, enabled: 0, mode: 'invalid', label: 123 as unknown },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       manifest as any
     )
     expect(normalized.strength).toBe(100)

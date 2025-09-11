@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useRef, useState, useCallback } from 'react'
+import type { RendererConfig } from '@/app/shared/motiontext'
 import VideoPlayer from './VideoPlayer'
 import EditorMotionTextOverlay from './EditorMotionTextOverlay'
 import ScenarioJsonEditor from './ScenarioJsonEditor'
@@ -11,14 +12,17 @@ interface VideoSectionProps {
 
 const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
   const videoContainerRef = useRef<HTMLDivElement>(null)
-  const [currentScenario, setCurrentScenario] = useState<any>(null)
-  const [scenarioOverride, setScenarioOverride] = useState<any>(null)
+  const [currentScenario, setCurrentScenario] = useState<RendererConfig | null>(
+    null
+  )
+  const [scenarioOverride, setScenarioOverride] =
+    useState<RendererConfig | null>(null)
 
-  const handleScenarioUpdate = useCallback((scenario: any) => {
+  const handleScenarioUpdate = useCallback((scenario: RendererConfig) => {
     setCurrentScenario(scenario)
   }, [])
 
-  const handleScenarioApply = useCallback((newScenario: any) => {
+  const handleScenarioApply = useCallback((newScenario: RendererConfig) => {
     console.log('[VideoSection] Applying new scenario:', newScenario)
     setScenarioOverride(newScenario)
   }, [])
@@ -41,13 +45,21 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
         <EditorMotionTextOverlay 
           videoContainerRef={videoContainerRef}
           onScenarioUpdate={handleScenarioUpdate}
-          scenarioOverride={scenarioOverride}
+          scenarioOverride={scenarioOverride || undefined}
         />
       </div>
 
       {/* JSON Editor */}
       <ScenarioJsonEditor
-        initialScenario={currentScenario}
+        initialScenario={
+          currentScenario || {
+            version: '1.3',
+            timebase: { unit: 'seconds' },
+            stage: { baseAspect: '16:9' },
+            tracks: [],
+            cues: [],
+          }
+        }
         onApply={handleScenarioApply}
         className="flex-shrink-0"
       />

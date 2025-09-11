@@ -73,11 +73,7 @@ const NumberControl: React.FC<ControlProps> = ({
 /**
  * Boolean 타입 컨트롤 (토글 스위치)
  */
-const BooleanControl: React.FC<ControlProps> = ({
-  property,
-  value,
-  onChange,
-}) => {
+const BooleanControl: React.FC<ControlProps> = ({ value, onChange }) => {
   const boolValue = typeof value === 'boolean' ? value : Boolean(value)
 
   return (

@@ -96,6 +96,7 @@ export function useMotionTextRenderer(
       updateState({ isLoading: true, status: 'initializing' })
       const gsap = await import('gsap')
       if (typeof window !== 'undefined' && gsap) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ;(window as any).gsap = (gsap as any).default || gsap
       }
       configurePluginLoader()
@@ -131,7 +132,8 @@ export function useMotionTextRenderer(
         updateState({
           isLoading: false,
           status: 'loaded',
-          duration: config.cues?.[0]?.root?.absEnd || 3,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          duration: (config.cues?.[0]?.root as any)?.absEnd || 3,
         })
       } catch (error) {
         handleError(error as Error)
@@ -151,7 +153,7 @@ export function useMotionTextRenderer(
       const updateFrame = () => {
         if (!isPlayingRef.current || !rendererRef.current) return
         const elapsed = (performance.now() - startTimeRef.current) / 1000
-        const loopedTime = elapsed % duration
+        const loopedTime = elapsed % Number(duration || 3)
         try {
           rendererRef.current.seek(loopedTime)
           updateState({ currentTime: loopedTime })
