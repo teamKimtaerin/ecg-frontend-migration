@@ -7,19 +7,19 @@ import { useCallback, useEffect, useId, useState } from 'react'
 import { useEditorStore } from './store'
 
 // Storage & Managers
-import { mediaStorage } from '@/utils/storage/mediaStorage'
-import { projectStorage } from '@/utils/storage/projectStorage'
+import { log } from '@/utils/logger'
 import { AutosaveManager } from '@/utils/managers/AutosaveManager'
 import { projectInfoManager } from '@/utils/managers/ProjectInfoManager'
-import { log } from '@/utils/logger'
+import { mediaStorage } from '@/utils/storage/mediaStorage'
+import { projectStorage } from '@/utils/storage/projectStorage'
 
 // API Services
-import { transcriptionService } from '@/services/api/transcriptionService'
 import { API_CONFIG } from '@/config/api.config'
+import { transcriptionService } from '@/services/api/transcriptionService'
 
 // Types
-import { EditorTab } from './types'
 import { ClipItem } from './components/ClipComponent/types'
+import { EditorTab } from './types'
 
 // Hooks
 import { useUploadModal } from '@/hooks/useUploadModal'
@@ -31,27 +31,27 @@ import { useUnsavedChanges } from './hooks/useUnsavedChanges'
 import SelectionBox from '@/components/DragDrop/SelectionBox'
 import NewUploadModal from '@/components/NewUploadModal'
 import TutorialModal from '@/components/TutorialModal'
-import ResizablePanelDivider from '@/components/ui/ResizablePanelDivider'
 import AlertDialog from '@/components/ui/AlertDialog'
-import Toolbars from './components/Toolbars'
-import EditorHeaderTabs from './components/EditorHeaderTabs'
-import SubtitleEditList from './components/SubtitleEditList'
-import VideoSection from './components/VideoSection'
+import ResizablePanelDivider from '@/components/ui/ResizablePanelDivider'
 import AnimationAssetSidebar from './components/AnimationAssetSidebar'
+import EditorHeaderTabs from './components/EditorHeaderTabs'
 import SpeakerManagementSidebar from './components/SpeakerManagementSidebar'
+import SubtitleEditList from './components/SubtitleEditList'
+import Toolbars from './components/Toolbars'
+import VideoSection from './components/VideoSection'
 
 // Utils
 import { EditorHistory } from '@/utils/editor/EditorHistory'
 import { areClipsConsecutive } from '@/utils/editor/clipMerger'
-import { MergeClipsCommand } from '@/utils/editor/commands/MergeClipsCommand'
-import { SplitClipCommand } from '@/utils/editor/commands/SplitClipCommand'
-import { DeleteClipCommand } from '@/utils/editor/commands/DeleteClipCommand'
-import { RemoveSpeakerCommand } from '@/utils/editor/commands/RemoveSpeakerCommand'
-import { ChangeSpeakerCommand } from '@/utils/editor/commands/ChangeSpeakerCommand'
 import { BatchChangeSpeakerCommand } from '@/utils/editor/commands/BatchChangeSpeakerCommand'
-import { CutClipsCommand } from '@/utils/editor/commands/CutClipsCommand'
+import { ChangeSpeakerCommand } from '@/utils/editor/commands/ChangeSpeakerCommand'
 import { CopyClipsCommand } from '@/utils/editor/commands/CopyClipsCommand'
+import { CutClipsCommand } from '@/utils/editor/commands/CutClipsCommand'
+import { DeleteClipCommand } from '@/utils/editor/commands/DeleteClipCommand'
+import { MergeClipsCommand } from '@/utils/editor/commands/MergeClipsCommand'
 import { PasteClipsCommand } from '@/utils/editor/commands/PasteClipsCommand'
+import { RemoveSpeakerCommand } from '@/utils/editor/commands/RemoveSpeakerCommand'
+import { SplitClipCommand } from '@/utils/editor/commands/SplitClipCommand'
 import { showToast } from '@/utils/ui/toast'
 
 export default function EditorPage() {

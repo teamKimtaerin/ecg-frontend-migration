@@ -50,8 +50,6 @@ export default function ClipWords({
     // From dev branch
     setFocusedWord,
     clearWordFocus,
-    focusedWordId,
-    focusedClipId,
     draggedWordId,
     setActiveClipId,
     // From feat/editor-asset-sidebar-clean branch
@@ -60,7 +58,6 @@ export default function ClipWords({
     currentWordAssets,
     setCurrentWordAssets,
     selectedWordAssets,
-    applyAssetsToWord,
   } = useEditorStore()
 
   // Asset related state (from feat/editor-asset-sidebar-clean)
@@ -86,7 +83,7 @@ export default function ClipWords({
     groupedWordIds,
   } = useWordGrouping({
     clipId,
-    onGroupChange: (groupedIds) => {
+    onGroupChange: () => {
       // Optional: Handle group change
     },
   })
@@ -186,8 +183,7 @@ export default function ClipWords({
           onKeyDown={handleKeyDown}
           tabIndex={0}
         >
-          {words.map((word, index) => {
-            const isSelected = selectedWordId === word.id
+          {words.map((word) => {
             const appliedAssets = word.appliedAssets || []
 
             return (
