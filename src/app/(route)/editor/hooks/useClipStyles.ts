@@ -3,6 +3,7 @@ import { ClipStyleState } from '../types'
 export function useClipStyles({
   isSelected,
   isChecked = false,
+  isMultiSelected = false,
   isHovered,
   isDragging = false,
 }: ClipStyleState) {
@@ -12,7 +13,7 @@ export function useClipStyles({
     let borderClasses = 'border border-gray-200' // 기본 테두리
     const stateClasses = ['bg-white'] // 기본 배경색 (흰색)
 
-    if (isChecked) {
+    if (isChecked || isMultiSelected) {
       // 체크박스 선택된 상태 - 검은색 테두리
       borderClasses = 'border-2 border-black'
       stateClasses.push('bg-gray-50')
@@ -22,7 +23,7 @@ export function useClipStyles({
       // 클릭/포커스 상태 - 전체 클립 아이템에 강한 검은색 테두리
       borderClasses = 'border-2 border-black'
       stateClasses.push('bg-gray-50')
-    } else if (!isDragging && !isChecked) {
+    } else if (!isDragging && !isChecked && !isMultiSelected) {
       stateClasses.push('hover:bg-gray-50 hover:border-gray-300')
     }
 

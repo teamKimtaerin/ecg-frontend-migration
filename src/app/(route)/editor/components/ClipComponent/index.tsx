@@ -17,6 +17,7 @@ export default function ClipComponent({
   index,
   isSelected,
   isChecked = false,
+  isMultiSelected = false,
   enableDragAndDrop = false,
   speakers = [],
   onSelect,
@@ -40,6 +41,7 @@ export default function ClipComponent({
     useClipStyles({
       isSelected,
       isChecked,
+      isMultiSelected,
       isHovered,
       isDragging,
     })

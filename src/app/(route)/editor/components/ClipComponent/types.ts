@@ -24,6 +24,7 @@ export interface ClipComponentProps {
   index: number
   isSelected: boolean
   isChecked?: boolean
+  isMultiSelected?: boolean
   enableDragAndDrop?: boolean
   isGroupSelecting?: boolean
   speakers?: string[]
@@ -42,6 +43,7 @@ export interface ClipComponentProps {
 export interface ClipStyleState {
   isSelected: boolean
   isChecked?: boolean
+  isMultiSelected?: boolean
   isHovered: boolean
   isDragging?: boolean
 }
