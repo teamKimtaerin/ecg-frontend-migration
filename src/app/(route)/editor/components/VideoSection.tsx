@@ -29,7 +29,7 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
 
   return (
     <div
-      className="bg-gray-900 p-4 flex-shrink-0 h-full flex flex-col"
+      className="bg-white p-4 flex-shrink-0 h-full flex flex-col border-r border-gray-200"
       style={{ width: `${width}px` }}
     >
       {/* Video Player with Subtitles */}
@@ -46,21 +46,6 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
           scenarioOverride={scenarioOverride || undefined}
         />
       </div>
-
-      {/* JSON Editor */}
-      <ScenarioJsonEditor
-        initialScenario={
-          currentScenario || {
-            version: '1.3',
-            timebase: { unit: 'seconds' },
-            stage: { baseAspect: '16:9' },
-            tracks: [],
-            cues: [],
-          }
-        }
-        onApply={handleScenarioApply}
-        className="flex-shrink-0"
-      />
     </div>
   )
 }

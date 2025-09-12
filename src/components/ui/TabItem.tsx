@@ -104,37 +104,37 @@ const TabItem: React.FC<TabItemProps> = ({
     // Color and style variations based on quiet/emphasized
     if (isQuiet) {
       if (isSelected) {
-        classes.push('text-text-primary')
+        classes.push('text-black')
         if (orientation === 'horizontal') {
-          classes.push('border-b-2', 'border-primary')
+          classes.push('border-b-2', 'border-black')
         } else {
-          classes.push('border-l-2', 'border-primary')
+          classes.push('border-l-2', 'border-black')
         }
       } else {
-        classes.push('text-text-secondary', 'hover:text-text-primary')
+        classes.push(
+          'text-gray-500',
+          'hover:text-gray-700',
+          'hover:bg-gray-200'
+        )
       }
     } else if (isEmphasized) {
       if (isSelected) {
-        classes.push('bg-primary', 'text-white')
+        classes.push('bg-black', 'text-white')
       } else {
         classes.push(
-          'bg-surface',
-          'text-text-primary',
-          'hover:bg-surface-secondary',
+          'bg-white',
+          'text-black',
+          'hover:bg-gray-50',
           'border',
-          'border-border'
+          'border-gray-200'
         )
       }
     } else {
       // Regular style - no individual borders, slider will handle this
       if (isSelected) {
-        classes.push('bg-surface', 'text-text-primary')
+        classes.push('bg-gray-800', 'text-white')
       } else {
-        classes.push(
-          'text-text-secondary',
-          'hover:text-text-primary',
-          'hover:bg-surface-secondary'
-        )
+        classes.push('text-gray-400', 'hover:text-white', 'hover:bg-gray-800')
       }
     }
 

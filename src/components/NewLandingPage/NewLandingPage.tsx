@@ -56,7 +56,7 @@ const NewLandingPage: React.FC<NewLandingPageProps> = ({
 
       <HeroSection onQuickStartClick={onQuickStartClick} />
 
-      <AISubtitleSection />
+      {/* <AISubtitleSection /> */}
 
       <DynamicSubtitleSection
         onApplyDynamicSubtitleClick={onApplyDynamicSubtitleClick}
