@@ -33,6 +33,7 @@ import SelectionBox from '@/components/DragDrop/SelectionBox'
 import NewUploadModal from '@/components/NewUploadModal'
 import TutorialModal from '@/components/TutorialModal'
 import AlertDialog from '@/components/ui/AlertDialog'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import Toolbars from './components/Toolbars'
 import SimpleToolbar from './components/SimpleToolbar'
 import ResizablePanelDivider from '@/components/ui/ResizablePanelDivider'
@@ -250,7 +251,7 @@ function TimelineClipCard({
                              bg-transparent text-black border border-gray-300 rounded
                              hover:bg-gray-50 hover:border-gray-400 transition-all
                              focus:outline-none focus:ring-2 focus:ring-blue-500
-                             w-[120px] flex-shrink-0"
+                             w-[120px] flex-shrink-0 cursor-pointer"
                   onClick={(e) => {
                     e.preventDefault()
                     e.stopPropagation()
@@ -329,7 +330,7 @@ function TimelineClipCard({
                             </div>
                             <button
                               className="opacity-0 group-hover:opacity-100 text-gray-600 hover:text-black
-                                    text-xs px-1 py-0.5 rounded transition-all flex-shrink-0"
+                                    text-xs px-1 py-0.5 rounded transition-all flex-shrink-0 cursor-pointer"
                               onClick={(e) => {
                                 e.preventDefault()
                                 e.stopPropagation()
@@ -430,14 +431,14 @@ function TimelineClipCard({
                 <button
                   onClick={() => handleRenameChoice(false)}
                   className="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-700 rounded
-                          hover:bg-gray-600 transition-colors"
+                          hover:bg-gray-600 transition-colors cursor-pointer"
                 >
                   아니오 (현재 클립만)
                 </button>
                 <button
                   onClick={() => handleRenameChoice(true)}
                   className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded
-                          hover:bg-blue-700 transition-colors"
+                          hover:bg-blue-700 transition-colors cursor-pointer"
                 >
                   예 (모든 클립)
                 </button>
@@ -1328,6 +1329,54 @@ export default function EditorPage() {
     showToast('원본으로 복원되었습니다.', 'success')
   }, [restoreOriginalClips, clearSelection, setActiveClipId])
 
+  // 프로젝트 저장 핸들러
+  const handleSave = useCallback(() => {
+    saveProject()
+      .then(() => {
+        editorHistory.markAsSaved()
+        markAsSaved()
+        showToast('프로젝트가 저장되었습니다.', 'success')
+      })
+      .catch((error) => {
+        console.error('Save failed:', error)
+        showToast('저장에 실패했습니다.', 'error')
+      })
+  }, [saveProject, editorHistory, markAsSaved])
+
+  // 다른 프로젝트로 저장 핸들러
+  const handleSaveAs = useCallback(() => {
+    // TODO: 새로운 프로젝트 ID 생성 및 저장 로직 구현
+    const newProjectId = `project_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
+
+    // 현재 프로젝트 데이터를 새 ID로 저장
+    const autosaveManager = AutosaveManager.getInstance()
+    const oldProjectId = autosaveManager.getProjectId()
+
+    // 새 프로젝트로 설정
+    autosaveManager.setProject(newProjectId, 'browser')
+
+    saveProject()
+      .then(() => {
+        editorHistory.markAsSaved()
+        markAsSaved()
+        showToast(`새 프로젝트로 저장되었습니다. (${newProjectId})`, 'success')
+
+        // 프로젝트 정보 업데이트
+        projectInfoManager.notifyFileOpen('browser', 'newProject', {
+          id: newProjectId,
+          name: `Copy of Project ${new Date().toLocaleDateString()}`,
+        })
+      })
+      .catch((error) => {
+        // 실패 시 원래 프로젝트로 되돌리기
+        if (oldProjectId) {
+          autosaveManager.setProject(oldProjectId, 'browser')
+        }
+        console.error('Save as failed:', error)
+        showToast('다른 이름으로 저장에 실패했습니다.', 'error')
+      })
+  }, [saveProject, editorHistory, markAsSaved])
+
   // Auto-save every 3 seconds
   useEffect(() => {
     if (!clips.length) return
@@ -1577,11 +1626,13 @@ export default function EditorPage() {
   // 복구 중일 때 로딩 화면 표시
   if (isRecovering) {
     return (
-      <div className="min-h-screen bg-gray-50 text-gray-900 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-gray-200 border-t-black rounded-full animate-spin"></div>
-          <p className="text-gray-600">세션 복구 중...</p>
-        </div>
+      <div className="min-h-screen bg-gray-50">
+        <LoadingSpinner
+          size="lg"
+          message="세션을 복구하고 있습니다..."
+          showLogo={true}
+          variant="fullscreen"
+        />
       </div>
     )
   }
@@ -1630,11 +1681,11 @@ export default function EditorPage() {
               onRestore={handleRestore}
               onToggleAnimationSidebar={handleToggleAnimationSidebar}
               onToggleTemplateSidebar={handleToggleTemplateSidebar}
+              onSave={handleSave}
+              onSaveAs={handleSaveAs}
             />
           ) : (
             <SimpleToolbar
-              clips={clips}
-              selectedClipIds={selectedClipIds}
               activeClipId={activeClipId}
               canUndo={editorHistory.canUndo()}
               canRedo={editorHistory.canRedo()}
@@ -1644,6 +1695,8 @@ export default function EditorPage() {
               onRedo={handleRedo}
               onSplitClip={handleSplitClip}
               onToggleTemplateSidebar={handleToggleTemplateSidebar}
+              onSave={handleSave}
+              onSaveAs={handleSaveAs}
             />
           )}
         </div>

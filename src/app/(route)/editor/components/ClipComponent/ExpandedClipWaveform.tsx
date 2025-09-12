@@ -5,7 +5,6 @@ import { IoPlay, IoPause, IoArrowUndo, IoArrowRedo } from 'react-icons/io5'
 import { Word } from './types'
 
 interface ExpandedClipWaveformProps {
-  clipId: string
   words: Word[]
   focusedWordId: string | null
 }
@@ -38,77 +37,57 @@ function gaussianSmooth(data: number[], radius: number = 3): number[] {
   return smoothed
 }
 
-// Cubic interpolation for smooth transitions
-function cubicInterpolate(t: number): number {
-  return t * t * (3 - 2 * t)
-}
-
-// Load and process audio data from real.json
-async function loadClipAudioData(words: Word[]) {
+// Load and process audio data from real.json for a specific time range
+async function loadRangeAudioData(
+  startTime: number,
+  endTime: number,
+  displayWords: Word[]
+) {
   try {
     const response = await fetch('/real.json')
     const data = await response.json()
 
-    // Extract volume data for all words in this clip
+    // Extract volume data for the time range
     const volumeData: number[] = []
     const sampleRate = 100 // Simulated sample rate (samples per second)
+    const duration = endTime - startTime
+    const totalSamples = Math.max(100, Math.ceil(duration * sampleRate))
 
-    for (let i = 0; i < words.length; i++) {
-      const word = words[i]
-      const duration = word.end - word.start
-      const samplesForWord = Math.max(10, Math.ceil(duration * sampleRate))
+    for (let i = 0; i < totalSamples; i++) {
+      const currentTime = startTime + (i / totalSamples) * duration
 
-      // Find current word volume data from segments
+      // Find the word that contains this time point
       let currentVolume = -20 // Default volume
       let currentPitch = 440 // Default pitch for variation
 
-      for (const segment of data.segments) {
-        const wordData = segment.words?.find(
-          (w: { word: string; start: number }) =>
-            w.word === word.text && Math.abs(w.start - word.start) < 0.1
-        )
-        if (wordData && wordData.volume_db !== undefined) {
-          currentVolume = wordData.volume_db
-          currentPitch = wordData.pitch_hz || 440
-          break
-        }
-      }
+      const containingWord = displayWords.find(
+        (word) => currentTime >= word.start && currentTime <= word.end
+      )
 
-      // Find next word volume for smooth transitions
-      let nextVolume = currentVolume
-      if (i < words.length - 1) {
-        const nextWord = words[i + 1]
+      if (containingWord) {
+        // Find volume data from segments
         for (const segment of data.segments) {
-          const nextWordData = segment.words?.find(
+          const wordData = segment.words?.find(
             (w: { word: string; start: number }) =>
-              w.word === nextWord.text &&
-              Math.abs(w.start - nextWord.start) < 0.1
+              w.word === containingWord.text &&
+              Math.abs(w.start - containingWord.start) < 0.1
           )
-          if (nextWordData && nextWordData.volume_db !== undefined) {
-            nextVolume = nextWordData.volume_db
+          if (wordData && wordData.volume_db !== undefined) {
+            currentVolume = wordData.volume_db
+            currentPitch = wordData.pitch_hz || 440
             break
           }
         }
       }
 
-      // Generate samples with smooth interpolation and natural variation
-      for (let j = 0; j < samplesForWord; j++) {
-        const progress = j / samplesForWord
+      // Add natural variation based on frequency and time
+      const timeOffset = currentTime * 2 * Math.PI
+      const naturalVariation =
+        Math.sin((timeOffset * currentPitch) / 1000) * 0.3 + // Primary frequency component
+        Math.sin((timeOffset * currentPitch) / 500) * 0.2 + // Harmonic
+        Math.sin(timeOffset * 0.5) * 0.1 // Low frequency modulation
 
-        // Use cubic interpolation for smooth transition to next word
-        const smoothProgress = cubicInterpolate(progress)
-        const interpolatedVolume =
-          currentVolume + (nextVolume - currentVolume) * smoothProgress
-
-        // Add natural variation based on frequency and time
-        const timeOffset = (word.start + duration * progress) * 2 * Math.PI
-        const naturalVariation =
-          Math.sin((timeOffset * currentPitch) / 1000) * 0.3 + // Primary frequency component
-          Math.sin((timeOffset * currentPitch) / 500) * 0.2 + // Harmonic
-          Math.sin(timeOffset * 0.5) * 0.1 // Low frequency modulation
-
-        volumeData.push(interpolatedVolume + naturalVariation)
-      }
+      volumeData.push(currentVolume + naturalVariation)
     }
 
     // Apply Gaussian smoothing for even smoother transitions
@@ -126,7 +105,7 @@ async function loadClipAudioData(words: Word[]) {
   } catch (error) {
     console.error('Failed to load audio data:', error)
     // Generate fallback waveform data with smooth transitions
-    const totalSamples = words.length * 50
+    const totalSamples = Math.max(100, Math.ceil((endTime - startTime) * 50))
     const fallbackData = Array.from({ length: totalSamples }, (_, i) => {
       const t = i / totalSamples
       return (
@@ -184,16 +163,74 @@ export default function ExpandedClipWaveform({
   const [draggedWordId, setDraggedWordId] = useState<string | null>(null)
   const [dragType, setDragType] = useState<string | null>(null)
 
-  // Calculate clip duration
-  const clipDuration =
-    words.length > 0 ? words[words.length - 1].end - words[0].start : 0
+  // Calculate focused word range (3 words: previous + current + next)
+  const { displayWords, rangeStart, rangeEnd, rangeDuration } =
+    React.useMemo(() => {
+      if (!focusedWord) {
+        return {
+          displayWords: words,
+          rangeStart: words.length > 0 ? words[0].start : 0,
+          rangeEnd: words.length > 0 ? words[words.length - 1].end : 0,
+          rangeDuration:
+            words.length > 0 ? words[words.length - 1].end - words[0].start : 0,
+        }
+      }
 
-  // Load audio data
+      const focusedIndex = words.findIndex((w) => w.id === focusedWord.id)
+      if (focusedIndex === -1) {
+        return {
+          displayWords: words,
+          rangeStart: words.length > 0 ? words[0].start : 0,
+          rangeEnd: words.length > 0 ? words[words.length - 1].end : 0,
+          rangeDuration:
+            words.length > 0 ? words[words.length - 1].end - words[0].start : 0,
+        }
+      }
+
+      // Get previous, current, and next words (3 words total)
+      const prevWord = focusedIndex > 0 ? words[focusedIndex - 1] : null
+      const currentWord = words[focusedIndex]
+      const nextWord =
+        focusedIndex < words.length - 1 ? words[focusedIndex + 1] : null
+
+      // Calculate display range with padding for missing words
+      let start = currentWord.start
+      let end = currentWord.end
+      const paddingTime = 1.0 // 1 second padding
+
+      if (prevWord) {
+        start = prevWord.start
+      } else {
+        // Add padding before current word if no previous word
+        start = Math.max(0, currentWord.start - paddingTime)
+      }
+
+      if (nextWord) {
+        end = nextWord.end
+      } else {
+        // Add padding after current word if no next word
+        end = currentWord.end + paddingTime
+      }
+
+      // Build display words array
+      const displayWords = [prevWord, currentWord, nextWord].filter(
+        Boolean
+      ) as Word[]
+
+      return {
+        displayWords,
+        rangeStart: start,
+        rangeEnd: end,
+        rangeDuration: end - start,
+      }
+    }, [focusedWord, words])
+
+  // Load audio data for the focused range
   useEffect(() => {
-    loadClipAudioData(words).then((data) => {
+    loadRangeAudioData(rangeStart, rangeEnd, displayWords).then((data) => {
       setPeaks(data)
     })
-  }, [words])
+  }, [rangeStart, rangeEnd, displayWords])
 
   // Initialize WaveSurfer
   useEffect(() => {
@@ -214,7 +251,7 @@ export default function ExpandedClipWaveform({
     })
 
     // Load peaks data - WaveSurfer expects array of arrays for stereo
-    ws.load('', [peaks], clipDuration)
+    ws.load('', [peaks], rangeDuration)
 
     wavesurferRef.current = ws
 
@@ -222,7 +259,7 @@ export default function ExpandedClipWaveform({
     return () => {
       ws.destroy()
     }
-  }, [peaks, clipDuration])
+  }, [peaks, rangeDuration])
 
   // Handle play/pause with video player sync
   const togglePlayback = useCallback(() => {
@@ -248,15 +285,14 @@ export default function ExpandedClipWaveform({
     stopSegmentPlayback,
   ])
 
-  // Calculate bar positions (0-1 scale) relative to entire clip
+  // Calculate bar positions (0-1 scale) relative to focused range
   const getBarPosition = useCallback(
     (time: number) => {
-      if (words.length === 0) return 0
-      const clipStart = words[0].start
-      const position = (time - clipStart) / clipDuration
+      if (rangeDuration === 0) return 0
+      const position = (time - rangeStart) / rangeDuration
       return Math.max(0, Math.min(1, position))
     },
-    [words, clipDuration]
+    [rangeStart, rangeDuration]
   )
 
   // Handle drag start for word bars
@@ -280,8 +316,7 @@ export default function ExpandedClipWaveform({
       const rect = waveformRef.current!.getBoundingClientRect()
       const x = e.clientX - rect.left
       const position = Math.max(0, Math.min(1, x / rect.width))
-      const clipStart = words[0].start
-      const time = clipStart + position * clipDuration
+      const time = rangeStart + position * rangeDuration
 
       const word = words.find((w) => w.id === draggedWordId)
       if (!word) return
@@ -337,22 +372,24 @@ export default function ExpandedClipWaveform({
               newEnd
             )
             setHasUnsavedChanges(true)
-          } else if (barType === 'min') {
-            const newMin = Math.min(position, track.intensity.max - 0.05)
-            updateAnimationTrackIntensity(
-              draggedWordId,
-              assetId,
-              newMin,
-              track.intensity.max
+          } else if (barType === 'move') {
+            // Move the entire track to follow mouse position
+            const duration = track.timing.end - track.timing.start
+            const newStart =
+              rangeStart + position * rangeDuration - duration / 2
+
+            // Constrain within range bounds
+            const constrainedStart = Math.max(
+              rangeStart,
+              Math.min(newStart, rangeEnd - duration)
             )
-            setHasUnsavedChanges(true)
-          } else if (barType === 'max') {
-            const newMax = Math.max(position, track.intensity.min + 0.05)
-            updateAnimationTrackIntensity(
+            const constrainedEnd = constrainedStart + duration
+
+            updateAnimationTrackTiming(
               draggedWordId,
               assetId,
-              track.intensity.min,
-              newMax
+              constrainedStart,
+              constrainedEnd
             )
             setHasUnsavedChanges(true)
           }
@@ -378,7 +415,9 @@ export default function ExpandedClipWaveform({
     draggedWordId,
     dragType,
     words,
-    clipDuration,
+    rangeStart,
+    rangeDuration,
+    rangeEnd,
     wordTimingAdjustments,
     wordAnimationIntensity,
     wordAnimationTracks,
@@ -449,8 +488,8 @@ export default function ExpandedClipWaveform({
             )
           })()}
 
-        {/* Word boundaries - vertical lines for each word */}
-        {words.map((word) => {
+        {/* Word boundaries - vertical lines for each word in focused range */}
+        {displayWords.map((word) => {
           const startPos = getBarPosition(word.start)
           const isSelected = word.id === focusedWord?.id
 
@@ -496,13 +535,16 @@ export default function ExpandedClipWaveform({
             //   max: 0.7,
             // }
 
+            const timingStartPos = getBarPosition(timing.start)
+            const timingEndPos = getBarPosition(timing.end)
+
             return (
               <React.Fragment key={focusedWord.id}>
-                {/* Timing Bars (White for focused word) - Top */}
+                {/* Timing Bars (Blue for focused word) - Top */}
                 <div
                   className="absolute top-0 w-2 cursor-ew-resize transition-colors z-30 bg-blue-500 hover:bg-blue-400 border border-blue-600 rounded-sm"
                   style={{
-                    left: `${getBarPosition(timing.start) * 100}%`,
+                    left: `${timingStartPos * 100}%`,
                     transform: 'translateX(-50%)',
                     height: '40%',
                     boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
@@ -516,7 +558,7 @@ export default function ExpandedClipWaveform({
                 <div
                   className="absolute top-0 w-2 cursor-ew-resize transition-colors z-30 bg-blue-500 hover:bg-blue-400 border border-blue-600 rounded-sm"
                   style={{
-                    left: `${getBarPosition(timing.end) * 100}%`,
+                    left: `${timingEndPos * 100}%`,
                     transform: 'translateX(-50%)',
                     height: '40%',
                     boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
@@ -527,7 +569,7 @@ export default function ExpandedClipWaveform({
                   title={`${focusedWord.text} 종료: ${timing.end.toFixed(2)}s`}
                 ></div>
 
-                {/* Animation Track Bars - Multiple tracks per word (max 3) */}
+                {/* Animation Track Rectangles - Multiple tracks per word (max 3) */}
                 {(() => {
                   const tracks = wordAnimationTracks.get(focusedWord.id) || []
                   const trackColors = {
@@ -535,114 +577,89 @@ export default function ExpandedClipWaveform({
                       base: 'bg-blue-500',
                       hover: 'bg-blue-400',
                       label: 'bg-blue-600',
+                      text: 'text-white',
                     },
                     green: {
                       base: 'bg-green-500',
                       hover: 'bg-green-400',
                       label: 'bg-green-600',
+                      text: 'text-white',
                     },
                     purple: {
                       base: 'bg-purple-500',
                       hover: 'bg-purple-400',
                       label: 'bg-purple-600',
+                      text: 'text-white',
                     },
                   }
 
                   return tracks.map((track, trackIndex) => {
                     const colors = trackColors[track.color]
-                    const bottomOffset = 40 + trackIndex * 15 // Stack tracks vertically
+                    const topOffset = 50 + trackIndex * 15 // Position below red line with more space
+                    const startPos = getBarPosition(track.timing.start)
+                    const endPos = getBarPosition(track.timing.end)
+                    const width = (endPos - startPos) * 100
 
                     return (
                       <React.Fragment
                         key={`${focusedWord.id}-${track.assetId}`}
                       >
-                        {/* Track timing start */}
+                        {/* Track timing rectangle with draggable borders and moveable center */}
                         <div
-                          className={`absolute w-2 cursor-ew-resize transition-colors z-30 ${colors.base} hover:${colors.hover} border border-white rounded-sm shadow-md`}
+                          className={`absolute transition-colors z-30 ${colors.base} hover:${colors.hover} border border-gray-300 rounded-md shadow-lg overflow-hidden group`}
                           style={{
-                            left: `${getBarPosition(track.timing.start) * 100}%`,
-                            transform: 'translateX(-50%)',
-                            bottom: `${bottomOffset}%`,
-                            height: '12%',
+                            left: `${startPos * 100}%`,
+                            width: `${width}%`,
+                            top: `${topOffset}%`,
+                            height: '25px',
                           }}
-                          onMouseDown={(e) =>
-                            handleDragStart(
-                              focusedWord.id,
-                              `track-${track.assetId}-start`,
-                              e
-                            )
-                          }
-                          title={`${track.assetName} 시작: ${track.timing.start.toFixed(2)}s`}
                         >
+                          {/* Left border handle (start) */}
                           <div
-                            className={`absolute -bottom-6 left-1/2 -translate-x-1/2 ${colors.label} text-white text-xs px-2 py-1 rounded whitespace-nowrap`}
+                            className="absolute left-0 top-0 w-1 h-full cursor-ew-resize bg-black/50 hover:bg-white transition-all z-50"
+                            onMouseDown={(e) =>
+                              handleDragStart(
+                                focusedWord.id,
+                                `track-${track.assetId}-start`,
+                                e
+                              )
+                            }
+                            title={`${track.assetName} 시작: ${track.timing.start.toFixed(2)}s`}
+                          />
+
+                          {/* Right border handle (end) */}
+                          <div
+                            className="absolute right-0 top-0 w-1 h-full cursor-ew-resize bg-black/50 hover:bg-white transition-all z-50"
+                            onMouseDown={(e) =>
+                              handleDragStart(
+                                focusedWord.id,
+                                `track-${track.assetId}-end`,
+                                e
+                              )
+                            }
+                            title={`${track.assetName} 종료: ${track.timing.end.toFixed(2)}s`}
+                          />
+
+                          {/* Center area for moving entire track */}
+                          <div
+                            className="absolute left-1 right-1 top-0 h-full cursor-move hover:bg-black/10 transition-all z-40"
+                            onMouseDown={(e) =>
+                              handleDragStart(
+                                focusedWord.id,
+                                `track-${track.assetId}-move`,
+                                e
+                              )
+                            }
+                            title={`${track.assetName} 이동: ${track.timing.start.toFixed(2)}s - ${track.timing.end.toFixed(2)}s`}
+                          />
+
+                          {/* Animation name inside rectangle */}
+                          <div
+                            className={`absolute inset-1 flex items-center justify-center ${colors.text} text-xs font-medium pointer-events-none z-45 truncate`}
                           >
-                            {track.assetName.split(' ')[0]} 시작
+                            {track.assetName}
                           </div>
                         </div>
-
-                        {/* Track timing end */}
-                        <div
-                          className={`absolute w-2 cursor-ew-resize transition-colors z-30 ${colors.base} hover:${colors.hover} border border-white rounded-sm shadow-md`}
-                          style={{
-                            left: `${getBarPosition(track.timing.end) * 100}%`,
-                            transform: 'translateX(-50%)',
-                            bottom: `${bottomOffset}%`,
-                            height: '12%',
-                          }}
-                          onMouseDown={(e) =>
-                            handleDragStart(
-                              focusedWord.id,
-                              `track-${track.assetId}-end`,
-                              e
-                            )
-                          }
-                          title={`${track.assetName} 종료: ${track.timing.end.toFixed(2)}s`}
-                        >
-                          <div
-                            className={`absolute -bottom-6 left-1/2 -translate-x-1/2 ${colors.label} text-white text-xs px-2 py-1 rounded whitespace-nowrap`}
-                          >
-                            {track.assetName.split(' ')[0]} 종료
-                          </div>
-                        </div>
-
-                        {/* Track intensity min */}
-                        <div
-                          className={`absolute w-2 cursor-ew-resize transition-colors z-30 ${colors.base} hover:${colors.hover} border border-white rounded-sm shadow-md`}
-                          style={{
-                            left: `${track.intensity.min * 100}%`,
-                            transform: 'translateX(-50%)',
-                            bottom: `${bottomOffset - 15}%`,
-                            height: '12%',
-                          }}
-                          onMouseDown={(e) =>
-                            handleDragStart(
-                              focusedWord.id,
-                              `track-${track.assetId}-min`,
-                              e
-                            )
-                          }
-                          title={`${track.assetName} 최소: ${(track.intensity.min * 100).toFixed(0)}%`}
-                        />
-
-                        {/* Track intensity max */}
-                        <div
-                          className={`absolute w-2 cursor-ew-resize transition-colors z-30 ${colors.base} hover:${colors.hover} border border-white rounded-sm shadow-md`}
-                          style={{
-                            left: `${track.intensity.max * 100}%`,
-                            transform: 'translateX(-50%)',
-                            bottom: `${bottomOffset - 15}%`,
-                            height: '12%',
-                          }}
-                          onMouseDown={(e) =>
-                            handleDragStart(
-                              focusedWord.id,
-                              `track-${track.assetId}-max`,
-                              e
-                            )
-                          }
-                          title={`${track.assetName} 최대: ${(track.intensity.max * 100).toFixed(0)}%`}
-                        />
                       </React.Fragment>
                     )
                   })
