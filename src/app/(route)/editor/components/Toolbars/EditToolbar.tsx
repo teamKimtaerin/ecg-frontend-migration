@@ -45,20 +45,6 @@ export default function EditToolbar({
   onSplitClip,
   onRestore,
 }: EditToolbarProps) {
-  const [isVideoLocked, setIsVideoLocked] = useState(false)
-
-  const handleVideoLockChange = (locked: boolean) => {
-    setIsVideoLocked(locked)
-    // TODO: Implement actual video lock functionality
-    // - Disable video controls when locked
-    // - Prevent video section from being resized
-    // - Lock video playback controls
-    showToast(
-      locked ? '영상이 잠겼습니다' : '영상 잠금이 해제되었습니다',
-      'success'
-    )
-  }
-
   return (
     <>
       {/* 클립 선택 드롭다운 */}
@@ -205,16 +191,6 @@ export default function EditToolbar({
       />
 
       <ToolbarDivider />
-
-      {/* 영상 잠그기 스위치 - 레이블이 아래에 위치하도록 */}
-      <div className="flex flex-col items-center justify-center px-2">
-        <Switch
-          isSelected={isVideoLocked}
-          onChange={handleVideoLockChange}
-          size="small"
-        />
-        <span className="text-xs text-slate-400 mt-1">영상 잠그기</span>
-      </div>
 
       {/* 원본 복원 버튼 */}
       <ToolbarButton

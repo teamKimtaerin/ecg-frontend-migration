@@ -6,6 +6,7 @@ import HomeToolbar from './HomeToolbar'
 import EditToolbar from './EditToolbar'
 import FormatToolbar from './FormatToolbar'
 import InsertToolbar from './InsertToolbar'
+import TemplateToolbar from './TemplateToolbar'
 
 import ToolbarWrapper from './shared/ToolbarWrapper'
 
@@ -26,6 +27,8 @@ interface ToolbarsProps {
   onPaste?: () => void
   onSplitClip?: () => void
   onRestore?: () => void
+  onToggleAnimationSidebar?: () => void
+  onToggleTemplateSidebar?: () => void
 }
 
 /**
@@ -49,6 +52,8 @@ export default function Toolbars({
   onPaste,
   onSplitClip,
   onRestore,
+  onToggleAnimationSidebar,
+  onToggleTemplateSidebar,
 }: ToolbarsProps) {
   // 공통 props
   const commonProps = {
@@ -92,14 +97,6 @@ export default function Toolbars({
         </ToolbarWrapper>
       )
 
-    case 'subtitle':
-      // TODO: SubtitleToolbar 구현
-      return (
-        <ToolbarWrapper variant="base" onExport={handleExport}>
-          <HomeToolbar {...commonProps} onNewClick={onNewClick} />
-        </ToolbarWrapper>
-      )
-
     case 'format':
       return (
         <ToolbarWrapper variant="base" onExport={handleExport}>
@@ -115,18 +112,13 @@ export default function Toolbars({
       )
 
     case 'template':
-      // TODO: TemplateToolbar 구현
       return (
         <ToolbarWrapper variant="base" onExport={handleExport}>
-          <HomeToolbar {...commonProps} onNewClick={onNewClick} />
-        </ToolbarWrapper>
-      )
-
-    case 'effect':
-      // TODO: EffectToolbar 구현
-      return (
-        <ToolbarWrapper variant="base" onExport={handleExport}>
-          <HomeToolbar {...commonProps} onNewClick={onNewClick} />
+          <TemplateToolbar
+            {...commonProps}
+            onToggleAnimationSidebar={onToggleAnimationSidebar}
+            onToggleTemplateSidebar={onToggleTemplateSidebar}
+          />
         </ToolbarWrapper>
       )
 

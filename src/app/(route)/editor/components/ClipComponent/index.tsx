@@ -20,6 +20,7 @@ export default function ClipComponent({
   isMultiSelected = false,
   enableDragAndDrop = false,
   speakers = [],
+  speakerColors,
   onSelect,
   onCheck,
   onWordEdit,
@@ -52,6 +53,13 @@ export default function ClipComponent({
     onSelect(clip.id)
   }
 
+  const handleSidebarClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (onCheck) {
+      onCheck(clip.id, !isChecked)
+    }
+  }
+
   return (
     <div
       {...dragProps}
@@ -64,14 +72,19 @@ export default function ClipComponent({
       <div className="flex">
         {/* Left sidebar - extends when expanded */}
         <div
-          className={`${sidebarClassName} ${isExpanded ? 'self-stretch' : ''}`}
+          className={`${sidebarClassName} ${isExpanded ? 'self-stretch' : ''} cursor-pointer`}
+          onClick={handleSidebarClick}
         >
           <ClipTimeline index={index} />
-          <ClipCheckbox
-            clipId={clip.id}
-            isChecked={isChecked}
-            onCheck={onCheck}
-          />
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="pointer-events-auto">
+              <ClipCheckbox
+                clipId={clip.id}
+                isChecked={isChecked}
+                onCheck={onCheck}
+              />
+            </div>
+          </div>
           {isExpanded && <div className="flex-1" />}
         </div>
 
@@ -87,6 +100,7 @@ export default function ClipComponent({
                     clipId={clip.id}
                     speaker={clip.speaker}
                     speakers={speakers}
+                    speakerColors={speakerColors}
                     onSpeakerChange={onSpeakerChange}
                     onBatchSpeakerChange={onBatchSpeakerChange}
                     onOpenSpeakerManagement={onOpenSpeakerManagement}
