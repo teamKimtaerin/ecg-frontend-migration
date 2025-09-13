@@ -480,7 +480,7 @@ export default function EditorPage() {
     markAsSaved,
     rightSidebarType,
     setRightSidebarType,
-    isAssetSidebarOpen,
+    // isAssetSidebarOpen,
     assetSidebarWidth,
     setAssetSidebarWidth,
     editingMode,
@@ -847,9 +847,9 @@ export default function EditorPage() {
     setRightSidebarType(rightSidebarType === 'speaker' ? null : 'speaker')
   }
 
-  const handleOpenAnimationSidebar = () => {
-    setRightSidebarType('animation')
-  }
+  // const handleOpenAnimationSidebar = () => {
+  //   setRightSidebarType('animation')
+  // }
 
   const handleToggleAnimationSidebar = () => {
     setRightSidebarType(rightSidebarType === 'animation' ? null : 'animation')

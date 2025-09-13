@@ -25,6 +25,7 @@ export interface DocumentModalProps {
   buttonRef: React.RefObject<HTMLButtonElement | null>
   exportTasks?: ExportTask[]
   uploadTasks?: UploadTask[]
+  onDeployClick?: (task: ExportTask) => void
 }
 
 const DocumentModal: React.FC<DocumentModalProps> = ({
@@ -33,10 +34,11 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
   buttonRef,
   exportTasks = [],
   uploadTasks = [],
+  onDeployClick,
 }) => {
   const [activeTab, setActiveTab] = useState<'export' | 'upload'>('export')
   const modalRef = useRef<HTMLDivElement>(null)
-  const [position, setPosition] = useState({ top: 0, right: 0 })
+  const [position, setPosition] = useState({ top: 0, left: 0 })
   const [isMounted, setIsMounted] = useState(false)
 
   // Set mounted state
@@ -48,9 +50,11 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
   useEffect(() => {
     if (isOpen && buttonRef.current) {
       const buttonRect = buttonRef.current.getBoundingClientRect()
+      const modalWidth = 384 // 실제 모달 너비 (w-96 = 384px)
+
       setPosition({
         top: buttonRect.bottom + 8, // 8px gap below button
-        right: window.innerWidth - buttonRect.right, // Align right edge with button
+        left: buttonRect.left + buttonRect.width / 2 - modalWidth / 2, // 버튼 중앙에 모달 중앙 정렬
       })
     }
   }, [isOpen, buttonRef])
@@ -82,10 +86,10 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
   return createPortal(
     <div
       ref={modalRef}
-      className="fixed w-96 bg-white rounded-lg shadow-lg border border-gray-200 z-[9999]"
+      className="fixed w-96 bg-white rounded-lg shadow-lg border border-gray-200 z-[9997]"
       style={{
         top: position.top,
-        right: position.right,
+        left: position.left,
       }}
     >
       {/* Tab Bar */}
@@ -209,7 +213,8 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
                     .map((task) => (
                       <div
                         key={task.id}
-                        className="bg-green-50 border border-green-200 rounded-lg p-3"
+                        className="bg-green-50 border border-green-200 rounded-lg p-3 hover:bg-green-100 transition-colors cursor-pointer"
+                        onClick={() => onDeployClick?.(task)}
                       >
                         <div className="flex items-center justify-between mb-1">
                           <span className="text-sm font-medium text-gray-800 truncate">
@@ -222,9 +227,14 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
                             </span>
                           </div>
                         </div>
-                        <span className="text-xs text-gray-500">
-                          {task.completedAt}
-                        </span>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-gray-500">
+                            {task.completedAt}
+                          </span>
+                          <span className="text-xs text-blue-600 font-medium">
+                            배포하기
+                          </span>
+                        </div>
                       </div>
                     ))}
                 </div>
