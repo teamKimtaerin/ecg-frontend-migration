@@ -10,10 +10,12 @@ import { clsx } from 'clsx'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState, useMemo } from 'react'
 import { LuSearch, LuChevronDown } from 'react-icons/lu'
+import { useAuthStatus } from '@/hooks/useAuthStatus'
 
 // 메인 페이지 컴포넌트
 export default function AssetPage() {
   const router = useRouter()
+  const { isLoggedIn, user, isLoading: authLoading } = useAuthStatus()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedAsset, setSelectedAsset] = useState<AssetItem | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -329,7 +331,13 @@ export default function AssetPage() {
 
   return (
     <div className={mainContainerClasses}>
-      <Header onTryClick={handleTryClick} onLoginClick={handleLoginClick} />
+      <Header
+        onTryClick={handleTryClick}
+        onLoginClick={handleLoginClick}
+        isLoggedIn={isLoggedIn}
+        user={user}
+        isLoading={authLoading}
+      />
 
       <div className="flex">
         <AssetSidebar
@@ -434,8 +442,8 @@ export default function AssetPage() {
                 onClick={handleUploadClick}
                 className="px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors flex items-center space-x-2 cursor-pointer"
               >
-                <span>+</span>
-                <span>Upload Asset</span>
+                <span className="font-bold">+</span>
+                <span>에셋 업로드</span>
               </button>
             </div>
           </div>

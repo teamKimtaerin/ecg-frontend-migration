@@ -134,7 +134,6 @@ export default function ExpandedClipWaveform({
     updateWordTiming,
     updateAnimationIntensity,
     updateAnimationTrackTiming,
-    updateAnimationTrackIntensity,
     undoWordTiming,
     redoWordTiming,
     setHasUnsavedChanges,
@@ -147,17 +146,6 @@ export default function ExpandedClipWaveform({
   const focusedWord = words.find(
     (w) => w.id === (focusedWordId || expandedWordId)
   )
-
-  // Get current adjustments or default values (unused for now but kept for future use)
-  // const timingAdjustment = focusedWord && wordTimingAdjustments.get(focusedWord.id) || {
-  //   start: focusedWord?.start || 0,
-  //   end: focusedWord?.end || 0,
-  // }
-
-  // const animationIntensity = focusedWord && wordAnimationIntensity.get(focusedWord.id) || {
-  //   min: 0.3,
-  //   max: 0.7,
-  // }
 
   // Local state for dragging - track for each word
   const [draggedWordId, setDraggedWordId] = useState<string | null>(null)
@@ -424,7 +412,6 @@ export default function ExpandedClipWaveform({
     updateWordTiming,
     updateAnimationIntensity,
     updateAnimationTrackTiming,
-    updateAnimationTrackIntensity,
     setHasUnsavedChanges,
   ])
 
@@ -529,11 +516,6 @@ export default function ExpandedClipWaveform({
               start: focusedWord.start,
               end: focusedWord.end,
             }
-            // Intensity is not used in current implementation
-            // const intensity = wordAnimationIntensity.get(focusedWord.id) || {
-            //   min: 0.3,
-            //   max: 0.7,
-            // }
 
             const timingStartPos = getBarPosition(timing.start)
             const timingEndPos = getBarPosition(timing.end)
