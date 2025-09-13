@@ -65,6 +65,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onQuickStartClick }) => {
               alt="영상 미리보기"
               width={800}
               height={450}
+              priority
               className="w-full h-full object-cover"
             />
           </div>
