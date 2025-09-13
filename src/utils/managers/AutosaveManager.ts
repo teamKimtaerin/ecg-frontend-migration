@@ -182,7 +182,7 @@ export class AutosaveManager {
     const startTime = Date.now()
 
     try {
-      // 로컬 저장 (항상)
+      // 로컬 저장 (IndexedDB 실패시 자동으로 fallback 사용)
       await projectStorage.saveProject(projectData)
       projectStorage.saveCurrentProject(projectData)
 
@@ -211,7 +211,23 @@ export class AutosaveManager {
         this.changeCounter = 0 // Reset counter after server save
       }
     } catch (err) {
-      logError('AutosaveManager.ts', 'Failed to save project', err)
+      // IndexedDB 관련 에러인지 확인하여 더 구체적인 로그 제공
+      let errorContext = 'Unknown error'
+      if (err instanceof Error) {
+        errorContext = err.message
+        if (err.message.includes('IndexedDB')) {
+          log(
+            'AutosaveManager.ts',
+            'IndexedDB error detected - fallback storage should handle this automatically'
+          )
+        }
+      }
+
+      logError(
+        'AutosaveManager.ts',
+        `Failed to save project: ${errorContext}`,
+        err
+      )
       this.setSaveStatus('error')
 
       // 재시도 로직

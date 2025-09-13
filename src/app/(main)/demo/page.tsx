@@ -12,8 +12,7 @@ export default function Home() {
   const [lastScrollY, setLastScrollY] = useState(0)
   const [isTranscriptionModalOpen, setIsTranscriptionModalOpen] =
     useState(false)
-  const { isTranscriptionLoading, handleFileSelect, handleStartTranscription } =
-    useUploadModal()
+  const { handleFileSelect, handleStartTranscription } = useUploadModal()
 
   const heroRef = useRef<HTMLElement>(null)
   const featuresRef = useRef<HTMLElement>(null)
@@ -129,15 +128,13 @@ export default function Home() {
       {/* Upload Modal */}
       <UploadModal
         isOpen={isTranscriptionModalOpen}
-        onClose={() =>
-          !isTranscriptionLoading && setIsTranscriptionModalOpen(false)
-        }
+        onClose={() => setIsTranscriptionModalOpen(false)}
         onFileSelect={handleFileSelect}
         onStartTranscription={wrappedHandleStartTranscription}
         acceptedTypes={['audio/*', 'video/*']}
         maxFileSize={FILE_SIZE_LIMITS.large} // 100MB
         multiple={true}
-        isLoading={isTranscriptionLoading}
+        isLoading={false}
       />
     </div>
   )

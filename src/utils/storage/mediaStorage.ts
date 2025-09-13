@@ -5,7 +5,7 @@
 import { getTimestamp } from '@/utils/logger'
 
 const DB_NAME = 'ECGMediaStorage'
-const DB_VERSION = 2 // Version bump for new project stores
+const DB_VERSION = 3 // Version bump to fix missing stores
 const MEDIA_STORE = 'media'
 const PROJECT_MEDIA_STORE = 'projectMedia'
 // New project data stores
@@ -47,26 +47,99 @@ export interface ProjectMediaInfo {
 class MediaStorage {
   private db: IDBDatabase | null = null
   private blobUrls: Map<string, string> = new Map()
+  private initializationPromise: Promise<void> | null = null
+  private initializationAttempts = 0
+  private maxInitializationAttempts = 3
+  private isIndexedDBSupported = true
 
   /**
-   * IndexedDB 초기화
+   * IndexedDB 초기화 (에러 처리 및 재시도 로직 포함)
    */
   async initialize(): Promise<void> {
+    // 이미 초기화 중이라면 해당 Promise 반환
+    if (this.initializationPromise) {
+      return this.initializationPromise
+    }
+
+    // IndexedDB 지원 여부 확인
+    if (!('indexedDB' in window)) {
+      console.warn(
+        `[${getTimestamp()}] mediaStorage.ts IndexedDB not supported in this browser`
+      )
+      this.isIndexedDBSupported = false
+      return Promise.resolve()
+    }
+
+    this.initializationPromise = this.performInitialization()
+    return this.initializationPromise
+  }
+
+  private async performInitialization(): Promise<void> {
     return new Promise((resolve, reject) => {
+      this.initializationAttempts++
       const request = indexedDB.open(DB_NAME, DB_VERSION)
 
-      request.onerror = () => {
+      const timeoutId = setTimeout(() => {
         console.error(
-          `[${getTimestamp()}] mediaStorage.ts Failed to open IndexedDB`
+          `[${getTimestamp()}] mediaStorage.ts IndexedDB initialization timeout (attempt ${this.initializationAttempts})`
         )
-        reject(new Error('Failed to open IndexedDB'))
+        reject(new Error('IndexedDB initialization timeout'))
+      }, 10000) // 10초 타임아웃
+
+      request.onerror = () => {
+        clearTimeout(timeoutId)
+        const error = request.error?.message || 'Unknown IndexedDB error'
+        console.error(
+          `[${getTimestamp()}] mediaStorage.ts Failed to open IndexedDB (attempt ${this.initializationAttempts}): ${error}`
+        )
+
+        if (this.initializationAttempts < this.maxInitializationAttempts) {
+          console.log(
+            `[${getTimestamp()}] mediaStorage.ts Retrying IndexedDB initialization in 2 seconds...`
+          )
+          setTimeout(() => {
+            this.initializationPromise = null
+            this.performInitialization().then(resolve).catch(reject)
+          }, 2000)
+        } else {
+          this.isIndexedDBSupported = false
+          console.error(
+            `[${getTimestamp()}] mediaStorage.ts IndexedDB initialization failed after ${this.maxInitializationAttempts} attempts. Falling back to memory storage.`
+          )
+          reject(
+            new Error(
+              `IndexedDB initialization failed after ${this.maxInitializationAttempts} attempts`
+            )
+          )
+        }
       }
 
       request.onsuccess = () => {
+        clearTimeout(timeoutId)
         this.db = request.result
+
+        // 데이터베이스 에러 핸들러 등록
+        this.db.onerror = (event) => {
+          console.error(
+            `[${getTimestamp()}] mediaStorage.ts IndexedDB database error:`,
+            event
+          )
+        }
+
+        // 버전 변경 처리
+        this.db.onversionchange = () => {
+          console.warn(
+            `[${getTimestamp()}] mediaStorage.ts IndexedDB version change detected. Closing connection.`
+          )
+          this.db?.close()
+          this.db = null
+          this.initializationPromise = null
+        }
+
         console.log(
-          `[${getTimestamp()}] mediaStorage.ts IndexedDB initialized successfully`
+          `[${getTimestamp()}] mediaStorage.ts IndexedDB initialized successfully (attempt ${this.initializationAttempts})`
         )
+        this.initializationAttempts = 0 // Reset attempts on success
         resolve()
       }
 
@@ -116,14 +189,34 @@ class MediaStorage {
   }
 
   /**
-   * 비디오 파일 저장
+   * IndexedDB 지원 여부 확인
+   */
+  private isIndexedDBAvailable(): boolean {
+    return this.isIndexedDBSupported && this.db !== null
+  }
+
+  /**
+   * 비디오 파일 저장 (폴백 지원)
    */
   async saveMedia(
     projectId: string,
     file: File,
     metadata?: Partial<MediaFile>
   ): Promise<string> {
-    if (!this.db) await this.initialize()
+    try {
+      if (!this.db && this.isIndexedDBSupported) {
+        await this.initialize()
+      }
+    } catch (error) {
+      console.warn(
+        `[${getTimestamp()}] mediaStorage.ts IndexedDB initialization failed, using fallback storage`
+      )
+    }
+
+    // IndexedDB가 사용 불가능한 경우 폴백 방식
+    if (!this.isIndexedDBAvailable()) {
+      return this.saveFallback(projectId, file, metadata)
+    }
 
     const mediaId = `media_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
 
@@ -140,56 +233,181 @@ class MediaStorage {
     }
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([MEDIA_STORE], 'readwrite')
-      const store = transaction.objectStore(MEDIA_STORE)
-      const request = store.add(mediaFile)
+      try {
+        const transaction = this.db!.transaction([MEDIA_STORE], 'readwrite')
+        const store = transaction.objectStore(MEDIA_STORE)
+        const request = store.add(mediaFile)
 
-      request.onsuccess = () => {
-        console.log(
-          `[${getTimestamp()}] mediaStorage.ts Media saved: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`
-        )
-        resolve(mediaId)
-      }
+        request.onsuccess = () => {
+          console.log(
+            `[${getTimestamp()}] mediaStorage.ts Media saved: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`
+          )
+          resolve(mediaId)
+        }
 
-      request.onerror = () => {
+        request.onerror = () => {
+          const error = request.error?.message || 'Unknown error'
+          console.error(
+            `[${getTimestamp()}] mediaStorage.ts Failed to save media: ${error}`
+          )
+          reject(new Error(`Failed to save media: ${error}`))
+        }
+
+        transaction.onerror = () => {
+          const error = transaction.error?.message || 'Transaction failed'
+          console.error(
+            `[${getTimestamp()}] mediaStorage.ts Transaction error while saving media: ${error}`
+          )
+          reject(new Error(`Transaction error: ${error}`))
+        }
+      } catch (error) {
         console.error(
-          `[${getTimestamp()}] mediaStorage.ts Failed to save media`
+          `[${getTimestamp()}] mediaStorage.ts Exception while saving media:`,
+          error
         )
-        reject(new Error('Failed to save media'))
+        reject(error)
       }
     })
   }
 
   /**
-   * 비디오 파일 로드
+   * 폴백 저장 방식 (sessionStorage + Blob URL)
    */
-  async loadMedia(mediaId: string): Promise<MediaFile | null> {
-    if (!this.db) await this.initialize()
+  private async saveFallback(
+    projectId: string,
+    file: File,
+    metadata?: Partial<MediaFile>
+  ): Promise<string> {
+    const mediaId = `fallback_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
 
-    return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([MEDIA_STORE], 'readonly')
-      const store = transaction.objectStore(MEDIA_STORE)
-      const request = store.get(mediaId)
+    try {
+      // Blob URL 생성 및 캐싱
+      const blobUrl = URL.createObjectURL(file)
+      this.blobUrls.set(mediaId, blobUrl)
 
-      request.onsuccess = () => {
-        const media = request.result
-        if (media) {
-          // Update last accessed time
-          this.updateLastAccessed(mediaId)
-          console.log(
-            `[${getTimestamp()}] mediaStorage.ts Media loaded: ${media.fileName}`
-          )
-          resolve(media)
-        } else {
-          resolve(null)
+      // 메타데이터만 sessionStorage에 저장
+      const mediaInfo = {
+        id: mediaId,
+        projectId,
+        fileName: file.name,
+        fileType: file.type,
+        fileSize: file.size,
+        createdAt: new Date().toISOString(),
+        lastAccessed: new Date().toISOString(),
+        ...metadata,
+      }
+
+      sessionStorage.setItem(`media_${mediaId}`, JSON.stringify(mediaInfo))
+
+      console.log(
+        `[${getTimestamp()}] mediaStorage.ts Media saved to fallback storage: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`
+      )
+
+      return mediaId
+    } catch (error) {
+      console.error(
+        `[${getTimestamp()}] mediaStorage.ts Failed to save media to fallback storage:`,
+        error
+      )
+      throw error
+    }
+  }
+
+  /**
+   * 폴백 로드 방식
+   */
+  private async loadFallback(mediaId: string): Promise<MediaFile | null> {
+    try {
+      const mediaInfoStr = sessionStorage.getItem(`media_${mediaId}`)
+      if (!mediaInfoStr) return null
+
+      const mediaInfo = JSON.parse(mediaInfoStr)
+
+      // Blob URL이 이미 있는 경우
+      if (this.blobUrls.has(mediaId)) {
+        return {
+          ...mediaInfo,
+          blob: null, // 실제 Blob은 Blob URL로 대체
+          createdAt: new Date(mediaInfo.createdAt),
+          lastAccessed: new Date(mediaInfo.lastAccessed),
         }
       }
 
-      request.onerror = () => {
+      return null
+    } catch (error) {
+      console.error(
+        `[${getTimestamp()}] mediaStorage.ts Failed to load media from fallback storage:`,
+        error
+      )
+      return null
+    }
+  }
+
+  /**
+   * 비디오 파일 로드 (폴백 지원)
+   */
+  async loadMedia(mediaId: string): Promise<MediaFile | null> {
+    try {
+      if (!this.db && this.isIndexedDBSupported) {
+        await this.initialize()
+      }
+    } catch (error) {
+      console.warn(
+        `[${getTimestamp()}] mediaStorage.ts IndexedDB initialization failed, using fallback storage`
+      )
+    }
+
+    // IndexedDB가 사용 불가능한 경우 폴백 방식
+    if (!this.isIndexedDBAvailable()) {
+      return this.loadFallback(mediaId)
+    }
+
+    return new Promise((resolve, reject) => {
+      try {
+        const transaction = this.db!.transaction([MEDIA_STORE], 'readonly')
+        const store = transaction.objectStore(MEDIA_STORE)
+        const request = store.get(mediaId)
+
+        request.onsuccess = () => {
+          const media = request.result
+          if (media) {
+            // Update last accessed time (fire and forget)
+            this.updateLastAccessed(mediaId).catch((error) => {
+              console.warn(
+                `[${getTimestamp()}] mediaStorage.ts Failed to update last accessed time:`,
+                error
+              )
+            })
+            console.log(
+              `[${getTimestamp()}] mediaStorage.ts Media loaded: ${media.fileName}`
+            )
+            resolve(media)
+          } else {
+            resolve(null)
+          }
+        }
+
+        request.onerror = () => {
+          const error = request.error?.message || 'Unknown error'
+          console.error(
+            `[${getTimestamp()}] mediaStorage.ts Failed to load media: ${error}`
+          )
+          reject(new Error(`Failed to load media: ${error}`))
+        }
+
+        transaction.onerror = () => {
+          const error = transaction.error?.message || 'Transaction failed'
+          console.error(
+            `[${getTimestamp()}] mediaStorage.ts Transaction error while loading media: ${error}`
+          )
+          reject(new Error(`Transaction error: ${error}`))
+        }
+      } catch (error) {
         console.error(
-          `[${getTimestamp()}] mediaStorage.ts Failed to load media`
+          `[${getTimestamp()}] mediaStorage.ts Exception while loading media:`,
+          error
         )
-        reject(new Error('Failed to load media'))
+        reject(error)
       }
     })
   }

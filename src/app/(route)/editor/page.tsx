@@ -5,6 +5,7 @@ import { useCallback, useEffect, useId, useState } from 'react'
 
 // Store
 import { useEditorStore } from './store'
+import { useTranscriptionStore } from '@/lib/store/transcriptionStore'
 
 // Storage & Managers
 import { mediaStorage } from '@/utils/storage/mediaStorage'
@@ -26,6 +27,7 @@ import { useUploadModal } from '@/hooks/useUploadModal'
 import { useDragAndDrop } from './hooks/useDragAndDrop'
 import { useSelectionBox } from './hooks/useSelectionBox'
 import { useUnsavedChanges } from './hooks/useUnsavedChanges'
+import { useTranscriptionPolling } from '@/hooks/useTranscriptionPolling'
 
 // Components
 import SelectionBox from '@/components/DragDrop/SelectionBox'
@@ -43,6 +45,10 @@ import SpeakerManagementSidebar from './components/SpeakerManagementSidebar'
 // Utils
 import { EditorHistory } from '@/utils/editor/EditorHistory'
 import { areClipsConsecutive } from '@/utils/editor/clipMerger'
+import {
+  convertSegmentsToClips,
+  extractSpeakersFromSegments,
+} from '@/utils/transcription/segmentConverter'
 import { MergeClipsCommand } from '@/utils/editor/commands/MergeClipsCommand'
 import { SplitClipCommand } from '@/utils/editor/commands/SplitClipCommand'
 import { DeleteClipCommand } from '@/utils/editor/commands/DeleteClipCommand'
@@ -108,6 +114,12 @@ export default function EditorPage() {
 
   // Track unsaved changes
   useUnsavedChanges(hasUnsavedChanges)
+
+  // Initialize transcription polling
+  useTranscriptionPolling()
+
+  // Get transcription store for completion handling
+  const { onComplete } = useTranscriptionStore()
 
   // Session recovery and initialization
   useEffect(() => {
@@ -304,7 +316,7 @@ export default function EditorPage() {
   const dndContextId = useId()
 
   // Upload modal hook
-  const { isTranscriptionLoading, handleFileSelect } = useUploadModal()
+  const { handleFileSelect, handleStartTranscription } = useUploadModal()
 
   // DnD functionality
   const {
@@ -532,11 +544,193 @@ export default function EditorPage() {
     }
   }
 
-  // Upload modal handler - currently not used, placeholder for future implementation
-  const wrappedHandleStartTranscription = async () => {
-    // TODO: Implement actual file upload and transcription logic
-    setIsUploadModalOpen(false)
-    showToast('파일 업로드 기능은 준비 중입니다')
+  // Set up transcription completion handler
+  useEffect(() => {
+    log('EditorPage.tsx', 'Setting up transcription completion handler')
+
+    onComplete((results: unknown) => {
+      log('EditorPage.tsx', 'Transcription completion callback triggered')
+
+      try {
+        // Type guard function to check if segments are valid
+        const isValidSegmentArray = (
+          segments: unknown
+        ): segments is Array<{
+          start_time: number
+          end_time: number
+          speaker: { speaker_id: string }
+          text: string
+          words: Array<{
+            word: string
+            start: number
+            end: number
+            volume_db?: number
+            pitch_hz?: number
+          }>
+        }> => {
+          return (
+            Array.isArray(segments) &&
+            segments.length > 0 &&
+            segments.every(
+              (segment) =>
+                segment &&
+                typeof segment === 'object' &&
+                'start_time' in segment &&
+                'end_time' in segment &&
+                'speaker' in segment &&
+                'text' in segment
+            )
+          )
+        }
+
+        // Type guard to check if results has the expected structure
+        if (results && typeof results === 'object' && 'result' in results) {
+          const mlResult = results as { result: { segments: unknown } }
+
+          if (
+            mlResult.result?.segments &&
+            isValidSegmentArray(mlResult.result.segments)
+          ) {
+            log(
+              'EditorPage.tsx',
+              `Processing ${mlResult.result.segments.length} segments`
+            )
+
+            // Convert ML server segments to clips
+            const newClips = convertSegmentsToClips(mlResult.result.segments)
+            log('EditorPage.tsx', `Converted to ${newClips.length} clips`)
+
+            // Extract speakers from segments
+            const newSpeakers = extractSpeakersFromSegments(
+              mlResult.result.segments
+            )
+            log(
+              'EditorPage.tsx',
+              `Extracted ${newSpeakers.length} speakers: ${newSpeakers.join(', ')}`
+            )
+
+            // Update editor with new clips and speakers
+            setClips(newClips)
+            setSpeakers(newSpeakers)
+
+            // Show success message
+            showToast(
+              `${newClips.length}개의 자막이 생성되었습니다!`,
+              'success'
+            )
+            log('EditorPage.tsx', 'Clips and speakers updated successfully')
+          } else {
+            log('EditorPage.tsx', 'Invalid segments structure in results')
+            console.warn(
+              'Invalid segments structure in transcription results',
+              results
+            )
+            showToast(
+              '자막 생성에 실패했습니다. 결과 구조가 올바르지 않습니다.',
+              'error'
+            )
+          }
+        } else if (
+          results &&
+          typeof results === 'object' &&
+          'segments' in results
+        ) {
+          // Handle direct segments array (legacy format)
+          const legacyResult = results as { segments: unknown }
+
+          if (
+            legacyResult.segments &&
+            isValidSegmentArray(legacyResult.segments)
+          ) {
+            log(
+              'EditorPage.tsx',
+              `Processing legacy format with ${legacyResult.segments.length} segments`
+            )
+
+            const newClips = convertSegmentsToClips(legacyResult.segments)
+            const newSpeakers = extractSpeakersFromSegments(
+              legacyResult.segments
+            )
+
+            setClips(newClips)
+            setSpeakers(newSpeakers)
+
+            showToast(
+              `${newClips.length}개의 자막이 생성되었습니다!`,
+              'success'
+            )
+            log(
+              'EditorPage.tsx',
+              'Legacy format clips and speakers updated successfully'
+            )
+          }
+        } else {
+          log('EditorPage.tsx', 'Unrecognized results structure')
+          console.warn('Unrecognized transcription results structure:', results)
+          showToast(
+            '자막 생성에 실패했습니다. 결과 형식을 인식할 수 없습니다.',
+            'error'
+          )
+        }
+      } catch (error) {
+        log(
+          'EditorPage.tsx',
+          `Error processing transcription results: ${error}`
+        )
+        console.error('Error processing transcription results:', error)
+        showToast('자막 처리 중 오류가 발생했습니다.', 'error')
+      }
+    })
+  }, [onComplete, setClips, setSpeakers])
+
+  // Upload modal handler - integrates with transcription store
+  const wrappedHandleStartTranscription = async (data: {
+    files: File[]
+    settings: { language: string }
+  }) => {
+    console.log('🚀 wrappedHandleStartTranscription called with:', data)
+    log(
+      'EditorPage.tsx',
+      `wrappedHandleStartTranscription called with ${data.files.length} files`
+    )
+
+    try {
+      // Close upload modal immediately
+      setIsUploadModalOpen(false)
+      log('EditorPage.tsx', 'Upload modal closed')
+
+      // Convert files and settings to the format expected by handleStartTranscription
+      const transcriptionData = {
+        files: data.files,
+        language: data.settings.language,
+        useDictionary: false,
+        autoSubmit: true,
+        method: 'file' as const,
+      }
+      log(
+        'EditorPage.tsx',
+        `Transcription data prepared: ${JSON.stringify({ language: transcriptionData.language, method: transcriptionData.method })}`
+      )
+
+      // Convert File[] to FileList
+      const dataTransfer = new DataTransfer()
+      data.files.forEach((file) => dataTransfer.items.add(file))
+      log('EditorPage.tsx', 'Files converted to FileList')
+
+      log('EditorPage.tsx', 'About to call handleStartTranscription...')
+      await handleStartTranscription(
+        { ...transcriptionData, files: dataTransfer.files },
+        undefined, // No success callback needed (modal already closed)
+        false // Don't redirect to editor (we're already on editor page)
+      )
+      log('EditorPage.tsx', 'handleStartTranscription completed successfully')
+    } catch (error) {
+      console.error('Failed to start transcription:', error)
+      log('EditorPage.tsx', `wrappedHandleStartTranscription error: ${error}`)
+      showToast('파일 업로드에 실패했습니다')
+      // Reopen modal on error
+      setIsUploadModalOpen(true)
+    }
   }
 
   // Merge clips handler
@@ -1255,7 +1449,7 @@ export default function EditorPage() {
 
         <NewUploadModal
           isOpen={isUploadModalOpen}
-          onClose={() => !isTranscriptionLoading && setIsUploadModalOpen(false)}
+          onClose={() => setIsUploadModalOpen(false)}
           onFileSelect={(files: File[]) => {
             // Convert File[] to FileList for compatibility
             const fileList = new DataTransfer()
@@ -1266,7 +1460,6 @@ export default function EditorPage() {
           acceptedTypes={['audio/*', 'video/*']}
           maxFileSize={100 * 1024 * 1024} // 100MB
           multiple={true}
-          isLoading={isTranscriptionLoading}
         />
 
         <TutorialModal

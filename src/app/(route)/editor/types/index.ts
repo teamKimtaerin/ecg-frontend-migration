@@ -7,6 +7,9 @@ export interface Word {
   isEditable: boolean
   confidence?: number
   appliedAssets?: string[]
+  // Audio metadata from ML server (for animations)
+  volume_db?: number // Volume level in decibels (-60 to 0)
+  pitch_hz?: number // Pitch frequency in Hz (50 to 500)
 }
 
 export interface ClipItem {

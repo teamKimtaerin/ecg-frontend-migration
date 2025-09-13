@@ -11,6 +11,7 @@ import {
 import { getTimestamp } from '@/utils/logger'
 
 const DB_NAME = 'ECGMediaStorage' // mediaStorage와 동일한 DB 사용
+const DB_VERSION = 3 // Match mediaStorage.ts version
 const PROJECTS_STORE = 'projects'
 const PROJECT_HISTORY_STORE = 'projectHistory'
 
@@ -24,28 +25,95 @@ export interface ProjectHistoryEntry {
 
 class IndexedDBProjectStorage implements ProjectStorage {
   private db: IDBDatabase | null = null
+  private initializationPromise: Promise<void> | null = null
+  private initializationAttempts = 0
+  private maxInitializationAttempts = 3
+  private isIndexedDBSupported = true
 
   /**
-   * IndexedDB 초기화 (mediaStorage와 동일한 DB 사용)
+   * IndexedDB 초기화 (에러 처리 및 재시도 로직 포함)
    */
   async initialize(): Promise<void> {
-    if (this.db) return // 이미 초기화됨
+    if (this.initializationPromise) {
+      return this.initializationPromise
+    }
 
+    if (!('indexedDB' in window)) {
+      console.warn(
+        `[${getTimestamp()}] indexedDBProjectStorage.ts IndexedDB not supported`
+      )
+      this.isIndexedDBSupported = false
+      return Promise.resolve()
+    }
+
+    this.initializationPromise = this.performInitialization()
+    return this.initializationPromise
+  }
+
+  private async performInitialization(): Promise<void> {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open(DB_NAME, 2) // Version 2 with new stores
+      this.initializationAttempts++
+      const request = indexedDB.open(DB_NAME, DB_VERSION)
+
+      const timeoutId = setTimeout(() => {
+        console.error(
+          `[${getTimestamp()}] indexedDBProjectStorage.ts IndexedDB initialization timeout (attempt ${this.initializationAttempts})`
+        )
+        reject(new Error('IndexedDB initialization timeout'))
+      }, 10000)
 
       request.onerror = () => {
+        clearTimeout(timeoutId)
+        const error = request.error?.message || 'Unknown IndexedDB error'
         console.error(
-          `[${getTimestamp()}] indexedDBProjectStorage.ts Failed to open IndexedDB`
+          `[${getTimestamp()}] indexedDBProjectStorage.ts Failed to open IndexedDB (attempt ${this.initializationAttempts}): ${error}`
         )
-        reject(new Error('Failed to open IndexedDB'))
+
+        if (this.initializationAttempts < this.maxInitializationAttempts) {
+          console.log(
+            `[${getTimestamp()}] indexedDBProjectStorage.ts Retrying IndexedDB initialization...`
+          )
+          setTimeout(() => {
+            this.initializationPromise = null
+            this.performInitialization().then(resolve).catch(reject)
+          }, 2000)
+        } else {
+          this.isIndexedDBSupported = false
+          console.error(
+            `[${getTimestamp()}] indexedDBProjectStorage.ts IndexedDB failed after ${this.maxInitializationAttempts} attempts`
+          )
+          reject(
+            new Error(
+              `IndexedDB initialization failed after ${this.maxInitializationAttempts} attempts`
+            )
+          )
+        }
       }
 
       request.onsuccess = () => {
+        clearTimeout(timeoutId)
         this.db = request.result
+
+        this.db.onerror = (event) => {
+          console.error(
+            `[${getTimestamp()}] indexedDBProjectStorage.ts IndexedDB database error:`,
+            event
+          )
+        }
+
+        this.db.onversionchange = () => {
+          console.warn(
+            `[${getTimestamp()}] indexedDBProjectStorage.ts IndexedDB version change detected`
+          )
+          this.db?.close()
+          this.db = null
+          this.initializationPromise = null
+        }
+
         console.log(
-          `[${getTimestamp()}] indexedDBProjectStorage.ts IndexedDB initialized successfully`
+          `[${getTimestamp()}] indexedDBProjectStorage.ts IndexedDB initialized successfully (attempt ${this.initializationAttempts})`
         )
+        this.initializationAttempts = 0
         resolve()
       }
 
@@ -79,10 +147,74 @@ class IndexedDBProjectStorage implements ProjectStorage {
   }
 
   /**
-   * 프로젝트 저장
+   * IndexedDB 지원 여부 확인
+   */
+  private isIndexedDBAvailable(): boolean {
+    return this.isIndexedDBSupported && this.db !== null
+  }
+
+  /**
+   * 폴백 저장 방식 (localStorage)
+   */
+  private async saveFallback(project: ProjectData): Promise<void> {
+    try {
+      const projects = this.getFallbackProjects()
+      const existingIndex = projects.findIndex((p) => p.id === project.id)
+
+      const updatedProject = { ...project, updatedAt: new Date() }
+
+      if (existingIndex >= 0) {
+        projects[existingIndex] = updatedProject
+      } else {
+        projects.push(updatedProject)
+      }
+
+      localStorage.setItem('ecg-projects-fallback', JSON.stringify(projects))
+      console.log(
+        `[${getTimestamp()}] indexedDBProjectStorage.ts Project "${project.name}" saved to fallback storage`
+      )
+    } catch (error) {
+      console.error(
+        `[${getTimestamp()}] indexedDBProjectStorage.ts Failed to save to fallback storage:`,
+        error
+      )
+      throw error
+    }
+  }
+
+  /**
+   * 폴백 로드 방식
+   */
+  private getFallbackProjects(): ProjectData[] {
+    try {
+      const data = localStorage.getItem('ecg-projects-fallback')
+      return data ? JSON.parse(data) : []
+    } catch (error) {
+      console.error(
+        `[${getTimestamp()}] indexedDBProjectStorage.ts Failed to load fallback projects:`,
+        error
+      )
+      return []
+    }
+  }
+
+  /**
+   * 프로젝트 저장 (폴백 지원)
    */
   async saveProject(project: ProjectData): Promise<void> {
-    if (!this.db) await this.initialize()
+    try {
+      if (!this.db && this.isIndexedDBSupported) {
+        await this.initialize()
+      }
+    } catch (error) {
+      console.warn(
+        `[${getTimestamp()}] indexedDBProjectStorage.ts IndexedDB initialization failed, using fallback`
+      )
+    }
+
+    if (!this.isIndexedDBAvailable()) {
+      return this.saveFallback(project)
+    }
 
     // 저장 시간 업데이트
     const updatedProject = {
@@ -91,22 +223,40 @@ class IndexedDBProjectStorage implements ProjectStorage {
     }
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([PROJECTS_STORE], 'readwrite')
-      const store = transaction.objectStore(PROJECTS_STORE)
-      const request = store.put(updatedProject)
+      try {
+        const transaction = this.db!.transaction([PROJECTS_STORE], 'readwrite')
+        const store = transaction.objectStore(PROJECTS_STORE)
+        const request = store.put(updatedProject)
 
-      request.onsuccess = () => {
-        console.log(
-          `[${getTimestamp()}] indexedDBProjectStorage.ts Project "${project.name}" saved successfully`
-        )
-        resolve()
-      }
+        request.onsuccess = () => {
+          console.log(
+            `[${getTimestamp()}] indexedDBProjectStorage.ts Project "${project.name}" saved successfully`
+          )
+          resolve()
+        }
 
-      request.onerror = () => {
+        request.onerror = () => {
+          const error = request.error?.message || 'Unknown error'
+          console.error(
+            `[${getTimestamp()}] indexedDBProjectStorage.ts Failed to save project: ${error}`
+          )
+          // 에러 발생 시 폴백으로 재시도
+          this.saveFallback(project).then(resolve).catch(reject)
+        }
+
+        transaction.onerror = () => {
+          const error = transaction.error?.message || 'Transaction failed'
+          console.error(
+            `[${getTimestamp()}] indexedDBProjectStorage.ts Transaction error: ${error}`
+          )
+          this.saveFallback(project).then(resolve).catch(reject)
+        }
+      } catch (error) {
         console.error(
-          `[${getTimestamp()}] indexedDBProjectStorage.ts Failed to save project`
+          `[${getTimestamp()}] indexedDBProjectStorage.ts Exception while saving:`,
+          error
         )
-        reject(new Error('프로젝트 저장에 실패했습니다.'))
+        this.saveFallback(project).then(resolve).catch(reject)
       }
     })
   }

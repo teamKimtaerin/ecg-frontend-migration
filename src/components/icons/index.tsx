@@ -1,6 +1,7 @@
 import React from 'react'
 import {
   ChevronDown,
+  ChevronRight,
   Info,
   X,
   XCircle,
@@ -25,6 +26,12 @@ export const ChevronDownIcon: React.FC<IconProps> = ({
   className,
   size = 20,
 }) => <ChevronDown className={className} size={size} />
+
+// Chevron Right Icon (Collapse/Expand용)
+export const ChevronRightIcon: React.FC<IconProps> = ({
+  className,
+  size = 20,
+}) => <ChevronRight className={className} size={size} />
 
 // Info Icon (Help Text neutral용)
 export const InfoIcon: React.FC<IconProps> = ({ className, size = 20 }) => (

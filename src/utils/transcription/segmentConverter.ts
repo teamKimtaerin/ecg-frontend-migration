@@ -1,7 +1,26 @@
 import { ClipItem, Word } from '@/app/(route)/editor/types'
 
-// real.json segment 타입 정의
-interface Segment {
+// ML Server result segment 타입 정의
+interface MLServerSegment {
+  start_time: number
+  end_time: number
+  speaker: {
+    speaker_id: string
+    confidence?: number
+  }
+  text: string
+  words: Array<{
+    word: string
+    start: number
+    end: number
+    confidence?: number
+    volume_db?: number // Audio level for animations
+    pitch_hz?: number // Pitch frequency for animations
+  }>
+}
+
+// Legacy real.json segment 타입 정의 (호환성 유지)
+interface LegacySegment {
   start_time: number
   end_time: number
   duration: number
@@ -21,6 +40,9 @@ interface Segment {
     confidence: number
   }>
 }
+
+// 통합 Segment 타입 (두 형식 모두 지원)
+type Segment = MLServerSegment | LegacySegment
 
 export interface Metadata {
   filename: string
@@ -59,7 +81,7 @@ export function convertSegmentToClip(
 ): ClipItem {
   const clipId = `clip_${index + 1}_${Date.now()}`
 
-  // words 변환 - ensure text is properly preserved
+  // words 변환 - ensure text is properly preserved and include audio metadata
   const words: Word[] = segment.words.map((word, wordIndex) => ({
     id: `${clipId}_word_${wordIndex}`,
     text: word.word.trim(), // Trim any whitespace
@@ -67,10 +89,19 @@ export function convertSegmentToClip(
     end: word.end,
     isEditable: true,
     confidence: word.confidence,
+    // Include audio metadata for animations (ML server format)
+    volume_db: 'volume_db' in word ? word.volume_db : undefined,
+    pitch_hz: 'pitch_hz' in word ? word.pitch_hz : undefined,
   }))
 
   // Ensure text is properly decoded and preserved
   const text = segment.text || words.map((w) => w.text).join(' ')
+
+  // Calculate duration - handle both ML server and legacy formats
+  const duration =
+    'duration' in segment
+      ? segment.duration
+      : segment.end_time - segment.start_time
 
   return {
     id: clipId,
@@ -78,7 +109,7 @@ export function convertSegmentToClip(
     speaker: segment.speaker.speaker_id, // Keep original speaker ID for now
     subtitle: text,
     fullText: text,
-    duration: `${segment.duration.toFixed(1)}초`,
+    duration: `${duration.toFixed(1)}초`,
     thumbnail: '/placeholder-thumb.jpg',
     words,
   }
@@ -89,11 +120,45 @@ export function convertSegmentsToClips(segments: Segment[]): ClipItem[] {
   return segments.map((segment, index) => convertSegmentToClip(segment, index))
 }
 
-// real.json 전체 데이터 구조
+// ML Server 결과 데이터 구조
+export interface MLServerResult {
+  job_id: string
+  status: string
+  progress: number
+  result: {
+    metadata: {
+      filename: string
+      duration: number
+      total_segments: number
+      unique_speakers: number
+    }
+    segments: MLServerSegment[]
+  }
+}
+
+// Legacy real.json 전체 데이터 구조
 export interface TranscriptionData {
   metadata?: Metadata
   speakers?: Record<string, undefined>
-  segments: Segment[]
+  segments: LegacySegment[]
+}
+
+// ML Server segments만 추출하는 헬퍼 함수
+export function extractSegmentsFromMLResult(
+  result: MLServerResult
+): MLServerSegment[] {
+  return result.result.segments
+}
+
+// 화자 목록 추출 함수
+export function extractSpeakersFromSegments(
+  segments: (MLServerSegment | LegacySegment)[]
+): string[] {
+  const speakerSet = new Set<string>()
+  segments.forEach((segment) => {
+    speakerSet.add(segment.speaker.speaker_id)
+  })
+  return Array.from(speakerSet).sort()
 }
 
 // real.json 데이터를 파싱하고 clips로 변환
