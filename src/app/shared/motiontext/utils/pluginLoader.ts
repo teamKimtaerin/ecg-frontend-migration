@@ -85,8 +85,7 @@ export async function loadLocalPlugin(name: string): Promise<PluginRuntimeModule
       const manifestResponse = await fetch(`/plugin/${encodeURIComponent(key)}/manifest.json`)
       const manifest = manifestResponse.ok ? await manifestResponse.json() : { version: '1.0.0' }
       const pluginNameWithoutVersion = key.split('@')[0]
-      registerExternalPlugin({
-        name: pluginNameWithoutVersion,
+      registerExternalPlugin(pluginNameWithoutVersion, {
         version: manifest.version || '1.0.0',
         module: mod,
         baseUrl: `/plugin/${encodeURIComponent(key)}/`,

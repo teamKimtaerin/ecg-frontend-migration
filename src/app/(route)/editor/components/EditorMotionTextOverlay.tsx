@@ -459,8 +459,8 @@ export default function EditorMotionTextOverlay({
         if (cancelled) return
         
         const controller = new MotionTextController(
-          videoEl,
           renderer,
+          videoEl,
           videoContainerRef.current || containerRef.current!.parentElement || containerRef.current!,
           { captionsVisible: true }
         )
