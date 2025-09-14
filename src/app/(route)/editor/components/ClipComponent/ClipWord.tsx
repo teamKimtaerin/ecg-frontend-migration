@@ -34,6 +34,11 @@ export default function ClipWord({
     editingClipId,
     startInlineEdit,
     endInlineEdit,
+    activeTab,
+    setActiveTab,
+    rightSidebarType,
+    setRightSidebarType,
+    isAssetSidebarOpen,
     setIsAssetSidebarOpen,
     expandClip,
   } = useEditorStore()
@@ -81,8 +86,19 @@ export default function ClipWord({
       const timeDiff = currentTime - lastClickTime
 
       if (timeDiff < 300 && isFocused) {
-        // Double-click detected on focused word - open animation sidebar and word detail editor
-        setIsAssetSidebarOpen(true)
+        // Double-click detected on focused word - switch to insert tab, open animation sidebar, and expand clip
+        if (activeTab !== 'insert') {
+          setActiveTab('insert')
+        }
+
+        // Open animation sidebar
+        if (rightSidebarType !== 'animation') {
+          setRightSidebarType('animation')
+        }
+        if (!isAssetSidebarOpen) {
+          setIsAssetSidebarOpen(true)
+        }
+
         expandClip(clipId, word.id)
       } else {
         // Single click - handle selection or start inline edit
@@ -113,6 +129,11 @@ export default function ClipWord({
       clipId,
       onWordClick,
       startInlineEdit,
+      activeTab,
+      setActiveTab,
+      rightSidebarType,
+      setRightSidebarType,
+      isAssetSidebarOpen,
       setIsAssetSidebarOpen,
       expandClip,
     ]
@@ -174,18 +195,20 @@ export default function ClipWord({
     }
 
     if (isEditing) {
-      classes.push('bg-yellow-500', 'text-black', 'ring-2', 'ring-yellow-400')
+      classes.push('bg-yel', 'text-black')
     } else if (isFocused) {
-      classes.push('bg-blue-500', 'text-white', 'ring-2', 'ring-blue-400')
+      classes.push('bg-black', 'text-white')
     } else if (isInGroup) {
-      classes.push('bg-blue-400', 'text-white')
+      classes.push('bg-black', 'text-white')
     } else {
       classes.push(
-        'bg-[#383842]',
+        'bg-white',
         'border',
-        'border-[#4D4D59]',
-        'hover:border-[#9999A6]',
-        'text-[#F2F2F2]'
+        'border-gray-500',
+        'hover:border-black',
+        'hover:bg-gray-500',
+        'text-black',
+        'font-bold'
       )
     }
 

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import AssetCard, { AssetItem } from './AssetCard'
 import { useEditorStore } from '../../store'
+import { showToast } from '@/utils/ui/toast'
 
 interface AssetGridProps {
   onAssetSelect?: (asset: AssetItem) => void
@@ -68,7 +69,6 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
             type: 'image' as const,
             value: asset.thumbnail,
           },
-          description: asset.description,
         }))
 
         setAssets(transformedAssets)
@@ -133,7 +133,9 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
         // Add the animation track with word timing - this creates the bars immediately
         addAnimationTrack(focusedWordId, asset.id, asset.name, wordTiming)
       } else {
-        console.log('Maximum 3 animations per word')
+        // Show toast when trying to add more than 3 animations
+        showToast('최대 3개의 애니메이션만 선택할 수 있습니다.', 'warning')
+        return // Don't proceed with the click
       }
     }
 
@@ -177,7 +179,7 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
     return (
       <div className="px-4 pb-4">
         <div className="text-center py-8">
-          <p className="text-slate-400 text-sm">에셋을 불러오는 중...</p>
+          <p className="text-gray-700 text-sm">에셋을 불러오는 중...</p>
         </div>
       </div>
     )
@@ -227,7 +229,7 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
 
       {!loading && !error && filteredAssets.length === 0 && (
         <div className="text-center py-8">
-          <p className="text-slate-400 text-sm">
+          <p className="text-gray-700 text-sm">
             {assetSearchQuery
               ? '검색 결과가 없습니다.'
               : '사용 가능한 에셋이 없습니다.'}

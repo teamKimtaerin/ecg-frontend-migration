@@ -6,6 +6,7 @@ import HomeToolbar from './HomeToolbar'
 import EditToolbar from './EditToolbar'
 import FormatToolbar from './FormatToolbar'
 import InsertToolbar from './InsertToolbar'
+import TemplateToolbar from './TemplateToolbar'
 
 import ToolbarWrapper from './shared/ToolbarWrapper'
 
@@ -26,6 +27,10 @@ interface ToolbarsProps {
   onPaste?: () => void
   onSplitClip?: () => void
   onRestore?: () => void
+  onToggleAnimationSidebar?: () => void
+  onToggleTemplateSidebar?: () => void
+  onSave?: () => void
+  onSaveAs?: () => void
 }
 
 /**
@@ -49,6 +54,10 @@ export default function Toolbars({
   onPaste,
   onSplitClip,
   onRestore,
+  // onToggleAnimationSidebar,
+  onToggleTemplateSidebar,
+  onSave,
+  onSaveAs,
 }: ToolbarsProps) {
   // 공통 props
   const commonProps = {
@@ -74,14 +83,24 @@ export default function Toolbars({
   switch (activeTab) {
     case 'home':
       return (
-        <ToolbarWrapper variant="base" onExport={handleExport}>
+        <ToolbarWrapper
+          variant="base"
+          onExport={handleExport}
+          onSave={onSave}
+          onSaveAs={onSaveAs}
+        >
           <HomeToolbar {...commonProps} onNewClick={onNewClick} />
         </ToolbarWrapper>
       )
 
     case 'edit':
       return (
-        <ToolbarWrapper variant="edit" onExport={handleExport}>
+        <ToolbarWrapper
+          variant="dark"
+          onExport={handleExport}
+          onSave={onSave}
+          onSaveAs={onSaveAs}
+        >
           <EditToolbar
             {...commonProps}
             clips={clips}
@@ -92,47 +111,50 @@ export default function Toolbars({
         </ToolbarWrapper>
       )
 
-    case 'subtitle':
-      // TODO: SubtitleToolbar 구현
-      return (
-        <ToolbarWrapper variant="base" onExport={handleExport}>
-          <HomeToolbar {...commonProps} onNewClick={onNewClick} />
-        </ToolbarWrapper>
-      )
-
     case 'format':
       return (
-        <ToolbarWrapper variant="base" onExport={handleExport}>
+        <ToolbarWrapper
+          variant="base"
+          onExport={handleExport}
+          onSave={onSave}
+          onSaveAs={onSaveAs}
+        >
           <FormatToolbar {...commonProps} />
         </ToolbarWrapper>
       )
 
     case 'insert':
       return (
-        <ToolbarWrapper variant="base" onExport={handleExport}>
+        <ToolbarWrapper
+          variant="base"
+          onExport={handleExport}
+          onSave={onSave}
+          onSaveAs={onSaveAs}
+        >
           <InsertToolbar {...commonProps} onNewClick={onNewClick} />
         </ToolbarWrapper>
       )
 
     case 'template':
-      // TODO: TemplateToolbar 구현
       return (
-        <ToolbarWrapper variant="base" onExport={handleExport}>
-          <HomeToolbar {...commonProps} onNewClick={onNewClick} />
-        </ToolbarWrapper>
-      )
-
-    case 'effect':
-      // TODO: EffectToolbar 구현
-      return (
-        <ToolbarWrapper variant="base" onExport={handleExport}>
-          <HomeToolbar {...commonProps} onNewClick={onNewClick} />
+        <ToolbarWrapper
+          variant="base"
+          onExport={handleExport}
+          onSave={onSave}
+          onSaveAs={onSaveAs}
+        >
+          <TemplateToolbar onToggleTemplateSidebar={onToggleTemplateSidebar} />
         </ToolbarWrapper>
       )
 
     default:
       return (
-        <ToolbarWrapper variant="base" onExport={handleExport}>
+        <ToolbarWrapper
+          variant="base"
+          onExport={handleExport}
+          onSave={onSave}
+          onSaveAs={onSaveAs}
+        >
           <HomeToolbar {...commonProps} onNewClick={onNewClick} />
         </ToolbarWrapper>
       )
