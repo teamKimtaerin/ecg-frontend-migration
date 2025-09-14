@@ -2374,6 +2374,11 @@ domexception@^4.0.0:
   dependencies:
     webidl-conversions "^7.0.0"
 
+dotenv@^16.4.5:
+  version "16.6.1"
+  resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-16.6.1.tgz#773f0e69527a8315c7285d5ee73c4459d20a8020"
+  integrity sha512-uBq4egWHTcTt33a72vpSG0z3HnPuIl6NqYcTrKEg2azoEyl2hpW0zqlxysq2pK9HlDIHyHyakeYaYnSAwd8bow==
+
 dunder-proto@^1.0.0, dunder-proto@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/dunder-proto/-/dunder-proto-1.0.1.tgz#d7ae667e1dc83482f8b70fd0f6eefc50da30f58a"
@@ -4617,12 +4622,13 @@ mkdirp@^3.0.1:
   resolved "https://registry.yarnpkg.com/mkdirp/-/mkdirp-3.0.1.tgz#e44e4c5607fb279c168241713cc6e0fea9adcb50"
   integrity sha512-+NsyUUAZDmo6YVHzL/stxSu3t9YS1iljliy3BSDrXJ/dkn1KYdmtZODGGjLcc9XLgVVpH4KshHB8XmZgMhaBXg==
 
-motiontext-renderer@^0.3.2:
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/motiontext-renderer/-/motiontext-renderer-0.3.2.tgz#c695af0ed749fad420c456652e6e5530b0f93a1c"
-  integrity sha512-FzCAfzI+JIVTVXCwY4ZSa1JYCwYEQxXkhpe8BxMeV7BTGjgkyTIRuLwo7ssNKDlNKXSsupSRHC3ysJUiooKJKQ==
+motiontext-renderer@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/motiontext-renderer/-/motiontext-renderer-1.0.0.tgz#58b3f5e7cbd73131d56a97a887e531528000f396"
+  integrity sha512-vA5FsUovBY9C4PcDgQgxhsrwq0Md/GrjW8Js9hi2oD6EdisE79kzCZzpqnx98JgrxsumFAjsfWkTNmReR+W2lA==
   dependencies:
     cors "^2.8.5"
+    dotenv "^16.4.5"
     express "^5.1.0"
     react-icons "^5.5.0"
 
