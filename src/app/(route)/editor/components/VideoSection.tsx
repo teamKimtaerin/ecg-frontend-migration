@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useRef, useState, useCallback } from 'react'
-import type { RendererConfig } from '@/app/shared/motiontext'
+import type { RendererConfigV2 as RendererConfig } from '@/app/shared/motiontext'
 import VideoPlayer from './VideoPlayer'
 import EditorMotionTextOverlay from './EditorMotionTextOverlay'
 import TextInsertionOverlay from './TextInsertion/TextInsertionOverlay'

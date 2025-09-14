@@ -21,7 +21,9 @@ interface AssetDatabaseItem {
   title: string
   category: string
   description: string
-  thumbnail: string
+  thumbnail?: string
+  pluginKey?: string
+  thumbnailPath?: string
   isPro: boolean
 }
 
@@ -77,20 +79,31 @@ const UsedAssetsStrip: React.FC<UsedAssetsStripProps> = ({
         }
 
         const data: AssetDatabase = await response.json()
+        const origin = (
+          process.env.NEXT_PUBLIC_MOTIONTEXT_PLUGIN_ORIGIN ||
+          'http://localhost:3300'
+        ).replace(/\/$/, '')
         console.log('Assets loaded successfully:', data.assets.length, 'assets')
 
         // Transform JSON data to AssetItem format
-        const transformedAssets: AssetItem[] = data.assets.map((asset) => ({
-          id: asset.id,
-          name: asset.title,
-          category: asset.category,
-          type: 'free' as const,
-          preview: {
-            type: 'image' as const,
-            value: asset.thumbnail,
-          },
-          description: asset.description,
-        }))
+        const transformedAssets: AssetItem[] = data.assets.map((asset) => {
+          let thumb = asset.thumbnail || '/placeholder-thumb.jpg'
+          if (asset.pluginKey) {
+            const base = `${origin}/plugins/${asset.pluginKey}`
+            thumb = `${base}/${asset.thumbnailPath || 'assets/thumbnail.svg'}`
+          }
+          return {
+            id: asset.id,
+            name: asset.title,
+            category: asset.category,
+            type: 'free' as const,
+            preview: {
+              type: 'image' as const,
+              value: thumb,
+            },
+            description: asset.description,
+          }
+        })
 
         setAllAssets(transformedAssets)
       } catch (err) {

@@ -13,7 +13,7 @@ import { useMotionTextRenderer } from '../hooks/useMotionTextRenderer'
 import {
   loadPluginManifest,
   getDefaultParameters,
-  generateLoopedScenario,
+  generateLoopedScenarioV2,
   validateAndNormalizeParams,
   type PluginManifest,
   type PreviewSettings,
@@ -68,6 +68,15 @@ export const MotionTextPreview = React.forwardRef<
     const updateTimerRef = useRef<number | null>(null)
     const hasScaledFromInitialRef = useRef(false)
 
+    // Stable error handler to avoid re-creating callbacks each render
+    const onRendererError = useCallback(
+      (err: Error) => {
+        console.error('Motion Text Renderer Error:', err)
+        onError?.(err.message)
+      },
+      [onError]
+    )
+
     // Motion Text Renderer Hook
     const {
       containerRef,
@@ -80,16 +89,7 @@ export const MotionTextPreview = React.forwardRef<
       initializeRenderer,
       play,
       pause,
-    } = useMotionTextRenderer({
-      autoPlay: true,
-      loop: true,
-      onError: (err) => {
-        console.error('Motion Text Renderer Error:', err)
-        if (onError) {
-          onError(err.message)
-        }
-      },
-    })
+    } = useMotionTextRenderer({ autoPlay: true, loop: true, onError: onRendererError })
 
     /**
      * 플러그인 manifest 로드
@@ -99,7 +99,13 @@ export const MotionTextPreview = React.forwardRef<
         try {
           const pluginName = manifestFile.split('/').slice(-2, -1)[0] // '/plugin/rotation@1.0.0/manifest.json' -> 'rotation@1.0.0'
 
-          const loadedManifest = await loadPluginManifest(pluginName)
+          const serverBase = (
+            process.env.NEXT_PUBLIC_MOTIONTEXT_PLUGIN_ORIGIN || 'http://localhost:3300'
+          ).replace(/\/$/, '')
+          const loadedManifest = await loadPluginManifest(pluginName, {
+            mode: 'server',
+            serverBase,
+          })
           setManifest(loadedManifest)
 
           // 상위 컴포넌트에 manifest 전달
@@ -206,12 +212,16 @@ export const MotionTextPreview = React.forwardRef<
           },
         }
 
-        const scenario = generateLoopedScenario(
+        const scenario = (generateLoopedScenarioV2(
           manifest.name,
-          settingsForGenerator,
+          settingsForGenerator as any,
           3
+        ) as any)
+        await loadScenario(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          scenario as any,
+          { silent: firstLoadDoneRef.current }
         )
-        await loadScenario(scenario, { silent: firstLoadDoneRef.current })
         console.log('[MotionTextPreview] Scenario loaded successfully')
         // Attempt to probe DOM to estimate rendered group/text center (best-effort)
         setTimeout(() => {
@@ -314,6 +324,28 @@ export const MotionTextPreview = React.forwardRef<
         window.clearTimeout(textUpdateTimerRef)
       }
     }, [text, isDragging, updateScenario]) // Include updateScenario dependency
+
+    // Shallow compare helper to avoid useless updates
+    const shallowEqual = (a: Record<string, unknown>, b: Record<string, unknown>) => {
+      const ak = Object.keys(a)
+      const bk = Object.keys(b)
+      if (ak.length !== bk.length) return false
+      for (const k of ak) {
+        if (a[k] !== b[k]) return false
+      }
+      return true
+    }
+
+    // Expose imperative API for parent to push parameter updates
+    React.useImperativeHandle(
+      ref,
+      () => ({
+        updateParameters: (next: Record<string, unknown>) => {
+          setParameters((prev) => (shallowEqual(prev, next) ? prev : next))
+        },
+      }),
+      []
+    )
 
     /**
      * 컨테이너 크기 관찰하여 반응형 처리

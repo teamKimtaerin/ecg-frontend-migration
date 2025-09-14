@@ -7,7 +7,7 @@ import {
   loadPluginManifest,
   getDefaultParameters,
   validateAndNormalizeParams,
-  type RendererConfig,
+  type RendererConfigV2,
   type PluginManifest,
 } from '@/app/shared/motiontext'
 import { videoSegmentManager } from '@/utils/video/segmentManager'
@@ -15,8 +15,8 @@ import { buildScenarioFromReal, type RealJson } from '../utils/realToScenario'
 
 interface EditorMotionTextOverlayProps {
   videoContainerRef: React.RefObject<HTMLDivElement | null>
-  onScenarioUpdate?: (scenario: RendererConfig) => void
-  scenarioOverride?: RendererConfig
+  onScenarioUpdate?: (scenario: RendererConfigV2) => void
+  scenarioOverride?: RendererConfigV2
 }
 
 /**
@@ -132,9 +132,12 @@ export default function EditorMotionTextOverlay({
       if (manifestRef.current) return
       try {
         const pluginName = 'elastic@1.0.0'
+        const serverBase = (
+          process.env.NEXT_PUBLIC_MOTIONTEXT_PLUGIN_ORIGIN || 'http://localhost:3300'
+        ).replace(/\/$/, '')
         const manifest = await loadPluginManifest(pluginName, {
-          mode: 'local',
-          localBase: '/plugin/',
+          mode: 'server',
+          serverBase,
         })
         if (cancelled) return
         manifestRef.current = {
@@ -152,8 +155,8 @@ export default function EditorMotionTextOverlay({
     }
   }, [])
 
-  const buildScenarioFromClips = useCallback((): RendererConfig => {
-    const pluginName = (manifestRef.current?.key as string) || 'elastic@1.0.0'
+  const buildScenarioFromClips = useCallback((): RendererConfigV2 => {
+    const pluginName = manifestRef.current?.name || 'elastic'
     const rawParams = defaultParamsRef.current || {}
     const manifest = manifestRef.current
     const params = manifest
@@ -177,7 +180,7 @@ export default function EditorMotionTextOverlay({
       const [m, sec] = parts
       return (m || 0) * 60 + (sec || 0)
     }
-    const cues = [] as RendererConfig['cues']
+    const cues: RendererConfigV2['cues'] = []
     // Track valid clips for debugging if needed
     for (const clip of clips) {
       if (deletedClipIds.has(clip.id)) continue
@@ -190,12 +193,15 @@ export default function EditorMotionTextOverlay({
       const text = clip.subtitle || clip.fullText || ''
 
       // Process valid clip
+      const display: [number, number] = [adjStart, adjEnd]
       cues.push({
         id: `cue-${clip.id}`,
         track: 'editor',
-        hintTime: { start: adjStart, end: adjEnd },
+        domLifetime: [adjStart, adjEnd],
         root: {
-          e_type: 'group',
+          id: `group-${clip.id}`,
+          eType: 'group',
+          displayTime: display,
           layout: {
             anchor: 'bc',
             position: { x: centerX, y: centerY },
@@ -203,15 +209,20 @@ export default function EditorMotionTextOverlay({
           },
           children: [
             {
-              e_type: 'text',
+              id: `text-${clip.id}`,
+              eType: 'text',
               text,
-              absStart: adjStart,
-              absEnd: adjEnd,
+              displayTime: display,
               layout: {
                 anchor: 'bc',
               },
               pluginChain: [
-                { name: pluginName, params, relStartPct: 0, relEndPct: 1 },
+                {
+                  name: pluginName,
+                  params,
+                  baseTime: display,
+                  timeOffset: ['0%', '100%'],
+                },
               ],
             },
           ],
@@ -219,8 +230,9 @@ export default function EditorMotionTextOverlay({
       })
     }
 
-    const config: RendererConfig = {
-      version: '1.3',
+    const config: RendererConfigV2 = {
+      version: '2.0',
+      pluginApiVersion: '3.0',
       timebase: { unit: 'seconds' },
       stage: { baseAspect: '16:9' },
       tracks: [
@@ -261,7 +273,7 @@ export default function EditorMotionTextOverlay({
       try {
         const res = await fetch(path)
         if (!res.ok) return
-        const json = (await res.json()) as RendererConfig
+        const json = (await res.json()) as RendererConfigV2
         if (cancelled) return
         setUsingExternalScenario(true)
         await loadScenario(json)

@@ -30,6 +30,53 @@ export interface RendererConfig {
   }>
 }
 
+// V2 Scenario Types (minimal, local to frontend)
+export interface RendererConfigV2 {
+  version: '2.0'
+  pluginApiVersion: '3.0'
+  timebase: { unit: 'seconds'; fps?: number }
+  stage: { baseAspect: '16:9' | '9:16' | 'auto' }
+  define?: Record<string, unknown>
+  tracks: Array<{
+    id: string
+    type: 'subtitle' | 'free'
+    layer: number
+    defaultStyle?: Record<string, unknown>
+    defaultConstraints?: Record<string, unknown>
+  }>
+  cues: Array<{
+    id: string
+    track: string
+    domLifetime?: [number, number]
+    root: V2NodeGroup
+  }>
+}
+
+type V2NodeBase = {
+  id: string
+  eType: 'group' | 'text' | 'image' | 'video'
+  displayTime?: [number, number]
+  layout?: Record<string, unknown>
+  style?: Record<string, unknown>
+  pluginChain?: Array<{
+    name: string
+    baseTime?: [number, number]
+    timeOffset?: [number | string, number | string]
+    params?: Record<string, unknown>
+    compose?: 'replace' | 'add' | 'multiply'
+  }>
+}
+
+type V2NodeText = V2NodeBase & {
+  eType: 'text'
+  text: string
+}
+
+type V2NodeGroup = V2NodeBase & {
+  eType: 'group'
+  children?: Array<V2NodeText>
+}
+
 export interface PluginManifest {
   name: string
   version: string
@@ -85,11 +132,12 @@ export async function loadPluginManifest(
 
     const tryUrls: string[] = []
     if (mode === 'server' || mode === 'auto') {
+      if (serverBase) tryUrls.push(`${serverBase}/plugins/${key}/manifest.json`)
+      // Fallback: encoded variant only if needed (rare servers expect encoding)
       if (serverBase)
         tryUrls.push(
           `${serverBase}/plugins/${encodeURIComponent(key)}/manifest.json`
         )
-      if (serverBase) tryUrls.push(`${serverBase}/plugins/${key}/manifest.json`)
     }
     if (mode === 'local' || mode === 'auto') {
       if (localBase) {
@@ -134,6 +182,170 @@ export function getDefaultParameters(
     params[key] = property.default
   })
   return params
+}
+
+// --- V2 Helpers ---
+
+function clamp01(x: number): number {
+  return Math.max(0, Math.min(1, x))
+}
+
+function pctStr(p: number): string {
+  const v = Math.round(clamp01(p) * 10000) / 100 // keep 2 decimals
+  return `${v}%`
+}
+
+export function computeBaseTimeAndOffset(
+  displayTime: [number, number],
+  relStartPct?: number,
+  relEndPct?: number
+): { baseTime: [number, number]; timeOffset: [string, string] } {
+  const baseTime: [number, number] = [
+    Number(displayTime[0] || 0),
+    Number(displayTime[1] || 0),
+  ]
+  const startP = relStartPct == null ? 0 : clamp01(relStartPct)
+  const endP = relEndPct == null ? 1 : clamp01(relEndPct)
+  return { baseTime, timeOffset: [pctStr(startP), pctStr(endP)] }
+}
+
+// --- V2 Generators ---
+
+export function generatePreviewScenarioV2(
+  pluginName: string,
+  settings: PreviewSettings,
+  duration: number = 3
+): RendererConfigV2 {
+  const centerX = settings.position.x + settings.size.width / 2
+  const centerY = settings.position.y + settings.size.height / 2
+  const normalizedX = Math.max(0, Math.min(1, centerX / 640))
+  const normalizedY = Math.max(0, Math.min(1, centerY / 360))
+  const relW = Math.max(0, Math.min(1, settings.size.width / 640))
+  const relH = Math.max(0, Math.min(1, settings.size.height / 360))
+
+  const groupDisplay: [number, number] = [0, duration]
+  const { baseTime, timeOffset } = computeBaseTimeAndOffset(groupDisplay)
+
+  return {
+    version: '2.0',
+    pluginApiVersion: '3.0',
+    timebase: { unit: 'seconds' },
+    stage: { baseAspect: '16:9' },
+    tracks: [
+      { id: 'preview-track', type: 'free', layer: 1, defaultStyle: {} },
+    ],
+    cues: [
+      {
+        id: 'preview-cue',
+        track: 'preview-track',
+        domLifetime: [0, duration],
+        root: {
+          id: 'root_group',
+          eType: 'group',
+          displayTime: groupDisplay,
+          layout: {
+            position: { x: normalizedX, y: normalizedY },
+            anchor: 'cc',
+            size: { width: relW, height: relH },
+          },
+          children: [
+            {
+              id: 'text_1',
+              eType: 'text',
+              text: settings.text,
+              displayTime: groupDisplay,
+              layout: { position: { x: 0.5, y: 0.5 }, anchor: 'cc' },
+              style: {
+                fontSizeRel: settings.fontSizeRel || 0.06,
+                fontFamily: 'Arial, sans-serif',
+                color: '#ffffff',
+                align: 'center',
+                whiteSpace: 'nowrap',
+              },
+              pluginChain: [
+                {
+                  name: pluginName,
+                  baseTime,
+                  timeOffset,
+                  params: settings.pluginParams,
+                },
+              ],
+            },
+          ],
+        },
+      },
+    ],
+  }
+}
+
+export function generateLoopedScenarioV2(
+  pluginName: string,
+  settings: PreviewSettings,
+  duration: number = 3
+): RendererConfigV2 {
+  const centerX = settings.position.x + settings.size.width / 2
+  const centerY = settings.position.y + settings.size.height / 2
+  const normalizedX = Math.max(0, Math.min(1, centerX / 640))
+  const normalizedY = Math.max(0, Math.min(1, centerY / 360))
+  const relW = Math.max(0, Math.min(1, settings.size.width / 640))
+  const relH = Math.max(0, Math.min(1, settings.size.height / 360))
+
+  const groupDisplay: [number, number] = [0, duration]
+  const { baseTime, timeOffset } = computeBaseTimeAndOffset(groupDisplay, 0, 1)
+
+  return {
+    version: '2.0',
+    pluginApiVersion: '3.0',
+    timebase: { unit: 'seconds' },
+    stage: { baseAspect: '16:9' },
+    tracks: [{ id: 'free', type: 'free', layer: 1 }],
+    cues: [
+      {
+        id: 'preview-cue',
+        track: 'free',
+        domLifetime: [0, duration],
+        root: {
+          id: 'group_1',
+          eType: 'group',
+          displayTime: groupDisplay,
+          layout: {
+            position: { x: normalizedX, y: normalizedY },
+            anchor: 'cc',
+            size: { width: relW, height: relH },
+            transform:
+              settings.rotationDeg != null
+                ? { rotate: { deg: settings.rotationDeg } }
+                : undefined,
+            transformOrigin: '50% 50%',
+          },
+          children: [
+            {
+              id: 'text_1',
+              eType: 'text',
+              text: settings.text,
+              displayTime: groupDisplay,
+              layout: {
+                position: { x: 0.5, y: 0.5 },
+                anchor: 'cc',
+                size: { width: 'auto', height: 'auto' },
+                overflow: 'visible',
+              },
+              style: {
+                fontSizeRel: settings.fontSizeRel || 0.07,
+                fontFamily: 'Arial, sans-serif',
+                color: '#ffffff',
+                align: 'center',
+                whiteSpace: 'nowrap',
+              },
+              pluginChain: [
+                { name: pluginName, params: settings.pluginParams, baseTime, timeOffset },
+              ],
+            },
+          ],
+        },
+      },
+    ],
+  }
 }
 
 export function generatePreviewScenario(
