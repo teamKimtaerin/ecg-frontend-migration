@@ -59,7 +59,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         setVideoLoading(true)
 
         try {
-          const blobUrl = await mediaStorage.createBlobUrl(mediaId)
+          const blobUrl = await mediaStorage.getMediaUrl(mediaId)
           if (blobUrl) {
             log(
               'VideoPlayer.tsx',
