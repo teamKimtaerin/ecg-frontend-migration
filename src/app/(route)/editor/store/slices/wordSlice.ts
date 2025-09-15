@@ -3,6 +3,8 @@ import { StateCreator } from 'zustand'
 export interface AnimationTrack {
   assetId: string
   assetName: string
+  pluginKey?: string
+  params?: Record<string, unknown>
   timing: { start: number; end: number }
   intensity: { min: number; max: number }
   color: 'blue' | 'green' | 'purple'
@@ -93,7 +95,8 @@ export interface WordSlice extends WordDragState {
     wordId: string,
     assetId: string,
     assetName: string,
-    wordTiming?: { start: number; end: number }
+    wordTiming?: { start: number; end: number },
+    pluginKey?: string
   ) => void
   removeAnimationTrack: (wordId: string, assetId: string) => void
   updateAnimationTrackTiming: (
@@ -395,7 +398,7 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
     }),
 
   // Animation tracks
-  addAnimationTrack: (wordId, assetId, assetName, wordTiming) =>
+  addAnimationTrack: (wordId, assetId, assetName, wordTiming, pluginKey) =>
     set((state) => {
       const newTracks = new Map(state.wordAnimationTracks)
       const existingTracks = newTracks.get(wordId) || []
@@ -423,6 +426,7 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
       const newTrack: AnimationTrack = {
         assetId,
         assetName,
+        pluginKey,
         timing: { ...timing },
         intensity: { min: 0.3, max: 0.7 },
         color,
@@ -491,6 +495,18 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
     set((state) => {
       const newTracks = new Map(state.wordAnimationTracks)
       newTracks.delete(wordId)
+      return { wordAnimationTracks: newTracks }
+    }),
+  
+  // Optional: update params for a track
+  updateAnimationTrackParams: (wordId: string, assetId: string, partialParams: Record<string, unknown>) =>
+    set((state) => {
+      const newTracks = new Map(state.wordAnimationTracks)
+      const existing = newTracks.get(wordId) || []
+      const updated = existing.map((t) =>
+        t.assetId === assetId ? { ...t, params: { ...(t.params || {}), ...partialParams } } : t
+      )
+      newTracks.set(wordId, updated)
       return { wordAnimationTracks: newTracks }
     }),
 

@@ -78,6 +78,7 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
             name: asset.title,
             category: asset.category,
             type: 'free' as const,
+            pluginKey: asset.pluginKey,
             preview: {
               type: 'image' as const,
               value: thumb,
@@ -145,7 +146,7 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
           }
         }
         // Add the animation track with word timing - this creates the bars immediately
-        addAnimationTrack(focusedWordId, asset.id, asset.name, wordTiming)
+        addAnimationTrack(focusedWordId, asset.id, asset.name, wordTiming, asset.pluginKey)
       } else {
         // Show toast when trying to add more than 3 animations
         showToast('최대 3개의 애니메이션만 선택할 수 있습니다.', 'warning')
@@ -186,6 +187,10 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
       isCurrentlySelected ? 'removed' : 'added'
     )
     onAssetSelect?.(asset)
+    // Update scenario pluginChain for this word
+    if (focusedWordId) {
+      useEditorStore.getState().refreshWordPluginChain?.(focusedWordId)
+    }
   }
 
   // Show loading state

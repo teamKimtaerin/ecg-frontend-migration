@@ -97,6 +97,7 @@ const UsedAssetsStrip: React.FC<UsedAssetsStripProps> = ({
             name: asset.title,
             category: asset.category,
             type: 'free' as const,
+            pluginKey: asset.pluginKey,
             preview: {
               type: 'image' as const,
               value: thumb,
@@ -161,6 +162,8 @@ const UsedAssetsStrip: React.FC<UsedAssetsStripProps> = ({
     // Remove animation track from focused word
     if (focusedWordId) {
       removeAnimationTrack(focusedWordId, assetId)
+      // Update scenario pluginChain for this word
+      useEditorStore.getState().refreshWordPluginChain?.(focusedWordId)
     }
 
     // If a word is selected, apply the changes to the word
@@ -195,7 +198,7 @@ const UsedAssetsStrip: React.FC<UsedAssetsStripProps> = ({
           }
         }
         // Add the animation track with word timing
-        addAnimationTrack(focusedWordId, asset.id, asset.name, wordTiming)
+        addAnimationTrack(focusedWordId, asset.id, asset.name, wordTiming, asset.pluginKey)
       } else {
         console.log('Maximum 3 animations per word')
       }

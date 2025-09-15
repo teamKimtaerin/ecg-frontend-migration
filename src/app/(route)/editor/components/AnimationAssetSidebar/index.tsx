@@ -72,7 +72,14 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
 
   const handleSettingsChange = (settings: Record<string, unknown>) => {
     console.log('Settings changed:', settings)
-    // TODO: Apply settings to animation track
+    // Apply settings to the animation track for the focused word
+    const store = useEditorStore.getState() as any
+    const wordId = store.focusedWordId as string | null
+    const assetId = expandedAssetId
+    if (wordId && assetId) {
+      store.updateAnimationTrackParams?.(wordId, assetId, settings)
+      store.refreshWordPluginChain?.(wordId)
+    }
   }
 
   return (

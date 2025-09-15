@@ -3,14 +3,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useMotionTextRenderer } from '@/app/shared/motiontext'
 import { useEditorStore } from '../store'
-import {
-  loadPluginManifest,
-  getDefaultParameters,
-  validateAndNormalizeParams,
-  type RendererConfigV2,
-  type PluginManifest,
-} from '@/app/shared/motiontext'
-import { videoSegmentManager } from '@/utils/video/segmentManager'
+import { type RendererConfigV2 } from '@/app/shared/motiontext'
+import { buildInitialScenarioFromClips } from '../utils/initialScenario'
 import { buildScenarioFromReal, type RealJson } from '../utils/realToScenario'
 
 interface EditorMotionTextOverlayProps {
@@ -50,9 +44,7 @@ export default function EditorMotionTextOverlay({
     subtitlePosition,
   } = useEditorStore()
 
-  // Internal plugin state
-  const manifestRef = useRef<(PluginManifest & { key?: string }) | null>(null)
-  const defaultParamsRef = useRef<Record<string, unknown> | null>(null)
+  // Internal state
   const isInitRef = useRef(false)
   const [usingExternalScenario, setUsingExternalScenario] = useState(false)
   const [isLoadingScenario, setIsLoadingScenario] = useState(false)
@@ -125,131 +117,19 @@ export default function EditorMotionTextOverlay({
     }
   }, [initializeRenderer, videoEl, videoRef, containerRef])
 
-  // Load default plugin manifest/params once
-  useEffect(() => {
-    let cancelled = false
-    const ensureManifest = async () => {
-      if (manifestRef.current) return
-      try {
-        const pluginName = 'elastic@1.0.0'
-        const serverBase = (
-          process.env.NEXT_PUBLIC_MOTIONTEXT_PLUGIN_ORIGIN || 'http://localhost:3300'
-        ).replace(/\/$/, '')
-        const manifest = await loadPluginManifest(pluginName, {
-          mode: 'server',
-          serverBase,
-        })
-        if (cancelled) return
-        manifestRef.current = {
-          ...manifest,
-          key: pluginName,
-        } as PluginManifest & { key: string }
-        defaultParamsRef.current = getDefaultParameters(manifest)
-      } catch {
-        // Ignore manifest loading errors
-      }
-    }
-    void ensureManifest()
-    return () => {
-      cancelled = true
-    }
-  }, [])
+  // No manifest preload required for initial, animation-less scenario
 
   const buildScenarioFromClips = useCallback((): RendererConfigV2 => {
-    const pluginName = manifestRef.current?.name || 'elastic'
-    const rawParams = defaultParamsRef.current || {}
-    const manifest = manifestRef.current
-    const params = manifest
-      ? validateAndNormalizeParams(rawParams, manifest)
-      : rawParams
-
-    // Map editor UI → positioning and font size (using relative coordinates like demo)
-    const centerX = 0.5 // Always center horizontally
-    const centerY = subtitlePosition === 'top' ? 0.15 : 0.85 // 15% from top or 85% from top (15% from bottom)
-
     const fontSizeRel =
       subtitleSize === 'small' ? 0.05 : subtitleSize === 'large' ? 0.09 : 0.07
-
-    // Build cues for all non-deleted clips using adjusted time mapping
-    const toSec = (s: string) => {
-      const parts = s.split(':').map(Number)
-      if (parts.length === 3) {
-        const [h, m, sec] = parts
-        return (h || 0) * 3600 + (m || 0) * 60 + (sec || 0)
-      }
-      const [m, sec] = parts
-      return (m || 0) * 60 + (sec || 0)
-    }
-    const cues: RendererConfigV2['cues'] = []
-    // Track valid clips for debugging if needed
-    for (const clip of clips) {
-      if (deletedClipIds.has(clip.id)) continue
-      const [startStr, endStr] = (clip.timeline || '').split(' → ')
-      const s0 = toSec(startStr || '0:00')
-      const s1 = toSec(endStr || '0:00')
-      const adjStart = videoSegmentManager.mapToAdjustedTime(s0)
-      const adjEnd = videoSegmentManager.mapToAdjustedTime(s1)
-      if (adjStart == null || adjEnd == null) continue
-      const text = clip.subtitle || clip.fullText || ''
-
-      // Process valid clip
-      const display: [number, number] = [adjStart, adjEnd]
-      cues.push({
-        id: `cue-${clip.id}`,
-        track: 'editor',
-        domLifetime: [adjStart, adjEnd],
-        root: {
-          id: `group-${clip.id}`,
-          eType: 'group',
-          displayTime: display,
-          layout: {
-            anchor: 'bc',
-            position: { x: centerX, y: centerY },
-            safeAreaClamp: true,
-          },
-          children: [
-            {
-              id: `text-${clip.id}`,
-              eType: 'text',
-              text,
-              displayTime: display,
-              layout: {
-                anchor: 'bc',
-              },
-              pluginChain: [
-                {
-                  name: pluginName,
-                  params,
-                  baseTime: display,
-                  timeOffset: ['0%', '100%'],
-                },
-              ],
-            },
-          ],
-        },
-      })
-    }
-
-    const config: RendererConfigV2 = {
-      version: '2.0',
-      pluginApiVersion: '3.0',
-      timebase: { unit: 'seconds' },
-      stage: { baseAspect: '16:9' },
-      tracks: [
-        {
-          id: 'editor',
-          type: 'subtitle',
-          layer: 1,
-          defaultStyle: {
-            fontSizeRel,
-            fontFamily: 'Arial, sans-serif',
-            color: '#ffffff',
-          },
-        },
-      ],
-      cues,
-    }
-
+    const position = { x: 0.5, y: subtitlePosition === 'top' ? 0.15 : 0.925 } // 7.5% from bottom
+    const activeClips = clips.filter((c) => !deletedClipIds.has(c.id))
+    const { config } = buildInitialScenarioFromClips(activeClips, {
+      position,
+      anchor: 'bc',
+      fontSizeRel,
+      baseAspect: '16:9',
+    })
     return config
   }, [subtitlePosition, subtitleSize, clips, deletedClipIds])
 
@@ -360,26 +240,40 @@ export default function EditorMotionTextOverlay({
     onScenarioUpdate,
   ])
 
-  // Load a multi-cue scenario for all visible clips (default path)
+  // Load a scenario for all visible clips (default path)
   useEffect(() => {
     if (usingExternalScenario || isLoadingScenario || scenarioOverride) return
     if (!showSubtitles) return
-
-    const config = buildScenarioFromClips()
-
-    // Send current scenario to parent for JSON editor
-    if (onScenarioUpdate) {
-      onScenarioUpdate(config)
+    // Prefer scenario slice if present; otherwise build and set once
+    const store = useEditorStore.getState() as typeof useEditorStore extends () => infer T ? T : any
+    const scenarioFromSlice = store.currentScenario as RendererConfigV2 | null
+    let config: RendererConfigV2
+    if (scenarioFromSlice) {
+      config = scenarioFromSlice
+    } else {
+      // Build initial scenario and store it for incremental updates
+      const fontSizeRel =
+        subtitleSize === 'small' ? 0.05 : subtitleSize === 'large' ? 0.09 : 0.07
+      const position = { x: 0.5, y: subtitlePosition === 'top' ? 0.15 : 0.925 } // 7.5% from bottom
+      const activeClips = clips.filter((c) => !deletedClipIds.has(c.id))
+      config = buildInitialScenarioFromClips(activeClips, {
+        position,
+        anchor: 'bc',
+        fontSizeRel,
+        baseAspect: '16:9',
+      }).config
+      store.buildInitialScenario?.(activeClips, {
+        position,
+        anchor: 'bc',
+        fontSizeRel,
+        baseAspect: '16:9',
+      })
     }
 
+    if (onScenarioUpdate) onScenarioUpdate(config)
+
     const t = setTimeout(() => {
-      void loadScenario(config)
-        .then(() => {
-          // Controller will handle synchronization automatically
-        })
-        .catch(() => {
-          // Ignore scenario loading errors
-        })
+      void loadScenario(config).catch(() => {})
     }, 120)
     return () => clearTimeout(t)
   }, [
@@ -392,6 +286,30 @@ export default function EditorMotionTextOverlay({
     onScenarioUpdate,
     scenarioOverride,
   ]) // Removed videoEl from dependencies
+
+  // When scenario slice version changes, reload scenario (debounced)
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | null = null
+    const unsub = useEditorStore.subscribe(
+      (s) => (s as any).scenarioVersion,
+      (version) => {
+        if (!version) return
+        const cfg = (useEditorStore.getState() as any)
+          .currentScenario as RendererConfigV2 | null
+        if (!cfg) return
+        if (timer) clearTimeout(timer)
+        timer = setTimeout(() => {
+          void loadScenario(cfg, { silent: true }).catch(() => {})
+        }, 60)
+      }
+    )
+    return () => {
+      if (timer) clearTimeout(timer)
+      try {
+        unsub()
+      } catch {}
+    }
+  }, [loadScenario])
 
   // Initialize MotionTextController when renderer and video are ready
   useEffect(() => {

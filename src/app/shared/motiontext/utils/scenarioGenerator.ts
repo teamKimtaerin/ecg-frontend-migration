@@ -56,8 +56,11 @@ type V2NodeBase = {
   id: string
   eType: 'group' | 'text' | 'image' | 'video'
   displayTime?: [number, number]
-  layout?: Record<string, unknown>
-  style?: Record<string, unknown>
+  // Node-level baseTime per v2 spec. When pluginChain entries omit baseTime,
+  // this window can be used as the reference for timeOffset.
+  baseTime?: [number, number]
+  layout?: Record<string, unknown> | string
+  style?: Record<string, unknown> | string
   pluginChain?: Array<{
     name: string
     baseTime?: [number, number]
@@ -207,6 +210,23 @@ export function computeBaseTimeAndOffset(
   const startP = relStartPct == null ? 0 : clamp01(relStartPct)
   const endP = relEndPct == null ? 1 : clamp01(relEndPct)
   return { baseTime, timeOffset: [pctStr(startP), pctStr(endP)] }
+}
+
+/**
+ * Compute timeOffset as absolute seconds relative to baseTime[0].
+ * Useful when UI produces absolute second timings within a known base window.
+ */
+export function computeTimeOffsetSeconds(
+  baseTime: [number, number],
+  absStartSec?: number,
+  absEndSec?: number
+): { baseTime: [number, number]; timeOffset: [number, number] } {
+  const b0 = Number(baseTime[0] || 0)
+  const b1 = Number(baseTime[1] || 0)
+  const len = Math.max(0, b1 - b0)
+  const s = Math.max(0, Math.min(len, Number(absStartSec ?? 0) - b0))
+  const e = Math.max(s, Math.min(len, Number(absEndSec ?? len) - b0))
+  return { baseTime: [b0, b1], timeOffset: [s, e] }
 }
 
 // --- V2 Generators ---

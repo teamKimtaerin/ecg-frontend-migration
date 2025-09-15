@@ -14,6 +14,7 @@ export interface AssetItem {
     value: string
     secondary?: string
   }
+  pluginKey?: string
   isUsed?: boolean
   isFavorite?: boolean
   description?: string
