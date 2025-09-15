@@ -331,6 +331,16 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
       newWordHistory.set(wordId, newHistory)
       newHistoryIndex.set(wordId, newHistory.length - 1)
 
+      // Reflect timing change into scenario (update baseTime and recompute pluginChain)
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const anyGet = get() as any
+        anyGet.updateWordBaseTime?.(wordId, start, end)
+        anyGet.refreshWordPluginChain?.(wordId)
+      } catch {
+        // ignore if scenario slice not present
+      }
+
       return {
         wordTimingAdjustments: newTimings,
         wordTimingHistory: newWordHistory,
@@ -433,6 +443,16 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
       }
 
       newTracks.set(wordId, [...existingTracks, newTrack])
+
+      // Update scenario pluginChain for this word
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const anyGet = get() as any
+        anyGet.refreshWordPluginChain?.(wordId)
+      } catch {
+        // ignore
+      }
+
       return { wordAnimationTracks: newTracks }
     }),
 
@@ -460,6 +480,15 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
         newTracks.set(wordId, recoloredTracks)
       }
 
+      // Update scenario pluginChain for this word
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const anyGet = get() as any
+        anyGet.refreshWordPluginChain?.(wordId)
+      } catch {
+        // ignore
+      }
+
       return { wordAnimationTracks: newTracks }
     }),
 
@@ -473,6 +502,16 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
       )
 
       newTracks.set(wordId, updatedTracks)
+
+      // Recompute pluginChain timeOffset for this word
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const anyGet = get() as any
+        anyGet.refreshWordPluginChain?.(wordId)
+      } catch {
+        // ignore
+      }
+
       return { wordAnimationTracks: newTracks }
     }),
 
@@ -495,6 +534,14 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
     set((state) => {
       const newTracks = new Map(state.wordAnimationTracks)
       newTracks.delete(wordId)
+      // Clear pluginChain for this word in scenario as well
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const anyGet = get() as any
+        anyGet.refreshWordPluginChain?.(wordId)
+      } catch {
+        // ignore
+      }
       return { wordAnimationTracks: newTracks }
     }),
   
@@ -507,6 +554,14 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
         t.assetId === assetId ? { ...t, params: { ...(t.params || {}), ...partialParams } } : t
       )
       newTracks.set(wordId, updated)
+      // Refresh scenario to apply param changes to pluginChain
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const anyGet = get() as any
+        anyGet.refreshWordPluginChain?.(wordId)
+      } catch {
+        // ignore
+      }
       return { wordAnimationTracks: newTracks }
     }),
 
