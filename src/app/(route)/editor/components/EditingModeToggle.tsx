@@ -4,7 +4,21 @@ import React from 'react'
 import { useEditorStore } from '../store'
 
 const EditingModeToggle: React.FC = () => {
-  const { editingMode, setEditingMode } = useEditorStore()
+  const {
+    editingMode,
+    setEditingMode,
+    rightSidebarType,
+    setRightSidebarType
+  } = useEditorStore()
+
+  const handleAdvancedModeClick = () => {
+    setEditingMode('advanced')
+
+    // If template sidebar is currently open, close it and open animation asset sidebar
+    if (rightSidebarType === 'template') {
+      setRightSidebarType('animation')
+    }
+  }
 
   return (
     <div className="flex items-center">
@@ -45,7 +59,7 @@ const EditingModeToggle: React.FC = () => {
 
         {/* Advanced Mode Button */}
         <button
-          onClick={() => setEditingMode('advanced')}
+          onClick={handleAdvancedModeClick}
           className={`relative z-10 p-2 rounded-full transition-all duration-200 cursor-pointer ${
             editingMode === 'advanced'
               ? 'text-white'

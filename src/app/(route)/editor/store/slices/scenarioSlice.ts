@@ -35,7 +35,26 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
   },
 
   updateWordBaseTime: (wordId, startAbsSec, endAbsSec) => {
-    const { currentScenario, nodeIndex } = get()
+    let { currentScenario, nodeIndex } = get()
+    if (!currentScenario) {
+      // Lazily build a scenario so baseTime updates can apply even if overlay hasn't initialized
+      try {
+        const anyGet = get() as unknown as {
+          clips?: import('../../types').ClipItem[]
+          deletedClipIds?: Set<string>
+          buildInitialScenario?: ScenarioSlice['buildInitialScenario']
+        }
+        const clipsAll = anyGet.clips || []
+        const deleted = anyGet.deletedClipIds || new Set<string>()
+        const activeClips = clipsAll.filter((c) => !deleted.has(c.id))
+        anyGet.buildInitialScenario?.(activeClips)
+        // Refresh local refs
+        currentScenario = get().currentScenario
+        nodeIndex = get().nodeIndex
+      } catch {
+        // If we cannot build, skip
+      }
+    }
     if (!currentScenario) return
     const entry = nodeIndex[`word-${wordId}`]
     if (!entry) return
@@ -55,7 +74,25 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
     const state = get() as ScenarioSlice & {
       wordAnimationTracks: Map<string, Array<{ assetId: string; assetName: string; pluginKey?: string; params?: Record<string, unknown>; timing: { start: number; end: number } }>>
     }
-    const { currentScenario, nodeIndex, wordAnimationTracks } = state
+    let { currentScenario, nodeIndex, wordAnimationTracks } = state
+    if (!currentScenario) {
+      // Lazily build initial scenario if missing so pluginChain updates don't get dropped
+      try {
+        const anyGet = get() as unknown as {
+          clips?: import('../../types').ClipItem[]
+          deletedClipIds?: Set<string>
+          buildInitialScenario?: ScenarioSlice['buildInitialScenario']
+        }
+        const clipsAll = anyGet.clips || []
+        const deleted = anyGet.deletedClipIds || new Set<string>()
+        const activeClips = clipsAll.filter((c) => !deleted.has(c.id))
+        anyGet.buildInitialScenario?.(activeClips)
+        currentScenario = get().currentScenario
+        nodeIndex = get().nodeIndex
+      } catch {
+        // If building fails, we cannot proceed
+      }
+    }
     if (!currentScenario) return
     const entry = nodeIndex[`word-${wordId}`]
     if (!entry) return

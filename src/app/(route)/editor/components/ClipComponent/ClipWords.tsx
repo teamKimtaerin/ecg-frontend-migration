@@ -1,13 +1,3 @@
-import {
-  IoRefresh,
-  IoDocument,
-  IoChevronUp,
-  IoFlash,
-  IoArrowBack,
-  IoEye,
-  IoExpand,
-  IoTrendingUp,
-} from 'react-icons/io5'
 import { useRef } from 'react'
 import React, { useCallback } from 'react'
 import { DndContext, closestCenter, DragOverlay } from '@dnd-kit/core'
@@ -20,6 +10,7 @@ import ClipWord from './ClipWord'
 import { useWordDragAndDrop } from '../../hooks/useWordDragAndDrop'
 import { useWordGrouping } from '../../hooks/useWordGrouping'
 import { useEditorStore } from '../../store'
+import { getAssetIcon } from '../../utils/assetIconMapper'
 
 interface ClipWordsProps {
   clipId: string
@@ -27,19 +18,11 @@ interface ClipWordsProps {
   onWordEdit: (clipId: string, wordId: string, newText: string) => void
 }
 
-// Asset icon mapping (from feat/editor-asset-sidebar-clean)
-const getAssetIcon = (assetName: string) => {
-  const iconMap = {
-    'Rotation Text': IoRefresh,
-    'TypeWriter Effect': IoDocument,
-    'Elastic Bounce': IoChevronUp,
-    'Glitch Effect': IoFlash,
-    'Magnetic Pull': IoArrowBack,
-    'Fade In Stagger': IoEye,
-    'Scale Pop': IoExpand,
-    'Slide Up': IoTrendingUp,
-  }
-  return iconMap[assetName as keyof typeof iconMap] || null
+// Asset database interface
+interface AssetDatabaseItem {
+  id: string
+  title: string
+  iconName?: string
 }
 
 export default function ClipWords({
@@ -64,10 +47,8 @@ export default function ClipWords({
     selectedWordAssets,
   } = useEditorStore()
 
-  // Asset related state (from feat/editor-asset-sidebar-clean)
-  const [allAssets, setAllAssets] = React.useState<
-    Array<{ id: string; title: string }>
-  >([])
+  // Asset related state with icon support
+  const [allAssets, setAllAssets] = React.useState<AssetDatabaseItem[]>([])
 
   // Setup drag and drop for words (from dev)
   const {
@@ -92,14 +73,20 @@ export default function ClipWords({
     },
   })
 
-  // Fetch assets database for asset names (from feat/editor-asset-sidebar-clean)
+  // Fetch assets database for asset names and icons
   React.useEffect(() => {
     const fetchAssets = async () => {
       try {
         const response = await fetch('/asset-store/assets-database.json')
         if (response.ok) {
           const data = await response.json()
-          setAllAssets(data.assets)
+          // Map to include only needed fields for performance
+          const assetsWithIcons: AssetDatabaseItem[] = data.assets.map((asset: any) => ({
+            id: asset.id,
+            title: asset.title,
+            iconName: asset.iconName,
+          }))
+          setAllAssets(assetsWithIcons)
         }
       } catch (error) {
         console.error('Failed to fetch assets:', error)
@@ -127,37 +114,20 @@ export default function ClipWords({
       }
       lastClickTimeRef.current = now
 
-      if (isCenter) {
-        // Batch all state updates for center click
-        const wordAssets =
-          selectedWordAssets[wordId] || word.appliedAssets || []
-
-        // Update all states in a single batch
+      // For single-click: always move focus to this word and open waveform
+      const wordAssets = selectedWordAssets[wordId] || word.appliedAssets || []
+      // Clear previous focus first to avoid modal state conflicts
+      clearWordFocus()
+      // Defer re-focus to ensure clear completes
+      setTimeout(() => {
         setFocusedWord(clipId, wordId)
         setActiveClipId(clipId)
         setSelectedWordId(wordId)
         setCurrentWordAssets(wordAssets)
-      } else {
-        // Batch all state updates for non-center click
-        const wordAssets =
-          selectedWordAssets[wordId] || word.appliedAssets || []
-        const shouldEdit =
-          selectedWordId === wordId && currentWordAssets.length === 0
-
-        // Clear previous focus first, then set new states
-        clearWordFocus()
-
-        // Use setTimeout to ensure clearWordFocus completes before setting new states
-        setTimeout(() => {
-          setActiveClipId(clipId)
-          setSelectedWordId(wordId)
-          setCurrentWordAssets(wordAssets)
-
-          if (shouldEdit) {
-            onWordEdit(clipId, wordId, word.text)
-          }
-        }, 0)
-      }
+        // Open expanded waveform for the clicked word
+        const store = useEditorStore.getState() as any
+        store.expandClip?.(clipId, wordId)
+      }, 0)
     },
     [
       clipId,
@@ -165,12 +135,9 @@ export default function ClipWords({
       setFocusedWord,
       clearWordFocus,
       setActiveClipId,
-      selectedWordId,
       setSelectedWordId,
-      currentWordAssets,
       setCurrentWordAssets,
       selectedWordAssets,
-      onWordEdit,
     ]
   )
 
@@ -212,12 +179,12 @@ export default function ClipWords({
                   onWordEdit={onWordEdit}
                 />
 
-                {/* Render asset icons after each word (from feat/editor-asset-sidebar-clean) */}
+                {/* Render asset icons after each word */}
                 {appliedAssets.length > 0 && (
                   <div className="flex gap-1 items-center">
                     {appliedAssets.map((assetId: string) => {
+                      const IconComponent = getAssetIcon(assetId, allAssets)
                       const assetName = getAssetNameById(assetId)
-                      const IconComponent = getAssetIcon(assetName)
                       return IconComponent ? (
                         <div
                           key={assetId}

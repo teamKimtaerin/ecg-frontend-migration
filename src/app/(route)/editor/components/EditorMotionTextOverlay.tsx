@@ -42,6 +42,7 @@ export default function EditorMotionTextOverlay({
     showSubtitles,
     subtitleSize,
     subtitlePosition,
+    wordAnimationTracks,
   } = useEditorStore()
 
   // Internal state
@@ -129,9 +130,10 @@ export default function EditorMotionTextOverlay({
       anchor: 'bc',
       fontSizeRel,
       baseAspect: '16:9',
+      wordAnimationTracks,
     })
     return config
-  }, [subtitlePosition, subtitleSize, clips, deletedClipIds])
+  }, [subtitlePosition, subtitleSize, clips, deletedClipIds, wordAnimationTracks])
 
   // Option A: Load external scenario.json when requested
   useEffect(() => {
@@ -245,7 +247,7 @@ export default function EditorMotionTextOverlay({
     if (usingExternalScenario || isLoadingScenario || scenarioOverride) return
     if (!showSubtitles) return
     // Prefer scenario slice if present; otherwise build and set once
-    const store = useEditorStore.getState() as typeof useEditorStore extends () => infer T ? T : any
+    const store = useEditorStore.getState() as any
     const scenarioFromSlice = store.currentScenario as RendererConfigV2 | null
     let config: RendererConfigV2
     if (scenarioFromSlice) {
@@ -261,12 +263,14 @@ export default function EditorMotionTextOverlay({
         anchor: 'bc',
         fontSizeRel,
         baseAspect: '16:9',
+        wordAnimationTracks,
       }).config
       store.buildInitialScenario?.(activeClips, {
         position,
         anchor: 'bc',
         fontSizeRel,
         baseAspect: '16:9',
+        wordAnimationTracks,
       })
     }
 

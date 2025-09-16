@@ -23,7 +23,7 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
   onAssetSelect,
   onClose,
 }) => {
-  const { isAssetSidebarOpen, assetSidebarWidth, selectedWordId, clips } =
+  const { assetSidebarWidth, selectedWordId, clips } =
     useEditorStore()
 
   const [expandedAssetId, setExpandedAssetId] = useState<string | null>(null)
@@ -43,10 +43,6 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
     }
     return null
   }, [selectedWordId, clips])
-
-  if (!isAssetSidebarOpen) {
-    return null
-  }
 
   const handleAssetSelect = (asset: AssetItem) => {
     // Here you would typically apply the glitch effect to the focused clip
@@ -74,7 +70,7 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
     console.log('Settings changed:', settings)
     // Apply settings to the animation track for the focused word
     const store = useEditorStore.getState() as any
-    const wordId = store.focusedWordId as string | null
+    const wordId = (store.focusedWordId as string | null) || (store.selectedWordId as string | null)
     const assetId = expandedAssetId
     if (wordId && assetId) {
       store.updateAnimationTrackParams?.(wordId, assetId, settings)

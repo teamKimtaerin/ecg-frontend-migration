@@ -7,6 +7,16 @@ export interface Word {
   isEditable: boolean
   confidence?: number
   appliedAssets?: string[]
+  // Optional: in-word snapshot of animation tracks for UI sync
+  animationTracks?: Array<{
+    assetId: string
+    assetName: string
+    pluginKey?: string
+    params?: Record<string, unknown>
+    timing: { start: number; end: number }
+    intensity: { min: number; max: number }
+    color?: 'blue' | 'green' | 'purple'
+  }>
 }
 
 export interface ClipItem {

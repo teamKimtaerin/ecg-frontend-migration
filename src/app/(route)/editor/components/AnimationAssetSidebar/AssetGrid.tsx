@@ -17,6 +17,7 @@ interface AssetDatabaseItem {
   thumbnail?: string
   pluginKey?: string
   thumbnailPath?: string
+  iconName?: string
   isPro: boolean
 }
 
@@ -35,8 +36,10 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
     clips,
     focusedWordId,
     addAnimationTrack,
+    addAnimationTrackAsync,
     removeAnimationTrack,
     wordAnimationTracks,
+    multiSelectedWordIds,
   } = useEditorStore()
 
   // Hardcoded favorite assets for '담은 에셋' tab
@@ -79,6 +82,7 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
             category: asset.category,
             type: 'free' as const,
             pluginKey: asset.pluginKey,
+            iconName: asset.iconName,
             preview: {
               type: 'image' as const,
               value: thumb,
@@ -126,27 +130,48 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
     return true
   })
 
-  const handleAssetClick = (asset: AssetItem) => {
-    // If a word is focused, add/remove animation track for it
-    if (focusedWordId) {
-      const currentTracks = wordAnimationTracks.get(focusedWordId) || []
+  const handleAssetClick = async (asset: AssetItem) => {
+    // Check if multiple words are selected for batch operations
+    if (multiSelectedWordIds.size > 1) {
+      // Centralized batch toggle for scenario + UI sync
+      useEditorStore.getState().toggleAnimationForWords(
+        Array.from(multiSelectedWordIds),
+        { id: asset.id, name: asset.name, pluginKey: asset.pluginKey }
+      )
+      showToast(`${multiSelectedWordIds.size}개 단어에 애니메이션을 적용/해제했습니다.`, 'success')
+      return
+    }
+
+    // Single word operation (original logic)
+    const singleTargetWordId =
+      focusedWordId || selectedWordId || (multiSelectedWordIds.size === 1
+        ? Array.from(multiSelectedWordIds)[0]
+        : null)
+    if (singleTargetWordId) {
+      const currentTracks = wordAnimationTracks.get(singleTargetWordId) || []
 
       // Check if already added
       if (currentTracks.find((t) => t.assetId === asset.id)) {
         // If already exists, remove it
-        removeAnimationTrack(focusedWordId, asset.id)
+        removeAnimationTrack(singleTargetWordId, asset.id)
       } else if (currentTracks.length < 3) {
         // Find the word to get its timing
         let wordTiming = undefined
         for (const clip of clips) {
-          const word = clip.words?.find((w) => w.id === focusedWordId)
+          const word = clip.words?.find((w) => w.id === singleTargetWordId)
           if (word) {
             wordTiming = { start: word.start, end: word.end }
             break
           }
         }
         // Add the animation track with word timing - this creates the bars immediately
-        addAnimationTrack(focusedWordId, asset.id, asset.name, wordTiming, asset.pluginKey)
+        await addAnimationTrackAsync(
+          singleTargetWordId,
+          asset.id,
+          asset.name,
+          wordTiming,
+          asset.pluginKey
+        )
       } else {
         // Show toast when trying to add more than 3 animations
         showToast('최대 3개의 애니메이션만 선택할 수 있습니다.', 'warning')
@@ -188,8 +213,8 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
     )
     onAssetSelect?.(asset)
     // Update scenario pluginChain for this word
-    if (focusedWordId) {
-      useEditorStore.getState().refreshWordPluginChain?.(focusedWordId)
+    if (singleTargetWordId) {
+      useEditorStore.getState().refreshWordPluginChain?.(singleTargetWordId)
     }
   }
 

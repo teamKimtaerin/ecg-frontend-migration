@@ -125,8 +125,11 @@ const UsedAssetsStrip: React.FC<UsedAssetsStripProps> = ({
     .filter((asset) => asset !== undefined) as AssetItem[]
 
   // Get animations applied to the currently focused word
-  const focusedWordAnimations = focusedWordId
-    ? wordAnimationTracks.get(focusedWordId) || []
+  const targetWordId = focusedWordId || selectedWordId || (useEditorStore.getState().multiSelectedWordIds?.size === 1
+    ? Array.from(useEditorStore.getState().multiSelectedWordIds)[0]
+    : null)
+  const focusedWordAnimations = targetWordId
+    ? wordAnimationTracks.get(targetWordId) || []
     : []
 
   // Get asset selection order based on array index
@@ -160,10 +163,10 @@ const UsedAssetsStrip: React.FC<UsedAssetsStripProps> = ({
     }
 
     // Remove animation track from focused word
-    if (focusedWordId) {
-      removeAnimationTrack(focusedWordId, assetId)
+    if (targetWordId) {
+      removeAnimationTrack(targetWordId, assetId)
       // Update scenario pluginChain for this word
-      useEditorStore.getState().refreshWordPluginChain?.(focusedWordId)
+      useEditorStore.getState().refreshWordPluginChain?.(targetWordId)
     }
 
     // If a word is selected, apply the changes to the word
@@ -179,26 +182,26 @@ const UsedAssetsStrip: React.FC<UsedAssetsStripProps> = ({
   }
 
   const handleAssetClick = (asset: AssetItem) => {
-    // If a word is focused, add this animation to it (max 3)
-    if (focusedWordId) {
-      const currentTracks = wordAnimationTracks.get(focusedWordId) || []
+    // If a word is focused/selected, add this animation to it (max 3)
+    if (targetWordId) {
+      const currentTracks = wordAnimationTracks.get(targetWordId) || []
 
       // Check if already added or reached max
       if (currentTracks.find((t) => t.assetId === asset.id)) {
         // If already exists, remove it
-        removeAnimationTrack(focusedWordId, asset.id)
+        removeAnimationTrack(targetWordId, asset.id)
       } else if (currentTracks.length < 3) {
         // Find the word to get its timing
         let wordTiming = undefined
         for (const clip of clips) {
-          const word = clip.words?.find((w) => w.id === focusedWordId)
+          const word = clip.words?.find((w) => w.id === targetWordId)
           if (word) {
             wordTiming = { start: word.start, end: word.end }
             break
           }
         }
         // Add the animation track with word timing
-        addAnimationTrack(focusedWordId, asset.id, asset.name, wordTiming, asset.pluginKey)
+        addAnimationTrack(targetWordId, asset.id, asset.name, wordTiming, asset.pluginKey)
       } else {
         console.log('Maximum 3 animations per word')
       }

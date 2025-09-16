@@ -15,6 +15,7 @@ export interface AssetItem {
     secondary?: string
   }
   pluginKey?: string
+  iconName?: string
   isUsed?: boolean
   isFavorite?: boolean
   description?: string
