@@ -7,16 +7,41 @@ export interface RealJson {
   }>
 }
 
-export type RendererConfig = {
-  version: '1.3'
+export type RendererConfigV2 = {
+  version: '2.0'
+  pluginApiVersion: '3.0'
   timebase: { unit: 'seconds' }
   stage: { baseAspect: '16:9' }
-  tracks: Array<{ id: string; type: 'free' | 'subtitle'; layer: number }>
+  tracks: Array<{
+    id: string
+    type: 'free' | 'subtitle'
+    layer: number
+    defaultStyle?: Record<string, unknown>
+  }>
   cues: Array<{
     id: string
     track: string
-    hintTime?: { start?: number; end?: number }
-    root: Record<string, unknown>
+    domLifetime?: [number, number]
+    root: {
+      id: string
+      eType: 'group'
+      displayTime: [number, number]
+      layout?: Record<string, unknown>
+      children: Array<{
+        id: string
+        eType: 'text'
+        text: string
+        displayTime: [number, number]
+        layout?: Record<string, unknown>
+        style?: Record<string, unknown>
+        pluginChain: Array<{
+          name: string
+          baseTime: [number, number]
+          timeOffset: [string, string]
+          params?: Record<string, unknown>
+        }>
+      }>
+    }
   }>
 }
 
@@ -34,7 +59,7 @@ function toSeconds(v: number | string): number {
 export function buildScenarioFromReal(
   real: RealJson,
   opts?: { fontSizeRel?: number; bottomMargin?: number }
-): RendererConfig {
+): RendererConfigV2 {
   console.log('[buildScenarioFromReal] Starting conversion with data:', {
     segmentsCount: real.segments?.length || 0,
     opts,
@@ -48,7 +73,7 @@ export function buildScenarioFromReal(
   const centerX = Math.round(stageW / 2)
   const centerY = Math.max(0, Math.min(stageH, stageH - marginY - boxH / 2))
   const fontSizeRel = opts?.fontSizeRel ?? 0.07
-  const pluginName = 'elastic@1.0.0'
+  const pluginName = 'elastic'
 
   const cues = (real.segments || [])
     .map((seg, i) => {
@@ -81,12 +106,15 @@ export function buildScenarioFromReal(
         return null
       }
 
+      const display: [number, number] = [start, Math.max(end, start + 0.1)]
       return {
         id: `cue-${i}`,
         track: 'editor',
-        hintTime: { start, end },
+        domLifetime: display,
         root: {
-          e_type: 'group',
+          id: `group-${i}`,
+          eType: 'group' as const,
+          displayTime: display,
           layout: {
             position: { x: centerX / stageW, y: centerY / stageH },
             anchor: 'cc',
@@ -94,10 +122,10 @@ export function buildScenarioFromReal(
           },
           children: [
             {
-              e_type: 'text',
+              id: `text-${i}`,
+              eType: 'text' as const,
               text,
-              absStart: start,
-              absEnd: Math.max(end, start + 0.1), // Ensure absEnd is always greater than absStart
+              displayTime: display,
               layout: {
                 position: { x: 0.5, y: 0.5 },
                 anchor: 'cc',
@@ -112,7 +140,12 @@ export function buildScenarioFromReal(
                 whiteSpace: 'nowrap',
               },
               pluginChain: [
-                { name: pluginName, params: {}, relStartPct: 0, relEndPct: 1 },
+                {
+                  name: pluginName,
+                  params: {},
+                  baseTime: display,
+                  timeOffset: ['0%', '100%'] as [string, string],
+                },
               ],
             },
           ],
@@ -121,11 +154,18 @@ export function buildScenarioFromReal(
     })
     .filter((cue): cue is NonNullable<typeof cue> => cue !== null)
 
-  const config = {
-    version: '1.3' as const,
-    timebase: { unit: 'seconds' as const },
-    stage: { baseAspect: '16:9' as const },
-    tracks: [{ id: 'editor', type: 'free' as const, layer: 1 }],
+  const config: RendererConfigV2 = {
+    version: '2.0',
+    pluginApiVersion: '3.0',
+    timebase: { unit: 'seconds' },
+    stage: { baseAspect: '16:9' },
+    tracks: [
+      {
+        id: 'editor',
+        type: 'free',
+        layer: 1,
+      },
+    ],
     cues,
   }
 

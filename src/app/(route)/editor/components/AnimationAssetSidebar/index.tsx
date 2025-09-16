@@ -23,8 +23,7 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
   onAssetSelect,
   onClose,
 }) => {
-  const { isAssetSidebarOpen, assetSidebarWidth, selectedWordId, clips } =
-    useEditorStore()
+  const { assetSidebarWidth, selectedWordId, clips } = useEditorStore()
 
   const [expandedAssetId, setExpandedAssetId] = useState<string | null>(null)
   const [expandedAssetName, setExpandedAssetName] = useState<string | null>(
@@ -43,10 +42,6 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
     }
     return null
   }, [selectedWordId, clips])
-
-  if (!isAssetSidebarOpen) {
-    return null
-  }
 
   const handleAssetSelect = (asset: AssetItem) => {
     // Here you would typically apply the glitch effect to the focused clip
@@ -72,7 +67,17 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
 
   const handleSettingsChange = (settings: Record<string, unknown>) => {
     console.log('Settings changed:', settings)
-    // TODO: Apply settings to animation track
+    // Apply settings to the animation track for the focused word
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const store = useEditorStore.getState() as any
+    const wordId =
+      (store.focusedWordId as string | null) ||
+      (store.selectedWordId as string | null)
+    const assetId = expandedAssetId
+    if (wordId && assetId) {
+      store.updateAnimationTrackParams?.(wordId, assetId, settings)
+      store.refreshWordPluginChain?.(wordId)
+    }
   }
 
   return (

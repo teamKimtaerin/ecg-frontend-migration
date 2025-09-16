@@ -15,6 +15,7 @@ import { ClipItem, Word } from '@/app/(route)/editor/types'
 import { ProjectData } from '@/app/(route)/editor/types/project'
 import { projectStorage } from '@/utils/storage/projectStorage'
 import { log } from '@/utils/logger'
+import API_CONFIG from '@/config/api.config'
 
 export interface UploadModalState {
   isOpen: boolean
@@ -141,6 +142,94 @@ export const useUploadModal = () => {
         // 백업용으로 sessionStorage에도 저장
         sessionStorage.setItem('currentVideoUrl', blobUrl)
         console.log('[VIDEO DEBUG] Saved videoUrl to sessionStorage:', blobUrl)
+
+        // DEBUG MODE: 서버 업로드/처리 플로우를 생략하고 로컬 friends_result.json 사용
+        if (API_CONFIG.DEBUG_MODE) {
+          log('useUploadModal', '🐞 DEBUG_MODE enabled: using local friends_result.json')
+          // 간단한 진행률 시뮬레이션 + 상태 업데이트
+          updateState({ step: 'processing', processingProgress: 0 })
+
+          try {
+            // 약간의 딜레이로 진행률 업데이트
+            await new Promise((r) => setTimeout(r, 300))
+            updateState({ processingProgress: 25, currentStage: 'Mock: 초기화' })
+            await new Promise((r) => setTimeout(r, 400))
+            updateState({
+              processingProgress: 50,
+              currentStage: 'Mock: 음성 세그먼트 추출',
+            })
+            await new Promise((r) => setTimeout(r, 500))
+            updateState({
+              processingProgress: 75,
+              currentStage: 'Mock: 자막 생성',
+            })
+
+            // friends_result.json 로드
+            const res = await fetch(API_CONFIG.MOCK_TRANSCRIPTION_PATH)
+            if (!res.ok) {
+              throw new Error(
+                `Failed to fetch mock file: ${res.status} ${res.statusText}`
+              )
+            }
+            const json = await res.json()
+
+            // friends_result.json -> SegmentData[] 매핑
+            const segments = (json.segments || []).map((seg: any, idx: number) => {
+              const words = (seg.words || []).map((w: any) => ({
+                word: String(w.word ?? ''),
+                start: Number(w.start_time ?? w.start ?? 0),
+                end: Number(w.end_time ?? w.end ?? 0),
+                confidence: Number(w.confidence ?? 0.9),
+              }))
+
+              return {
+                id: seg.id ?? idx,
+                start: Number(seg.start_time ?? seg.start ?? 0),
+                end: Number(seg.end_time ?? seg.end ?? 0),
+                text: String(seg.text ?? ''),
+                speaker:
+                  seg.speaker_id != null
+                    ? String(seg.speaker_id)
+                    : seg.speaker && typeof seg.speaker === 'object'
+                    ? seg.speaker
+                    : String(seg.speaker ?? 'Unknown'),
+                confidence: Number(seg.confidence ?? 0.9),
+                words,
+              } as SegmentData
+            }) as SegmentData[]
+
+            // ProcessingResult 형태로 포장해서 기존 완료 핸들러 재사용
+            const mockResult: ProcessingResult = {
+              job_id: 'debug_job_local',
+              status: 'completed',
+              result: {
+                segments,
+                metadata: {
+                  duration: Number(json?.metadata?.duration ?? 0),
+                  language: String(json?.metadata?.language ?? 'en'),
+                  model: String(json?.metadata?.unified_model ?? 'mock'),
+                  processing_time: Number(
+                    json?.metadata?.processing_time ?? 0
+                  ),
+                },
+              },
+            }
+
+            updateState({ processingProgress: 100, currentStage: '완료' })
+            handleProcessingComplete(mockResult)
+            return // ⛔️ 실제 업로드/ML 처리로 진행하지 않음
+          } catch (e) {
+            log('useUploadModal', `💥 DEBUG mock flow failed: ${e}`)
+            updateState({
+              step: 'failed',
+              error:
+                e instanceof Error
+                  ? e.message
+                  : 'Mock 데이터 로드 중 오류가 발생했습니다.',
+            })
+            return
+          }
+        }
 
 
         // 1. Presigned URL 요청 (백그라운드 처리)

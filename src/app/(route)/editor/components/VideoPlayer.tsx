@@ -165,7 +165,7 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
       stopSegmentPlayback,
       isPlaying,
       clips,
-      // videoRef is a ref, not needed in dependencies
+      videoRef, // Added to satisfy ESLint dependency check
       // setFocusedWord, setActiveClipId, setPlayingWord, clearPlayingWord - unused in current implementation
     ])
 
@@ -186,7 +186,7 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
           videoSegmentManager.initialize(clips, videoDuration)
         }
       }
-    }, [onLoadedMetadata, clips]) // videoRef is a ref, not needed in dependencies
+    }, [onLoadedMetadata, clips, videoRef]) // Added videoRef to satisfy ESLint
 
     // Play/Pause toggle with debounce to prevent rapid clicks
     const togglePlayPause = useCallback(
@@ -233,7 +233,7 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
           setTimeout(() => setIsToggling(false), 100)
         }
       },
-      [isPlaying, isToggling] // videoRef is a ref, not needed in dependencies
+      [isPlaying, isToggling, videoRef] // Added videoRef to satisfy ESLint
     )
 
     // Seek to specific time
@@ -244,7 +244,7 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
           setCurrentTime(time)
         }
       },
-      [duration] // videoRef is a ref, not needed in dependencies
+      [duration, videoRef] // Added videoRef to satisfy ESLint
     )
 
     // Keyboard shortcuts
@@ -285,14 +285,14 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
           console.warn('Failed to start segment playback:', err)
         })
       }
-    }, [isSegmentPlayback, segmentStart]) // videoRef is a ref, not needed in dependencies
+    }, [isSegmentPlayback, segmentStart, videoRef]) // Added videoRef to satisfy ESLint
 
     // Function to pause auto word selection temporarily
     const pauseAutoWordSelection = useCallback(() => {
       const currentTime = videoRef.current?.currentTime || 0
       // Pause auto selection for 3 seconds after manual word selection
       manualSelectionPauseUntilRef.current = currentTime + 3
-    }, []) // videoRef is a ref, not needed in dependencies
+    }, [videoRef]) // Added videoRef to satisfy ESLint
 
     // Expose methods to parent via ref (optional)
     useEffect(() => {
@@ -320,7 +320,7 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
           pauseAutoWordSelection,
         }
       }
-    }, [seekTo, pauseAutoWordSelection]) // videoRef is a ref, not needed in dependencies
+    }, [seekTo, pauseAutoWordSelection, videoRef]) // Added videoRef to satisfy ESLint
 
     // Update segment manager when clips or duration change
     useEffect(() => {

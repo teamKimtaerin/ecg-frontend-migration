@@ -10,9 +10,9 @@ import React, {
 } from 'react'
 import Moveable, { OnDrag, OnResize, OnRotate } from 'react-moveable'
 import { useMotionTextRenderer } from '@/app/shared/motiontext'
-import type { RendererConfig } from '@/app/shared/motiontext'
+import type { RendererConfigV2 } from '@/app/shared/motiontext'
 import {
-  generateLoopedScenario,
+  generateLoopedScenarioV2,
   loadPluginManifest,
   getDefaultParameters,
   validateAndNormalizeParams,
@@ -32,7 +32,7 @@ interface MovableAnimatedTextProps {
 }
 
 export interface MovableAnimatedTextRef {
-  updateAnimation: (animationConfig: RendererConfig) => void
+  updateAnimation: (animationConfig: RendererConfigV2) => void
 }
 
 const MovableAnimatedText = forwardRef<
@@ -48,7 +48,7 @@ const MovableAnimatedText = forwardRef<
     const [isDragging, setIsDragging] = useState(false)
     const [isInteracting, setIsInteracting] = useState(false)
     const [showSimpleText, setShowSimpleText] = useState(false)
-    const [, setCurrentConfig] = useState<RendererConfig | null>(null)
+    const [, setCurrentConfig] = useState<RendererConfigV2 | null>(null)
     const [manifest, setManifest] = useState<PluginManifest | null>(null)
     const [position, setPosition] = useState({
       x: text.position.x,
@@ -85,8 +85,15 @@ const MovableAnimatedText = forwardRef<
         if (!text.animation?.plugin) return
 
         try {
-          const pluginName = text.animation.plugin.split('@')[0]
-          const loadedManifest = await loadPluginManifest(pluginName)
+          const pluginName = text.animation.plugin
+          const serverBase = (
+            process.env.NEXT_PUBLIC_MOTIONTEXT_PLUGIN_ORIGIN ||
+            'http://localhost:3300'
+          ).replace(/\/$/, '')
+          const loadedManifest = await loadPluginManifest(pluginName, {
+            mode: 'server',
+            serverBase,
+          })
           setManifest(loadedManifest)
         } catch (error) {
           console.error('Failed to load manifest:', error)
@@ -144,14 +151,17 @@ const MovableAnimatedText = forwardRef<
           },
         }
 
-        const scenario = generateLoopedScenario(
-          text.animation?.plugin || 'fadein@1.0.0',
-          settingsForGenerator,
+        const scenario = generateLoopedScenarioV2(
+          manifest.name,
+          settingsForGenerator as any, // eslint-disable-line @typescript-eslint/no-explicit-any
           Math.max(1, text.endTime - text.startTime)
-        )
+        ) as any // eslint-disable-line @typescript-eslint/no-explicit-any
 
-        setCurrentConfig(scenario)
-        await loadScenario(scenario, { silent: firstLoadDoneRef.current })
+        setCurrentConfig(scenario as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await loadScenario(scenario as any, {
+          silent: firstLoadDoneRef.current,
+        })
 
         // Auto-play on first load
         if (!firstLoadDoneRef.current && !isSelected) {
@@ -214,9 +224,9 @@ const MovableAnimatedText = forwardRef<
 
     // Update animation config (exposed API)
     const updateAnimation = useCallback(
-      (animationConfig: RendererConfig) => {
-        setCurrentConfig(animationConfig)
-        loadScenario(animationConfig, { silent: true })
+      (animationConfig: RendererConfigV2) => {
+        setCurrentConfig(animationConfig as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+        loadScenario(animationConfig as any, { silent: true }) // eslint-disable-line @typescript-eslint/no-explicit-any
       },
       [loadScenario]
     )

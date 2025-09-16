@@ -39,6 +39,9 @@ export interface AssetItem {
   category: string
   description: string
   thumbnail: string
+  // MotionText plugin integration (optional)
+  pluginKey?: string
+  thumbnailPath?: string
   manifestFile?: string
   authorId: string
   authorName: string

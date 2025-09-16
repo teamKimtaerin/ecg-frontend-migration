@@ -1,8 +1,12 @@
 'use client'
 
-import React from 'react'
-import { DndContext, closestCorners, DragOverlay } from '@dnd-kit/core'
-import { useCallback, useEffect, useId, useState, useRef } from 'react'
+import {
+  // closestCenter, // Currently unused
+  closestCorners,
+  DndContext,
+  DragOverlay,
+} from '@dnd-kit/core'
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
 // Store
@@ -24,12 +28,12 @@ import { ClipItem } from './components/ClipComponent/types'
 import { EditorTab } from './types'
 
 // Hooks
-import { useUploadModal } from '@/hooks/useUploadModal'
 import ProcessingModal from '@/components/ProcessingModal'
+import { useUploadModal } from '@/hooks/useUploadModal'
 import { useDragAndDrop } from './hooks/useDragAndDrop'
+import { useGlobalWordDragAndDrop } from './hooks/useGlobalWordDragAndDrop'
 import { useSelectionBox } from './hooks/useSelectionBox'
 import { useUnsavedChanges } from './hooks/useUnsavedChanges'
-import { useGlobalWordDragAndDrop } from './hooks/useGlobalWordDragAndDrop'
 
 // Components
 import SelectionBox from '@/components/DragDrop/SelectionBox'
@@ -39,6 +43,7 @@ import { ChevronDownIcon } from '@/components/icons'
 import AlertDialog from '@/components/ui/AlertDialog'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import ResizablePanelDivider from '@/components/ui/ResizablePanelDivider'
+import { normalizeClipOrder } from '@/utils/editor/clipTimelineUtils'
 import { getSpeakerColor } from '@/utils/editor/speakerColors'
 import AnimationAssetSidebar from './components/AnimationAssetSidebar'
 import EditorHeaderTabs from './components/EditorHeaderTabs'
@@ -48,7 +53,6 @@ import SubtitleEditList from './components/SubtitleEditList'
 import TemplateSidebar from './components/TemplateSidebar'
 import Toolbars from './components/Toolbars'
 import VideoSection from './components/VideoSection'
-import { normalizeClipOrder } from '@/utils/editor/clipTimelineUtils'
 
 // Utils
 import { EditorHistory } from '@/utils/editor/EditorHistory'
@@ -467,7 +471,7 @@ export default function EditorPage() {
     setSelectedClipIds,
     clearSelection,
     updateClipWords,
-    updateClipTiming,
+    // updateClipTiming, // Currently unused
     saveProject,
     activeClipId,
     setActiveClipId,
@@ -482,6 +486,9 @@ export default function EditorPage() {
     assetSidebarWidth,
     setAssetSidebarWidth,
     editingMode,
+    isMultipleWordsSelected,
+    deleteSelectedWords,
+    clearMultiSelection,
   } = useEditorStore()
 
   // Local state
@@ -1061,6 +1068,8 @@ export default function EditorPage() {
   }
 
   const handleClipSelect = (clipId: string) => {
+    // Clear multi-word selection when clicking on clips
+    clearMultiSelection()
     // 체크된 클립이 있으면 모든 선택 해제, 없으면 포커스만 변경
     if (selectedClipIds.size > 0) {
       clearSelection()
@@ -1093,6 +1102,8 @@ export default function EditorPage() {
       clearSelection()
       setActiveClipId(null)
     }
+    // Clear multi-word selection as well
+    clearMultiSelection()
   }
 
   // 새로운 업로드 모달 래퍼
@@ -1556,6 +1567,13 @@ export default function EditorPage() {
         event.preventDefault()
         handleSplitClip()
       }
+      // Delete key - delete selected words if any are selected
+      else if (event.key === 'Delete' || event.key === 'Backspace') {
+        if (isMultipleWordsSelected()) {
+          event.preventDefault()
+          deleteSelectedWords()
+        }
+      }
     }
 
     window.addEventListener('keydown', handleKeyDown)
@@ -1575,6 +1593,8 @@ export default function EditorPage() {
     clipboard,
     editorHistory,
     markAsSaved,
+    isMultipleWordsSelected,
+    deleteSelectedWords,
   ])
 
   // 에디터 진입 시 첫 번째 클립에 자동 포커스 및 패널 너비 복원
