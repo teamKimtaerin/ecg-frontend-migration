@@ -43,6 +43,9 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
     const lastWordUpdateTimeRef = useRef(0) // eslint-disable-line @typescript-eslint/no-unused-vars
     // Track when user manually selects a word to pause auto selection
     const manualSelectionPauseUntilRef = useRef(0)
+    // Track src changes to ignore transient error events during swaps
+    const lastSrcChangeAtRef = useRef(0)
+    const lastErrorLogAtRef = useRef(0)
 
     // MediaError code to message mapping
     const getMediaErrorMessage = useCallback(
@@ -66,15 +69,31 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
     // Enhanced error handler
     const handleVideoError = useCallback(
       (e: React.SyntheticEvent<HTMLVideoElement>) => {
-        const video = e.target as HTMLVideoElement
-        const error = video.error
+        const video = e.currentTarget as HTMLVideoElement
+        const error = video.error || undefined
         const errorCode = error?.code
         const errorMessage = getMediaErrorMessage(errorCode)
 
-        console.error('[VideoPlayer] Video error details:', {
+        // Ignore transient errors right after src changes
+        const now = Date.now()
+        if (now - lastSrcChangeAtRef.current < 800) {
+          // Likely emitted while swapping sources; ignore noise
+          return
+        }
+
+        // Throttle noisy repeated logs
+        if (now - lastErrorLogAtRef.current < 500) return
+        lastErrorLogAtRef.current = now
+
+        const details = {
           errorCode,
+          errorName:
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (error as any)?.name || undefined,
           errorMessage,
-          originalMessage: error?.message,
+          originalMessage:
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (error as any)?.message || undefined,
           videoUrl,
           urlType: videoUrl?.startsWith('blob:')
             ? 'blob'
@@ -85,17 +104,23 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
           networkState: video.networkState,
           currentSrc: video.currentSrc,
           timestamp: new Date().toISOString(),
-        })
+        }
+
+        try {
+          console.error('[VideoPlayer] Video error details:', JSON.stringify(details))
+        } catch {
+          console.error('[VideoPlayer] Video error details:', details)
+        }
 
         setVideoError(errorMessage)
 
-        // Special handling for Blob URL expiration
-        if (errorCode === 4 && videoUrl?.startsWith('blob:')) {
+        // Special handling for Blob URL expiration or invalid persisted blob
+        if ((errorCode === 4 || errorCode == null) && videoUrl?.startsWith('blob:')) {
           console.warn(
-            '[VideoPlayer] Blob URL may have expired - suggesting re-upload'
+            '[VideoPlayer] Blob URL may be invalid/expired - suggesting re-upload'
           )
           setVideoError(
-            '업로드한 비디오가 만료되었습니다. 파일을 다시 업로드해주세요.'
+            '업로드한 비디오를 재생할 수 없습니다. 파일을 다시 업로드해주세요.'
           )
         }
       },
@@ -339,8 +364,9 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
       }
     }, [deletedClipIds])
 
-    // 비디오 URL 디버깅
+    // 비디오 URL 디버깅 및 src 변경 타임스탬프 기록
     useEffect(() => {
+      lastSrcChangeAtRef.current = Date.now()
       console.log('[VideoPlayer] Video URL changed:', {
         videoUrl,
         isBlobUrl: videoUrl?.startsWith('blob:'),
@@ -418,6 +444,7 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
         <video
           ref={videoRef}
           src={videoUrl}
+          playsInline
           controls
           className="w-full h-full object-contain"
           onClick={(e) => togglePlayPause(e)}
