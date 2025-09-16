@@ -264,13 +264,19 @@ class UploadService {
     onError: (error: UploadErrorResponse) => void,
     pollingInterval: number = 2000
   ): () => void {
+    console.log(`[UploadService] Starting polling for job: ${jobId}`)
     const controller = new AbortController()
     this.abortControllers.set(jobId, controller)
 
     const poll = async () => {
-      if (controller.signal.aborted) return
+      if (controller.signal.aborted) {
+        console.log(`[UploadService] Polling aborted for job: ${jobId}`)
+        return
+      }
 
+      console.log(`[UploadService] Polling status for job: ${jobId}`)
       const statusResponse = await this.checkProcessingStatus(jobId)
+      console.log(`[UploadService] Status response:`, statusResponse)
 
       if (!statusResponse.success || !statusResponse.data) {
         onError(
@@ -355,7 +361,14 @@ class UploadService {
     }
 
     // 첫 번째 폴링 시작
-    poll()
+    console.log(`[UploadService] Starting first poll...`)
+    poll().catch(error => {
+      console.error(`[UploadService] Poll error:`, error)
+      onError({
+        error: 'POLLING_ERROR',
+        message: error instanceof Error ? error.message : 'Polling failed'
+      })
+    })
 
     // 폴링 중단 함수 반환
     return () => {

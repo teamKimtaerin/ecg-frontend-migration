@@ -1,15 +1,8 @@
 'use client'
 
-import React from 'react'
-import Modal from '@/components/ui/Modal'
-import Button from '@/components/ui/Button'
-import ProgressBar from '@/components/ui/ProgressBar'
-import {
-  FaTimes,
-  FaSpinner,
-  FaCheckCircle,
-  FaExclamationCircle,
-} from 'react-icons/fa'
+import React, { useState, useEffect, useRef } from 'react'
+import Draggable from 'react-draggable'
+import { ChevronDownIcon, ChevronUpIcon } from '@/components/icons'
 
 export interface ProcessingModalProps {
   isOpen: boolean
@@ -42,54 +35,70 @@ export default function ProcessingModal({
   fileName,
   canCancel = true,
 }: ProcessingModalProps) {
-  const getStatusColor = (): 'default' | 'over-background' => {
-    switch (status) {
-      case 'uploading':
-        return 'default'
-      case 'processing':
-        return 'default'
-      case 'completed':
-        return 'default'
-      case 'failed':
-        return 'default'
-      default:
-        return 'default'
+  console.log('[ProcessingModal] Render - isOpen:', isOpen, 'status:', status, 'progress:', progress)
+
+  const [isMinimized, setIsMinimized] = useState(false)
+  const [position, setPosition] = useState({ x: 0, y: 0 })
+  const nodeRef = useRef<HTMLDivElement>(null) // React 19 호환성을 위한 ref
+  const [initialized, setInitialized] = useState(false)
+
+  // 초기 위치를 화면 중앙으로 설정
+  useEffect(() => {
+    if (!initialized && isOpen && typeof window !== 'undefined') {
+      const modalWidth = 420
+      const modalHeight = 300
+
+      const centerX = (window.innerWidth - modalWidth) / 2
+      const centerY = (window.innerHeight - modalHeight) / 2
+
+      setPosition({ x: centerX, y: centerY })
+      setInitialized(true)
+
+      console.log('[ProcessingModal] Centered at:', { x: centerX, y: centerY })
     }
-  }
+  }, [isOpen, initialized])
+
+  if (!isOpen || status === 'select') return null
 
   const getStatusText = () => {
     switch (status) {
       case 'uploading':
-        return '업로드 중...'
+        return '업로드 중'
       case 'processing':
-        return 'ML 처리 중...'
+        return '처리 중'
       case 'completed':
-        return '처리 완료!'
+        return '완료!'
       case 'failed':
-        return '처리 실패'
+        return '오류 발생'
       default:
-        return '대기 중...'
+        return '처리 중'
     }
   }
 
-  const getStatusIcon = () => {
+  const getStatusEmoji = () => {
     switch (status) {
       case 'uploading':
+        return '📤'
       case 'processing':
-        return <FaSpinner className="animate-spin text-blue-500" size={24} />
+        return '🎬'
       case 'completed':
-        return <FaCheckCircle className="text-green-500" size={24} />
+        return '✅'
       case 'failed':
-        return <FaExclamationCircle className="text-red-500" size={24} />
+        return '❌'
       default:
-        return null
+        return '⏳'
     }
   }
 
-  const formatTime = (seconds: number) => {
+  const formatTime = (seconds?: number) => {
+    if (!seconds || seconds <= 0) return ''
     const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins}:${secs.toString().padStart(2, '0')}`
+    const secs = Math.floor(seconds % 60)
+
+    if (mins > 0) {
+      return `약 ${mins}분 ${secs > 0 ? `${secs}초` : ''}`
+    }
+    return `약 ${secs}초`
   }
 
   const getCurrentStageMessage = () => {
@@ -100,134 +109,188 @@ export default function ProcessingModal({
     )
   }
 
-  const shouldShowCloseButton = status === 'completed' || status === 'failed'
-  const shouldShowCancelButton =
-    canCancel && (status === 'uploading' || status === 'processing')
+  // 조건부 렌더링 - isOpen이 false면 아무것도 렌더링하지 않음
+  if (!isOpen) {
+    console.log('[ProcessingModal] Not rendering - isOpen is false')
+    return null
+  }
+
+  console.log('[ProcessingModal] Rendering modal with Draggable at:', position)
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={shouldShowCloseButton ? onClose : () => {}}
-      closeOnBackdropClick={shouldShowCloseButton}
-      closeOnEsc={shouldShowCloseButton}
-      className="w-[480px] max-w-[90vw]"
-      aria-label="처리 진행 상황"
+    <Draggable
+      handle=".drag-handle"
+      position={position}
+      onDrag={(_, data) => {
+        setPosition({ x: data.x, y: data.y })
+      }}
+      nodeRef={nodeRef}
     >
-      <div className="p-8">
-        {/* 헤더 */}
-        <div className="text-center mb-6">
-          <div className="flex items-center justify-center mb-3">
-            {getStatusIcon()}
-          </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
-            {getStatusText()}
-          </h2>
-          {fileName && (
-            <p className="text-sm text-gray-600 truncate" title={fileName}>
-              {fileName}
-            </p>
-          )}
-        </div>
-
-        {/* 진행률 */}
-        <div className="mb-6">
-          <ProgressBar
-            value={progress}
-            variant={getStatusColor()}
-            size="large"
-            className="mb-2"
-          />
-          <div className="flex justify-between text-xs text-gray-500">
-            <span>{progress}% 완료</span>
-            {estimatedTimeRemaining && estimatedTimeRemaining > 0 && (
-              <span>남은 시간: {formatTime(estimatedTimeRemaining)}</span>
-            )}
-          </div>
-        </div>
-
-        {/* 현재 단계 */}
-        {status === 'processing' && getCurrentStageMessage() && (
-          <div className="bg-blue-50 rounded-lg p-4 mb-6">
-            <div className="flex items-center">
-              <FaSpinner
-                className="animate-spin text-blue-500 mr-3"
-                size={16}
-              />
-              <span className="text-sm text-blue-700">
-                {getCurrentStageMessage()}
+      <div
+        ref={nodeRef}
+        data-testid="processing-modal"
+        className="fixed z-[9999] bg-white rounded-xl shadow-2xl border border-gray-200/50"
+        style={{
+          width: isMinimized ? '320px' : '420px',
+          transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          backdropFilter: 'blur(10px)',
+        }}
+      >
+        {/* 헤더 - 드래그 가능 영역 */}
+        <div className="drag-handle flex items-center justify-between px-5 py-3.5 bg-gradient-to-b from-gray-50 to-white rounded-t-xl cursor-move select-none border-b border-gray-100">
+          <div className="flex items-center gap-3">
+            <span className="text-xl">{getStatusEmoji()}</span>
+            <div className="flex flex-col">
+              <span className="font-semibold text-gray-800 text-sm">
+                {getStatusText()}
               </span>
+              {isMinimized &&
+                estimatedTimeRemaining !== undefined &&
+                estimatedTimeRemaining > 0 && (
+                  <span className="text-xs text-gray-500">
+                    {formatTime(estimatedTimeRemaining)}
+                  </span>
+                )}
             </div>
           </div>
-        )}
+          <button
+            onClick={() => setIsMinimized(!isMinimized)}
+            className="p-1.5 hover:bg-gray-100 rounded-lg transition-all duration-200"
+            title={isMinimized ? '확장' : '최소화'}
+          >
+            {isMinimized ? (
+              <ChevronUpIcon className="w-4 h-4 text-gray-500" />
+            ) : (
+              <ChevronDownIcon className="w-4 h-4 text-gray-500" />
+            )}
+          </button>
+        </div>
 
-        {/* 완료 메시지 */}
-        {status === 'completed' && (
-          <div className="bg-green-50 rounded-lg p-4 mb-6">
-            <div className="text-center">
-              <p className="text-green-700 mb-2">
-                ✅ 음성 인식이 완료되었습니다!
+        {/* 본문 */}
+        <div className={`${isMinimized ? 'px-5 py-3' : 'p-5'}`}>
+          {/* 파일명 - 확장 모드에만 표시 */}
+          {!isMinimized && fileName && (
+            <div className="flex items-center gap-2.5 mb-4 p-3 bg-gray-50 rounded-lg">
+              <span className="text-2xl">📁</span>
+              <span className="text-sm font-medium text-gray-700 truncate flex-1">
+                {fileName}
+              </span>
+            </div>
+          )}
+
+          {/* 처리 단계 - 확장 모드에만 표시 */}
+          {!isMinimized && currentStage && getCurrentStageMessage() && (
+            <div className="mb-4">
+              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                처리 단계
+              </span>
+              <p className="text-sm text-gray-700 font-medium mt-1">
+                {getCurrentStageMessage()}
               </p>
-              <p className="text-sm text-green-600">
+            </div>
+          )}
+
+          {/* 프로그레스 바 - 항상 표시 */}
+          <div className={isMinimized ? '' : 'mb-4'}>
+            <div className="relative">
+              {/* 배경 트랙 */}
+              <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                {/* 진행률 바 */}
+                <div
+                  className="h-full rounded-full transition-all duration-500 ease-out relative overflow-hidden"
+                  style={{
+                    width: `${Math.min(100, Math.max(0, progress))}%`,
+                    background:
+                      status === 'failed'
+                        ? 'linear-gradient(90deg, #ef4444, #dc2626)'
+                        : status === 'completed'
+                          ? 'linear-gradient(90deg, #10b981, #059669)'
+                          : 'linear-gradient(90deg, #3b82f6, #2563eb)',
+                  }}
+                >
+                  {/* 애니메이션 효과 */}
+                  {status === 'processing' && (
+                    <div
+                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                      style={{
+                        animation: 'shimmer 2s infinite',
+                      }}
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* 진행률 텍스트 */}
+            <div className="flex justify-between items-center mt-2">
+              <span className="text-sm font-semibold text-gray-700">
+                {Math.round(progress)}%
+              </span>
+              {!isMinimized &&
+                estimatedTimeRemaining !== undefined &&
+                estimatedTimeRemaining > 0 && (
+                  <span className="text-xs text-gray-500">
+                    {formatTime(estimatedTimeRemaining)} 남음
+                  </span>
+                )}
+            </div>
+          </div>
+
+          {/* 상태 메시지 - 확장 모드에만 표시 */}
+          {!isMinimized && status === 'completed' && (
+            <div className="p-3 bg-green-50 border border-green-200 rounded-lg mb-4">
+              <p className="text-sm text-green-700 font-medium">
+                🎉 처리가 완료되었습니다!
+              </p>
+              <p className="text-xs text-green-600 mt-1">
                 에디터로 이동하여 편집을 시작하세요.
               </p>
             </div>
-          </div>
-        )}
-
-        {/* 실패 메시지 */}
-        {status === 'failed' && (
-          <div className="bg-red-50 rounded-lg p-4 mb-6">
-            <div className="text-center">
-              <p className="text-red-700 mb-2">
-                ❌ 처리 중 오류가 발생했습니다.
-              </p>
-              <p className="text-sm text-red-600">다시 시도해 주세요.</p>
-            </div>
-          </div>
-        )}
-
-        {/* 액션 버튼 */}
-        <div className="flex justify-end space-x-3">
-          {shouldShowCancelButton && onCancel && (
-            <Button
-              variant="secondary"
-              onClick={onCancel}
-              className="flex items-center"
-            >
-              <FaTimes className="mr-2" size={14} />
-              취소
-            </Button>
           )}
 
-          {shouldShowCloseButton && (
-            <Button
-              variant={status === 'completed' ? 'primary' : 'secondary'}
-              onClick={onClose}
-            >
-              {status === 'completed' ? '에디터로 이동' : '닫기'}
-            </Button>
+          {!isMinimized && status === 'failed' && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg mb-4">
+              <p className="text-sm text-red-700 font-medium">
+                처리 중 오류가 발생했습니다.
+              </p>
+              <p className="text-xs text-red-600 mt-1">다시 시도해 주세요.</p>
+            </div>
+          )}
+
+          {/* 버튼 영역 - 확장 모드에만 표시 */}
+          {!isMinimized && (
+            <div className="flex justify-end gap-2 mt-4">
+              {status === 'failed' && (
+                <button
+                  onClick={onClose}
+                  className="px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors"
+                >
+                  닫기
+                </button>
+              )}
+              {status === 'completed' && (
+                <button
+                  onClick={onClose}
+                  className="px-4 py-2 text-sm font-medium text-white bg-green-500 hover:bg-green-600 rounded-lg transition-colors"
+                >
+                  에디터로 이동
+                </button>
+              )}
+              {canCancel &&
+                status !== 'completed' &&
+                status !== 'failed' &&
+                onCancel && (
+                  <button
+                    onClick={onCancel}
+                    className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                  >
+                    취소
+                  </button>
+                )}
+            </div>
           )}
         </div>
-
-        {/* 처리 단계 설명 (업로드 중일 때) */}
-        {status === 'uploading' && (
-          <div className="mt-6 pt-4 border-t border-gray-200">
-            <p className="text-xs text-gray-500 text-center">
-              파일을 안전하게 업로드하고 있습니다...
-            </p>
-          </div>
-        )}
-
-        {/* 처리 단계 설명 (ML 처리 중일 때) */}
-        {status === 'processing' && (
-          <div className="mt-6 pt-4 border-t border-gray-200">
-            <p className="text-xs text-gray-500 text-center">
-              AI가 음성을 분석하여 자막을 생성하고 있습니다.
-              <br />이 과정은 몇 분 소요될 수 있습니다.
-            </p>
-          </div>
-        )}
       </div>
-    </Modal>
+    </Draggable>
   )
 }

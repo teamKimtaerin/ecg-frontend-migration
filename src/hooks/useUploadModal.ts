@@ -108,6 +108,12 @@ export const useUploadModal = () => {
           'useUploadModal',
           `🎬 Created local Blob URL for immediate playback: ${blobUrl}`
         )
+        console.log('[VIDEO DEBUG] File info:', {
+          name: data.file.name,
+          type: data.file.type,
+          size: data.file.size,
+          blobUrl: blobUrl
+        })
 
         // 즉시 비디오 플레이어 업데이트 - 업로드 전에 바로 재생 가능!
         setMediaInfo({
@@ -115,6 +121,11 @@ export const useUploadModal = () => {
           videoName: data.file.name,
           videoType: data.file.type,
           videoDuration: 0, // Duration은 비디오 로드 후 자동 설정
+        })
+        console.log('[VIDEO DEBUG] Media info set:', {
+          videoUrl: blobUrl,
+          videoName: data.file.name,
+          videoType: data.file.type
         })
 
         // State에도 Blob URL 저장 (S3 업로드 중에도 계속 사용)
@@ -181,6 +192,7 @@ export const useUploadModal = () => {
         updateState({ estimatedTimeRemaining: estimated_time || 180 })
 
         log('useUploadModal', `🔄 Starting polling for job: ${job_id}`)
+        console.log('[useUploadModal] About to start polling for job:', job_id)
 
         // 5. 상태 폴링 시작
         const stopPolling = uploadService.startPolling(
@@ -228,6 +240,7 @@ export const useUploadModal = () => {
           }
         )
 
+        console.log('[useUploadModal] Polling started, stopPolling function:', stopPolling)
         stopPollingRef.current = stopPolling
       } catch (error) {
         log('useUploadModal', `💥 Upload process failed: ${error}`)
@@ -250,6 +263,10 @@ export const useUploadModal = () => {
       try {
         log('useUploadModal', '🔄 Converting segments to clips')
 
+        // 🔥 중요: state.videoUrl 확인
+        console.log('[VIDEO DEBUG] handleProcessingComplete - state.videoUrl:', state.videoUrl)
+        console.log('[VIDEO DEBUG] handleProcessingComplete - state.fileName:', state.fileName)
+
         // 새 프로젝트 생성 (이전 프로젝트 대체)
         const projectId = `project-${Date.now()}`
         const projectName = state.fileName
@@ -268,12 +285,15 @@ export const useUploadModal = () => {
           )
           setClips([])
 
-          // 메타데이터는 기본값으로 설정
+          // 메타데이터는 기본값으로 설정 (중요: videoUrl은 유지!)
           setMediaInfo({
             videoDuration: result?.result?.metadata?.duration || 0,
+            videoUrl: state.videoUrl, // ✅ Blob URL 반드시 유지!
+            videoName: state.fileName,
+            videoType: 'video/mp4',
           })
 
-          // 빈 프로젝트도 생성 및 저장
+          // 빈 프로젝트도 생성 및 저장 (중요: videoUrl 포함!)
           const emptyProject: ProjectData = {
             id: projectId,
             name: projectName,
@@ -287,6 +307,8 @@ export const useUploadModal = () => {
             createdAt: new Date(),
             updatedAt: new Date(),
             videoDuration: result?.result?.metadata?.duration || 0,
+            videoUrl: state.videoUrl, // ✅ Blob URL 저장!
+            videoName: state.fileName,
           }
 
           setCurrentProject(emptyProject)
@@ -297,13 +319,14 @@ export const useUploadModal = () => {
 
           log('useUploadModal', `💾 Created empty project: ${projectId}`)
 
-          updateState({ step: 'completed' })
+          // 조기 완료 처리 제거 - 실제 처리가 완료될 때까지 기다림
+          // updateState({ step: 'completed' })
 
-          // 1초 후 에디터로 이동 (빈 프로젝트)
-          setTimeout(() => {
-            goToEditor()
-          }, 1000)
-          return
+          // 조기 에디터 이동 제거 - 폴링이 완료될 때까지 기다림
+          // setTimeout(() => {
+          //   goToEditor()
+          // }, 1000)
+          // return 제거 - 아래 정상 처리로 진행
         }
 
         // 정상적인 결과 처리
@@ -338,6 +361,7 @@ export const useUploadModal = () => {
           videoDuration: videoDuration || 0,
           videoUrl: state.videoUrl, // 이미 Blob URL이 저장되어 있음
           videoName: state.fileName,
+          videoType: 'video/mp4', // 타입 명시
         })
         setClips(clips)
 
@@ -394,7 +418,7 @@ export const useUploadModal = () => {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [setMediaInfo, setClips, setCurrentProject, updateState, state.fileName]
+    [setMediaInfo, setClips, setCurrentProject, updateState, state.fileName, state.videoUrl]
   )
 
   // 세그먼트 → 클립 변환 함수
