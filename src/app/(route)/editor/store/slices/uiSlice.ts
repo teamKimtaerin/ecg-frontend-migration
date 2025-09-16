@@ -54,6 +54,10 @@ export interface UISlice {
   // Word selection state
   selectedWordId: string | null
   setSelectedWordId: (wordId: string | null) => void
+
+  // Rendering mode state (for Playwright capture)
+  isRenderingMode: boolean
+  setIsRenderingMode: (mode: boolean) => void
 }
 
 export const createUISlice: StateCreator<UISlice> = (set) => ({
@@ -116,4 +120,8 @@ export const createUISlice: StateCreator<UISlice> = (set) => ({
   // Word selection state
   selectedWordId: null,
   setSelectedWordId: (wordId) => set({ selectedWordId: wordId }),
+
+  // Rendering mode state (for Playwright capture)
+  isRenderingMode: false,
+  setIsRenderingMode: (mode) => set({ isRenderingMode: mode }),
 })

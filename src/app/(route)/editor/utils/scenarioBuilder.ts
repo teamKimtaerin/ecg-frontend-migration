@@ -1,4 +1,5 @@
 import { RendererScenario } from '@/services/api/types/render.types'
+import { Word } from '@/app/(route)/editor/types'
 
 // 확장된 ClipItem 타입 (실제 사용되는 속성 포함)
 interface ExtendedClipItem {
@@ -12,6 +13,7 @@ interface ExtendedClipItem {
   duration?: string
   speaker?: string
   isDeleted?: boolean
+  words?: Word[]
   style?: {
     bold?: boolean
     italic?: boolean
@@ -49,18 +51,35 @@ export function buildScenarioFromClips(
   // 유효한 클립만 필터링 (삭제되지 않고, 텍스트가 있는 클립)
   const validClips = clips.filter((clip) => {
     const text = clip.text || clip.subtitle || clip.fullText || ''
-    const startTime = clip.startTime ?? 0
-    const endTime = clip.endTime ?? 0
 
-    return (
-      !clip.isDeleted && text && text.trim().length > 0 && endTime > startTime
-    )
+    // 클립이 삭제되었거나 텍스트가 없으면 제외
+    if (clip.isDeleted || !text || text.trim().length === 0) {
+      return false
+    }
+
+    // words 배열이 없거나 비어있으면 제외 (단, 텍스트는 있어야 함)
+    if (!clip.words || clip.words.length === 0) {
+      return false
+    }
+
+    return true
   })
 
   // 각 클립을 큐로 변환
   const cues = validClips.map((clip, index) => {
-    const startTime = clip.startTime ?? 0
-    const endTime = clip.endTime ?? 0
+    // words 배열에서 시작/종료 시간 추출
+    let startTime = clip.words?.[0]?.start ?? 0
+    let endTime = clip.words?.[clip.words.length - 1]?.end ?? 0
+
+    // 타이밍 데이터 검증 및 정규화
+    if (!isFinite(startTime) || startTime < 0) startTime = 0
+    if (!isFinite(endTime) || endTime < 0) endTime = 0
+
+    // endTime이 startTime보다 작거나 같으면 최소 지속 시간 보장
+    if (endTime <= startTime) {
+      endTime = startTime + 0.001 // 최소 0.001초 차이 (MotionText 검증 통과용)
+    }
+
     const text = (clip.text || clip.subtitle || clip.fullText || '').trim()
 
     // 화자별 색상 결정 (옵션)
@@ -90,8 +109,8 @@ export function buildScenarioFromClips(
           {
             e_type: 'text',
             text,
-            absStart: startTime,
-            absEnd: Math.max(endTime, startTime + 0.1), // 최소 0.1초 지속
+            absStart: Math.max(0, startTime),
+            absEnd: Math.max(startTime + 0.001, endTime), // 최소 0.001초 차이 보장
             layout: {
               position: { x: 0.5, y: 0.5 },
               anchor: 'cc',

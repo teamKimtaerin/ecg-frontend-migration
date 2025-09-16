@@ -53,21 +53,46 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     clearPlayingWord,
   } = useEditorStore()
 
-  // Load video from IndexedDB or URL
+  // Load video from IndexedDB or URL - 우선순위: Blob URL > S3 URL > IndexedDB
   useEffect(() => {
     const loadVideo = async () => {
       // First check if we have a video URL from store
       if (videoUrl) {
-        log('VideoPlayer.tsx', `Using video URL from store: ${videoUrl}`)
-        setVideoSrc(videoUrl)
+        const isBlobUrl = videoUrl.startsWith('blob:')
+        const isHttpUrl = videoUrl.startsWith('http')
+
+        log(
+          'VideoPlayer.tsx',
+          `🎯 Video URL detected: ${isBlobUrl ? 'Blob URL' : isHttpUrl ? 'HTTP URL' : 'Unknown'} - ${videoUrl}`
+        )
+        console.log('🎬 VideoPlayer: Setting video src to:', {
+          url: videoUrl,
+          type: isBlobUrl ? 'Blob URL (Local)' : 'HTTP/S3 URL',
+          immediate: isBlobUrl
+            ? 'YES - Instant playback!'
+            : 'Loading from network...',
+        })
+
+        // Blob URL 유효성 검사 (선택적 - 성능 최적화)
+        if (isBlobUrl) {
+          // Blob URL은 일반적으로 즉시 유효하므로 바로 설정
+          setVideoSrc(videoUrl)
+          console.log('⚡ VideoPlayer: Blob URL set for immediate playback!')
+        } else {
+          // HTTP URL인 경우 그대로 사용
+          setVideoSrc(videoUrl)
+          console.log(
+            '🌐 VideoPlayer: HTTP/S3 URL set, loading from network...'
+          )
+        }
         return
       }
 
-      // Check if we have a media ID from store
+      // Check if we have a media ID from store (fallback)
       if (mediaId) {
         log(
           'VideoPlayer.tsx',
-          `Loading video from IndexedDB with mediaId: ${mediaId}`
+          `⏳ No direct URL available, loading from IndexedDB with mediaId: ${mediaId}`
         )
         setVideoLoading(true)
 
@@ -76,11 +101,16 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           if (blobUrl) {
             log(
               'VideoPlayer.tsx',
-              `Video loaded from IndexedDB: ${videoName || 'unknown'}`
+              `✅ Video loaded from IndexedDB: ${videoName || 'unknown'}`
+            )
+            console.log(
+              '💾 VideoPlayer: Setting video src from IndexedDB:',
+              blobUrl
             )
             setVideoSrc(blobUrl)
           } else {
             setVideoError('Failed to load video from storage')
+            console.error('❌ VideoPlayer: Failed to load video from storage')
           }
         } catch (error) {
           console.error('Failed to load video:', error)
@@ -91,9 +121,15 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         return
       }
 
-      // Fallback to friends.mp4 if no media
-      log('VideoPlayer.tsx', 'No media found, using friends.mp4')
-      setVideoSrc(API_CONFIG.MOCK_VIDEO_PATH)
+      // No video available - show empty player
+      log(
+        'VideoPlayer.tsx',
+        '📹 No media found, showing empty player - waiting for upload'
+      )
+      console.warn(
+        '⚠️ VideoPlayer: No videoUrl or mediaId available - please upload a video'
+      )
+      setVideoSrc(null)
     }
 
     loadVideo()
@@ -102,12 +138,51 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   // 비디오 상태 체크를 위한 useEffect
   useEffect(() => {
     const video = videoRef.current
+
+    // 비디오 소스가 변경되면 이전 캐시 클리어
+    if (video) {
+      // 이전 비디오 완전 정지 및 초기화
+      video.pause()
+      video.removeAttribute('src')
+      video.load() // 강제로 비디오 리로드
+      console.log('🧹 Cleared previous video source')
+    }
+
     if (video && videoSrc) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Video element found:', video)
-        console.log('Video readyState:', video.readyState)
-        console.log('Video src:', video.currentSrc || video.src)
+      // URL 유효성 검증
+      console.log('🎬 Attempting to load video:', {
+        url: videoSrc,
+        isValidUrl: videoSrc.startsWith('http') || videoSrc.startsWith('blob:'),
+        urlLength: videoSrc.length,
+      })
+
+      // S3 Presigned URL 만료 체크
+      if (videoSrc.includes('Expires=')) {
+        try {
+          const expires = new URL(videoSrc).searchParams.get('Expires')
+          if (expires && parseInt(expires) * 1000 < Date.now()) {
+            console.error('⚠️ Video URL has expired!')
+            setVideoError('Video URL has expired. Please re-upload.')
+            return
+          }
+        } catch (error) {
+          console.error('Error checking URL expiration:', error)
+        }
       }
+
+      // 새 소스 설정
+      video.src = videoSrc
+      video.load()
+      console.log('✅ Set new video source:', videoSrc)
+
+      console.log('🎬 VideoPlayer State:', {
+        videoSrc,
+        videoUrl,
+        mediaId,
+        videoName,
+        readyState: video.readyState,
+        currentSrc: video.currentSrc || video.src,
+      })
 
       // 비디오가 이미 로드된 경우 즉시 duration 설정
       if (video.readyState >= 1 && video.duration) {
@@ -129,8 +204,36 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         }
       }
       const handleError = (e: Event) => {
-        console.error('Video error:', e)
-        setVideoError('Video playback error')
+        const video = e.target as HTMLVideoElement
+        let errorMessage = 'Video playback error'
+
+        if (video.error) {
+          switch (video.error.code) {
+            case 1: // MEDIA_ERR_ABORTED
+              errorMessage = 'Video loading aborted'
+              break
+            case 2: // MEDIA_ERR_NETWORK
+              errorMessage = 'Network error while loading video'
+              break
+            case 3: // MEDIA_ERR_DECODE
+              errorMessage = 'Video decoding error'
+              break
+            case 4: // MEDIA_ERR_SRC_NOT_SUPPORTED
+              errorMessage = 'Video format not supported or no valid source'
+              console.error('Video URL:', videoSrc)
+              console.error('Supported formats: MP4, WebM, OGG')
+              break
+          }
+        }
+
+        console.error('Video error details:', {
+          code: video.error?.code,
+          message: video.error?.message,
+          videoSrc,
+          videoUrl,
+        })
+
+        setVideoError(errorMessage)
       }
 
       video.addEventListener('loadstart', handleLoadStart)
@@ -143,7 +246,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         video.removeEventListener('error', handleError)
       }
     }
-  }, [videoSrc, setVideoError])
+  }, [videoSrc, videoUrl, mediaId, videoName, setVideoError])
 
   // 재생/일시정지 토글
   const togglePlay = async () => {
@@ -394,14 +497,23 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         <div className="relative aspect-video rounded-lg mb-4 flex-shrink-0 bg-black">
           <video
             ref={videoRef}
+            key={videoSrc || 'empty-video'} // Force component recreation when videoSrc changes
             className="w-full h-full rounded-lg"
-            src={videoSrc || undefined}
+            crossOrigin="anonymous"
+            playsInline
+            controls={false}
+            preload="metadata"
             onTimeUpdate={handleTimeUpdate}
             onLoadedMetadata={handleLoadedMetadata}
             onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
-            crossOrigin="anonymous"
           >
+            {videoSrc && (
+              <>
+                <source src={videoSrc} type="video/mp4" />
+                <source src={videoSrc} type="video/webm" />
+              </>
+            )}
             비디오를 지원하지 않는 브라우저입니다.
           </video>
 

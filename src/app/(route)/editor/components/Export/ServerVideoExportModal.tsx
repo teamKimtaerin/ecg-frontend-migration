@@ -62,20 +62,34 @@ export default function ServerVideoExportModal({
 
   const handleStartExport = async () => {
     if (!videoUrl) {
-      console.error('비디오 URL이 없습니다')
+      console.error('🚨 비디오 URL이 없습니다')
       return
     }
 
     if (!clips || clips.length === 0) {
-      console.error('자막 데이터가 없습니다')
+      console.error('🚨 자막 데이터가 없습니다')
       return
     }
 
     try {
       setPhase('exporting')
 
-      // 시나리오 생성
+      // 🔍 시나리오 생성 및 검증
       const scenario = buildScenarioFromClips(clips)
+      console.log('🔍 Generated scenario debug:', {
+        version: scenario.version,
+        tracks: scenario.tracks.length,
+        cues: scenario.cues.length,
+        validCues: scenario.cues.filter((c) => c.hintTime?.start !== undefined)
+          .length,
+        firstCue: scenario.cues[0],
+      })
+
+      if (scenario.cues.length === 0) {
+        throw new Error(
+          '유효한 자막이 없습니다. 자막을 추가한 후 다시 시도해주세요.'
+        )
+      }
 
       // 파일명 생성
       const baseName = videoName?.replace(/\.[^/.]+$/, '') || 'video'
@@ -96,7 +110,7 @@ export default function ServerVideoExportModal({
         fileName
       )
     } catch (error) {
-      console.error('Export failed:', error)
+      console.error('🚨 Export failed:', error)
       // 저장 위치 선택 취소인 경우 원래 상태로 돌아감
       if (error instanceof Error && error.message.includes('취소')) {
         setPhase('ready')
@@ -309,7 +323,33 @@ export default function ServerVideoExportModal({
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 렌더링 실패
               </h3>
-              {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
+              {error && (
+                <div className="text-left bg-red-50 rounded-lg p-3 mb-4">
+                  <p className="text-sm text-red-800 font-medium mb-2">
+                    오류 메시지:
+                  </p>
+                  <p className="text-sm text-red-700 whitespace-pre-wrap">
+                    {error}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* 디버깅 정보 표시 */}
+            <div className="bg-gray-50 rounded-lg p-3 text-xs text-gray-600">
+              <p className="font-medium mb-1">📊 디버깅 정보:</p>
+              <p>• 비디오 URL: {videoUrl ? '✅ 있음' : '❌ 없음'}</p>
+              <p>• 자막 개수: {clips?.length || 0}개</p>
+              <p>
+                • 유효한 자막:{' '}
+                {clips?.filter((c) => c.fullText?.trim() || c.subtitle?.trim())
+                  .length || 0}
+                개
+              </p>
+              <p>• 환경: {process.env.NODE_ENV}</p>
+              <p className="text-xs text-gray-500 mt-2">
+                💡 개발자 도구 Console 탭에서 자세한 오류 정보를 확인하세요.
+              </p>
             </div>
 
             <div className="space-y-2">

@@ -1,11 +1,7 @@
 'use client'
 
-import {
-  DndContext,
-  closestCenter,
-  closestCorners,
-  DragOverlay,
-} from '@dnd-kit/core'
+import React from 'react'
+import { DndContext, closestCorners, DragOverlay } from '@dnd-kit/core'
 import { useCallback, useEffect, useId, useState, useRef } from 'react'
 import { createPortal } from 'react-dom'
 
@@ -29,6 +25,7 @@ import { EditorTab } from './types'
 
 // Hooks
 import { useUploadModal } from '@/hooks/useUploadModal'
+import ProcessingModal from '@/components/ProcessingModal'
 import { useDragAndDrop } from './hooks/useDragAndDrop'
 import { useSelectionBox } from './hooks/useSelectionBox'
 import { useUnsavedChanges } from './hooks/useUnsavedChanges'
@@ -489,7 +486,6 @@ export default function EditorPage() {
 
   // Local state
   const [activeTab, setActiveTab] = useState<EditorTab>('home')
-  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
   const [showTutorialModal, setShowTutorialModal] = useState(false)
   const [isToolbarVisible, setIsToolbarVisible] = useState(true)
   const [editorHistory] = useState(() => {
@@ -515,6 +511,40 @@ export default function EditorPage() {
 
   // Get media actions from store
   const { setMediaInfo } = useEditorStore()
+
+  // Cleanup blob URLs when component unmounts or videoUrl changes
+  useEffect(() => {
+    // Track current blob URL for cleanup
+    let currentBlobUrl: string | null = null
+
+    // Store에서 현재 videoUrl 가져오기
+    const { videoUrl } = useEditorStore.getState()
+    if (videoUrl && videoUrl.startsWith('blob:')) {
+      currentBlobUrl = videoUrl
+      console.log('📌 Tracking Blob URL for cleanup:', currentBlobUrl)
+    }
+
+    return () => {
+      // Cleanup any blob URLs on unmount to prevent memory leaks
+      const urls = document.querySelectorAll('video[src^="blob:"]')
+      urls.forEach((video) => {
+        const videoElement = video as HTMLVideoElement
+        if (videoElement.src && videoElement.src.startsWith('blob:')) {
+          console.log(
+            '🧹 Cleaning up blob URL from video element:',
+            videoElement.src
+          )
+          URL.revokeObjectURL(videoElement.src)
+        }
+      })
+
+      // Also cleanup tracked blob URL
+      if (currentBlobUrl) {
+        console.log('🧹 Cleaning up tracked Blob URL:', currentBlobUrl)
+        URL.revokeObjectURL(currentBlobUrl)
+      }
+    }
+  }, [])
 
   // Track unsaved changes
   useUnsavedChanges(hasUnsavedChanges)
@@ -604,11 +634,98 @@ export default function EditorPage() {
         // Check for project to recover
         const projectId = sessionStorage.getItem('currentProjectId')
         const mediaId = sessionStorage.getItem('currentMediaId')
+        const lastUploadProjectId = sessionStorage.getItem(
+          'lastUploadProjectId'
+        )
 
-        if (projectId || mediaId) {
+        // Only recover if it's not from a fresh upload (to avoid loading old projects)
+        if ((projectId || mediaId) && projectId === lastUploadProjectId) {
           log(
             'EditorPage.tsx',
-            `Found session data - projectId: ${projectId}, mediaId: ${mediaId}`
+            `Fresh upload detected - projectId: ${projectId}, loading project with videoUrl`
+          )
+
+          // Load the newly created project (complete data)
+          try {
+            const savedProject = projectStorage.loadCurrentProject()
+            if (savedProject) {
+              log(
+                'EditorPage.tsx',
+                `🎬 Restoring new project: ${savedProject.name}`
+              )
+
+              // Restore clips
+              if (savedProject.clips && savedProject.clips.length > 0) {
+                setClips(savedProject.clips)
+                log(
+                  'EditorPage.tsx',
+                  `📝 Loaded ${savedProject.clips.length} clips`
+                )
+              }
+
+              // Restore media info - Blob URL 우선 사용
+              if (savedProject.videoUrl) {
+                // Blob URL 유효성 검사
+                const isValidBlobUrl = savedProject.videoUrl.startsWith('blob:')
+
+                if (isValidBlobUrl) {
+                  // Blob URL이 유효한지 확인 (브라우저 새로고침 시 무효화될 수 있음)
+                  fetch(savedProject.videoUrl, { method: 'HEAD' })
+                    .then(() => {
+                      // Blob URL이 유효하면 사용
+                      setMediaInfo({
+                        videoUrl: savedProject.videoUrl,
+                        videoName: savedProject.videoName,
+                        videoDuration: savedProject.videoDuration,
+                        videoType: savedProject.videoType,
+                        videoMetadata: savedProject.videoMetadata,
+                      })
+                      log(
+                        'EditorPage.tsx',
+                        `🎬 Restored valid Blob URL: ${savedProject.videoUrl}`
+                      )
+                    })
+                    .catch(() => {
+                      // Blob URL이 무효하면 경고 (새로고침으로 인한 정상 상황)
+                      log(
+                        'EditorPage.tsx',
+                        '⚠️ Blob URL expired due to page refresh - video needs to be re-uploaded'
+                      )
+                      // 비디오 없이 자막만 편집 가능하도록 설정
+                      setMediaInfo({
+                        videoUrl: null,
+                        videoName: savedProject.videoName,
+                        videoDuration: savedProject.videoDuration,
+                        videoType: savedProject.videoType,
+                        videoMetadata: savedProject.videoMetadata,
+                      })
+                    })
+                } else {
+                  // Blob URL이 아닌 경우 그대로 사용 (S3 URL 등)
+                  setMediaInfo({
+                    videoUrl: savedProject.videoUrl,
+                    videoName: savedProject.videoName,
+                    videoDuration: savedProject.videoDuration,
+                    videoType: savedProject.videoType,
+                    videoMetadata: savedProject.videoMetadata,
+                  })
+                  log(
+                    'EditorPage.tsx',
+                    `🎬 Restored video URL: ${savedProject.videoUrl}`
+                  )
+                }
+              }
+            }
+          } catch (error) {
+            log('EditorPage.tsx', `❌ Failed to restore new project: ${error}`)
+          }
+
+          // Clear the lastUploadProjectId flag after use
+          sessionStorage.removeItem('lastUploadProjectId')
+        } else if (projectId || mediaId) {
+          log(
+            'EditorPage.tsx',
+            `Found session data to recover - projectId: ${projectId}, mediaId: ${mediaId}`
           )
 
           try {
@@ -736,8 +853,8 @@ export default function EditorPage() {
   // Generate stable ID for DndContext to prevent hydration mismatch
   const dndContextId = useId()
 
-  // Upload modal hook
-  const { isTranscriptionLoading, handleFileSelect } = useUploadModal()
+  // Upload modal hook - 새로운 API 사용
+  const uploadModal = useUploadModal()
 
   // DnD functionality
   const {
@@ -1005,11 +1122,19 @@ export default function EditorPage() {
     }
   }
 
-  // Upload modal handler - currently not used, placeholder for future implementation
-  const wrappedHandleStartTranscription = async () => {
-    // TODO: Implement actual file upload and transcription logic
-    setIsUploadModalOpen(false)
-    showToast('파일 업로드 기능은 준비 중입니다')
+  // 새로운 업로드 모달 래퍼
+  const wrappedHandleStartTranscription = async (data: {
+    files: File[]
+    settings: { language: string }
+  }) => {
+    if (data.files.length > 0) {
+      // NewUploadModal을 닫지 않고 handleStartTranscription만 호출
+      // step이 변경되면 NewUploadModal은 자동으로 닫히고 ProcessingModal이 표시됨
+      await uploadModal.handleStartTranscription({
+        file: data.files[0],
+        language: data.settings.language as 'ko' | 'en' | 'ja',
+      })
+    }
   }
 
   // Merge clips handler
@@ -1619,358 +1744,392 @@ export default function EditorPage() {
   }
 
   return (
-    <DndContext
-      id={dndContextId}
-      sensors={sensors}
-      collisionDetection={closestCorners}
-      onDragStart={(event) => {
-        // Handle both clip and word drag start
-        if (event.active.data.current?.type === 'word') {
-          handleWordDragStart(event)
-        } else {
-          handleDragStart(event)
-        }
-      }}
-      onDragOver={(event) => {
-        // Handle both clip and word drag over
-        if (event.active.data.current?.type === 'word') {
-          handleWordDragOver(event)
-        } else {
-          handleDragOver(event)
-        }
-      }}
-      onDragEnd={(event) => {
-        // Handle both clip and word drag end
-        if (event.active.data.current?.type === 'word') {
-          handleWordDragEnd(event)
-        } else {
-          handleDragEnd(event)
-        }
-      }}
-      onDragCancel={(event) => {
-        // Handle both clip and word drag cancel
-        if (event.active.data.current?.type === 'word') {
-          handleWordDragCancel()
-        } else {
-          handleDragCancel()
-        }
-      }}
-    >
-      <div className="min-h-screen bg-gray-50 text-gray-900">
-        <EditorHeaderTabs
-          activeTab={activeTab}
-          onTabChange={(tabId: string) => setActiveTab(tabId as EditorTab)}
-          isToolbarVisible={isToolbarVisible}
-          onToolbarToggle={handleToolbarToggle}
-          onShowToolbar={handleShowToolbar}
-        />
-
-        <div
-          className={`transition-all duration-300 ease-in-out overflow-hidden ${
-            isToolbarVisible ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-          }`}
-        >
-          {editingMode === 'advanced' ? (
-            <Toolbars
-              activeTab={activeTab}
-              clips={clips}
-              selectedClipIds={selectedClipIds}
-              activeClipId={activeClipId}
-              canUndo={editorHistory.canUndo()}
-              canRedo={editorHistory.canRedo()}
-              onSelectionChange={setSelectedClipIds}
-              onNewClick={() => setIsUploadModalOpen(true)}
-              onMergeClips={handleMergeClips}
-              onUndo={handleUndo}
-              onRedo={handleRedo}
-              onCut={undefined}
-              onCopy={handleCopyClips}
-              onPaste={handlePasteClips}
-              onSplitClip={handleSplitClip}
-              onRestore={handleRestore}
-              onToggleAnimationSidebar={handleToggleAnimationSidebar}
-              onToggleTemplateSidebar={handleToggleTemplateSidebar}
-              onSave={handleSave}
-              onSaveAs={handleSaveAs}
-              forceOpenExportModal={shouldOpenExportModal}
-              onExportModalStateChange={handleExportModalStateChange}
-            />
-          ) : (
-            <SimpleToolbar
-              activeClipId={activeClipId}
-              canUndo={editorHistory.canUndo()}
-              canRedo={editorHistory.canRedo()}
-              onNewClick={() => setIsUploadModalOpen(true)}
-              onMergeClips={handleMergeClips}
-              onUndo={handleUndo}
-              onRedo={handleRedo}
-              onSplitClip={handleSplitClip}
-              onToggleTemplateSidebar={handleToggleTemplateSidebar}
-              onSave={handleSave}
-              onSaveAs={handleSaveAs}
-              forceOpenExportModal={shouldOpenExportModal}
-              onExportModalStateChange={handleExportModalStateChange}
-            />
-          )}
-        </div>
-
-        <div
-          className={`flex relative transition-all duration-300 ease-in-out ${
-            isToolbarVisible
-              ? 'h-[calc(100vh-176px)]' // ~56px for toolbar + ~120px for header tabs
-              : 'h-[calc(100vh-120px)]' // Only header tabs
-          }`}
-        >
-          <div
-            className={`sticky top-0 transition-all duration-300 ease-in-out ${
-              isToolbarVisible
-                ? 'h-[calc(100vh-176px)]'
-                : 'h-[calc(100vh-120px)]'
-            }`}
-          >
-            <VideoSection width={videoPanelWidth} />
-          </div>
-
-          <ResizablePanelDivider
-            orientation="vertical"
-            onResize={handlePanelResize}
-            className="z-10"
+    <>
+      <DndContext
+        id={dndContextId}
+        sensors={sensors}
+        collisionDetection={closestCorners}
+        onDragStart={(event) => {
+          // Handle both clip and word drag start
+          if (event.active.data.current?.type === 'word') {
+            handleWordDragStart(event)
+          } else {
+            handleDragStart(event)
+          }
+        }}
+        onDragOver={(event) => {
+          // Handle both clip and word drag over
+          if (event.active.data.current?.type === 'word') {
+            handleWordDragOver(event)
+          } else {
+            handleDragOver(event)
+          }
+        }}
+        onDragEnd={(event) => {
+          // Handle both clip and word drag end
+          if (event.active.data.current?.type === 'word') {
+            handleWordDragEnd(event)
+          } else {
+            handleDragEnd(event)
+          }
+        }}
+        onDragCancel={(event) => {
+          // Handle both clip and word drag cancel
+          if (event.active.data.current?.type === 'word') {
+            handleWordDragCancel()
+          } else {
+            handleDragCancel()
+          }
+        }}
+      >
+        <div className="min-h-screen bg-gray-50 text-gray-900">
+          <EditorHeaderTabs
+            activeTab={activeTab}
+            onTabChange={(tabId: string) => setActiveTab(tabId as EditorTab)}
+            isToolbarVisible={isToolbarVisible}
+            onToolbarToggle={handleToolbarToggle}
+            onShowToolbar={handleShowToolbar}
           />
 
           <div
-            className="flex-1 flex justify-center relative overflow-y-auto custom-scrollbar"
-            ref={containerRef}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onScroll={handleScroll}
-            style={
-              {
-                '--scroll-progress': `${scrollProgress}%`,
-              } as React.CSSProperties
-            }
+            className={`transition-all duration-300 ease-in-out overflow-hidden ${
+              isToolbarVisible ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+            }`}
           >
             {editingMode === 'advanced' ? (
-              <SubtitleEditList
+              <Toolbars
+                activeTab={activeTab}
                 clips={clips}
                 selectedClipIds={selectedClipIds}
                 activeClipId={activeClipId}
-                speakers={speakers}
-                speakerColors={speakerColors}
-                onClipSelect={handleClipSelect}
-                onClipCheck={handleClipCheck}
-                onWordEdit={handleWordEdit}
-                onSpeakerChange={handleSpeakerChange}
-                onBatchSpeakerChange={handleBatchSpeakerChange}
-                onOpenSpeakerManagement={handleOpenSpeakerManagement}
-                onAddSpeaker={handleAddSpeaker}
-                onRenameSpeaker={handleRenameSpeaker}
-                onEmptySpaceClick={handleEmptySpaceClick}
+                canUndo={editorHistory.canUndo()}
+                canRedo={editorHistory.canRedo()}
+                onSelectionChange={setSelectedClipIds}
+                onNewClick={() => uploadModal.openModal()}
+                onMergeClips={handleMergeClips}
+                onUndo={handleUndo}
+                onRedo={handleRedo}
+                onCut={undefined}
+                onCopy={handleCopyClips}
+                onPaste={handlePasteClips}
+                onSplitClip={handleSplitClip}
+                onRestore={handleRestore}
+                onToggleAnimationSidebar={handleToggleAnimationSidebar}
+                onToggleTemplateSidebar={handleToggleTemplateSidebar}
+                onSave={handleSave}
+                onSaveAs={handleSaveAs}
+                forceOpenExportModal={shouldOpenExportModal}
+                onExportModalStateChange={handleExportModalStateChange}
               />
             ) : (
-              <div className="flex-1 bg-white p-4 flex flex-col overflow-y-auto items-center">
-                <div className="w-full max-w-[600px]">
-                  <h2 className="text-lg font-semibold text-gray-800 mb-4">
-                    자막 타임라인
-                  </h2>
-                  <div className="space-y-2">
-                    {clips.slice(0, 20).map((clip) => {
-                      const isActive = clip.id === activeClipId
-                      const formatTime = (seconds: number) => {
-                        const mins = Math.floor(seconds / 60)
-                        const secs = Math.floor(seconds % 60)
-                        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
-                      }
+              <SimpleToolbar
+                activeClipId={activeClipId}
+                canUndo={editorHistory.canUndo()}
+                canRedo={editorHistory.canRedo()}
+                onNewClick={() => uploadModal.openModal()}
+                onMergeClips={handleMergeClips}
+                onUndo={handleUndo}
+                onRedo={handleRedo}
+                onSplitClip={handleSplitClip}
+                onToggleTemplateSidebar={handleToggleTemplateSidebar}
+                onSave={handleSave}
+                onSaveAs={handleSaveAs}
+                forceOpenExportModal={shouldOpenExportModal}
+                onExportModalStateChange={handleExportModalStateChange}
+              />
+            )}
+          </div>
 
-                      // Calculate start and end times from words
-                      const startTime =
-                        clip.words.length > 0 ? clip.words[0].start : 0
-                      const endTime =
-                        clip.words.length > 0
-                          ? clip.words[clip.words.length - 1].end
-                          : 0
+          <div
+            className={`flex relative transition-all duration-300 ease-in-out ${
+              isToolbarVisible
+                ? 'h-[calc(100vh-176px)]' // ~56px for toolbar + ~120px for header tabs
+                : 'h-[calc(100vh-120px)]' // Only header tabs
+            }`}
+          >
+            <div
+              className={`sticky top-0 transition-all duration-300 ease-in-out ${
+                isToolbarVisible
+                  ? 'h-[calc(100vh-176px)]'
+                  : 'h-[calc(100vh-120px)]'
+              }`}
+            >
+              <VideoSection width={videoPanelWidth} />
+            </div>
 
-                      return (
-                        <TimelineClipCard
-                          key={clip.id}
-                          clip={clip}
-                          isActive={isActive}
-                          startTime={startTime}
-                          endTime={endTime}
-                          speakers={speakers}
-                          speakerColors={speakerColors}
-                          onClipSelect={handleClipSelect}
-                          onSpeakerChange={handleSpeakerChange}
-                          onAddSpeaker={handleAddSpeaker}
-                          onRenameSpeaker={handleRenameSpeaker}
-                          onOpenSpeakerManagement={handleOpenSpeakerManagement}
-                          formatTime={formatTime}
-                        />
-                      )
-                    })}
+            <ResizablePanelDivider
+              orientation="vertical"
+              onResize={handlePanelResize}
+              className="z-10"
+            />
+
+            <div
+              className="flex-1 flex justify-center relative overflow-y-auto custom-scrollbar"
+              ref={containerRef}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onScroll={handleScroll}
+              style={
+                {
+                  '--scroll-progress': `${scrollProgress}%`,
+                } as React.CSSProperties
+              }
+            >
+              {editingMode === 'advanced' ? (
+                <SubtitleEditList
+                  clips={clips}
+                  selectedClipIds={selectedClipIds}
+                  activeClipId={activeClipId}
+                  speakers={speakers}
+                  speakerColors={speakerColors}
+                  onClipSelect={handleClipSelect}
+                  onClipCheck={handleClipCheck}
+                  onWordEdit={handleWordEdit}
+                  onSpeakerChange={handleSpeakerChange}
+                  onBatchSpeakerChange={handleBatchSpeakerChange}
+                  onOpenSpeakerManagement={handleOpenSpeakerManagement}
+                  onAddSpeaker={handleAddSpeaker}
+                  onRenameSpeaker={handleRenameSpeaker}
+                  onEmptySpaceClick={handleEmptySpaceClick}
+                />
+              ) : (
+                <div className="flex-1 bg-white p-4 flex flex-col overflow-y-auto items-center">
+                  <div className="w-full max-w-[600px]">
+                    <h2 className="text-lg font-semibold text-gray-800 mb-4">
+                      자막 타임라인
+                    </h2>
+                    <div className="space-y-2">
+                      {clips.slice(0, 20).map((clip) => {
+                        const isActive = clip.id === activeClipId
+                        const formatTime = (seconds: number) => {
+                          const mins = Math.floor(seconds / 60)
+                          const secs = Math.floor(seconds % 60)
+                          return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+                        }
+
+                        // Calculate start and end times from words
+                        const startTime =
+                          clip.words.length > 0 ? clip.words[0].start : 0
+                        const endTime =
+                          clip.words.length > 0
+                            ? clip.words[clip.words.length - 1].end
+                            : 0
+
+                        return (
+                          <TimelineClipCard
+                            key={clip.id}
+                            clip={clip}
+                            isActive={isActive}
+                            startTime={startTime}
+                            endTime={endTime}
+                            speakers={speakers}
+                            speakerColors={speakerColors}
+                            onClipSelect={handleClipSelect}
+                            onSpeakerChange={handleSpeakerChange}
+                            onAddSpeaker={handleAddSpeaker}
+                            onRenameSpeaker={handleRenameSpeaker}
+                            onOpenSpeakerManagement={
+                              handleOpenSpeakerManagement
+                            }
+                            formatTime={formatTime}
+                          />
+                        )
+                      })}
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
-
-            <SelectionBox
-              startX={selectionBox.startX}
-              startY={selectionBox.startY}
-              endX={selectionBox.endX}
-              endY={selectionBox.endY}
-              isSelecting={isSelecting}
-            />
-          </div>
-
-          {/* Right Sidebar - 슬라이드 애니메이션과 함께 */}
-          <div
-            className={`transition-all duration-300 ease-out overflow-hidden ${
-              rightSidebarType
-                ? `w-[${assetSidebarWidth}px] opacity-100`
-                : 'w-0 opacity-0'
-            }`}
-            style={{
-              width: rightSidebarType ? `${assetSidebarWidth}px` : '0px',
-            }}
-          >
-            <div className="flex h-full">
-              {rightSidebarType && (
-                <>
-                  <ResizablePanelDivider
-                    orientation="vertical"
-                    onResize={handleAssetSidebarResize}
-                    className="z-10"
-                  />
-
-                  {/* Animation Asset Sidebar */}
-                  {rightSidebarType === 'animation' && (
-                    <div
-                      className={`transform transition-all duration-300 ease-out w-full ${
-                        rightSidebarType === 'animation'
-                          ? 'translate-x-0 opacity-100'
-                          : 'translate-x-full opacity-0'
-                      }`}
-                    >
-                      <AnimationAssetSidebar
-                        onAssetSelect={(asset) => {
-                          console.log('Asset selected in editor:', asset)
-                          // TODO: Apply asset effect to focused clip
-                        }}
-                        onClose={handleCloseSidebar}
-                      />
-                    </div>
-                  )}
-
-                  {/* Template Sidebar */}
-                  {rightSidebarType === 'template' && (
-                    <div
-                      className={`transform transition-all duration-300 ease-out w-full ${
-                        rightSidebarType === 'template'
-                          ? 'translate-x-0 opacity-100'
-                          : 'translate-x-full opacity-0'
-                      }`}
-                    >
-                      <TemplateSidebar
-                        onTemplateSelect={(template) => {
-                          console.log('Template selected in editor:', template)
-                          // TODO: Apply template to focused clip
-                        }}
-                        onClose={handleCloseSidebar}
-                      />
-                    </div>
-                  )}
-
-                  {/* Speaker Management Sidebar */}
-                  {rightSidebarType === 'speaker' && (
-                    <div
-                      className={`sticky top-0 transition-all duration-300 ease-out transform w-full ${
-                        isToolbarVisible
-                          ? 'h-[calc(100vh-176px)]'
-                          : 'h-[calc(100vh-120px)]'
-                      } ${
-                        rightSidebarType === 'speaker'
-                          ? 'translate-x-0 opacity-100'
-                          : 'translate-x-full opacity-0'
-                      }`}
-                    >
-                      <SpeakerManagementSidebar
-                        isOpen={rightSidebarType === 'speaker'}
-                        onClose={handleCloseSidebar}
-                        speakers={speakers}
-                        clips={clips}
-                        speakerColors={speakerColors}
-                        onAddSpeaker={handleAddSpeaker}
-                        onRemoveSpeaker={handleRemoveSpeaker}
-                        onRenameSpeaker={handleRenameSpeaker}
-                        onBatchSpeakerChange={handleBatchSpeakerChange}
-                        onSpeakerColorChange={handleSpeakerColorChange}
-                      />
-                    </div>
-                  )}
-                </>
               )}
+
+              <SelectionBox
+                startX={selectionBox.startX}
+                startY={selectionBox.startY}
+                endX={selectionBox.endX}
+                endY={selectionBox.endY}
+                isSelecting={isSelecting}
+              />
+            </div>
+
+            {/* Right Sidebar - 슬라이드 애니메이션과 함께 */}
+            <div
+              className={`transition-all duration-300 ease-out overflow-hidden ${
+                rightSidebarType
+                  ? `w-[${assetSidebarWidth}px] opacity-100`
+                  : 'w-0 opacity-0'
+              }`}
+              style={{
+                width: rightSidebarType ? `${assetSidebarWidth}px` : '0px',
+              }}
+            >
+              <div className="flex h-full">
+                {rightSidebarType && (
+                  <>
+                    <ResizablePanelDivider
+                      orientation="vertical"
+                      onResize={handleAssetSidebarResize}
+                      className="z-10"
+                    />
+
+                    {/* Animation Asset Sidebar */}
+                    {rightSidebarType === 'animation' && (
+                      <div
+                        className={`transform transition-all duration-300 ease-out w-full ${
+                          rightSidebarType === 'animation'
+                            ? 'translate-x-0 opacity-100'
+                            : 'translate-x-full opacity-0'
+                        }`}
+                      >
+                        <AnimationAssetSidebar
+                          onAssetSelect={(asset) => {
+                            console.log('Asset selected in editor:', asset)
+                            // TODO: Apply asset effect to focused clip
+                          }}
+                          onClose={handleCloseSidebar}
+                        />
+                      </div>
+                    )}
+
+                    {/* Template Sidebar */}
+                    {rightSidebarType === 'template' && (
+                      <div
+                        className={`transform transition-all duration-300 ease-out w-full ${
+                          rightSidebarType === 'template'
+                            ? 'translate-x-0 opacity-100'
+                            : 'translate-x-full opacity-0'
+                        }`}
+                      >
+                        <TemplateSidebar
+                          onTemplateSelect={(template) => {
+                            console.log(
+                              'Template selected in editor:',
+                              template
+                            )
+                            // TODO: Apply template to focused clip
+                          }}
+                          onClose={handleCloseSidebar}
+                        />
+                      </div>
+                    )}
+
+                    {/* Speaker Management Sidebar */}
+                    {rightSidebarType === 'speaker' && (
+                      <div
+                        className={`sticky top-0 transition-all duration-300 ease-out transform w-full ${
+                          isToolbarVisible
+                            ? 'h-[calc(100vh-176px)]'
+                            : 'h-[calc(100vh-120px)]'
+                        } ${
+                          rightSidebarType === 'speaker'
+                            ? 'translate-x-0 opacity-100'
+                            : 'translate-x-full opacity-0'
+                        }`}
+                      >
+                        <SpeakerManagementSidebar
+                          isOpen={rightSidebarType === 'speaker'}
+                          onClose={handleCloseSidebar}
+                          speakers={speakers}
+                          clips={clips}
+                          speakerColors={speakerColors}
+                          onAddSpeaker={handleAddSpeaker}
+                          onRemoveSpeaker={handleRemoveSpeaker}
+                          onRenameSpeaker={handleRenameSpeaker}
+                          onBatchSpeakerChange={handleBatchSpeakerChange}
+                          onSpeakerColorChange={handleSpeakerColorChange}
+                        />
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
           </div>
+
+          <NewUploadModal
+            isOpen={uploadModal.isOpen && uploadModal.step === 'select'}
+            onClose={() =>
+              !uploadModal.isTranscriptionLoading && uploadModal.closeModal()
+            }
+            onFileSelect={uploadModal.handleFileSelect}
+            onStartTranscription={wrappedHandleStartTranscription}
+            acceptedTypes={['audio/*', 'video/*']}
+            maxFileSize={500 * 1024 * 1024} // 500MB
+            multiple={false}
+            isLoading={uploadModal.isTranscriptionLoading}
+          />
+
+          <TutorialModal
+            isOpen={showTutorialModal}
+            onClose={handleTutorialClose}
+            onComplete={handleTutorialComplete}
+          />
+
+          {/* 원본 복원 확인 모달 */}
+          <AlertDialog
+            isOpen={showRestoreModal}
+            title="원본으로 복원"
+            description="원본으로 돌아가시겠습니까? 모든 변경사항이 초기화됩니다."
+            variant="warning"
+            primaryActionLabel="예"
+            cancelActionLabel="아니오"
+            onPrimaryAction={handleConfirmRestore}
+            onCancel={() => setShowRestoreModal(false)}
+            onClose={() => setShowRestoreModal(false)}
+          />
+
+          {/* Drag overlay for word drag and drop */}
+          <DragOverlay>
+            {(() => {
+              const { draggedWordId, clips, groupedWordIds } =
+                useEditorStore.getState()
+              if (!draggedWordId) return null
+
+              const draggedWord = clips
+                .flatMap((clip) => clip.words)
+                .find((word) => word.id === draggedWordId)
+
+              if (!draggedWord) return null
+
+              return (
+                <div className="bg-blue-500 text-white px-2 py-1 rounded text-sm shadow-lg opacity-90">
+                  {groupedWordIds.size > 1
+                    ? `${groupedWordIds.size} words`
+                    : draggedWord.text}
+                </div>
+              )
+            })()}
+          </DragOverlay>
         </div>
+      </DndContext>
 
-        <NewUploadModal
-          isOpen={isUploadModalOpen}
-          onClose={() => !isTranscriptionLoading && setIsUploadModalOpen(false)}
-          onFileSelect={(files: File[]) => {
-            // Convert File[] to FileList for compatibility
-            const fileList = new DataTransfer()
-            files.forEach((file) => fileList.items.add(file))
-            handleFileSelect(fileList.files)
-          }}
-          onStartTranscription={wrappedHandleStartTranscription}
-          acceptedTypes={['audio/*', 'video/*']}
-          maxFileSize={100 * 1024 * 1024} // 100MB
-          multiple={true}
-          isLoading={isTranscriptionLoading}
-        />
-
-        <TutorialModal
-          isOpen={showTutorialModal}
-          onClose={handleTutorialClose}
-          onComplete={handleTutorialComplete}
-        />
-
-        {/* 원본 복원 확인 모달 */}
-        <AlertDialog
-          isOpen={showRestoreModal}
-          title="원본으로 복원"
-          description="원본으로 돌아가시겠습니까? 모든 변경사항이 초기화됩니다."
-          variant="warning"
-          primaryActionLabel="예"
-          cancelActionLabel="아니오"
-          onPrimaryAction={handleConfirmRestore}
-          onCancel={() => setShowRestoreModal(false)}
-          onClose={() => setShowRestoreModal(false)}
-        />
-
-        {/* Drag overlay for word drag and drop */}
-        <DragOverlay>
-          {(() => {
-            const { draggedWordId, clips, groupedWordIds } =
-              useEditorStore.getState()
-            if (!draggedWordId) return null
-
-            const draggedWord = clips
-              .flatMap((clip) => clip.words)
-              .find((word) => word.id === draggedWordId)
-
-            if (!draggedWord) return null
-
-            return (
-              <div className="bg-blue-500 text-white px-2 py-1 rounded text-sm shadow-lg opacity-90">
-                {groupedWordIds.size > 1
-                  ? `${groupedWordIds.size} words`
-                  : draggedWord.text}
-              </div>
-            )
-          })()}
-        </DragOverlay>
-      </div>
-    </DndContext>
+      {/* ProcessingModal을 DndContext 밖에 배치 */}
+      <ProcessingModal
+        isOpen={
+          uploadModal.step !== 'select' && uploadModal.step !== 'completed'
+        }
+        onClose={
+          uploadModal.step === 'completed'
+            ? uploadModal.goToEditor
+            : uploadModal.closeModal
+        }
+        onCancel={uploadModal.cancelProcessing}
+        status={
+          uploadModal.step as
+            | 'uploading'
+            | 'processing'
+            | 'completed'
+            | 'failed'
+            | 'select'
+        }
+        progress={
+          uploadModal.step === 'uploading'
+            ? uploadModal.uploadProgress
+            : uploadModal.processingProgress
+        }
+        currentStage={uploadModal.currentStage}
+        estimatedTimeRemaining={uploadModal.estimatedTimeRemaining}
+        fileName={uploadModal.fileName}
+        canCancel={uploadModal.step !== 'failed'}
+      />
+    </>
   )
 }

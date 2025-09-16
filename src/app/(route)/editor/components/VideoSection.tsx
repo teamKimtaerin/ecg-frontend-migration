@@ -44,8 +44,14 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
   )
 
   // Store hooks
-  const { clips, timeline, initializeTimeline, setPlaybackPosition, videoUrl } =
-    useEditorStore()
+  const {
+    clips,
+    timeline,
+    initializeTimeline,
+    setPlaybackPosition,
+    videoUrl,
+    videoDuration,
+  } = useEditorStore()
 
   const handleScenarioUpdate = useCallback((scenario: RendererConfig) => {
     setCurrentScenario(scenario)
@@ -100,8 +106,33 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
         clips.length
       )
 
+      // 클립 생성 시 duration이 0이면 videoDuration 또는 비디오 실제 duration 사용
+      const clipsWithDuration = clips.map((clip) => {
+        // 모든 단어의 타이밍이 0이거나 duration이 없는 경우
+        const hasValidTiming = clip.words.some((word) => word.end > 0)
+        if (!hasValidTiming && videoDuration && videoDuration > 0) {
+          // 균등하게 시간 분배
+          const avgDurationPerClip = (videoDuration || 0) / clips.length
+          const clipIndex = clips.indexOf(clip)
+          const startTime = clipIndex * avgDurationPerClip
+          // endTime calculation removed as it's not used
+
+          return {
+            ...clip,
+            words: clip.words.map((word, idx) => ({
+              ...word,
+              start: startTime + idx * (avgDurationPerClip / clip.words.length),
+              end:
+                startTime +
+                (idx + 1) * (avgDurationPerClip / clip.words.length),
+            })),
+          }
+        }
+        return clip
+      })
+
       // Virtual Timeline 재초기화
-      ecgTimelineMapperRef.current.initialize(clips)
+      ecgTimelineMapperRef.current.initialize(clipsWithDuration)
 
       // Virtual Player Controller에 타임라인 변경 알림
       if (virtualPlayerControllerRef.current) {
@@ -111,13 +142,24 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
           total: timeline.segments.length,
           enabled: timeline.segments.filter((s) => s.isEnabled).length,
           duration: timeline.duration,
+          videoDuration: videoDuration || 0,
+          usingFallback:
+            timeline.duration === 0 && videoDuration && videoDuration > 0,
         })
+
+        // duration이 0이면 비디오의 실제 duration 사용
+        if (timeline.duration === 0 && videoDuration && videoDuration > 0) {
+          console.log(
+            '⚠️ [VideoSection] Timeline duration is 0, using video duration:',
+            videoDuration
+          )
+        }
 
         // 새로운 handleTimelineUpdate 메서드 사용
         virtualPlayerControllerRef.current.handleTimelineUpdate(timeline)
       }
     }
-  }, [clips]) // 클립이 변경될 때마다 실행
+  }, [clips, videoDuration]) // 클립이나 비디오 duration이 변경될 때마다 실행
 
   // 비디오 플레이어 레퍼런스 설정
   useEffect(() => {
