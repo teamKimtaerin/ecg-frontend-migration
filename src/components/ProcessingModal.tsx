@@ -4,7 +4,12 @@ import React from 'react'
 import Modal from '@/components/ui/Modal'
 import Button from '@/components/ui/Button'
 import ProgressBar from '@/components/ui/ProgressBar'
-import { FaTimes, FaSpinner, FaCheckCircle, FaExclamationCircle } from 'react-icons/fa'
+import {
+  FaTimes,
+  FaSpinner,
+  FaCheckCircle,
+  FaExclamationCircle,
+} from 'react-icons/fa'
 
 export interface ProcessingModalProps {
   isOpen: boolean
@@ -19,11 +24,11 @@ export interface ProcessingModalProps {
 }
 
 const STAGE_MESSAGES = {
-  'file_validation': '파일 검증 중...',
-  'audio_extraction': '오디오 추출 중...',
-  'whisper_transcription': '음성 인식 중...',
-  'speaker_diarization': '화자 분리 중...',
-  'post_processing': '후처리 중...',
+  file_validation: '파일 검증 중...',
+  audio_extraction: '오디오 추출 중...',
+  whisper_transcription: '음성 인식 중...',
+  speaker_diarization: '화자 분리 중...',
+  post_processing: '후처리 중...',
 } as const
 
 export default function ProcessingModal({
@@ -39,21 +44,31 @@ export default function ProcessingModal({
 }: ProcessingModalProps) {
   const getStatusColor = (): 'default' | 'over-background' => {
     switch (status) {
-      case 'uploading': return 'default'
-      case 'processing': return 'default'
-      case 'completed': return 'default'
-      case 'failed': return 'default'
-      default: return 'default'
+      case 'uploading':
+        return 'default'
+      case 'processing':
+        return 'default'
+      case 'completed':
+        return 'default'
+      case 'failed':
+        return 'default'
+      default:
+        return 'default'
     }
   }
 
   const getStatusText = () => {
     switch (status) {
-      case 'uploading': return '업로드 중...'
-      case 'processing': return 'ML 처리 중...'
-      case 'completed': return '처리 완료!'
-      case 'failed': return '처리 실패'
-      default: return '대기 중...'
+      case 'uploading':
+        return '업로드 중...'
+      case 'processing':
+        return 'ML 처리 중...'
+      case 'completed':
+        return '처리 완료!'
+      case 'failed':
+        return '처리 실패'
+      default:
+        return '대기 중...'
     }
   }
 
@@ -79,11 +94,15 @@ export default function ProcessingModal({
 
   const getCurrentStageMessage = () => {
     if (!currentStage) return null
-    return STAGE_MESSAGES[currentStage as keyof typeof STAGE_MESSAGES] || currentStage
+    return (
+      STAGE_MESSAGES[currentStage as keyof typeof STAGE_MESSAGES] ||
+      currentStage
+    )
   }
 
   const shouldShowCloseButton = status === 'completed' || status === 'failed'
-  const shouldShowCancelButton = canCancel && (status === 'uploading' || status === 'processing')
+  const shouldShowCancelButton =
+    canCancel && (status === 'uploading' || status === 'processing')
 
   return (
     <Modal
@@ -130,7 +149,10 @@ export default function ProcessingModal({
         {status === 'processing' && getCurrentStageMessage() && (
           <div className="bg-blue-50 rounded-lg p-4 mb-6">
             <div className="flex items-center">
-              <FaSpinner className="animate-spin text-blue-500 mr-3" size={16} />
+              <FaSpinner
+                className="animate-spin text-blue-500 mr-3"
+                size={16}
+              />
               <span className="text-sm text-blue-700">
                 {getCurrentStageMessage()}
               </span>
@@ -159,9 +181,7 @@ export default function ProcessingModal({
               <p className="text-red-700 mb-2">
                 ❌ 처리 중 오류가 발생했습니다.
               </p>
-              <p className="text-sm text-red-600">
-                다시 시도해 주세요.
-              </p>
+              <p className="text-sm text-red-600">다시 시도해 주세요.</p>
             </div>
           </div>
         )}
@@ -203,8 +223,7 @@ export default function ProcessingModal({
           <div className="mt-6 pt-4 border-t border-gray-200">
             <p className="text-xs text-gray-500 text-center">
               AI가 음성을 분석하여 자막을 생성하고 있습니다.
-              <br />
-              이 과정은 몇 분 소요될 수 있습니다.
+              <br />이 과정은 몇 분 소요될 수 있습니다.
             </p>
           </div>
         )}

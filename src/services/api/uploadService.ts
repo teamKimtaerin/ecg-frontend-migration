@@ -13,10 +13,11 @@ import {
 import { useAuthStore } from '@/lib/store/authStore'
 
 // API Base URL - 개발 환경에서는 프록시 사용 (CORS 우회)
-const API_BASE_URL = process.env.NODE_ENV === 'development'
-  ? '/api'  // Next.js 프록시 경로
-  : (process.env.NEXT_PUBLIC_API_BASE_URL ||
-     'http://ecg-project-pipeline-dev-alb-1703405864.us-east-1.elb.amazonaws.com')
+const API_BASE_URL =
+  process.env.NODE_ENV === 'development'
+    ? '/api' // Next.js 프록시 경로
+    : process.env.NEXT_PUBLIC_API_BASE_URL ||
+      'http://ecg-project-pipeline-dev-alb-1703405864.us-east-1.elb.amazonaws.com'
 
 class UploadService {
   private abortControllers = new Map<string, AbortController>()
@@ -36,7 +37,7 @@ class UploadService {
       const token = useAuthStore.getState().token
       const headers: HeadersInit = {
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
+        Accept: 'application/json',
       }
 
       // Add Authorization header if token exists
@@ -47,7 +48,7 @@ class UploadService {
       // Merge with any additional headers from options
       const finalHeaders = {
         ...headers,
-        ...(options.headers as Record<string, string> || {}),
+        ...((options.headers as Record<string, string>) || {}),
       }
 
       const response = await fetch(url, {
@@ -83,7 +84,8 @@ class UploadService {
         success: false,
         error: {
           error: 'NETWORK_ERROR',
-          message: error instanceof Error ? error.message : 'Unknown network error',
+          message:
+            error instanceof Error ? error.message : 'Unknown network error',
         },
       }
     }
@@ -96,11 +98,10 @@ class UploadService {
     filename: string,
     contentType: string
   ): Promise<ServiceResponse<PresignedUrlResponse>> {
-
     // 백엔드 API 스펙에 맞게 필드명 조정
     const request = {
       filename,
-      filetype: contentType,  // backend expects 'filetype' not 'content_type'
+      filetype: contentType, // backend expects 'filetype' not 'content_type'
     }
 
     // Backend response might have different field names
@@ -113,7 +114,7 @@ class UploadService {
     }
 
     const response = await this.makeRequest<BackendPresignedResponse>(
-      '/upload-video/generate-url',  // /api 제거 (프록시가 추가함)
+      '/upload-video/generate-url', // /api 제거 (프록시가 추가함)
       {
         method: 'POST',
         body: JSON.stringify(request),
@@ -145,7 +146,6 @@ class UploadService {
     onProgress?: (progress: number) => void
   ): Promise<ServiceResponse<string>> {
     try {
-
       return new Promise((resolve) => {
         const xhr = new XMLHttpRequest()
 
@@ -199,7 +199,8 @@ class UploadService {
         success: false,
         error: {
           error: 'S3_UPLOAD_ERROR',
-          message: error instanceof Error ? error.message : 'Unknown S3 upload error',
+          message:
+            error instanceof Error ? error.message : 'Unknown S3 upload error',
         },
       }
     }
@@ -213,7 +214,6 @@ class UploadService {
     language: string,
     whisperModel: string = 'large-v3'
   ): Promise<ServiceResponse<MLProcessingResponse>> {
-
     const request = {
       fileKey: fileKey,
       language,
@@ -221,7 +221,7 @@ class UploadService {
     }
 
     return this.makeRequest<MLProcessingResponse>(
-      '/upload-video/request-process',  // /api 제거 (프록시가 추가함)
+      '/upload-video/request-process', // /api 제거 (프록시가 추가함)
       {
         method: 'POST',
         body: JSON.stringify(request),
@@ -232,18 +232,18 @@ class UploadService {
   /**
    * 처리 상태 확인
    */
-  async checkProcessingStatus(jobId: string): Promise<ServiceResponse<ProcessingStatus>> {
+  async checkProcessingStatus(
+    jobId: string
+  ): Promise<ServiceResponse<ProcessingStatus>> {
     return this.makeRequest<ProcessingStatus>(`/upload-video/status/${jobId}`, {
       method: 'GET',
     })
   }
 
-
   /**
    * 처리 중단
    */
   async cancelProcessing(jobId: string): Promise<ServiceResponse<void>> {
-
     if (this.abortControllers.has(jobId)) {
       this.abortControllers.get(jobId)?.abort()
       this.abortControllers.delete(jobId)
@@ -264,7 +264,6 @@ class UploadService {
     onError: (error: UploadErrorResponse) => void,
     pollingInterval: number = 2000
   ): () => void {
-
     const controller = new AbortController()
     this.abortControllers.set(jobId, controller)
 
@@ -274,7 +273,12 @@ class UploadService {
       const statusResponse = await this.checkProcessingStatus(jobId)
 
       if (!statusResponse.success || !statusResponse.data) {
-        onError(statusResponse.error || { error: 'UNKNOWN', message: 'Status check failed' })
+        onError(
+          statusResponse.error || {
+            error: 'UNKNOWN',
+            message: 'Status check failed',
+          }
+        )
         return
       }
 
@@ -297,10 +301,12 @@ class UploadService {
             onComplete({
               job_id: status.job_id,
               status: status.status,
-              result: status.result
+              result: status.result,
             } as ProcessingResult)
           } else {
-            console.warn('⚠️ No result data in status response - proceeding with empty result')
+            console.warn(
+              '⚠️ No result data in status response - proceeding with empty result'
+            )
             // 빈 결과로 완료 처리
             onComplete({
               job_id: status.job_id,
@@ -311,13 +317,16 @@ class UploadService {
                   duration: 0,
                   language: 'ko',
                   model: 'whisper',
-                  processing_time: 0
-                }
-              }
+                  processing_time: 0,
+                },
+              },
             } as ProcessingResult)
           }
         } catch (error) {
-          console.warn('⚠️ Exception during result processing - completing with empty result', error)
+          console.warn(
+            '⚠️ Exception during result processing - completing with empty result',
+            error
+          )
           // 에러 무시하고 빈 결과로 완료 처리
           onComplete({
             job_id: status.job_id,
@@ -328,14 +337,17 @@ class UploadService {
                 duration: 0,
                 language: 'ko',
                 model: 'whisper',
-                processing_time: 0
-              }
-            }
+                processing_time: 0,
+              },
+            },
           } as ProcessingResult)
         }
       } else if (status.status === 'failed') {
         this.abortControllers.delete(jobId)
-        onError({ error: 'ML_PROCESSING_FAILED', message: 'ML processing failed' })
+        onError({
+          error: 'ML_PROCESSING_FAILED',
+          message: 'ML processing failed',
+        })
       } else {
         // 계속 폴링
         setTimeout(poll, pollingInterval)
@@ -356,7 +368,6 @@ class UploadService {
    * 모든 진행 중인 작업 중단
    */
   cancelAllProcessing(): void {
-
     this.abortControllers.forEach((controller) => {
       controller.abort()
     })

@@ -339,7 +339,9 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
               <div className="relative">
                 <select
                   value={language}
-                  onChange={(e) => setLanguage(e.target.value as 'ko' | 'en' | 'ja' | 'zh')}
+                  onChange={(e) =>
+                    setLanguage(e.target.value as 'ko' | 'en' | 'ja' | 'zh')
+                  }
                   className="w-full h-12 px-4 bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-900 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   disabled={isLoading}
                 >

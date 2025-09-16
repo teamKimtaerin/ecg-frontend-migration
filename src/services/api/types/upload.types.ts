@@ -62,11 +62,11 @@ export interface ProcessingResult {
 
 // 세그먼트 데이터 (ML 결과)
 export interface SegmentData {
-  id?: number  // ML 서버가 id를 안 보낼 수 있음
+  id?: number // ML 서버가 id를 안 보낼 수 있음
   start: number
   end: number
   text: string
-  speaker: string | { speaker_id: string }  // ML 서버가 객체로 보낼 수 있음
+  speaker: string | { speaker_id: string } // ML 서버가 객체로 보낼 수 있음
   confidence: number
   words?: WordData[]
 }
@@ -86,7 +86,12 @@ export interface UploadFormData {
 }
 
 // 업로드 진행 상태
-export type UploadStep = 'select' | 'uploading' | 'processing' | 'completed' | 'failed'
+export type UploadStep =
+  | 'select'
+  | 'uploading'
+  | 'processing'
+  | 'completed'
+  | 'failed'
 
 // 에러 응답
 export interface UploadErrorResponse {

@@ -2,13 +2,8 @@
   "CORSRules": [
     {
       "ID": "ECGVideoPlayerCORS",
-      "AllowedHeaders": [
-        "*"
-      ],
-      "AllowedMethods": [
-        "GET",
-        "HEAD"
-      ],
+      "AllowedHeaders": ["*"],
+      "AllowedMethods": ["GET", "HEAD"],
       "AllowedOrigins": [
         "http://localhost:3000",
         "http://localhost:3001",

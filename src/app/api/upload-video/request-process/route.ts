@@ -8,16 +8,19 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000'
+    const backendUrl =
+      process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000'
 
-    console.log(`[API Route] Proxying process request to ${backendUrl}/api/upload-video/request-process`)
+    console.log(
+      `[API Route] Proxying process request to ${backendUrl}/api/upload-video/request-process`
+    )
     console.log(`[API Route] Request body:`, body)
 
     // Extract Authorization header from incoming request
     const authHeader = request.headers.get('Authorization')
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      'Accept': 'application/json',
+      Accept: 'application/json',
     }
 
     // Forward Authorization header if present
@@ -28,11 +31,14 @@ export async function POST(request: NextRequest) {
       console.log(`[API Route] No Authorization header found`)
     }
 
-    const response = await fetch(`${backendUrl}/api/upload-video/request-process`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(body),
-    })
+    const response = await fetch(
+      `${backendUrl}/api/upload-video/request-process`,
+      {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(body),
+      }
+    )
 
     const data = await response.json()
 

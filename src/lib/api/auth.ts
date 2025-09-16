@@ -26,9 +26,10 @@ interface AuthResponse {
 }
 
 // 개발 환경에서는 프록시 경로 사용 (CORS 문제 해결)
-const BASE_URL = process.env.NODE_ENV === 'development'
-  ? '' // 프록시 사용 (next.config.ts의 rewrites)
-  : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+const BASE_URL =
+  process.env.NODE_ENV === 'development'
+    ? '' // 프록시 사용 (next.config.ts의 rewrites)
+    : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 export class AuthAPI {
   private static getHeaders(token?: string) {
@@ -74,26 +75,26 @@ export class AuthAPI {
         })
 
         if (response.status === 422) {
-        // 유효성 검사 오류 상세 메시지 표시
-        let message = '입력 데이터가 올바르지 않습니다.'
+          // 유효성 검사 오류 상세 메시지 표시
+          let message = '입력 데이터가 올바르지 않습니다.'
 
-        if (errorData.detail) {
-          if (Array.isArray(errorData.detail)) {
-            message = errorData.detail
-              .map(
-                (err: { msg?: string; message?: string }) =>
-                  err.msg || err.message || '유효성 검사 실패'
-              )
-              .join('\n')
-          } else {
-            message = errorData.detail
+          if (errorData.detail) {
+            if (Array.isArray(errorData.detail)) {
+              message = errorData.detail
+                .map(
+                  (err: { msg?: string; message?: string }) =>
+                    err.msg || err.message || '유효성 검사 실패'
+                )
+                .join('\n')
+            } else {
+              message = errorData.detail
+            }
+          } else if (errorData.message) {
+            message = errorData.message
           }
-        } else if (errorData.message) {
-          message = errorData.message
-        }
 
-        throw new Error(message)
-      }
+          throw new Error(message)
+        }
 
         throw new Error(
           errorData.detail ||

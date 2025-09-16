@@ -516,18 +516,37 @@ export default function EditorPage() {
   // Get media actions from store
   const { setMediaInfo } = useEditorStore()
 
-  // Cleanup blob URLs when component unmounts
+  // Cleanup blob URLs when component unmounts or videoUrl changes
   useEffect(() => {
+    // Track current blob URL for cleanup
+    let currentBlobUrl: string | null = null
+
+    // Store에서 현재 videoUrl 가져오기
+    const { videoUrl } = useEditorStore.getState()
+    if (videoUrl && videoUrl.startsWith('blob:')) {
+      currentBlobUrl = videoUrl
+      console.log('📌 Tracking Blob URL for cleanup:', currentBlobUrl)
+    }
+
     return () => {
       // Cleanup any blob URLs on unmount to prevent memory leaks
       const urls = document.querySelectorAll('video[src^="blob:"]')
       urls.forEach((video) => {
         const videoElement = video as HTMLVideoElement
         if (videoElement.src && videoElement.src.startsWith('blob:')) {
-          console.log('🧹 Cleaning up blob URL:', videoElement.src)
+          console.log(
+            '🧹 Cleaning up blob URL from video element:',
+            videoElement.src
+          )
           URL.revokeObjectURL(videoElement.src)
         }
       })
+
+      // Also cleanup tracked blob URL
+      if (currentBlobUrl) {
+        console.log('🧹 Cleaning up tracked Blob URL:', currentBlobUrl)
+        URL.revokeObjectURL(currentBlobUrl)
+      }
     }
   }, [])
 
@@ -619,7 +638,9 @@ export default function EditorPage() {
         // Check for project to recover
         const projectId = sessionStorage.getItem('currentProjectId')
         const mediaId = sessionStorage.getItem('currentMediaId')
-        const lastUploadProjectId = sessionStorage.getItem('lastUploadProjectId')
+        const lastUploadProjectId = sessionStorage.getItem(
+          'lastUploadProjectId'
+        )
 
         // Only recover if it's not from a fresh upload (to avoid loading old projects)
         if ((projectId || mediaId) && projectId === lastUploadProjectId) {
@@ -632,24 +653,71 @@ export default function EditorPage() {
           try {
             const savedProject = projectStorage.loadCurrentProject()
             if (savedProject) {
-              log('EditorPage.tsx', `🎬 Restoring new project: ${savedProject.name}`)
+              log(
+                'EditorPage.tsx',
+                `🎬 Restoring new project: ${savedProject.name}`
+              )
 
               // Restore clips
               if (savedProject.clips && savedProject.clips.length > 0) {
                 setClips(savedProject.clips)
-                log('EditorPage.tsx', `📝 Loaded ${savedProject.clips.length} clips`)
+                log(
+                  'EditorPage.tsx',
+                  `📝 Loaded ${savedProject.clips.length} clips`
+                )
               }
 
-              // Restore media info
+              // Restore media info - Blob URL 우선 사용
               if (savedProject.videoUrl) {
-                setMediaInfo({
-                  videoUrl: savedProject.videoUrl,
-                  videoName: savedProject.videoName,
-                  videoDuration: savedProject.videoDuration,
-                  videoType: savedProject.videoType,
-                  videoMetadata: savedProject.videoMetadata,
-                })
-                log('EditorPage.tsx', `🎬 Restored video: ${savedProject.videoUrl}`)
+                // Blob URL 유효성 검사
+                const isValidBlobUrl = savedProject.videoUrl.startsWith('blob:')
+
+                if (isValidBlobUrl) {
+                  // Blob URL이 유효한지 확인 (브라우저 새로고침 시 무효화될 수 있음)
+                  fetch(savedProject.videoUrl, { method: 'HEAD' })
+                    .then(() => {
+                      // Blob URL이 유효하면 사용
+                      setMediaInfo({
+                        videoUrl: savedProject.videoUrl,
+                        videoName: savedProject.videoName,
+                        videoDuration: savedProject.videoDuration,
+                        videoType: savedProject.videoType,
+                        videoMetadata: savedProject.videoMetadata,
+                      })
+                      log(
+                        'EditorPage.tsx',
+                        `🎬 Restored valid Blob URL: ${savedProject.videoUrl}`
+                      )
+                    })
+                    .catch(() => {
+                      // Blob URL이 무효하면 경고 (새로고침으로 인한 정상 상황)
+                      log(
+                        'EditorPage.tsx',
+                        '⚠️ Blob URL expired due to page refresh - video needs to be re-uploaded'
+                      )
+                      // 비디오 없이 자막만 편집 가능하도록 설정
+                      setMediaInfo({
+                        videoUrl: null,
+                        videoName: savedProject.videoName,
+                        videoDuration: savedProject.videoDuration,
+                        videoType: savedProject.videoType,
+                        videoMetadata: savedProject.videoMetadata,
+                      })
+                    })
+                } else {
+                  // Blob URL이 아닌 경우 그대로 사용 (S3 URL 등)
+                  setMediaInfo({
+                    videoUrl: savedProject.videoUrl,
+                    videoName: savedProject.videoName,
+                    videoDuration: savedProject.videoDuration,
+                    videoType: savedProject.videoType,
+                    videoMetadata: savedProject.videoMetadata,
+                  })
+                  log(
+                    'EditorPage.tsx',
+                    `🎬 Restored video URL: ${savedProject.videoUrl}`
+                  )
+                }
               }
             }
           } catch (error) {
@@ -1059,7 +1127,10 @@ export default function EditorPage() {
   }
 
   // 새로운 업로드 모달 래퍼
-  const wrappedHandleStartTranscription = async (data: { files: File[], settings: { language: string } }) => {
+  const wrappedHandleStartTranscription = async (data: {
+    files: File[]
+    settings: { language: string }
+  }) => {
     if (data.files.length > 0) {
       await uploadModal.handleStartTranscription({
         file: data.files[0],
@@ -1971,7 +2042,9 @@ export default function EditorPage() {
 
         <NewUploadModal
           isOpen={uploadModal.isOpen}
-          onClose={() => !uploadModal.isTranscriptionLoading && uploadModal.closeModal()}
+          onClose={() =>
+            !uploadModal.isTranscriptionLoading && uploadModal.closeModal()
+          }
           onFileSelect={uploadModal.handleFileSelect}
           onStartTranscription={wrappedHandleStartTranscription}
           acceptedTypes={['audio/*', 'video/*']}
@@ -1981,11 +2054,28 @@ export default function EditorPage() {
         />
 
         <ProcessingModal
-          isOpen={uploadModal.step !== 'select' && uploadModal.step !== 'completed'}
-          onClose={uploadModal.step === 'completed' ? uploadModal.goToEditor : uploadModal.closeModal}
+          isOpen={
+            uploadModal.step !== 'select' && uploadModal.step !== 'completed'
+          }
+          onClose={
+            uploadModal.step === 'completed'
+              ? uploadModal.goToEditor
+              : uploadModal.closeModal
+          }
           onCancel={uploadModal.cancelProcessing}
-          status={uploadModal.step as 'uploading' | 'processing' | 'completed' | 'failed' | 'select'}
-          progress={uploadModal.step === 'uploading' ? uploadModal.uploadProgress : uploadModal.processingProgress}
+          status={
+            uploadModal.step as
+              | 'uploading'
+              | 'processing'
+              | 'completed'
+              | 'failed'
+              | 'select'
+          }
+          progress={
+            uploadModal.step === 'uploading'
+              ? uploadModal.uploadProgress
+              : uploadModal.processingProgress
+          }
           currentStage={uploadModal.currentStage}
           estimatedTimeRemaining={uploadModal.estimatedTimeRemaining}
           fileName={uploadModal.fileName}

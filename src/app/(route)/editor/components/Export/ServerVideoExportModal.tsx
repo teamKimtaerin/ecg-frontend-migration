@@ -80,12 +80,15 @@ export default function ServerVideoExportModal({
         version: scenario.version,
         tracks: scenario.tracks.length,
         cues: scenario.cues.length,
-        validCues: scenario.cues.filter(c => c.hintTime?.start !== undefined).length,
+        validCues: scenario.cues.filter((c) => c.hintTime?.start !== undefined)
+          .length,
         firstCue: scenario.cues[0],
       })
 
       if (scenario.cues.length === 0) {
-        throw new Error('유효한 자막이 없습니다. 자막을 추가한 후 다시 시도해주세요.')
+        throw new Error(
+          '유효한 자막이 없습니다. 자막을 추가한 후 다시 시도해주세요.'
+        )
       }
 
       // 파일명 생성
@@ -322,8 +325,12 @@ export default function ServerVideoExportModal({
               </h3>
               {error && (
                 <div className="text-left bg-red-50 rounded-lg p-3 mb-4">
-                  <p className="text-sm text-red-800 font-medium mb-2">오류 메시지:</p>
-                  <p className="text-sm text-red-700 whitespace-pre-wrap">{error}</p>
+                  <p className="text-sm text-red-800 font-medium mb-2">
+                    오류 메시지:
+                  </p>
+                  <p className="text-sm text-red-700 whitespace-pre-wrap">
+                    {error}
+                  </p>
                 </div>
               )}
             </div>
@@ -333,7 +340,12 @@ export default function ServerVideoExportModal({
               <p className="font-medium mb-1">📊 디버깅 정보:</p>
               <p>• 비디오 URL: {videoUrl ? '✅ 있음' : '❌ 없음'}</p>
               <p>• 자막 개수: {clips?.length || 0}개</p>
-              <p>• 유효한 자막: {clips?.filter(c => c.fullText?.trim() || c.subtitle?.trim()).length || 0}개</p>
+              <p>
+                • 유효한 자막:{' '}
+                {clips?.filter((c) => c.fullText?.trim() || c.subtitle?.trim())
+                  .length || 0}
+                개
+              </p>
               <p>• 환경: {process.env.NODE_ENV}</p>
               <p className="text-xs text-gray-500 mt-2">
                 💡 개발자 도구 Console 탭에서 자세한 오류 정보를 확인하세요.

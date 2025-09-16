@@ -11,14 +11,17 @@ export async function GET(
 ) {
   try {
     const { jobId } = await params
-    const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000'
+    const backendUrl =
+      process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000'
 
-    console.log(`[API Route] Proxying status request to ${backendUrl}/api/upload-video/status/${jobId}`)
+    console.log(
+      `[API Route] Proxying status request to ${backendUrl}/api/upload-video/status/${jobId}`
+    )
 
     // Extract Authorization header from incoming request
     const authHeader = request.headers.get('Authorization')
     const headers: Record<string, string> = {
-      'Accept': 'application/json',
+      Accept: 'application/json',
     }
 
     // Forward Authorization header if present
@@ -29,10 +32,13 @@ export async function GET(
       console.log(`[API Route] No Authorization header found`)
     }
 
-    const response = await fetch(`${backendUrl}/api/upload-video/status/${jobId}`, {
-      method: 'GET',
-      headers,
-    })
+    const response = await fetch(
+      `${backendUrl}/api/upload-video/status/${jobId}`,
+      {
+        method: 'GET',
+        headers,
+      }
+    )
 
     const data = await response.json()
 

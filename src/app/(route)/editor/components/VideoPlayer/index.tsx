@@ -53,22 +53,46 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     clearPlayingWord,
   } = useEditorStore()
 
-  // Load video from IndexedDB or URL
+  // Load video from IndexedDB or URL - 우선순위: Blob URL > S3 URL > IndexedDB
   useEffect(() => {
     const loadVideo = async () => {
       // First check if we have a video URL from store
       if (videoUrl) {
-        log('VideoPlayer.tsx', `Using video URL from store: ${videoUrl}`)
-        console.log('🎬 VideoPlayer: Setting video src to:', videoUrl)
-        setVideoSrc(videoUrl)
+        const isBlobUrl = videoUrl.startsWith('blob:')
+        const isHttpUrl = videoUrl.startsWith('http')
+
+        log(
+          'VideoPlayer.tsx',
+          `🎯 Video URL detected: ${isBlobUrl ? 'Blob URL' : isHttpUrl ? 'HTTP URL' : 'Unknown'} - ${videoUrl}`
+        )
+        console.log('🎬 VideoPlayer: Setting video src to:', {
+          url: videoUrl,
+          type: isBlobUrl ? 'Blob URL (Local)' : 'HTTP/S3 URL',
+          immediate: isBlobUrl
+            ? 'YES - Instant playback!'
+            : 'Loading from network...',
+        })
+
+        // Blob URL 유효성 검사 (선택적 - 성능 최적화)
+        if (isBlobUrl) {
+          // Blob URL은 일반적으로 즉시 유효하므로 바로 설정
+          setVideoSrc(videoUrl)
+          console.log('⚡ VideoPlayer: Blob URL set for immediate playback!')
+        } else {
+          // HTTP URL인 경우 그대로 사용
+          setVideoSrc(videoUrl)
+          console.log(
+            '🌐 VideoPlayer: HTTP/S3 URL set, loading from network...'
+          )
+        }
         return
       }
 
-      // Check if we have a media ID from store
+      // Check if we have a media ID from store (fallback)
       if (mediaId) {
         log(
           'VideoPlayer.tsx',
-          `Loading video from IndexedDB with mediaId: ${mediaId}`
+          `⏳ No direct URL available, loading from IndexedDB with mediaId: ${mediaId}`
         )
         setVideoLoading(true)
 
@@ -77,9 +101,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           if (blobUrl) {
             log(
               'VideoPlayer.tsx',
-              `Video loaded from IndexedDB: ${videoName || 'unknown'}`
+              `✅ Video loaded from IndexedDB: ${videoName || 'unknown'}`
             )
-            console.log('🎬 VideoPlayer: Setting video src from IndexedDB:', blobUrl)
+            console.log(
+              '💾 VideoPlayer: Setting video src from IndexedDB:',
+              blobUrl
+            )
             setVideoSrc(blobUrl)
           } else {
             setVideoError('Failed to load video from storage')
@@ -95,8 +122,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       }
 
       // No video available - show empty player
-      log('VideoPlayer.tsx', 'No media found, showing empty player')
-      console.warn('⚠️ VideoPlayer: No videoUrl or mediaId available')
+      log(
+        'VideoPlayer.tsx',
+        '📹 No media found, showing empty player - waiting for upload'
+      )
+      console.warn(
+        '⚠️ VideoPlayer: No videoUrl or mediaId available - please upload a video'
+      )
       setVideoSrc(null)
     }
 
@@ -121,7 +153,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       console.log('🎬 Attempting to load video:', {
         url: videoSrc,
         isValidUrl: videoSrc.startsWith('http') || videoSrc.startsWith('blob:'),
-        urlLength: videoSrc.length
+        urlLength: videoSrc.length,
       })
 
       // S3 Presigned URL 만료 체크
@@ -149,7 +181,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         mediaId,
         videoName,
         readyState: video.readyState,
-        currentSrc: video.currentSrc || video.src
+        currentSrc: video.currentSrc || video.src,
       })
 
       // 비디오가 이미 로드된 경우 즉시 duration 설정
@@ -198,7 +230,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           code: video.error?.code,
           message: video.error?.message,
           videoSrc,
-          videoUrl
+          videoUrl,
         })
 
         setVideoError(errorMessage)
