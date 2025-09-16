@@ -17,79 +17,33 @@ const TemplateGrid: React.FC<TemplateGridProps> = ({
   const [templates, setTemplates] = useState<TemplateItem[]>([])
   const [loading, setLoading] = useState(true)
 
-  // Mock template data
+  // Load templates from database
   useEffect(() => {
-    const mockTemplates: TemplateItem[] = [
-      {
-        id: 'template-1',
-        name: 'Modern Card',
-        category: 'Cards',
-        type: 'free',
-        preview: {
-          type: 'gradient',
-          value: '#667eea',
-          secondary: '#764ba2',
-        },
-      },
-      {
-        id: 'template-2',
-        name: 'Neon Glow',
-        category: 'Effects',
-        type: 'premium',
-        preview: {
-          type: 'gradient',
-          value: '#ff6b6b',
-          secondary: '#4ecdc4',
-        },
-      },
-      {
-        id: 'template-3',
-        name: 'Minimal Clean',
-        category: 'Basic',
-        type: 'free',
-        preview: {
-          type: 'color',
-          value: '#f8f9fa',
-        },
-      },
-      {
-        id: 'template-4',
-        name: 'Dark Mode',
-        category: 'Themes',
-        type: 'free',
-        preview: {
-          type: 'color',
-          value: '#2d3748',
-        },
-      },
-      {
-        id: 'template-5',
-        name: 'Glassmorphism',
-        category: 'Modern',
-        type: 'premium',
-        preview: {
-          type: 'gradient',
-          value: '#667eea',
-          secondary: '#764ba2',
-        },
-      },
-      {
-        id: 'template-6',
-        name: 'Retro Wave',
-        category: 'Retro',
-        type: 'premium',
-        preview: {
-          type: 'gradient',
-          value: '#ff0080',
-          secondary: '#8000ff',
-        },
-      },
-    ]
+    const loadTemplates = async () => {
+      try {
+        const response = await fetch('/asset-store/templates-database.json')
+        const data = await response.json()
 
-    setTimeout(() => {
-      setTemplates(mockTemplates)
-      setLoading(false)
-    }, 500)
+        const templateItems: TemplateItem[] = data.templates.map((template: any) => ({
+          id: template.id,
+          name: template.title,
+          category: template.category,
+          type: template.isPro ? 'premium' : 'free',
+          preview: template.preview,
+          description: template.description,
+          manifestFile: template.manifestFile,
+          thumbnail: template.thumbnail,
+        }))
+
+        setTemplates(templateItems)
+        setLoading(false)
+      } catch (error) {
+        console.error('Failed to load templates:', error)
+        setLoading(false)
+      }
+    }
+
+    loadTemplates()
   }, [])
 
   const handleTemplateClick = (template: TemplateItem) => {

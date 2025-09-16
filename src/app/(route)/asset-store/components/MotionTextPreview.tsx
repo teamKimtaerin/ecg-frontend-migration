@@ -21,6 +21,7 @@ import {
 
 interface MotionTextPreviewProps extends BaseComponentProps {
   manifestFile: string
+  pluginKey?: string // Full plugin key like "typewriter@2.0.0"
   text?: string
   onParameterChange?: (params: Record<string, unknown>) => void
   onManifestLoad?: (manifest: PluginManifest) => void
@@ -34,6 +35,7 @@ export const MotionTextPreview = React.forwardRef<
   (
     {
       manifestFile,
+      pluginKey,
       text = 'SAMPLE TEXT',
       onParameterChange,
       onManifestLoad,
@@ -44,6 +46,7 @@ export const MotionTextPreview = React.forwardRef<
   ) => {
     // State
     const [manifest, setManifest] = useState<PluginManifest | null>(null)
+    const [extractedPluginKey, setExtractedPluginKey] = useState<string | null>(null)
     const [parameters, setParameters] = useState<Record<string, unknown>>({})
     const [position, setPosition] = useState({ x: 200, y: 140 }) // 초기값은 640x360 기준
     const [size, setSize] = useState({ width: 240, height: 80 })
@@ -101,7 +104,9 @@ export const MotionTextPreview = React.forwardRef<
     useEffect(() => {
       const loadManifest = async () => {
         try {
-          const pluginName = manifestFile.split('/').slice(-2, -1)[0] // '/plugin/rotation@1.0.0/manifest.json' -> 'rotation@1.0.0'
+          // Use provided pluginKey or extract from manifestFile path
+          const pluginName = pluginKey || manifestFile.split('/').slice(-2, -1)[0] // '/plugin/rotation@1.0.0/manifest.json' -> 'rotation@1.0.0'
+          setExtractedPluginKey(pluginName)
 
           const serverBase = (
             process.env.NEXT_PUBLIC_MOTIONTEXT_PLUGIN_ORIGIN ||
@@ -138,7 +143,7 @@ export const MotionTextPreview = React.forwardRef<
       if (manifestFile) {
         loadManifest()
       }
-    }, [manifestFile, onError, onParameterChange, onManifestLoad])
+    }, [manifestFile, pluginKey, onError, onParameterChange, onManifestLoad])
 
     /**
      * 렌더러 초기화
@@ -218,7 +223,7 @@ export const MotionTextPreview = React.forwardRef<
         }
 
         const scenario = generateLoopedScenarioV2(
-          manifest.name,
+          extractedPluginKey || manifest.name, // Use plugin key with version
           settingsForGenerator as any, // eslint-disable-line @typescript-eslint/no-explicit-any
           3
         ) as any // eslint-disable-line @typescript-eslint/no-explicit-any

@@ -17,6 +17,8 @@ export interface TemplateItem {
   isUsed?: boolean
   isFavorite?: boolean
   description?: string
+  manifestFile?: string
+  thumbnail?: string
 }
 
 interface TemplateCardProps {

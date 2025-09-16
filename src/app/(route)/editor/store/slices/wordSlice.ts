@@ -152,6 +152,14 @@ export interface WordSlice extends WordDragState {
   clearPlayingWord: () => void
   isWordPlaying: (wordId: string) => boolean
 
+  // Template application
+  applyTemplateToWords: (
+    templateId: string,
+    wordIds: string[],
+    audioData?: any
+  ) => Promise<void>
+  applyTemplateToSelection: (templateId: string, audioData?: any) => Promise<void>
+
   // Utility
   isWordFocused: (wordId: string) => boolean
   isWordInGroup: (wordId: string) => boolean
@@ -1119,5 +1127,97 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
     })
 
     return result
+  },
+
+  // Template application implementation
+  applyTemplateToWords: async (templateId, wordIds, audioData) => {
+    try {
+      // Load the template system
+      const { TemplateSystem } = await import('@/lib/templates')
+      const templateSystem = new TemplateSystem({ debugMode: false })
+
+      // Apply template to each word
+      for (const wordId of wordIds) {
+        // Load audio data if not provided
+        let processedAudioData = audioData
+        if (!processedAudioData) {
+          // Get audio data from real.json
+          try {
+            const response = await fetch('/real.json')
+            processedAudioData = await response.json()
+          } catch (error) {
+            console.error('Failed to load audio data:', error)
+            continue
+          }
+        }
+
+        // Apply template to generate animation tracks
+        const result = await templateSystem.applyTemplate(
+          templateId,
+          processedAudioData,
+          { targetWordId: wordId }
+        )
+
+        // Convert template results to animation tracks
+        if (result.animationTracks) {
+          const state = get()
+
+          // Clear existing animation tracks for the word
+          state.clearAnimationTracks(wordId)
+
+          // Add new animation tracks from template
+          for (const track of result.animationTracks) {
+            await state.addAnimationTrackAsync(
+              wordId,
+              track.assetId,
+              track.assetName,
+              track.timing,
+              track.pluginKey
+            )
+
+            // Apply template parameters
+            if (track.params) {
+              // Use the existing method for updating animation track parameters
+              const animationTracks = state.wordAnimationTracks.get(wordId) || []
+              const updatedTracks = animationTracks.map(t =>
+                t.assetId === track.assetId ? { ...t, params: { ...t.params, ...track.params } } : t
+              )
+              state.wordAnimationTracks.set(wordId, updatedTracks)
+            }
+
+            // Apply intensity settings
+            if (track.intensity) {
+              state.updateAnimationTrackIntensity(
+                wordId,
+                track.assetId,
+                track.intensity.min,
+                track.intensity.max
+              )
+            }
+          }
+        }
+      }
+
+      console.log(`Applied template ${templateId} to ${wordIds.length} words`)
+    } catch (error) {
+      console.error('Failed to apply template:', error)
+      throw error
+    }
+  },
+
+  applyTemplateToSelection: async (templateId, audioData) => {
+    const state = get()
+    const selectedWordIds = Array.from(state.multiSelectedWordIds)
+
+    if (selectedWordIds.length === 0) {
+      // If no multi-selection, apply to focused word
+      if (state.focusedWordId) {
+        await get().applyTemplateToWords(templateId, [state.focusedWordId], audioData)
+      } else {
+        console.warn('No words selected for template application')
+      }
+    } else {
+      await get().applyTemplateToWords(templateId, selectedWordIds, audioData)
+    }
   },
 })

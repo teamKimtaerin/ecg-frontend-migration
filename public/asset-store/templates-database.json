@@ -147,6 +147,31 @@
         "value": "#ff0080",
         "secondary": "#8000ff"
       }
+    },
+    {
+      "id": "caption-with-intention",
+      "title": "Caption with Intention",
+      "category": "Emphasis",
+      "description": "오디오 데이터 기반 동적 자막 템플릿. 볼륨, 피치, 감정을 분석하여 중요한 단어를 강조합니다.",
+      "thumbnail": "/templates/caption-with-intention/thumbnail.svg",
+      "manifestFile": "/templates/caption-with-intention/manifest.json",
+      "authorId": "ecg-template-system",
+      "authorName": "ECG Template System",
+      "isPro": false,
+      "price": 0,
+      "rating": 5,
+      "downloads": 0,
+      "likes": 0,
+      "usageCount": 0,
+      "tags": ["emphasis", "dynamic", "audio-driven", "emotional"],
+      "isFavorite": false,
+      "createdAt": "2024-03-15T10:00:00Z",
+      "updatedAt": "2024-03-15T10:00:00Z",
+      "preview": {
+        "type": "gradient",
+        "value": "#4FC3F7",
+        "secondary": "#FF9800"
+      }
     }
   ]
 }
