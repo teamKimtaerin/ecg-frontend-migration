@@ -21,7 +21,9 @@ interface AssetDatabaseItem {
   title: string
   category: string
   description: string
-  thumbnail: string
+  thumbnail?: string
+  pluginKey?: string
+  thumbnailPath?: string
   isPro: boolean
 }
 
@@ -77,20 +79,32 @@ const UsedAssetsStrip: React.FC<UsedAssetsStripProps> = ({
         }
 
         const data: AssetDatabase = await response.json()
+        const origin = (
+          process.env.NEXT_PUBLIC_MOTIONTEXT_PLUGIN_ORIGIN ||
+          'http://localhost:3300'
+        ).replace(/\/$/, '')
         console.log('Assets loaded successfully:', data.assets.length, 'assets')
 
         // Transform JSON data to AssetItem format
-        const transformedAssets: AssetItem[] = data.assets.map((asset) => ({
-          id: asset.id,
-          name: asset.title,
-          category: asset.category,
-          type: 'free' as const,
-          preview: {
-            type: 'image' as const,
-            value: asset.thumbnail,
-          },
-          description: asset.description,
-        }))
+        const transformedAssets: AssetItem[] = data.assets.map((asset) => {
+          let thumb = asset.thumbnail || '/placeholder-thumb.jpg'
+          if (asset.pluginKey) {
+            const base = `${origin}/plugins/${asset.pluginKey}`
+            thumb = `${base}/${asset.thumbnailPath || 'assets/thumbnail.svg'}`
+          }
+          return {
+            id: asset.id,
+            name: asset.title,
+            category: asset.category,
+            type: 'free' as const,
+            pluginKey: asset.pluginKey,
+            preview: {
+              type: 'image' as const,
+              value: thumb,
+            },
+            description: asset.description,
+          }
+        })
 
         setAllAssets(transformedAssets)
       } catch (err) {
@@ -111,8 +125,14 @@ const UsedAssetsStrip: React.FC<UsedAssetsStripProps> = ({
     .filter((asset) => asset !== undefined) as AssetItem[]
 
   // Get animations applied to the currently focused word
-  const focusedWordAnimations = focusedWordId
-    ? wordAnimationTracks.get(focusedWordId) || []
+  const targetWordId =
+    focusedWordId ||
+    selectedWordId ||
+    (useEditorStore.getState().multiSelectedWordIds?.size === 1
+      ? Array.from(useEditorStore.getState().multiSelectedWordIds)[0]
+      : null)
+  const focusedWordAnimations = targetWordId
+    ? wordAnimationTracks.get(targetWordId) || []
     : []
 
   // Get asset selection order based on array index
@@ -146,8 +166,10 @@ const UsedAssetsStrip: React.FC<UsedAssetsStripProps> = ({
     }
 
     // Remove animation track from focused word
-    if (focusedWordId) {
-      removeAnimationTrack(focusedWordId, assetId)
+    if (targetWordId) {
+      removeAnimationTrack(targetWordId, assetId)
+      // Update scenario pluginChain for this word
+      useEditorStore.getState().refreshWordPluginChain?.(targetWordId)
     }
 
     // If a word is selected, apply the changes to the word
@@ -163,26 +185,32 @@ const UsedAssetsStrip: React.FC<UsedAssetsStripProps> = ({
   }
 
   const handleAssetClick = (asset: AssetItem) => {
-    // If a word is focused, add this animation to it (max 3)
-    if (focusedWordId) {
-      const currentTracks = wordAnimationTracks.get(focusedWordId) || []
+    // If a word is focused/selected, add this animation to it (max 3)
+    if (targetWordId) {
+      const currentTracks = wordAnimationTracks.get(targetWordId) || []
 
       // Check if already added or reached max
       if (currentTracks.find((t) => t.assetId === asset.id)) {
         // If already exists, remove it
-        removeAnimationTrack(focusedWordId, asset.id)
+        removeAnimationTrack(targetWordId, asset.id)
       } else if (currentTracks.length < 3) {
         // Find the word to get its timing
         let wordTiming = undefined
         for (const clip of clips) {
-          const word = clip.words?.find((w) => w.id === focusedWordId)
+          const word = clip.words?.find((w) => w.id === targetWordId)
           if (word) {
             wordTiming = { start: word.start, end: word.end }
             break
           }
         }
         // Add the animation track with word timing
-        addAnimationTrack(focusedWordId, asset.id, asset.name, wordTiming)
+        addAnimationTrack(
+          targetWordId,
+          asset.id,
+          asset.name,
+          wordTiming,
+          asset.pluginKey
+        )
       } else {
         console.log('Maximum 3 animations per word')
       }
@@ -296,7 +324,7 @@ const UsedAssetsStrip: React.FC<UsedAssetsStripProps> = ({
                         e.stopPropagation()
                         handleRemoveAsset(asset.id)
                       }}
-                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg flex-shrink-0"
+                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg flex-shrink-0 cursor-pointer"
                       style={{
                         width: '24px',
                         height: '24px',

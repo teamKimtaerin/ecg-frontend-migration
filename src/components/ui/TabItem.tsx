@@ -78,7 +78,8 @@ const TabItem: React.FC<TabItemProps> = ({
       'items-center',
       'justify-center',
       'font-medium',
-      'transition-colors',
+      'transition-all',
+      'duration-200',
       'cursor-pointer',
       'rounded-default',
       'relative',
@@ -104,36 +105,46 @@ const TabItem: React.FC<TabItemProps> = ({
     // Color and style variations based on quiet/emphasized
     if (isQuiet) {
       if (isSelected) {
-        classes.push('text-text-primary')
+        classes.push('text-white')
         if (orientation === 'horizontal') {
-          classes.push('border-b-2', 'border-primary')
+          classes.push('border-b-2', 'border-white')
         } else {
-          classes.push('border-l-2', 'border-primary')
+          classes.push('border-l-2', 'border-white')
         }
       } else {
-        classes.push('text-text-secondary', 'hover:text-text-primary')
+        classes.push(
+          'text-white',
+          'hover:text-white',
+          'hover:bg-gray-700',
+          'hover:scale-105',
+          'hover:shadow-sm'
+        )
       }
     } else if (isEmphasized) {
       if (isSelected) {
-        classes.push('bg-primary', 'text-white')
+        classes.push('bg-black', 'text-white')
       } else {
         classes.push(
-          'bg-surface',
-          'text-text-primary',
-          'hover:bg-surface-secondary',
+          'bg-white',
+          'text-black',
+          'hover:bg-gray-50',
+          'hover:scale-105',
+          'hover:shadow-md',
           'border',
-          'border-border'
+          'border-gray-200'
         )
       }
     } else {
       // Regular style - no individual borders, slider will handle this
       if (isSelected) {
-        classes.push('bg-surface', 'text-text-primary')
+        classes.push('bg-gray-800', 'text-white')
       } else {
         classes.push(
-          'text-text-secondary',
-          'hover:text-text-primary',
-          'hover:bg-surface-secondary'
+          'text-gray-400',
+          'hover:text-white',
+          'hover:bg-gray-800',
+          'hover:scale-105',
+          'hover:shadow-md'
         )
       }
     }

@@ -15,14 +15,15 @@ import { AssetItem } from './AssetCard'
 interface AnimationAssetSidebarProps {
   className?: string
   onAssetSelect?: (asset: AssetItem) => void
+  onClose?: () => void
 }
 
 const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
   className,
   onAssetSelect,
+  onClose,
 }) => {
-  const { isAssetSidebarOpen, assetSidebarWidth, selectedWordId, clips } =
-    useEditorStore()
+  const { assetSidebarWidth, selectedWordId, clips } = useEditorStore()
 
   const [expandedAssetId, setExpandedAssetId] = useState<string | null>(null)
   const [expandedAssetName, setExpandedAssetName] = useState<string | null>(
@@ -41,10 +42,6 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
     }
     return null
   }, [selectedWordId, clips])
-
-  if (!isAssetSidebarOpen) {
-    return null
-  }
 
   const handleAssetSelect = (asset: AssetItem) => {
     // Here you would typically apply the glitch effect to the focused clip
@@ -70,23 +67,33 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
 
   const handleSettingsChange = (settings: Record<string, unknown>) => {
     console.log('Settings changed:', settings)
-    // TODO: Apply settings to animation track
+    // Apply settings to the animation track for the focused word
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const store = useEditorStore.getState() as any
+    const wordId =
+      (store.focusedWordId as string | null) ||
+      (store.selectedWordId as string | null)
+    const assetId = expandedAssetId
+    if (wordId && assetId) {
+      store.updateAnimationTrackParams?.(wordId, assetId, settings)
+      store.refreshWordPluginChain?.(wordId)
+    }
   }
 
   return (
     <div
-      className={`relative flex-shrink-0 bg-gray-900 border-l border-slate-600/40 flex flex-col h-full ${className || ''}`}
+      className={`relative flex-shrink-0 bg-white border-l border-gray-200 flex flex-col h-full ${className || ''}`}
       style={{ width: assetSidebarWidth }}
     >
       {/* Header */}
-      <SidebarHeader />
+      <SidebarHeader onClose={onClose} />
 
       {/* Word Selection Indicator */}
       {selectedWordInfo && (
-        <div className="px-4 py-2 bg-blue-500/10 border-b border-blue-500/20">
-          <div className="text-xs text-blue-300">
+        <div className="px-4 py-2 bg-blue-50 border-b border-blue-200">
+          <div className="text-xs text-blue-600">
             선택된 단어:{' '}
-            <span className="font-medium text-blue-100">
+            <span className="font-medium text-blue-800">
               &ldquo;{selectedWordInfo.word.text}&rdquo;
             </span>
           </div>

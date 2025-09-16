@@ -1,24 +1,14 @@
-import {
-  IoRefresh,
-  IoDocument,
-  IoChevronUp,
-  IoFlash,
-  IoArrowBack,
-  IoEye,
-  IoExpand,
-  IoTrendingUp,
-} from 'react-icons/io5'
+import { useRef } from 'react'
 import React, { useCallback } from 'react'
-import { DndContext, closestCenter, DragOverlay } from '@dnd-kit/core'
 import {
   SortableContext,
   horizontalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { Word } from './types'
 import ClipWord from './ClipWord'
-import { useWordDragAndDrop } from '../../hooks/useWordDragAndDrop'
 import { useWordGrouping } from '../../hooks/useWordGrouping'
 import { useEditorStore } from '../../store'
+import { getAssetIcon } from '../../utils/assetIconMapper'
 
 interface ClipWordsProps {
   clipId: string
@@ -26,19 +16,11 @@ interface ClipWordsProps {
   onWordEdit: (clipId: string, wordId: string, newText: string) => void
 }
 
-// Asset icon mapping (from feat/editor-asset-sidebar-clean)
-const getAssetIcon = (assetName: string) => {
-  const iconMap = {
-    'Rotation Text': IoRefresh,
-    'TypeWriter Effect': IoDocument,
-    'Elastic Bounce': IoChevronUp,
-    'Glitch Effect': IoFlash,
-    'Magnetic Pull': IoArrowBack,
-    'Fade In Stagger': IoEye,
-    'Scale Pop': IoExpand,
-    'Slide Up': IoTrendingUp,
-  }
-  return iconMap[assetName as keyof typeof iconMap] || null
+// Asset database interface
+interface AssetDatabaseItem {
+  id: string
+  title: string
+  iconName?: string
 }
 
 export default function ClipWords({
@@ -46,33 +28,24 @@ export default function ClipWords({
   words,
   onWordEdit,
 }: ClipWordsProps) {
+  // Add ref for debouncing clicks
+  const lastClickTimeRef = useRef(0)
+
   const {
     // From dev branch
     setFocusedWord,
-    clearWordFocus,
-    draggedWordId,
+    // clearWordFocus, // Currently unused
+    // draggedWordId, // Currently unused
     setActiveClipId,
     // From feat/editor-asset-sidebar-clean branch
-    selectedWordId,
     setSelectedWordId,
-    currentWordAssets,
     setCurrentWordAssets,
     selectedWordAssets,
+    expandClip,
   } = useEditorStore()
 
-  // Asset related state (from feat/editor-asset-sidebar-clean)
-  const [allAssets, setAllAssets] = React.useState<
-    Array<{ id: string; title: string }>
-  >([])
-
-  // Setup drag and drop for words (from dev)
-  const {
-    sensors,
-    handleWordDragStart,
-    handleWordDragOver,
-    handleWordDragEnd,
-    handleWordDragCancel,
-  } = useWordDragAndDrop(clipId)
+  // Asset related state with icon support
+  const [allAssets, setAllAssets] = React.useState<AssetDatabaseItem[]>([])
 
   // Setup grouping functionality (from dev)
   const {
@@ -80,7 +53,6 @@ export default function ClipWords({
     isDragging: isGroupDragging,
     handleMouseDown,
     handleKeyDown,
-    groupedWordIds,
   } = useWordGrouping({
     clipId,
     onGroupChange: () => {
@@ -88,14 +60,22 @@ export default function ClipWords({
     },
   })
 
-  // Fetch assets database for asset names (from feat/editor-asset-sidebar-clean)
+  // Fetch assets database for asset names and icons
   React.useEffect(() => {
     const fetchAssets = async () => {
       try {
         const response = await fetch('/asset-store/assets-database.json')
         if (response.ok) {
           const data = await response.json()
-          setAllAssets(data.assets)
+          // Map to include only needed fields for performance
+          const assetsWithIcons: AssetDatabaseItem[] = data.assets.map(
+            (asset: Record<string, unknown>) => ({
+              id: asset.id,
+              title: asset.title,
+              iconName: asset.iconName,
+            })
+          )
+          setAllAssets(assetsWithIcons)
         }
       } catch (error) {
         console.error('Failed to fetch assets:', error)
@@ -112,48 +92,52 @@ export default function ClipWords({
 
   // Combined word click handler (merging both functionalities)
   const handleWordClick = useCallback(
-    (wordId: string, isCenter: boolean) => {
+    (wordId: string, _isCenter: boolean) => {
       const word = words.find((w) => w.id === wordId)
       if (!word) return
 
-      if (isCenter) {
-        // Focus the word and its parent clip (from dev)
-        setFocusedWord(clipId, wordId)
-        setActiveClipId(clipId)
+      // Prevent rapid clicks from causing conflicts
+      const now = Date.now()
+      if (now - lastClickTimeRef.current < 50) {
+        return
+      }
+      lastClickTimeRef.current = now
 
-        // Also handle asset selection (from feat/editor-asset-sidebar-clean)
-        setSelectedWordId(wordId)
-        const wordAssets =
-          selectedWordAssets[wordId] || word.appliedAssets || []
-        setCurrentWordAssets(wordAssets)
-      } else {
-        // Focus only the clip component (from dev)
-        clearWordFocus()
-        setActiveClipId(clipId)
-
-        // Handle asset-related click logic (from feat/editor-asset-sidebar-clean)
-        if (selectedWordId === wordId && currentWordAssets.length === 0) {
-          onWordEdit(clipId, wordId, word.text)
-        } else {
-          setSelectedWordId(wordId)
-          const wordAssets =
-            selectedWordAssets[wordId] || word.appliedAssets || []
-          setCurrentWordAssets(wordAssets)
+      // Seek video player to word start time
+      const videoPlayer = (
+        window as {
+          videoPlayer?: {
+            seekTo: (time: number) => void
+            pauseAutoWordSelection?: () => void
+          }
+        }
+      ).videoPlayer
+      if (videoPlayer) {
+        videoPlayer.seekTo(word.start)
+        // Pause auto word selection for a few seconds when user manually selects a word
+        if (videoPlayer.pauseAutoWordSelection) {
+          videoPlayer.pauseAutoWordSelection()
         }
       }
+
+      // Focus on clicked word (center click logic handled by ClipWord component)
+      const wordAssets = selectedWordAssets[wordId] || word.appliedAssets || []
+      setFocusedWord(clipId, wordId)
+      setActiveClipId(clipId)
+      setSelectedWordId(wordId)
+      setCurrentWordAssets(wordAssets)
+      // Expand clip to show waveform editor on single click
+      expandClip(clipId, wordId)
     },
     [
       clipId,
       words,
       setFocusedWord,
-      clearWordFocus,
       setActiveClipId,
-      selectedWordId,
       setSelectedWordId,
-      currentWordAssets,
       setCurrentWordAssets,
       selectedWordAssets,
-      onWordEdit,
+      expandClip,
     ]
   )
 
@@ -161,79 +145,59 @@ export default function ClipWords({
   const sortableItems = words.map((word) => `${clipId}-${word.id}`)
 
   // Find the dragged word for overlay (from dev)
-  const draggedWord = words.find((w) => w.id === draggedWordId)
+  // const draggedWord = words.find((w) => w.id === draggedWordId) // Currently unused
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragStart={handleWordDragStart}
-      onDragOver={handleWordDragOver}
-      onDragEnd={handleWordDragEnd}
-      onDragCancel={handleWordDragCancel}
+    <SortableContext
+      items={sortableItems}
+      strategy={horizontalListSortingStrategy}
     >
-      <SortableContext
-        items={sortableItems}
-        strategy={horizontalListSortingStrategy}
+      <div
+        ref={containerRef}
+        className="flex flex-wrap gap-1 relative cursor-pointer"
+        onMouseDown={handleMouseDown}
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
       >
-        <div
-          ref={containerRef}
-          className="flex flex-wrap gap-1 relative"
-          onMouseDown={handleMouseDown}
-          onKeyDown={handleKeyDown}
-          tabIndex={0}
-        >
-          {words.map((word) => {
-            const appliedAssets = word.appliedAssets || []
+        {words.map((word) => {
+          const appliedAssets = word.appliedAssets || []
 
-            return (
-              <React.Fragment key={word.id}>
-                <ClipWord
-                  word={word}
-                  clipId={clipId}
-                  onWordClick={handleWordClick}
-                  onWordEdit={onWordEdit}
-                />
+          return (
+            <React.Fragment key={word.id}>
+              <ClipWord
+                word={word}
+                clipId={clipId}
+                onWordClick={handleWordClick}
+                onWordEdit={onWordEdit}
+              />
 
-                {/* Render asset icons after each word (from feat/editor-asset-sidebar-clean) */}
-                {appliedAssets.length > 0 && (
-                  <div className="flex gap-1 items-center">
-                    {appliedAssets.map((assetId: string) => {
-                      const assetName = getAssetNameById(assetId)
-                      const IconComponent = getAssetIcon(assetName)
-                      return IconComponent ? (
-                        <div
-                          key={assetId}
-                          className="w-3 h-3 bg-slate-600/50 rounded-sm flex items-center justify-center"
-                          title={assetName}
-                        >
-                          <IconComponent size={10} className="text-slate-300" />
-                        </div>
-                      ) : null
-                    })}
-                  </div>
-                )}
-              </React.Fragment>
-            )
-          })}
+              {/* Render asset icons after each word */}
+              {appliedAssets.length > 0 && (
+                <div className="flex gap-1 items-center">
+                  {appliedAssets.map((assetId: string) => {
+                    const IconComponent = getAssetIcon(assetId, allAssets)
+                    const assetName = getAssetNameById(assetId)
+                    return IconComponent ? (
+                      <div
+                        key={assetId}
+                        className="w-3 h-3 bg-slate-600/50 rounded-sm flex items-center justify-center"
+                        title={assetName}
+                      >
+                        <IconComponent size={10} className="text-slate-300" />
+                      </div>
+                    ) : null
+                  })}
+                </div>
+              )}
+            </React.Fragment>
+          )
+        })}
 
-          {/* Visual feedback for group selection (from dev) */}
-          {isGroupDragging && (
-            <div className="absolute inset-0 bg-blue-500/10 pointer-events-none rounded" />
-          )}
-        </div>
-      </SortableContext>
-
-      {/* Drag overlay for better visual feedback (from dev) */}
-      <DragOverlay>
-        {draggedWord && (
-          <div className="bg-blue-500 text-white px-2 py-1 rounded text-sm shadow-lg opacity-90">
-            {groupedWordIds.size > 1
-              ? `${groupedWordIds.size} words`
-              : draggedWord.text}
-          </div>
+        {/* Visual feedback for group selection (from dev) */}
+        {isGroupDragging && (
+          <div className="absolute inset-0 bg-blue-500/10 pointer-events-none rounded" />
         )}
-      </DragOverlay>
-    </DndContext>
+      </div>
+    </SortableContext>
   )
 }

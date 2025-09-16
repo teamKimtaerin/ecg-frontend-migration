@@ -1,7 +1,7 @@
 /**
  * Local plugin loader for MotionText (shared)
  */
-import type { RendererConfig } from './scenarioGenerator'
+import type { RendererConfig, RendererConfigV2 } from './scenarioGenerator'
 import {
   configurePluginSource,
   registerExternalPlugin,
@@ -65,9 +65,21 @@ const LOCAL_PLUGINS = [
   'typewriter@1.0.0',
 ]
 
+function getPluginOrigin(): string {
+  const fromEnv = process.env.NEXT_PUBLIC_MOTIONTEXT_PLUGIN_ORIGIN
+  const fallback = 'http://localhost:3300'
+  return (fromEnv && fromEnv.replace(/\/$/, '')) || fallback
+}
+
 export function configurePluginLoader() {
-  console.log('[PluginLoader] Configuring plugin source for local mode')
-  configurePluginSource({ mode: 'local', localBase: '/plugin/' })
+  const origin = getPluginOrigin()
+  try {
+    // Prefer server mode with explicit origin
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    configurePluginSource({ mode: 'server', serverBase: origin } as any)
+  } catch {
+    // Silently ignore if the host library does not support this signature
+  }
 }
 
 function resolveKey(name: string): string {
@@ -81,10 +93,9 @@ export async function loadLocalPlugin(
   const key = resolveKey(name)
   if (cache.has(key)) return cache.get(key) as PluginRuntimeModule
 
-  const url = new URL(
-    `/plugin/${encodeURIComponent(key)}/index.mjs`,
-    window.location.origin
-  ).toString()
+  const origin = getPluginOrigin()
+  const base = `${origin}/plugins/${key}`
+  const url = `${base}/index.mjs`
   const mod: PluginRuntimeModule = await import(
     /* webpackIgnore: true */ /* @vite-ignore */ url
   )
@@ -92,9 +103,7 @@ export async function loadLocalPlugin(
 
   if (!registeredPlugins.has(key)) {
     try {
-      const manifestResponse = await fetch(
-        `/plugin/${encodeURIComponent(key)}/manifest.json`
-      )
+      const manifestResponse = await fetch(`${base}/manifest.json`)
       const manifest = manifestResponse.ok
         ? await manifestResponse.json()
         : { version: '1.0.0' }
@@ -103,15 +112,12 @@ export async function loadLocalPlugin(
         name: pluginNameWithoutVersion,
         version: manifest.version || '1.0.0',
         module: mod,
-        baseUrl: `/plugin/${encodeURIComponent(key)}/`,
+        baseUrl: `${base}/`,
         manifest: manifest,
       })
       registeredPlugins.add(key)
-      console.log(
-        `[PluginLoader] Registered plugin with motiontext-renderer: ${key}@${manifest.version}`
-      )
-    } catch (error) {
-      console.error(`[PluginLoader] Failed to register plugin ${key}:`, error)
+    } catch {
+      // Ignore plugin registration errors
     }
   }
 
@@ -119,20 +125,22 @@ export async function loadLocalPlugin(
 }
 
 export async function preloadAllPlugins() {
-  console.log('[PluginLoader] Preloading all local plugins...')
   for (const pluginName of LOCAL_PLUGINS) {
     try {
       await loadLocalPlugin(pluginName)
-    } catch (error) {
-      console.warn(`[PluginLoader] Failed to load plugin ${pluginName}:`, error)
+    } catch {
+      // Ignore plugin loading errors
     }
   }
-  console.log('[PluginLoader] Plugin preloading complete')
 }
 
-function extractPluginNames(scenario: RendererConfig): Set<string> {
+function extractPluginNames(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  scenario: RendererConfig | RendererConfigV2 | any
+): Set<string> {
   const pluginNames = new Set<string>()
-  scenario.cues?.forEach((cue) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  scenario.cues?.forEach((cue: any) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const traverse = (node: any): void => {
       if (node?.plugin?.name) pluginNames.add(node.plugin.name)
@@ -149,27 +157,16 @@ function extractPluginNames(scenario: RendererConfig): Set<string> {
   return pluginNames
 }
 
-export async function preloadPluginsForScenario(scenario: RendererConfig) {
-  console.log('[PluginLoader] Preloading plugins for scenario...')
+export async function preloadPluginsForScenario(
+  scenario: RendererConfig | RendererConfigV2
+) {
   const requiredPlugins = extractPluginNames(scenario)
-  console.log('[PluginLoader] Required plugins:', Array.from(requiredPlugins))
   for (const pluginName of requiredPlugins) {
     try {
       await loadLocalPlugin(pluginName)
-    } catch (error) {
-      console.warn(
-        `[PluginLoader] Failed to load required plugin ${pluginName}:`,
-        error
-      )
+    } catch {
+      // Ignore plugin loading errors
     }
-  }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if (typeof window !== 'undefined' && (window as any).__motionTextPlugins) {
-    console.log(
-      '[PluginLoader] Available plugins:',
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      Object.keys((window as any).__motionTextPlugins)
-    )
   }
 }
 
