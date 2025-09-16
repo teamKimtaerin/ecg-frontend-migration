@@ -1,6 +1,11 @@
 'use client'
 
-import { DndContext, closestCenter } from '@dnd-kit/core'
+import {
+  DndContext,
+  closestCenter,
+  closestCorners,
+  DragOverlay,
+} from '@dnd-kit/core'
 import { useCallback, useEffect, useId, useState, useRef } from 'react'
 import { createPortal } from 'react-dom'
 
@@ -27,24 +32,26 @@ import { useUploadModal } from '@/hooks/useUploadModal'
 import { useDragAndDrop } from './hooks/useDragAndDrop'
 import { useSelectionBox } from './hooks/useSelectionBox'
 import { useUnsavedChanges } from './hooks/useUnsavedChanges'
+import { useGlobalWordDragAndDrop } from './hooks/useGlobalWordDragAndDrop'
 
 // Components
 import SelectionBox from '@/components/DragDrop/SelectionBox'
 import NewUploadModal from '@/components/NewUploadModal'
 import TutorialModal from '@/components/TutorialModal'
+import { ChevronDownIcon } from '@/components/icons'
 import AlertDialog from '@/components/ui/AlertDialog'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
-import Toolbars from './components/Toolbars'
-import SimpleToolbar from './components/SimpleToolbar'
 import ResizablePanelDivider from '@/components/ui/ResizablePanelDivider'
+import { getSpeakerColor } from '@/utils/editor/speakerColors'
+import AnimationAssetSidebar from './components/AnimationAssetSidebar'
 import EditorHeaderTabs from './components/EditorHeaderTabs'
+import SimpleToolbar from './components/SimpleToolbar'
 import SpeakerManagementSidebar from './components/SpeakerManagementSidebar'
 import SubtitleEditList from './components/SubtitleEditList'
-import VideoSection from './components/VideoSection'
-import AnimationAssetSidebar from './components/AnimationAssetSidebar'
 import TemplateSidebar from './components/TemplateSidebar'
-import { ChevronDownIcon } from '@/components/icons'
-import { getSpeakerColor } from '@/utils/editor/speakerColors'
+import Toolbars from './components/Toolbars'
+import VideoSection from './components/VideoSection'
+import { normalizeClipOrder } from '@/utils/editor/clipTimelineUtils'
 
 // Utils
 import { EditorHistory } from '@/utils/editor/EditorHistory'
@@ -52,7 +59,6 @@ import { areClipsConsecutive } from '@/utils/editor/clipMerger'
 import { BatchChangeSpeakerCommand } from '@/utils/editor/commands/BatchChangeSpeakerCommand'
 import { ChangeSpeakerCommand } from '@/utils/editor/commands/ChangeSpeakerCommand'
 import { CopyClipsCommand } from '@/utils/editor/commands/CopyClipsCommand'
-import { CutClipsCommand } from '@/utils/editor/commands/CutClipsCommand'
 import { DeleteClipCommand } from '@/utils/editor/commands/DeleteClipCommand'
 import { MergeClipsCommand } from '@/utils/editor/commands/MergeClipsCommand'
 import { PasteClipsCommand } from '@/utils/editor/commands/PasteClipsCommand'
@@ -464,6 +470,7 @@ export default function EditorPage() {
     setSelectedClipIds,
     clearSelection,
     updateClipWords,
+    updateClipTiming,
     saveProject,
     activeClipId,
     setActiveClipId,
@@ -499,7 +506,7 @@ export default function EditorPage() {
   const [windowWidth, setWindowWidth] = useState(
     typeof window !== 'undefined' ? window.innerWidth : 1920
   )
-  const [isRecovering, setIsRecovering] = useState(true) // 초기값을 true로 설정
+  const [isRecovering, setIsRecovering] = useState(false) // 세션 복구 스피너 비활성화
   const [scrollProgress, setScrollProgress] = useState(0) // 스크롤 진행도
   const [speakers, setSpeakers] = useState<string[]>([]) // Speaker 리스트 전역 관리
   const [speakerColors, setSpeakerColors] = useState<Record<string, string>>({}) // 화자별 색상 매핑
@@ -507,12 +514,32 @@ export default function EditorPage() {
   const [clipboard, setClipboard] = useState<ClipItem[]>([]) // 클립보드 상태
   const [skipAutoFocus, setSkipAutoFocus] = useState(false) // 자동 포커스 스킵 플래그
   const [showRestoreModal, setShowRestoreModal] = useState(false) // 복원 확인 모달 상태
+  const [shouldOpenExportModal, setShouldOpenExportModal] = useState(false) // OAuth 인증 후 모달 재오픈 플래그
 
   // Get media actions from store
   const { setMediaInfo } = useEditorStore()
 
   // Track unsaved changes
   useUnsavedChanges(hasUnsavedChanges)
+
+  // URL 파라미터 감지 및 모달 상태 복원
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      const authStatus = urlParams.get('auth')
+      const returnTo = urlParams.get('returnTo')
+
+      // OAuth 인증 완료 후 YouTube 업로드 모달로 복귀
+      if (authStatus === 'success' && returnTo === 'youtube-upload') {
+        console.log('OAuth 인증 완료, YouTube 업로드 모달 재오픈 예정')
+        setShouldOpenExportModal(true)
+
+        // URL 파라미터 제거
+        const newUrl = window.location.pathname
+        window.history.replaceState({}, '', newUrl)
+      }
+    }
+  }, [])
 
   // Session recovery and initialization
   useEffect(() => {
@@ -626,7 +653,9 @@ export default function EditorPage() {
               savedProject.clips.length > 0
             ) {
               log('EditorPage.tsx', `Recovered project: ${savedProject.name}`)
-              setClips(savedProject.clips)
+              // 프로젝트 복구 시 클립 순서를 실제 타임라인 순서로 정규화
+              const normalizedClips = normalizeClipOrder(savedProject.clips)
+              setClips(normalizedClips)
 
               // 프로젝트 복구 시 IndexedDB에서 원본 클립 로드 시도
               if (projectId) {
@@ -673,7 +702,9 @@ export default function EditorPage() {
               'EditorPage.tsx',
               `Found autosaved project: ${currentProject.name}`
             )
-            setClips(currentProject.clips)
+            // 기존 프로젝트 로드 시에도 클립 순서를 실제 타임라인 순서로 정규화
+            const normalizedClips = normalizeClipOrder(currentProject.clips)
+            setClips(normalizedClips)
             autosaveManager.setProject(currentProject.id, 'browser')
           } else {
             // New project
@@ -719,6 +750,14 @@ export default function EditorPage() {
     handleDragEnd,
     handleDragCancel,
   } = useDragAndDrop()
+
+  // Word drag and drop functionality (cross-clip support)
+  const {
+    handleWordDragStart,
+    handleWordDragOver,
+    handleWordDragEnd,
+    handleWordDragCancel,
+  } = useGlobalWordDragAndDrop()
 
   // Selection box functionality
   const {
@@ -1204,67 +1243,6 @@ export default function EditorPage() {
     }
   }, [activeClipId, clips, setClips, editorHistory, setActiveClipId])
 
-  // Cut clips handler
-  const handleCutClips = useCallback(() => {
-    try {
-      const selectedIds = Array.from(selectedClipIds)
-
-      if (selectedIds.length === 0) {
-        showToast('잘라낼 클립을 선택해주세요.')
-        return
-      }
-
-      // 잘라낼 클립들의 첫 번째 인덱스 저장 (포커스 이동용)
-      const firstCutIndex = clips.findIndex((clip) =>
-        selectedIds.includes(clip.id)
-      )
-
-      // Create and execute cut command
-      const command = new CutClipsCommand(
-        clips,
-        selectedIds,
-        setClips,
-        setClipboard
-      )
-
-      editorHistory.executeCommand(command)
-      clearSelection() // Clear selection after cutting
-
-      // 자동 포커스 스킵 설정 및 적절한 클립에 포커스
-      setSkipAutoFocus(true)
-      setTimeout(() => {
-        const remainingClips = clips.filter(
-          (clip) => !selectedIds.includes(clip.id)
-        )
-        if (remainingClips.length > 0) {
-          // 잘라낸 위치의 다음 클립에 포커스, 없으면 이전 클립
-          let nextFocusIndex = firstCutIndex
-          if (nextFocusIndex >= remainingClips.length) {
-            nextFocusIndex = Math.max(0, remainingClips.length - 1)
-          }
-          setActiveClipId(remainingClips[nextFocusIndex].id)
-          console.log(
-            'Cut completed, focused on clip at index:',
-            nextFocusIndex
-          )
-        }
-      }, 0)
-
-      showToast(`${selectedIds.length}개 클립을 잘라냈습니다.`, 'success')
-    } catch (error) {
-      console.error('클립 잘라내기 오류:', error)
-      showToast('클립 잘라내기 중 오류가 발생했습니다.')
-    }
-  }, [
-    clips,
-    selectedClipIds,
-    setClips,
-    setClipboard,
-    editorHistory,
-    clearSelection,
-    setActiveClipId,
-  ])
-
   // Copy clips handler
   const handleCopyClips = useCallback(() => {
     try {
@@ -1384,6 +1362,14 @@ export default function EditorPage() {
       })
   }, [saveProject, editorHistory, markAsSaved])
 
+  // 내보내기 모달 상태 변경 핸들러
+  const handleExportModalStateChange = useCallback((isOpen: boolean) => {
+    if (!isOpen) {
+      // 모달이 닫힐 때 강제 오픈 플래그 리셋
+      setShouldOpenExportModal(false)
+    }
+  }, [])
+
   // Auto-save every 3 seconds
   useEffect(() => {
     if (!clips.length) return
@@ -1455,14 +1441,10 @@ export default function EditorPage() {
         event.preventDefault()
         handleMergeClips()
       }
-      // Command/Ctrl+X (cut clips) - 윈도우에서는 Ctrl+X, Mac에서는 Command+X
+      // Command/Ctrl+X (delete clips) - 윈도우에서는 Ctrl+X, Mac에서는 Command+X
       else if (cmdOrCtrl && event.key === 'x') {
         event.preventDefault()
-        if (selectedClipIds.size > 0) {
-          handleCutClips()
-        } else {
-          handleDeleteClip() // 선택된 클립이 없으면 기존처럼 삭제
-        }
+        handleDeleteClip()
       }
       // Command/Ctrl+C (copy clips)
       else if (cmdOrCtrl && event.key === 'c') {
@@ -1503,7 +1485,6 @@ export default function EditorPage() {
     handleMergeClips,
     handleSplitClip,
     handleDeleteClip,
-    handleCutClips,
     handleCopyClips,
     handlePasteClips,
     selectedClipIds,
@@ -1639,7 +1620,7 @@ export default function EditorPage() {
     }
   }, [clips, activeClipId, setActiveClipId, skipAutoFocus])
 
-  // 복구 중일 때 로딩 화면 표시
+  // 복구 중일 때 로딩 화면 표시 (임시 비활성화)
   if (isRecovering) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -1657,11 +1638,39 @@ export default function EditorPage() {
     <DndContext
       id={dndContextId}
       sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
-      onDragEnd={handleDragEnd}
-      onDragCancel={handleDragCancel}
+      collisionDetection={closestCorners}
+      onDragStart={(event) => {
+        // Handle both clip and word drag start
+        if (event.active.data.current?.type === 'word') {
+          handleWordDragStart(event)
+        } else {
+          handleDragStart(event)
+        }
+      }}
+      onDragOver={(event) => {
+        // Handle both clip and word drag over
+        if (event.active.data.current?.type === 'word') {
+          handleWordDragOver(event)
+        } else {
+          handleDragOver(event)
+        }
+      }}
+      onDragEnd={(event) => {
+        // Handle both clip and word drag end
+        if (event.active.data.current?.type === 'word') {
+          handleWordDragEnd(event)
+        } else {
+          handleDragEnd(event)
+        }
+      }}
+      onDragCancel={(event) => {
+        // Handle both clip and word drag cancel
+        if (event.active.data.current?.type === 'word') {
+          handleWordDragCancel()
+        } else {
+          handleDragCancel()
+        }
+      }}
     >
       <div className="min-h-screen bg-gray-50 text-gray-900">
         <EditorHeaderTabs
@@ -1690,7 +1699,7 @@ export default function EditorPage() {
               onMergeClips={handleMergeClips}
               onUndo={handleUndo}
               onRedo={handleRedo}
-              onCut={handleCutClips}
+              onCut={undefined}
               onCopy={handleCopyClips}
               onPaste={handlePasteClips}
               onSplitClip={handleSplitClip}
@@ -1699,6 +1708,8 @@ export default function EditorPage() {
               onToggleTemplateSidebar={handleToggleTemplateSidebar}
               onSave={handleSave}
               onSaveAs={handleSaveAs}
+              forceOpenExportModal={shouldOpenExportModal}
+              onExportModalStateChange={handleExportModalStateChange}
             />
           ) : (
             <SimpleToolbar
@@ -1713,6 +1724,8 @@ export default function EditorPage() {
               onToggleTemplateSidebar={handleToggleTemplateSidebar}
               onSave={handleSave}
               onSaveAs={handleSaveAs}
+              forceOpenExportModal={shouldOpenExportModal}
+              onExportModalStateChange={handleExportModalStateChange}
             />
           )}
         </div>
@@ -1950,6 +1963,29 @@ export default function EditorPage() {
           onCancel={() => setShowRestoreModal(false)}
           onClose={() => setShowRestoreModal(false)}
         />
+
+        {/* Drag overlay for word drag and drop */}
+        <DragOverlay>
+          {(() => {
+            const { draggedWordId, clips, groupedWordIds } =
+              useEditorStore.getState()
+            if (!draggedWordId) return null
+
+            const draggedWord = clips
+              .flatMap((clip) => clip.words)
+              .find((word) => word.id === draggedWordId)
+
+            if (!draggedWord) return null
+
+            return (
+              <div className="bg-blue-500 text-white px-2 py-1 rounded text-sm shadow-lg opacity-90">
+                {groupedWordIds.size > 1
+                  ? `${groupedWordIds.size} words`
+                  : draggedWord.text}
+              </div>
+            )
+          })()}
+        </DragOverlay>
       </div>
     </DndContext>
   )

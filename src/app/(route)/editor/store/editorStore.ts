@@ -11,6 +11,7 @@ import {
   TextInsertionSlice,
   createTextInsertionSlice,
 } from './slices/textInsertionSlice'
+import { TimelineSlice, createTimelineSlice } from './slices/timelineSlice'
 
 // Combine all slices into a single store type
 export type EditorStore = ClipSlice &
@@ -20,7 +21,8 @@ export type EditorStore = ClipSlice &
   MediaSlice &
   WordSlice &
   ScenarioSlice &
-  TextInsertionSlice
+  TextInsertionSlice &
+  TimelineSlice
 
 // Create the store with all slices
 export const useEditorStore = create<EditorStore>()(
@@ -34,6 +36,7 @@ export const useEditorStore = create<EditorStore>()(
       ...createWordSlice(...a),
       ...createScenarioSlice(...a),
       ...createTextInsertionSlice(...a),
+      ...createTimelineSlice(...a),
     }),
     {
       name: 'editor-store',
