@@ -9,6 +9,7 @@ import { useDeployModal } from '@/hooks/useDeployModal'
 import { AutosaveManager } from '@/utils/managers/AutosaveManager'
 import { useEffect, useRef, useState } from 'react'
 import { LuHouse, LuMenu, LuShoppingBag } from 'react-icons/lu'
+import { BellIcon } from '@/components/icons'
 import { useEditorStore } from '../store'
 import { EDITOR_TABS } from '../types'
 import EditingModeToggle from './EditingModeToggle'
@@ -292,19 +293,7 @@ export default function EditorHeaderTabs({
               className="p-2 text-white hover:text-white hover:bg-gray-700 hover:scale-110 hover:shadow-md rounded-lg transition-all duration-200 cursor-pointer"
               title="문서함"
             >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2V7zm16 0V6a2 2 0 00-2-2H7a2 2 0 00-2 2v1m14 0H3"
-                />
-              </svg>
+              <BellIcon className="w-5 h-5" />
             </button>
 
             <DocumentModal

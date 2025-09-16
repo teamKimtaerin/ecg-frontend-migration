@@ -26,6 +26,7 @@ import {
   FastForward,
   Volume2,
   VolumeX,
+  Bell,
 } from 'lucide-react'
 
 export interface IconProps {
@@ -161,3 +162,8 @@ export const VolumeOffIcon: React.FC<IconProps> = ({
   className,
   size = 20,
 }) => <VolumeX className={className} size={size} />
+
+// Bell Icon (문서함용)
+export const BellIcon: React.FC<IconProps> = ({ className, size = 20 }) => (
+  <Bell className={className} size={size} />
+)
