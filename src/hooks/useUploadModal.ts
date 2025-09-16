@@ -272,7 +272,7 @@ export const useUploadModal = () => {
         // 🔥 중요: videoUrl 안정적 해결
         const resolvedVideoUrl = state.videoUrl ||
                                 useEditorStore.getState().videoUrl ||
-                                sessionStorage.getItem('currentVideoUrl')
+                                sessionStorage.getItem('currentVideoUrl') || undefined
 
         console.log('[VIDEO DEBUG] handleProcessingComplete - state.videoUrl:', state.videoUrl)
         console.log('[VIDEO DEBUG] handleProcessingComplete - store.videoUrl:', useEditorStore.getState().videoUrl)
