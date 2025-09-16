@@ -128,11 +128,23 @@ export default function EditorMotionTextOverlay({
   // Timeline initialization effect
   useEffect(() => {
     // If we have clips but no timeline clips or clipOrder is empty, initialize timeline
-    if (clips.length > 0 && (timeline.clips.length === 0 || timeline.clipOrder.length === 0)) {
-      console.log('[EditorMotionTextOverlay] Initializing timeline with', clips.length, 'clips')
+    if (
+      clips.length > 0 &&
+      (timeline.clips.length === 0 || timeline.clipOrder.length === 0)
+    ) {
+      console.log(
+        '[EditorMotionTextOverlay] Initializing timeline with',
+        clips.length,
+        'clips'
+      )
       initializeTimeline(clips)
     }
-  }, [clips, timeline.clips.length, timeline.clipOrder.length, initializeTimeline])
+  }, [
+    clips,
+    timeline.clips.length,
+    timeline.clipOrder.length,
+    initializeTimeline,
+  ])
 
   // No manifest preload required for initial, animation-less scenario
   // Use the simplified scenario building approach
@@ -697,7 +709,7 @@ export default function EditorMotionTextOverlay({
 
   return (
     <div className="absolute inset-0" aria-label="motiontext-overlay">
-      <div ref={containerRef} className="w-full h-full pointer-events-none" />
+      <div ref={containerRef} className="w-full h-full" />
       {/* Lightweight debug status (non-interactive) */}
       {process.env.NODE_ENV === 'development' && (
         <div className="absolute top-1 right-2 text-[10px] text-white/70 bg-black/50 px-1 rounded">
