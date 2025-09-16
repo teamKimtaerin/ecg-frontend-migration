@@ -373,6 +373,7 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
       )
     }
 
+
     if (!videoUrl) {
       return (
         <div

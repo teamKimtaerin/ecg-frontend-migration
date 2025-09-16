@@ -137,9 +137,11 @@ export const useUploadModal = () => {
           fileName: data.file.name,
         })
 
+
         // 백업용으로 sessionStorage에도 저장
         sessionStorage.setItem('currentVideoUrl', blobUrl)
         console.log('[VIDEO DEBUG] Saved videoUrl to sessionStorage:', blobUrl)
+
 
         // 1. Presigned URL 요청 (백그라운드 처리)
         log('useUploadModal', '📝 Requesting presigned URL')
@@ -334,7 +336,6 @@ export const useUploadModal = () => {
 
           // 조기 완료 처리 제거 - 실제 처리가 완료될 때까지 기다림
           // updateState({ step: 'completed' })
-
           // 조기 에디터 이동 제거 - 폴링이 완료될 때까지 기다림
           // setTimeout(() => {
           //   goToEditor()
@@ -372,6 +373,7 @@ export const useUploadModal = () => {
         // 메타데이터 업데이트 (Blob URL 유지!)
         setMediaInfo({
           videoDuration: videoDuration || 0,
+
           videoUrl: resolvedVideoUrl, // ✅ 안정적으로 해결된 URL 사용!
           videoName: state.fileName,
           videoType: 'video/mp4', // 타입 명시
@@ -403,7 +405,6 @@ export const useUploadModal = () => {
         projectStorage.saveCurrentProject(newProject) // 현재 프로젝트로 설정
 
         setCurrentProject(newProject)
-
         // sessionStorage 업데이트 (새로고침 시 이 프로젝트를 로드하도록)
         sessionStorage.setItem('currentProjectId', projectId)
         sessionStorage.setItem('lastUploadProjectId', projectId)

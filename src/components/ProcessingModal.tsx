@@ -1,7 +1,9 @@
 'use client'
 
-import React, { useRef, useState } from 'react'
 import { FaTimes } from 'react-icons/fa'
+import React, { useState, useEffect, useRef } from 'react'
+import Draggable from 'react-draggable'
+import { ChevronDownIcon, ChevronUpIcon } from '@/components/icons'
 
 export interface ProcessingModalProps {
   isOpen: boolean
@@ -72,6 +74,7 @@ export default function ProcessingModal({
       setDragging(false)
     }
   }
+
   const getStatusText = () => {
     switch (status) {
       case 'uploading':
@@ -116,6 +119,7 @@ export default function ProcessingModal({
       currentStage
     )
   }
+
 
   const getGradientColor = () => {
     switch (status) {

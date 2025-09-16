@@ -1,18 +1,18 @@
 'use client'
 
+import DeployModal from '@/components/ui/DeployModal'
+import DocumentModal from '@/components/ui/DocumentModal'
 import Tab from '@/components/ui/Tab'
 import TabItem from '@/components/ui/TabItem'
-import DocumentModal from '@/components/ui/DocumentModal'
-import DeployModal from '@/components/ui/DeployModal'
 import UserDropdown from '@/components/ui/UserDropdown'
-import ToolbarToggle from './ToolbarToggle'
-import EditingModeToggle from './EditingModeToggle'
+import { useDeployModal } from '@/hooks/useDeployModal'
+import { AutosaveManager } from '@/utils/managers/AutosaveManager'
+import { useEffect, useRef, useState } from 'react'
+import { LuHouse, LuMenu, LuShoppingBag } from 'react-icons/lu'
 import { useEditorStore } from '../store'
 import { EDITOR_TABS } from '../types'
-import { useEffect, useState, useRef } from 'react'
-import { AutosaveManager } from '@/utils/managers/AutosaveManager'
-import { LuMenu, LuShoppingBag, LuHouse } from 'react-icons/lu'
-import { useDeployModal } from '@/hooks/useDeployModal'
+import EditingModeToggle from './EditingModeToggle'
+import ToolbarToggle from './ToolbarToggle'
 
 export interface EditorHeaderTabsProps {
   activeTab?: string
@@ -190,14 +190,16 @@ export default function EditorHeaderTabs({
   }
 
   return (
-    <div className="bg-gray-100 border-b border-gray-300 shadow-sm relative">
+    // <div className="bg-gray-100 border-b border-gray-300 shadow-sm relative">
+    <div className="bg-gray-800 border-b border-gray-700 shadow-sm relative">
       <div className="flex items-center px-6 py-1">
         {/* Left Side - Navigation Menu */}
         <div className="relative mr-4">
           <button
             ref={navButtonRef}
             onClick={() => setIsNavDropdownOpen(!isNavDropdownOpen)}
-            className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-lg transition-all duration-200 cursor-pointer"
+            // className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-lg transition-all duration-200 cursor-pointer"
+            className="p-2 text-white hover:bg-gray-700 rounded-lg transition-all duration-200 cursor-pointer"
             title="메뉴"
           >
             <LuMenu className="w-5 h-5" />
@@ -287,7 +289,7 @@ export default function EditorHeaderTabs({
             <button
               ref={documentButtonRef}
               onClick={() => setIsDocumentModalOpen(!isDocumentModalOpen)}
-              className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 hover:scale-110 hover:shadow-md rounded-lg transition-all duration-200 cursor-pointer"
+              className="p-2 text-white hover:text-white hover:bg-gray-700 hover:scale-110 hover:shadow-md rounded-lg transition-all duration-200 cursor-pointer"
               title="문서함"
             >
               <svg

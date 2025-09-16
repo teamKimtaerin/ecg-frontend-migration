@@ -697,6 +697,7 @@ export default function EditorPage() {
         } else if (projectId || mediaId) {
           log(
             'EditorPage.tsx',
+
             `Found session data to recover - projectId: ${projectId}, mediaId: ${mediaId}`
           )
 
