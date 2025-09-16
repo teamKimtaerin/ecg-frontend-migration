@@ -48,6 +48,7 @@ export default function EditorMotionTextOverlay({
     wordAnimationTracks,
     timeline,
     getSequentialClips,
+    initializeTimeline,
   } = useEditorStore()
 
   // Internal state
@@ -123,6 +124,15 @@ export default function EditorMotionTextOverlay({
       }
     }
   }, [initializeRenderer, videoEl, videoRef, containerRef])
+
+  // Timeline initialization effect
+  useEffect(() => {
+    // If we have clips but no timeline clips or clipOrder is empty, initialize timeline
+    if (clips.length > 0 && (timeline.clips.length === 0 || timeline.clipOrder.length === 0)) {
+      console.log('[EditorMotionTextOverlay] Initializing timeline with', clips.length, 'clips')
+      initializeTimeline(clips)
+    }
+  }, [clips, timeline.clips.length, timeline.clipOrder.length, initializeTimeline])
 
   // No manifest preload required for initial, animation-less scenario
   // Use the simplified scenario building approach
