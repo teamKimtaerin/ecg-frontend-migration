@@ -45,48 +45,62 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
     const manualSelectionPauseUntilRef = useRef(0)
 
     // MediaError code to message mapping
-    const getMediaErrorMessage = useCallback((errorCode: number | undefined): string => {
-      switch (errorCode) {
-        case 1: // MEDIA_ERR_ABORTED
-          return '비디오 로드가 중단되었습니다'
-        case 2: // MEDIA_ERR_NETWORK
-          return '네트워크 오류로 비디오를 로드할 수 없습니다'
-        case 3: // MEDIA_ERR_DECODE
-          return '비디오 디코딩 중 오류가 발생했습니다'
-        case 4: // MEDIA_ERR_SRC_NOT_SUPPORTED
-          return '비디오 형식이 지원되지 않거나 소스를 찾을 수 없습니다'
-        default:
-          return '알 수 없는 비디오 오류가 발생했습니다'
-      }
-    }, [])
+    const getMediaErrorMessage = useCallback(
+      (errorCode: number | undefined): string => {
+        switch (errorCode) {
+          case 1: // MEDIA_ERR_ABORTED
+            return '비디오 로드가 중단되었습니다'
+          case 2: // MEDIA_ERR_NETWORK
+            return '네트워크 오류로 비디오를 로드할 수 없습니다'
+          case 3: // MEDIA_ERR_DECODE
+            return '비디오 디코딩 중 오류가 발생했습니다'
+          case 4: // MEDIA_ERR_SRC_NOT_SUPPORTED
+            return '비디오 형식이 지원되지 않거나 소스를 찾을 수 없습니다'
+          default:
+            return '알 수 없는 비디오 오류가 발생했습니다'
+        }
+      },
+      []
+    )
 
     // Enhanced error handler
-    const handleVideoError = useCallback((e: React.SyntheticEvent<HTMLVideoElement>) => {
-      const video = e.target as HTMLVideoElement
-      const error = video.error
-      const errorCode = error?.code
-      const errorMessage = getMediaErrorMessage(errorCode)
+    const handleVideoError = useCallback(
+      (e: React.SyntheticEvent<HTMLVideoElement>) => {
+        const video = e.target as HTMLVideoElement
+        const error = video.error
+        const errorCode = error?.code
+        const errorMessage = getMediaErrorMessage(errorCode)
 
-      console.error('[VideoPlayer] Video error details:', {
-        errorCode,
-        errorMessage,
-        originalMessage: error?.message,
-        videoUrl,
-        urlType: videoUrl?.startsWith('blob:') ? 'blob' : videoUrl?.startsWith('http') ? 'http' : 'unknown',
-        readyState: video.readyState,
-        networkState: video.networkState,
-        currentSrc: video.currentSrc,
-        timestamp: new Date().toISOString(),
-      })
+        console.error('[VideoPlayer] Video error details:', {
+          errorCode,
+          errorMessage,
+          originalMessage: error?.message,
+          videoUrl,
+          urlType: videoUrl?.startsWith('blob:')
+            ? 'blob'
+            : videoUrl?.startsWith('http')
+              ? 'http'
+              : 'unknown',
+          readyState: video.readyState,
+          networkState: video.networkState,
+          currentSrc: video.currentSrc,
+          timestamp: new Date().toISOString(),
+        })
 
-      setVideoError(errorMessage)
+        setVideoError(errorMessage)
 
-      // Special handling for Blob URL expiration
-      if (errorCode === 4 && videoUrl?.startsWith('blob:')) {
-        console.warn('[VideoPlayer] Blob URL may have expired - suggesting re-upload')
-        setVideoError('업로드한 비디오가 만료되었습니다. 파일을 다시 업로드해주세요.')
-      }
-    }, [videoUrl, getMediaErrorMessage])
+        // Special handling for Blob URL expiration
+        if (errorCode === 4 && videoUrl?.startsWith('blob:')) {
+          console.warn(
+            '[VideoPlayer] Blob URL may have expired - suggesting re-upload'
+          )
+          setVideoError(
+            '업로드한 비디오가 만료되었습니다. 파일을 다시 업로드해주세요.'
+          )
+        }
+      },
+      [videoUrl, getMediaErrorMessage]
+    )
 
     // Handle time update
     const handleTimeUpdate = useCallback(() => {

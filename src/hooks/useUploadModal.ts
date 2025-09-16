@@ -272,15 +272,32 @@ export const useUploadModal = () => {
         log('useUploadModal', '🔄 Converting segments to clips')
 
         // 🔥 중요: videoUrl 안정적 해결
-        const resolvedVideoUrl = state.videoUrl ||
-                                useEditorStore.getState().videoUrl ||
-                                sessionStorage.getItem('currentVideoUrl') || undefined
+        const resolvedVideoUrl =
+          state.videoUrl ||
+          useEditorStore.getState().videoUrl ||
+          sessionStorage.getItem('currentVideoUrl') ||
+          undefined
 
-        console.log('[VIDEO DEBUG] handleProcessingComplete - state.videoUrl:', state.videoUrl)
-        console.log('[VIDEO DEBUG] handleProcessingComplete - store.videoUrl:', useEditorStore.getState().videoUrl)
-        console.log('[VIDEO DEBUG] handleProcessingComplete - sessionStorage.videoUrl:', sessionStorage.getItem('currentVideoUrl'))
-        console.log('[VIDEO DEBUG] handleProcessingComplete - resolved.videoUrl:', resolvedVideoUrl)
-        console.log('[VIDEO DEBUG] handleProcessingComplete - state.fileName:', state.fileName)
+        console.log(
+          '[VIDEO DEBUG] handleProcessingComplete - state.videoUrl:',
+          state.videoUrl
+        )
+        console.log(
+          '[VIDEO DEBUG] handleProcessingComplete - store.videoUrl:',
+          useEditorStore.getState().videoUrl
+        )
+        console.log(
+          '[VIDEO DEBUG] handleProcessingComplete - sessionStorage.videoUrl:',
+          sessionStorage.getItem('currentVideoUrl')
+        )
+        console.log(
+          '[VIDEO DEBUG] handleProcessingComplete - resolved.videoUrl:',
+          resolvedVideoUrl
+        )
+        console.log(
+          '[VIDEO DEBUG] handleProcessingComplete - state.fileName:',
+          state.fileName
+        )
 
         // 새 프로젝트 생성 (이전 프로젝트 대체)
         const projectId = `project-${Date.now()}`

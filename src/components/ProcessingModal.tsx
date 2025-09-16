@@ -168,7 +168,7 @@ export default function ProcessingModal({
         style={{
           left: '50%',
           top: '50%',
-          transform: `translate(calc(-50% + ${position.x}px), calc(-50% + ${position.y}px))`
+          transform: `translate(calc(-50% + ${position.x}px), calc(-50% + ${position.y}px))`,
         }}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
