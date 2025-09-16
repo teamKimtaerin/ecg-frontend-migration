@@ -137,6 +137,10 @@ export const useUploadModal = () => {
           fileName: data.file.name,
         })
 
+        // 백업용으로 sessionStorage에도 저장
+        sessionStorage.setItem('currentVideoUrl', blobUrl)
+        console.log('[VIDEO DEBUG] Saved videoUrl to sessionStorage:', blobUrl)
+
         // 1. Presigned URL 요청 (백그라운드 처리)
         log('useUploadModal', '📝 Requesting presigned URL')
         const presignedResponse = await uploadService.getPresignedUrl(
@@ -256,8 +260,7 @@ export const useUploadModal = () => {
         })
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [updateState, setMediaInfo, clearMedia, setClips]
+    [updateState, setMediaInfo, clearMedia, setClips, state]
   )
 
   // 처리 완료 핸들러
@@ -266,15 +269,16 @@ export const useUploadModal = () => {
       try {
         log('useUploadModal', '🔄 Converting segments to clips')
 
-        // 🔥 중요: state.videoUrl 확인
-        console.log(
-          '[VIDEO DEBUG] handleProcessingComplete - state.videoUrl:',
-          state.videoUrl
-        )
-        console.log(
-          '[VIDEO DEBUG] handleProcessingComplete - state.fileName:',
-          state.fileName
-        )
+        // 🔥 중요: videoUrl 안정적 해결
+        const resolvedVideoUrl = state.videoUrl ||
+                                useEditorStore.getState().videoUrl ||
+                                sessionStorage.getItem('currentVideoUrl')
+
+        console.log('[VIDEO DEBUG] handleProcessingComplete - state.videoUrl:', state.videoUrl)
+        console.log('[VIDEO DEBUG] handleProcessingComplete - store.videoUrl:', useEditorStore.getState().videoUrl)
+        console.log('[VIDEO DEBUG] handleProcessingComplete - sessionStorage.videoUrl:', sessionStorage.getItem('currentVideoUrl'))
+        console.log('[VIDEO DEBUG] handleProcessingComplete - resolved.videoUrl:', resolvedVideoUrl)
+        console.log('[VIDEO DEBUG] handleProcessingComplete - state.fileName:', state.fileName)
 
         // 새 프로젝트 생성 (이전 프로젝트 대체)
         const projectId = `project-${Date.now()}`
@@ -297,7 +301,7 @@ export const useUploadModal = () => {
           // 메타데이터는 기본값으로 설정 (중요: videoUrl은 유지!)
           setMediaInfo({
             videoDuration: result?.result?.metadata?.duration || 0,
-            videoUrl: state.videoUrl, // ✅ Blob URL 반드시 유지!
+            videoUrl: resolvedVideoUrl, // ✅ 안정적으로 해결된 URL 사용!
             videoName: state.fileName,
             videoType: 'video/mp4',
           })
@@ -316,7 +320,7 @@ export const useUploadModal = () => {
             createdAt: new Date(),
             updatedAt: new Date(),
             videoDuration: result?.result?.metadata?.duration || 0,
-            videoUrl: state.videoUrl, // ✅ Blob URL 저장!
+            videoUrl: resolvedVideoUrl, // ✅ 안정적으로 해결된 URL 저장!
             videoName: state.fileName,
           }
 
@@ -368,7 +372,7 @@ export const useUploadModal = () => {
         // 메타데이터 업데이트 (Blob URL 유지!)
         setMediaInfo({
           videoDuration: videoDuration || 0,
-          videoUrl: state.videoUrl, // 이미 Blob URL이 저장되어 있음
+          videoUrl: resolvedVideoUrl, // ✅ 안정적으로 해결된 URL 사용!
           videoName: state.fileName,
           videoType: 'video/mp4', // 타입 명시
         })
@@ -388,7 +392,7 @@ export const useUploadModal = () => {
           createdAt: new Date(),
           updatedAt: new Date(),
           videoDuration: videoDuration || 0,
-          videoUrl: state.videoUrl, // Blob URL 저장 (로컬에서 즉시 재생 가능)
+          videoUrl: resolvedVideoUrl, // ✅ 안정적으로 해결된 URL 저장!
           videoName: state.fileName,
         }
 

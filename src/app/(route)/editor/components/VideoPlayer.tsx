@@ -23,6 +23,7 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
     const [currentTime, setCurrentTime] = useState(0)
     const [duration, setDuration] = useState(0)
     const [isToggling, setIsToggling] = useState(false)
+    const [videoError, setVideoError] = useState<string | null>(null)
 
     const {
       videoUrl,
@@ -42,6 +43,50 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
     const lastWordUpdateTimeRef = useRef(0) // eslint-disable-line @typescript-eslint/no-unused-vars
     // Track when user manually selects a word to pause auto selection
     const manualSelectionPauseUntilRef = useRef(0)
+
+    // MediaError code to message mapping
+    const getMediaErrorMessage = useCallback((errorCode: number | undefined): string => {
+      switch (errorCode) {
+        case 1: // MEDIA_ERR_ABORTED
+          return '비디오 로드가 중단되었습니다'
+        case 2: // MEDIA_ERR_NETWORK
+          return '네트워크 오류로 비디오를 로드할 수 없습니다'
+        case 3: // MEDIA_ERR_DECODE
+          return '비디오 디코딩 중 오류가 발생했습니다'
+        case 4: // MEDIA_ERR_SRC_NOT_SUPPORTED
+          return '비디오 형식이 지원되지 않거나 소스를 찾을 수 없습니다'
+        default:
+          return '알 수 없는 비디오 오류가 발생했습니다'
+      }
+    }, [])
+
+    // Enhanced error handler
+    const handleVideoError = useCallback((e: React.SyntheticEvent<HTMLVideoElement>) => {
+      const video = e.target as HTMLVideoElement
+      const error = video.error
+      const errorCode = error?.code
+      const errorMessage = getMediaErrorMessage(errorCode)
+
+      console.error('[VideoPlayer] Video error details:', {
+        errorCode,
+        errorMessage,
+        originalMessage: error?.message,
+        videoUrl,
+        urlType: videoUrl?.startsWith('blob:') ? 'blob' : videoUrl?.startsWith('http') ? 'http' : 'unknown',
+        readyState: video.readyState,
+        networkState: video.networkState,
+        currentSrc: video.currentSrc,
+        timestamp: new Date().toISOString(),
+      })
+
+      setVideoError(errorMessage)
+
+      // Special handling for Blob URL expiration
+      if (errorCode === 4 && videoUrl?.startsWith('blob:')) {
+        console.warn('[VideoPlayer] Blob URL may have expired - suggesting re-upload')
+        setVideoError('업로드한 비디오가 만료되었습니다. 파일을 다시 업로드해주세요.')
+      }
+    }, [videoUrl, getMediaErrorMessage])
 
     // Handle time update
     const handleTimeUpdate = useCallback(() => {
@@ -290,6 +335,44 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
       })
     }, [videoUrl])
 
+    // Error state
+    if (videoError) {
+      return (
+        <div
+          className={`flex items-center justify-center bg-black text-red-400 ${className}`}
+        >
+          <div className="text-center p-4">
+            <svg
+              className="w-12 h-12 mx-auto mb-2 text-red-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
+              />
+            </svg>
+            <p className="text-sm font-medium mb-2">비디오 오류</p>
+            <p className="text-xs text-red-300 mb-4">{videoError}</p>
+            <button
+              onClick={() => {
+                setVideoError(null)
+                if (videoRef.current) {
+                  videoRef.current.load() // Reload video
+                }
+              }}
+              className="px-3 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
+            >
+              다시 시도
+            </button>
+          </div>
+        </div>
+      )
+    }
+
     if (!videoUrl) {
       return (
         <div
@@ -320,25 +403,17 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
         <video
           ref={videoRef}
           src={videoUrl}
-          className="w-full h-full object-contain cursor-pointer"
+          controls
+          className="w-full h-full object-contain"
           onClick={(e) => togglePlayPause(e)}
           onTimeUpdate={handleTimeUpdate}
           onLoadedMetadata={handleLoadedMetadata}
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
-          onError={(e) => {
-            console.error('[VideoPlayer] Video error:', {
-              error: e,
-              videoUrl,
-              videoElement: videoRef.current,
-              readyState: videoRef.current?.readyState,
-              networkState: videoRef.current?.networkState,
-              errorCode: (e.target as HTMLVideoElement)?.error?.code,
-              errorMessage: (e.target as HTMLVideoElement)?.error?.message,
-            })
-          }}
+          onError={handleVideoError}
           onLoadStart={() => {
             console.log('[VideoPlayer] Video loading started:', videoUrl)
+            setVideoError(null) // Clear any previous errors
           }}
           onCanPlay={() => {
             console.log('[VideoPlayer] Video can play:', {
@@ -346,6 +421,7 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
               duration: videoRef.current?.duration,
               readyState: videoRef.current?.readyState,
             })
+            setVideoError(null) // Clear errors when video can play
           }}
         />
       </div>
