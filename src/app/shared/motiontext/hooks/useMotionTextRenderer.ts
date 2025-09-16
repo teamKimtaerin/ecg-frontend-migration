@@ -5,7 +5,10 @@
 
 import { useRef, useCallback, useEffect, useState } from 'react'
 import type { MotionTextRenderer as MTRuntime } from 'motiontext-renderer'
-import type { RendererConfig, RendererConfigV2 } from '../utils/scenarioGenerator'
+import type {
+  RendererConfig,
+  RendererConfigV2,
+} from '../utils/scenarioGenerator'
 import {
   preloadPluginsForScenario,
   preloadAllPlugins,
@@ -157,7 +160,9 @@ export function useMotionTextRenderer(
           throw new Error('Renderer loadConfig method is not available')
         }
 
-        await rendererRef.current.loadConfig(config as unknown as Record<string, unknown>)
+        await rendererRef.current.loadConfig(
+          config as unknown as Record<string, unknown>
+        )
         currentConfigRef.current = config
         if (autoPlayRef.current) {
           try {
@@ -271,7 +276,7 @@ export function useMotionTextRenderer(
 // Helpers
 function getScenarioDuration(cfg: unknown): number {
   if (!cfg || typeof cfg !== 'object') return 3
-  const anyCfg = cfg as any
+  const anyCfg = cfg as any // eslint-disable-line @typescript-eslint/no-explicit-any
   const cues = Array.isArray(anyCfg.cues) ? anyCfg.cues : []
   const cue0 = cues[0]
   if (anyCfg.version === '2.0') {
@@ -296,7 +301,7 @@ function getScenarioDuration(cfg: unknown): number {
     return Number.isFinite(d) && d > 0 ? d : 3
   }
   const ht = cue0?.hintTime
-  if (ht && (ht.start != null) && (ht.end != null)) {
+  if (ht && ht.start != null && ht.end != null) {
     const d = Number(ht.end) - Number(ht.start)
     return Number.isFinite(d) && d > 0 ? d : 3
   }

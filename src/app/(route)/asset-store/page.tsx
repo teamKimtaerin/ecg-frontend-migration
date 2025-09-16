@@ -136,17 +136,19 @@ export default function AssetPage() {
           process.env.NEXT_PUBLIC_MOTIONTEXT_PLUGIN_ORIGIN ||
           'http://localhost:3300'
         ).replace(/\/$/, '')
-        const resolvedAssets = (assetsData.assets || []).map((a: any) => {
-          if (a?.pluginKey) {
-            const base = `${origin}/plugins/${a.pluginKey}`
-            return {
-              ...a,
-              thumbnail: `${base}/${a.thumbnailPath || 'assets/thumbnail.svg'}`,
-              manifestFile: `${base}/manifest.json`,
+        const resolvedAssets = (assetsData.assets || []).map(
+          (a: Record<string, unknown>) => {
+            if (a?.pluginKey) {
+              const base = `${origin}/plugins/${a.pluginKey}`
+              return {
+                ...a,
+                thumbnail: `${base}/${a.thumbnailPath || 'assets/thumbnail.svg'}`,
+                manifestFile: `${base}/manifest.json`,
+              }
             }
+            return a
           }
-          return a
-        })
+        )
         setAssets(resolvedAssets)
 
         // 템플릿 데이터 로드

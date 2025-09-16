@@ -128,6 +128,7 @@ The project uses `motiontext-renderer` for advanced subtitle animations:
 - **Parameter Controls**: Dynamic UI generation from plugin schemas
 
 Key integration points:
+
 - `src/app/shared/motiontext/` - Core renderer utilities
 - `src/app/(route)/asset-store/` - Plugin marketplace and preview
 - `src/app/(route)/motiontext-demo/` - Demo and testing environment
@@ -138,14 +139,18 @@ Audio metadata in `public/real.json` drives dynamic animations:
 
 ```typescript
 {
-  segments: [{
-    words: [{
-      word: string,
-      volume_db: number,    // For intensity scaling
-      pitch_hz: number,     // For effect selection
-      confidence: number    // For reliability
-    }]
-  }]
+  segments: [
+    {
+      words: [
+        {
+          word: string,
+          volume_db: number, // For intensity scaling
+          pitch_hz: number, // For effect selection
+          confidence: number, // For reliability
+        },
+      ],
+    },
+  ]
 }
 ```
 
@@ -181,6 +186,7 @@ EditorPage
 **IMPORTANT: Always use existing UI components from `components/ui/`**
 
 Available components include:
+
 - `Button`, `Dropdown`, `EditableDropdown`
 - `Tab/TabItem`, `AlertDialog`, `Modal`
 - `Input`, `Checkbox`, `RadioButton`, `Switch`

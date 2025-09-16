@@ -133,7 +133,13 @@ export default function EditorMotionTextOverlay({
       wordAnimationTracks,
     })
     return config
-  }, [subtitlePosition, subtitleSize, clips, deletedClipIds, wordAnimationTracks])
+  }, [
+    subtitlePosition,
+    subtitleSize,
+    clips,
+    deletedClipIds,
+    wordAnimationTracks,
+  ])
 
   // Option A: Load external scenario.json when requested
   useEffect(() => {
@@ -247,6 +253,7 @@ export default function EditorMotionTextOverlay({
     if (usingExternalScenario || isLoadingScenario || scenarioOverride) return
     if (!showSubtitles) return
     // Prefer scenario slice if present; otherwise build and set once
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const store = useEditorStore.getState() as any
     const scenarioFromSlice = store.currentScenario as RendererConfigV2 | null
     let config: RendererConfigV2
@@ -289,24 +296,32 @@ export default function EditorMotionTextOverlay({
     isLoadingScenario,
     onScenarioUpdate,
     scenarioOverride,
+    clips,
+    deletedClipIds,
+    subtitlePosition,
+    subtitleSize,
+    wordAnimationTracks,
   ]) // Removed videoEl from dependencies
 
   // When scenario slice version changes, reload scenario (debounced)
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | null = null
-    const unsub = useEditorStore.subscribe(
-      (s) => (s as any).scenarioVersion,
-      (version) => {
-        if (!version) return
-        const cfg = (useEditorStore.getState() as any)
-          .currentScenario as RendererConfigV2 | null
-        if (!cfg) return
-        if (timer) clearTimeout(timer)
-        timer = setTimeout(() => {
-          void loadScenario(cfg, { silent: true }).catch(() => {})
-        }, 60)
-      }
-    )
+    let prevVersion: number | undefined
+
+    const unsub = useEditorStore.subscribe((state) => {
+      const version = (state as any).scenarioVersion as number // eslint-disable-line @typescript-eslint/no-explicit-any
+      if (version === prevVersion) return
+      prevVersion = version
+
+      if (!version) return
+      const cfg = (useEditorStore.getState() as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+        .currentScenario as RendererConfigV2 | null
+      if (!cfg) return
+      if (timer) clearTimeout(timer)
+      timer = setTimeout(() => {
+        void loadScenario(cfg, { silent: true }).catch(() => {})
+      }, 60)
+    })
     return () => {
       if (timer) clearTimeout(timer)
       try {

@@ -125,9 +125,12 @@ const UsedAssetsStrip: React.FC<UsedAssetsStripProps> = ({
     .filter((asset) => asset !== undefined) as AssetItem[]
 
   // Get animations applied to the currently focused word
-  const targetWordId = focusedWordId || selectedWordId || (useEditorStore.getState().multiSelectedWordIds?.size === 1
-    ? Array.from(useEditorStore.getState().multiSelectedWordIds)[0]
-    : null)
+  const targetWordId =
+    focusedWordId ||
+    selectedWordId ||
+    (useEditorStore.getState().multiSelectedWordIds?.size === 1
+      ? Array.from(useEditorStore.getState().multiSelectedWordIds)[0]
+      : null)
   const focusedWordAnimations = targetWordId
     ? wordAnimationTracks.get(targetWordId) || []
     : []
@@ -201,7 +204,13 @@ const UsedAssetsStrip: React.FC<UsedAssetsStripProps> = ({
           }
         }
         // Add the animation track with word timing
-        addAnimationTrack(targetWordId, asset.id, asset.name, wordTiming, asset.pluginKey)
+        addAnimationTrack(
+          targetWordId,
+          asset.id,
+          asset.name,
+          wordTiming,
+          asset.pluginKey
+        )
       } else {
         console.log('Maximum 3 animations per word')
       }

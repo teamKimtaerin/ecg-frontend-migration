@@ -12,7 +12,12 @@ export type RendererConfigV2 = {
   pluginApiVersion: '3.0'
   timebase: { unit: 'seconds' }
   stage: { baseAspect: '16:9' }
-  tracks: Array<{ id: string; type: 'free' | 'subtitle'; layer: number; defaultStyle?: Record<string, unknown> }>
+  tracks: Array<{
+    id: string
+    type: 'free' | 'subtitle'
+    layer: number
+    defaultStyle?: Record<string, unknown>
+  }>
   cues: Array<{
     id: string
     track: string
@@ -108,7 +113,7 @@ export function buildScenarioFromReal(
         domLifetime: display,
         root: {
           id: `group-${i}`,
-          eType: 'group',
+          eType: 'group' as const,
           displayTime: display,
           layout: {
             position: { x: centerX / stageW, y: centerY / stageH },
@@ -118,7 +123,7 @@ export function buildScenarioFromReal(
           children: [
             {
               id: `text-${i}`,
-              eType: 'text',
+              eType: 'text' as const,
               text,
               displayTime: display,
               layout: {
@@ -139,7 +144,7 @@ export function buildScenarioFromReal(
                   name: pluginName,
                   params: {},
                   baseTime: display,
-                  timeOffset: ['0%', '100%'],
+                  timeOffset: ['0%', '100%'] as [string, string],
                 },
               ],
             },

@@ -16,7 +16,6 @@ interface VideoSectionProps {
 const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
   const videoContainerRef = useRef<HTMLDivElement>(null)
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [currentScenario, setCurrentScenario] = useState<RendererConfig | null>(
     null
   )
@@ -30,10 +29,10 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
     setCurrentScenario(scenario)
   }, [])
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleScenarioApply = useCallback((newScenario: RendererConfig) => {
     console.log('[VideoSection] Applying new scenario:', newScenario)
     // Update store's scenario for ongoing sync
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const store = useEditorStore.getState() as any
     store.setScenarioFromJson?.(newScenario)
     // Also push as override for immediate apply

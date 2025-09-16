@@ -3,12 +3,14 @@
 본 문서는 에디터에서 “글자(Word)” 단위 선택/멀티선택 및 애니메이션 적용/삭제 흐름의 현재 구현을 정리한 것입니다. 문제 지점과 불일치를 가시화하여 차기 리디자인의 기준점으로 삼습니다.
 
 ## 요약
+
 - 선택 상태가 다원화되어 있습니다: 단일 포커스, 그룹 선택(드래그), 멀티선택(토글/범위), UI용 선택이 공존합니다.
 - 애니메이션은 `wordAnimationTracks`(스토어) ↔ 단어 내 `animationTracks`/`appliedAssets`(클립 데이터) ↔ UI 표시 상태의 3계층으로 동기화됩니다.
 - 멀티선택 상태에서 에셋 그리드는 “토글 일괄 적용/해제”를 수행하지만, 사용중 에셋 스트립은 단일 타깃만 조작합니다.
 - 단일 추가(비동기)는 플러그인 `timeOffset`을 반영하지만, 멀티 토글은 반영하지 않습니다(중요 불일치).
 
 ## 핵심 상태 모델
+
 - 단어 선택/포커스/그룹/편집(WordSlice)
   - `focusedWordId`, `focusedClipId`, `groupedWordIds`, `editingWordId` 등: `src/app/(route)/editor/store/slices/wordSlice.ts:1`
   - 멀티선택: `multiSelectedWordIds`, `multiSelectedClipIds`, `lastSelectedWordId`, `lastSelectedClipId`
@@ -25,6 +27,7 @@
   - 플러그인 `timeOffset`은 DOM lifetime 조정에 사용됨: `initialScenario.ts:20`
 
 ## 상호작용 흐름 (Words)
+
 - 단일 클릭: 포커스 및 파형 확장
   - `ClipWord` 단일 클릭 시 멀티선택을 해제하고 마지막 선택 기준 갱신 후 상위의 `onWordClick` 수행: `src/app/(route)/editor/components/ClipComponent/ClipWord.tsx:94`
   - 상위 `ClipWords`는 포커스/활성 클립/선택된 단어/현재 에셋 UI 상태를 세팅하고, 파형을 확장: `src/app/(route)/editor/components/ClipComponent/ClipWords.tsx:118`
@@ -39,6 +42,7 @@
   - 그룹은 드래그 권한/피드백에 사용되며 멀티선택 세트와 별개임.
 
 ## 시각적 상태(Word 셀)
+
 - 포커스: 검정 배경, 흰 글자
 - 멀티선택: 파란 배경, 흰 글자
 - 그룹: 검정 배경, 흰 글자
@@ -46,6 +50,7 @@
 - 참조: `ClipWord.tsx:145`
 
 ## 애니메이션 적용/삭제 흐름
+
 - 단일 단어 적용(에셋 카드 클릭)
   - 타깃 단어 결정: `focusedWordId` → `selectedWordId` → 멀티선택 단일 케이스: `AssetGrid.tsx:145`
   - 없으면 추가: `addAnimationTrackAsync`(플러그인 `timeOffset` 동기 취득) → `addAnimationTrack`: `AssetGrid.tsx:167`, `wordSlice.ts:744`
@@ -60,16 +65,19 @@
   - 카드 클릭 → 해당 단어에 add/remove 후 컨트롤 패널 토글: `UsedAssetsStrip.tsx:186`
 
 ## 단어 삭제(컨텐츠 레벨)
+
 - Delete/Backspace 키에서 멀티선택이 “2개 이상”일 때만 동작: `src/app/(route)/editor/page.tsx:1490`
 - `deleteSelectedWords`: 선택된 단어를 각 클립에서 제거 후 `fullText`/`subtitle` 재구성, 선택 상태 초기화: `wordSlice.ts:948`
 
 ## 데이터 동기화 레이어
+
 - 스토어: `wordAnimationTracks`(단어별 트랙)
 - 클립 데이터: `word.animationTracks`(상세), `word.appliedAssets`(간략)
 - UI: `currentWordAssets`/`selectedWordAssets`(선택 표시)
 - 일괄 동기화 포인트: `applyAssetsToWord`, `updateWordAnimationTracks`, `refreshWordPluginChain`
 
 ## 현재 문제/불일치 정리
+
 - 선택 개념의 분산과 중복
   - 포커스(`focusedWordId`), 멀티선택(`multiSelectedWordIds`), 그룹(`groupedWordIds`), UI 선택(`selectedWordId`)이 공존하며, 각 컴포넌트가 상이한 우선순위로 이를 참조.
   - 멀티선택 토글 시에도 포커스를 이동시켜 사이드바/오버레이 상태가 예상치 않게 변동될 수 있음: `wordSlice.ts:935`.
@@ -87,10 +95,12 @@
   - 편집 상태 클래스 오타 `bg-yel`: `ClipWord.tsx:160`.
 
 ## 경계/사이드 이펙트
+
 - 범위 선택은 클립 간 선택까지 지원하며, 삭제 시 `getSelectedWordsByClip()`로 클립별 묶어서 처리: `wordSlice.ts:1016`.
 - 클릭/더블클릭/드래그의 디바운스 혼재: `ClipWords.tsx`(50ms), `ClipWord.tsx`(300ms) + 별도의 `wordStateManager` 유틸 존재하나 UI핸들러에 직접 연결은 제한적: `src/app/(route)/editor/utils/wordStateManager.ts:1`.
 
 ## 리디자인 참고 포인트(문제 기반)
+
 - “선택”의 단일 진리원천(SSOT) 확립 및 포커스/편집/멀티/그룹의 관계 명시화.
 - 멀티선택 경로에서도 플러그인 `timeOffset`을 동등하게 반영하여 시나리오/렌더러 일관성 확보.
 - 에셋 스트립과 에셋 그리드의 멀티선택 처리 정책 통일(토글/일괄적용/일괄해제 모드 명확화).
@@ -100,6 +110,7 @@
 ---
 
 ### 주요 파일 레퍼런스
+
 - `src/app/(route)/editor/components/ClipComponent/ClipWord.tsx:94`
 - `src/app/(route)/editor/components/ClipComponent/ClipWords.tsx:118`
 - `src/app/(route)/editor/hooks/useWordGrouping.ts:1`

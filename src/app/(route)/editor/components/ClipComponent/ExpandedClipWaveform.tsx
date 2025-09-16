@@ -422,6 +422,8 @@ export default function ExpandedClipWaveform({
     updateAnimationIntensity,
     updateAnimationTrackTiming,
     setHasUnsavedChanges,
+    refreshWordPluginChain,
+    updateWordBaseTime,
   ])
 
   // Undo/Redo handlers
@@ -436,7 +438,14 @@ export default function ExpandedClipWaveform({
       refreshWordPluginChain?.(focusedWord.id)
       setHasUnsavedChanges(true)
     }
-  }, [focusedWord, undoWordTiming, setHasUnsavedChanges, wordTimingAdjustments, updateWordBaseTime, refreshWordPluginChain])
+  }, [
+    focusedWord,
+    undoWordTiming,
+    setHasUnsavedChanges,
+    wordTimingAdjustments,
+    updateWordBaseTime,
+    refreshWordPluginChain,
+  ])
 
   const handleRedo = useCallback(() => {
     if (focusedWord) {
@@ -449,7 +458,14 @@ export default function ExpandedClipWaveform({
       refreshWordPluginChain?.(focusedWord.id)
       setHasUnsavedChanges(true)
     }
-  }, [focusedWord, redoWordTiming, setHasUnsavedChanges, wordTimingAdjustments, updateWordBaseTime, refreshWordPluginChain])
+  }, [
+    focusedWord,
+    redoWordTiming,
+    setHasUnsavedChanges,
+    wordTimingAdjustments,
+    updateWordBaseTime,
+    refreshWordPluginChain,
+  ])
 
   // Sync playback state with video player
   useEffect(() => {

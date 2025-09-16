@@ -251,9 +251,7 @@ export function generatePreviewScenarioV2(
     pluginApiVersion: '3.0',
     timebase: { unit: 'seconds' },
     stage: { baseAspect: '16:9' },
-    tracks: [
-      { id: 'preview-track', type: 'free', layer: 1, defaultStyle: {} },
-    ],
+    tracks: [{ id: 'preview-track', type: 'free', layer: 1, defaultStyle: {} }],
     cues: [
       {
         id: 'preview-cue',
@@ -358,7 +356,12 @@ export function generateLoopedScenarioV2(
                 whiteSpace: 'nowrap',
               },
               pluginChain: [
-                { name: pluginName, params: settings.pluginParams, baseTime, timeOffset },
+                {
+                  name: pluginName,
+                  params: settings.pluginParams,
+                  baseTime,
+                  timeOffset,
+                },
               ],
             },
           ],

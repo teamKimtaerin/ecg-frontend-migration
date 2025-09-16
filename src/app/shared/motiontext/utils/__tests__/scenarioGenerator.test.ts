@@ -97,7 +97,7 @@ describe('scenarioGenerator', () => {
     expect(cfg.cues.length).toBe(1)
     const root = cfg.cues[0].root
     expect(root.eType).toBe('group')
-    const textNode = root.children?.[0] as any
+    const textNode = root.children?.[0] as any // eslint-disable-line @typescript-eslint/no-explicit-any
     expect(textNode?.eType).toBe('text')
     expect(Array.isArray(textNode?.pluginChain)).toBe(true)
     const spec = textNode?.pluginChain?.[0]
@@ -119,9 +119,9 @@ describe('scenarioGenerator', () => {
       },
       5
     )
-    const root = cfg.cues[0].root as any
+    const root = cfg.cues[0].root as any // eslint-disable-line @typescript-eslint/no-explicit-any
     expect(root.layout?.transform?.rotate?.deg).toBe(15)
-    const textNode = root.children?.[0] as any
+    const textNode = root.children?.[0] as any // eslint-disable-line @typescript-eslint/no-explicit-any
     expect(textNode.pluginChain?.[0].timeOffset).toEqual(['0%', '100%'])
   })
 

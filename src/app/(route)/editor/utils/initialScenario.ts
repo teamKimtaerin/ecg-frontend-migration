@@ -7,7 +7,7 @@ export interface InitialScenarioOptions {
   anchor?: string
   fontSizeRel?: number
   baseAspect?: '16:9' | '9:16' | 'auto'
-  wordAnimationTracks?: Map<string, any[]>  // Add animation tracks
+  wordAnimationTracks?: Map<string, any[]> // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
 export interface NodeIndexEntry {
@@ -31,14 +31,14 @@ function toAdjustedOrOriginalTime(sec: number): number {
  */
 function calculateAdjustedDomLifetime(
   clip: ClipItem,
-  wordAnimationTracks?: Map<string, any[]>
+  wordAnimationTracks?: Map<string, any[]> // eslint-disable-line @typescript-eslint/no-explicit-any
 ): [number, number] {
   const words = Array.isArray(clip.words) ? clip.words : []
   if (words.length === 0) return [0, 0]
 
   // Start with word-based timing
-  let domStart = Math.min(...words.map(w => w.start))
-  let domEnd = Math.max(...words.map(w => w.end))
+  let domStart = Math.min(...words.map((w) => w.start))
+  let domEnd = Math.max(...words.map((w) => w.end))
 
   // Adjust for animations if present
   if (wordAnimationTracks) {
@@ -89,7 +89,9 @@ export function buildInitialScenarioFromClips(
     if (!Number.isFinite(adjClipStart) || !Number.isFinite(adjClipEnd)) return
     if (adjClipEnd <= adjClipStart) return
 
-    const children: NonNullable<RendererConfigV2['cues'][number]['root']['children']> = []
+    const children: NonNullable<
+      RendererConfigV2['cues'][number]['root']['children']
+    > = []
 
     // Build word nodes (visible by default, ready for animations)
     words.forEach((w) => {
@@ -98,6 +100,7 @@ export function buildInitialScenarioFromClips(
       if (!Number.isFinite(s) || !Number.isFinite(e) || e <= s) return
 
       const nodeId = `word-${clip.id}_word_${children.length}` // Changed to match cwi_demo_full pattern
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const child: any = {
         id: nodeId,
         eType: 'text' as const,
@@ -110,6 +113,7 @@ export function buildInitialScenarioFromClips(
       // Add plugin information from animation tracks or applied assets
       const animationTracks = wordAnimationTracks?.get(w.id)
       if (animationTracks && animationTracks.length > 0) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         child.pluginChain = animationTracks.map((track: any) => ({
           name: track.pluginKey || track.assetName || track.assetId,
           // TODO: Add parameters from track.params if needed
@@ -132,7 +136,10 @@ export function buildInitialScenarioFromClips(
     const groupId = `clip-${clip.id}`
 
     // Calculate adjusted domLifetime based on animation timeOffsets
-    const [adjDomStart, adjDomEnd] = calculateAdjustedDomLifetime(clip, wordAnimationTracks)
+    const [adjDomStart, adjDomEnd] = calculateAdjustedDomLifetime(
+      clip,
+      wordAnimationTracks
+    )
 
     const cue = {
       id: cueId,

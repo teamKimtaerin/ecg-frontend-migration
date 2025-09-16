@@ -2,7 +2,10 @@
  * Local plugin loader for MotionText (shared)
  */
 import type { RendererConfig, RendererConfigV2 } from './scenarioGenerator'
-import { configurePluginSource, registerExternalPlugin } from 'motiontext-renderer'
+import {
+  configurePluginSource,
+  registerExternalPlugin,
+} from 'motiontext-renderer'
 
 export interface TLHandle {
   pause?: () => TLHandle
@@ -83,7 +86,9 @@ function resolveKey(name: string): string {
   return name.includes('@') ? name : `${name}@1.0.0`
 }
 
-export async function loadLocalPlugin(name: string): Promise<PluginRuntimeModule> {
+export async function loadLocalPlugin(
+  name: string
+): Promise<PluginRuntimeModule> {
   if (!name) throw new Error('Plugin name is required')
   const key = resolveKey(name)
   if (cache.has(key)) return cache.get(key) as PluginRuntimeModule
@@ -134,7 +139,8 @@ function extractPluginNames(
   scenario: RendererConfig | RendererConfigV2 | any
 ): Set<string> {
   const pluginNames = new Set<string>()
-  scenario.cues?.forEach((cue) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  scenario.cues?.forEach((cue: any) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const traverse = (node: any): void => {
       if (node?.plugin?.name) pluginNames.add(node.plugin.name)

@@ -89,7 +89,11 @@ export const MotionTextPreview = React.forwardRef<
       initializeRenderer,
       play,
       pause,
-    } = useMotionTextRenderer({ autoPlay: true, loop: true, onError: onRendererError })
+    } = useMotionTextRenderer({
+      autoPlay: true,
+      loop: true,
+      onError: onRendererError,
+    })
 
     /**
      * 플러그인 manifest 로드
@@ -100,7 +104,8 @@ export const MotionTextPreview = React.forwardRef<
           const pluginName = manifestFile.split('/').slice(-2, -1)[0] // '/plugin/rotation@1.0.0/manifest.json' -> 'rotation@1.0.0'
 
           const serverBase = (
-            process.env.NEXT_PUBLIC_MOTIONTEXT_PLUGIN_ORIGIN || 'http://localhost:3300'
+            process.env.NEXT_PUBLIC_MOTIONTEXT_PLUGIN_ORIGIN ||
+            'http://localhost:3300'
           ).replace(/\/$/, '')
           const loadedManifest = await loadPluginManifest(pluginName, {
             mode: 'server',
@@ -212,14 +217,13 @@ export const MotionTextPreview = React.forwardRef<
           },
         }
 
-        const scenario = (generateLoopedScenarioV2(
+        const scenario = generateLoopedScenarioV2(
           manifest.name,
-          settingsForGenerator as any,
+          settingsForGenerator as any, // eslint-disable-line @typescript-eslint/no-explicit-any
           3
-        ) as any)
+        ) as any // eslint-disable-line @typescript-eslint/no-explicit-any
         await loadScenario(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          scenario as any,
+          scenario as any, // eslint-disable-line @typescript-eslint/no-explicit-any
           { silent: firstLoadDoneRef.current }
         )
         console.log('[MotionTextPreview] Scenario loaded successfully')
@@ -326,7 +330,10 @@ export const MotionTextPreview = React.forwardRef<
     }, [text, isDragging, updateScenario]) // Include updateScenario dependency
 
     // Shallow compare helper to avoid useless updates
-    const shallowEqual = (a: Record<string, unknown>, b: Record<string, unknown>) => {
+    const shallowEqual = (
+      a: Record<string, unknown>,
+      b: Record<string, unknown>
+    ) => {
       const ak = Object.keys(a)
       const bk = Object.keys(b)
       if (ak.length !== bk.length) return false

@@ -1,5 +1,6 @@
 import { StateCreator } from 'zustand'
 import { getPluginTimeOffset } from '../../utils/pluginManifestLoader'
+import { Word } from '../../types'
 
 export interface AnimationTrack {
   assetId: string
@@ -450,7 +451,14 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
     }),
 
   // Animation tracks
-  addAnimationTrack: (wordId, assetId, assetName, wordTiming, pluginKey, timeOffset) =>
+  addAnimationTrack: (
+    wordId,
+    assetId,
+    assetName,
+    wordTiming,
+    pluginKey,
+    timeOffset
+  ) =>
     set((state) => {
       const newTracks = new Map(state.wordAnimationTracks)
       const existingTracks = newTracks.get(wordId) || []
@@ -500,14 +508,17 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const anyGet = get() as any
-        if ((anyGet.applyAssetsToWord || anyGet.updateWordAnimationTracks) && anyGet.clips) {
+        if (
+          (anyGet.applyAssetsToWord || anyGet.updateWordAnimationTracks) &&
+          anyGet.clips
+        ) {
           // Find the clip containing this word
           for (const clip of anyGet.clips) {
-            const word = clip.words?.find((w: any) => w.id === wordId)
+            const word = clip.words?.find((w: Word) => w.id === wordId)
             if (word) {
               // Get all current asset IDs for this word
               const allTracks = newTracks.get(wordId) || []
-              const assetIds = allTracks.map(track => track.assetId)
+              const assetIds = allTracks.map((track) => track.assetId)
               if (anyGet.applyAssetsToWord) {
                 anyGet.applyAssetsToWord(clip.id, wordId, assetIds)
               }
@@ -562,19 +573,26 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const anyGet = get() as any
-        if ((anyGet.applyAssetsToWord || anyGet.updateWordAnimationTracks) && anyGet.clips) {
+        if (
+          (anyGet.applyAssetsToWord || anyGet.updateWordAnimationTracks) &&
+          anyGet.clips
+        ) {
           // Find the clip containing this word
           for (const clip of anyGet.clips) {
-            const word = clip.words?.find((w: any) => w.id === wordId)
+            const word = clip.words?.find((w: Word) => w.id === wordId)
             if (word) {
               // Get remaining asset IDs for this word
               const remainingTracks = newTracks.get(wordId) || []
-              const assetIds = remainingTracks.map(track => track.assetId)
+              const assetIds = remainingTracks.map((track) => track.assetId)
               if (anyGet.applyAssetsToWord) {
                 anyGet.applyAssetsToWord(clip.id, wordId, assetIds)
               }
               if (anyGet.updateWordAnimationTracks) {
-                anyGet.updateWordAnimationTracks(clip.id, wordId, remainingTracks)
+                anyGet.updateWordAnimationTracks(
+                  clip.id,
+                  wordId,
+                  remainingTracks
+                )
               }
               break
             }
@@ -613,7 +631,7 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
         const anyGet = get() as any
         if (anyGet.updateWordAnimationTracks && anyGet.clips) {
           for (const clip of anyGet.clips) {
-            const hasWord = clip.words?.some((w: any) => w.id === wordId)
+            const hasWord = clip.words?.some((w: Word) => w.id === wordId)
             if (hasWord) {
               anyGet.updateWordAnimationTracks(clip.id, wordId, updatedTracks)
               break
@@ -658,7 +676,7 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
         const anyGet = get() as any
         if (anyGet.updateWordAnimationTracks && anyGet.clips) {
           for (const clip of anyGet.clips) {
-            const hasWord = clip.words?.some((w: any) => w.id === wordId)
+            const hasWord = clip.words?.some((w: Word) => w.id === wordId)
             if (hasWord) {
               anyGet.updateWordAnimationTracks(clip.id, wordId, [])
               break
@@ -668,12 +686,16 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
       } catch {}
       return { wordAnimationTracks: newTracks }
     }),
-  
+
   // Batch apply/toggle for multi-selection
   toggleAnimationForWords: (wordIds, asset) =>
     set((state) => {
       const newTracks = new Map(state.wordAnimationTracks)
-      const colors: ('blue' | 'green' | 'purple')[] = ['blue', 'green', 'purple']
+      const colors: ('blue' | 'green' | 'purple')[] = [
+        'blue',
+        'green',
+        'purple',
+      ]
 
       // Helper to find timing fallback from clips
       const findTiming = (wordId: string): { start: number; end: number } => {
@@ -684,7 +706,7 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
           const anyGet = get() as any
           const clips = anyGet.clips || []
           for (const clip of clips) {
-            const w = clip.words?.find((x: any) => x.id === wordId)
+            const w = clip.words?.find((x: Word) => x.id === wordId)
             if (w) return { start: w.start, end: w.end }
           }
         } catch {}
@@ -701,7 +723,10 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
           if (filtered.length === 0) {
             newTracks.delete(wordId)
           } else {
-            const recolored = filtered.map((t, i) => ({ ...t, color: colors[i] }))
+            const recolored = filtered.map((t, i) => ({
+              ...t,
+              color: colors[i],
+            }))
             newTracks.set(wordId, recolored)
           }
         } else {
@@ -730,9 +755,13 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
           // appliedAssets
           if (anyGet.applyAssetsToWord) {
             for (const clip of clips) {
-              const has = clip.words?.some((w: any) => w.id === wordId)
+              const has = clip.words?.some((w: any) => w.id === wordId) // eslint-disable-line @typescript-eslint/no-explicit-any
               if (has) {
-                anyGet.applyAssetsToWord(clip.id, wordId, tracks.map((t: AnimationTrack) => t.assetId))
+                anyGet.applyAssetsToWord(
+                  clip.id,
+                  wordId,
+                  tracks.map((t: AnimationTrack) => t.assetId)
+                )
                 break
               }
             }
@@ -740,7 +769,7 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
           // mirror animationTracks onto word
           if (anyGet.updateWordAnimationTracks) {
             for (const clip of clips) {
-              const has = clip.words?.some((w: any) => w.id === wordId)
+              const has = clip.words?.some((w: any) => w.id === wordId) // eslint-disable-line @typescript-eslint/no-explicit-any
               if (has) {
                 anyGet.updateWordAnimationTracks(clip.id, wordId, tracks)
                 break
@@ -754,14 +783,20 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
 
       return { wordAnimationTracks: newTracks }
     }),
-  
+
   // Optional: update params for a track
-  updateAnimationTrackParams: (wordId: string, assetId: string, partialParams: Record<string, unknown>) =>
+  updateAnimationTrackParams: (
+    wordId: string,
+    assetId: string,
+    partialParams: Record<string, unknown>
+  ) =>
     set((state) => {
       const newTracks = new Map(state.wordAnimationTracks)
       const existing = newTracks.get(wordId) || []
       const updated = existing.map((t) =>
-        t.assetId === assetId ? { ...t, params: { ...(t.params || {}), ...partialParams } } : t
+        t.assetId === assetId
+          ? { ...t, params: { ...(t.params || {}), ...partialParams } }
+          : t
       )
       newTracks.set(wordId, updated)
       // Refresh scenario to apply param changes to pluginChain
@@ -778,7 +813,7 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
         const anyGet = get() as any
         if (anyGet.updateWordAnimationTracks && anyGet.clips) {
           for (const clip of anyGet.clips) {
-            const hasWord = clip.words?.some((w: any) => w.id === wordId)
+            const hasWord = clip.words?.some((w: Word) => w.id === wordId)
             if (hasWord) {
               anyGet.updateWordAnimationTracks(clip.id, wordId, updated)
               break
@@ -830,19 +865,34 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
   },
 
   // Async animation track management
-  addAnimationTrackAsync: async (wordId, assetId, assetName, wordTiming, pluginKey) => {
+  addAnimationTrackAsync: async (
+    wordId,
+    assetId,
+    assetName,
+    wordTiming,
+    pluginKey
+  ) => {
     // Fetch timeOffset from plugin manifest
     const timeOffset = await getPluginTimeOffset(pluginKey)
 
     // Call the regular addAnimationTrack with the fetched timeOffset
     const state = get()
-    state.addAnimationTrack(wordId, assetId, assetName, wordTiming, pluginKey, timeOffset)
+    state.addAnimationTrack(
+      wordId,
+      assetId,
+      assetName,
+      wordTiming,
+      pluginKey,
+      timeOffset
+    )
   },
 
   // Multi-selection implementations
   selectWordRange: (toClipId, toWordId) =>
     set((state) => {
       // Get clips from store (assuming clips are available in the global store)
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const anyGet = get() as any
       const clips = anyGet.clips || []
 
@@ -853,8 +903,8 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
       const fromWordId = state.lastSelectedWordId
 
       // Find clip indices
-      const fromClipIndex = clips.findIndex((c: any) => c.id === fromClipId)
-      const toClipIndex = clips.findIndex((c: any) => c.id === toClipId)
+      const fromClipIndex = clips.findIndex((c: any) => c.id === fromClipId) // eslint-disable-line @typescript-eslint/no-explicit-any
+      const toClipIndex = clips.findIndex((c: any) => c.id === toClipId) // eslint-disable-line @typescript-eslint/no-explicit-any
 
       if (fromClipIndex === -1 || toClipIndex === -1) return state
 
@@ -868,8 +918,8 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
 
         if (ci === fromClipIndex && ci === toClipIndex) {
           // Same clip - select range within
-          const fromIdx = clip.words.findIndex((w: any) => w.id === fromWordId)
-          const toIdx = clip.words.findIndex((w: any) => w.id === toWordId)
+          const fromIdx = clip.words.findIndex((w: any) => w.id === fromWordId) // eslint-disable-line @typescript-eslint/no-explicit-any
+          const toIdx = clip.words.findIndex((w: any) => w.id === toWordId) // eslint-disable-line @typescript-eslint/no-explicit-any
           const start = Math.min(fromIdx, toIdx)
           const end = Math.max(fromIdx, toIdx)
 
@@ -878,19 +928,19 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
           }
         } else if (ci === fromClipIndex) {
           // Start clip - select from word to end
-          const fromIdx = clip.words.findIndex((w: any) => w.id === fromWordId)
+          const fromIdx = clip.words.findIndex((w: any) => w.id === fromWordId) // eslint-disable-line @typescript-eslint/no-explicit-any
           for (let wi = fromIdx; wi < clip.words.length; wi++) {
             selectedIds.add(clip.words[wi].id)
           }
         } else if (ci === toClipIndex) {
           // End clip - select from start to word
-          const toIdx = clip.words.findIndex((w: any) => w.id === toWordId)
+          const toIdx = clip.words.findIndex((w: any) => w.id === toWordId) // eslint-disable-line @typescript-eslint/no-explicit-any
           for (let wi = 0; wi <= toIdx; wi++) {
             selectedIds.add(clip.words[wi].id)
           }
         } else {
           // Middle clips - select all words
-          clip.words.forEach((w: any) => selectedIds.add(w.id))
+          clip.words.forEach((w: any) => selectedIds.add(w.id)) // eslint-disable-line @typescript-eslint/no-explicit-any
         }
       }
 
@@ -901,8 +951,8 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
         lastSelectedClipId: toClipId,
         focusedWordId: toWordId,
         focusedClipId: toClipId,
-        expandedClipId: null,  // Close waveform
-        expandedWordId: null
+        expandedClipId: null, // Close waveform
+        expandedWordId: null,
       }
     }),
 
@@ -915,12 +965,14 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
         newSelection.delete(wordId)
 
         // Check if clip still has selected words
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const anyGet = get() as any
         const clips = anyGet.clips || []
-        const clip = clips.find((c: any) => c.id === clipId)
+        const clip = clips.find((c: any) => c.id === clipId) // eslint-disable-line @typescript-eslint/no-explicit-any
         if (clip) {
           const hasOtherSelectedWords = clip.words.some(
-            (w: any) => w.id !== wordId && newSelection.has(w.id)
+            (w: any) => w.id !== wordId && newSelection.has(w.id) // eslint-disable-line @typescript-eslint/no-explicit-any
           )
           if (!hasOtherSelectedWords) {
             newClipSelection.delete(clipId)
@@ -938,8 +990,8 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
         lastSelectedClipId: clipId,
         focusedWordId: wordId,
         focusedClipId: clipId,
-        expandedClipId: null,  // Close waveform for multi-selection
-        expandedWordId: null
+        expandedClipId: null, // Close waveform for multi-selection
+        expandedWordId: null,
       }
     }),
 
@@ -952,11 +1004,13 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
     }),
 
   deleteSelectedWords: () =>
-    set((state) => {
+    set(() => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const anyGet = get() as any
       const clips = anyGet.clips || []
       const selectedByClip = get().getSelectedWordsByClip()
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const updatedClips = clips.map((clip: any) => {
         const selectedInClip = selectedByClip.get(clip.id)
         if (!selectedInClip || selectedInClip.length === 0) {
@@ -965,17 +1019,17 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
 
         // Filter out selected words
         const remainingWords = clip.words.filter(
-          (w: any) => !selectedInClip.includes(w.id)
+          (w: any) => !selectedInClip.includes(w.id) // eslint-disable-line @typescript-eslint/no-explicit-any
         )
 
         // Rebuild fullText and subtitle
-        const fullText = remainingWords.map((w: any) => w.text).join(' ')
+        const fullText = remainingWords.map((w: any) => w.text).join(' ') // eslint-disable-line @typescript-eslint/no-explicit-any
 
         return {
           ...clip,
           words: remainingWords,
           fullText,
-          subtitle: fullText  // Update subtitle too
+          subtitle: fullText, // Update subtitle too
         }
       })
 
@@ -1013,14 +1067,16 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
 
   getSelectedWordsByClip: () => {
     const state = get()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const anyGet = get() as any
     const clips = anyGet.clips || []
     const result = new Map<string, string[]>()
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     clips.forEach((clip: any) => {
       const selectedInClip = clip.words
-        .filter((w: any) => state.multiSelectedWordIds.has(w.id))
-        .map((w: any) => w.id)
+        .filter((w: any) => state.multiSelectedWordIds.has(w.id)) // eslint-disable-line @typescript-eslint/no-explicit-any
+        .map((w: any) => w.id) // eslint-disable-line @typescript-eslint/no-explicit-any
 
       if (selectedInClip.length > 0) {
         result.set(clip.id, selectedInClip)

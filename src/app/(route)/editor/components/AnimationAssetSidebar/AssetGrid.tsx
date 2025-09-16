@@ -35,7 +35,6 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
     applyAssetsToWord,
     clips,
     focusedWordId,
-    addAnimationTrack,
     addAnimationTrackAsync,
     removeAnimationTrack,
     wordAnimationTracks,
@@ -134,17 +133,25 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
     // Check if multiple words are selected for batch operations
     if (multiSelectedWordIds.size > 1) {
       // Centralized batch toggle for scenario + UI sync
-      useEditorStore.getState().toggleAnimationForWords(
-        Array.from(multiSelectedWordIds),
-        { id: asset.id, name: asset.name, pluginKey: asset.pluginKey }
+      useEditorStore
+        .getState()
+        .toggleAnimationForWords(Array.from(multiSelectedWordIds), {
+          id: asset.id,
+          name: asset.name,
+          pluginKey: asset.pluginKey,
+        })
+      showToast(
+        `${multiSelectedWordIds.size}개 단어에 애니메이션을 적용/해제했습니다.`,
+        'success'
       )
-      showToast(`${multiSelectedWordIds.size}개 단어에 애니메이션을 적용/해제했습니다.`, 'success')
       return
     }
 
     // Single word operation (original logic)
     const singleTargetWordId =
-      focusedWordId || selectedWordId || (multiSelectedWordIds.size === 1
+      focusedWordId ||
+      selectedWordId ||
+      (multiSelectedWordIds.size === 1
         ? Array.from(multiSelectedWordIds)[0]
         : null)
     if (singleTargetWordId) {

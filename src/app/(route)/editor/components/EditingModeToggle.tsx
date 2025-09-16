@@ -4,12 +4,8 @@ import React from 'react'
 import { useEditorStore } from '../store'
 
 const EditingModeToggle: React.FC = () => {
-  const {
-    editingMode,
-    setEditingMode,
-    rightSidebarType,
-    setRightSidebarType
-  } = useEditorStore()
+  const { editingMode, setEditingMode, rightSidebarType, setRightSidebarType } =
+    useEditorStore()
 
   const handleAdvancedModeClick = () => {
     setEditingMode('advanced')

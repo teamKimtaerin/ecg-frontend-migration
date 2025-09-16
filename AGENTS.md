@@ -40,4 +40,3 @@
 - Create `.env.local` from `.env.local.example`; never commit secrets.
 - See `README.md` for Docker/local tips and health checks.
 - Prefer repository scripts over ad-hoc commands; avoid introducing new build tools without discussion.
-

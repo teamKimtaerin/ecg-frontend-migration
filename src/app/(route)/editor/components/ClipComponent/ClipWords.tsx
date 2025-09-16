@@ -40,9 +40,7 @@ export default function ClipWords({
     draggedWordId,
     setActiveClipId,
     // From feat/editor-asset-sidebar-clean branch
-    selectedWordId,
     setSelectedWordId,
-    currentWordAssets,
     setCurrentWordAssets,
     selectedWordAssets,
   } = useEditorStore()
@@ -81,11 +79,13 @@ export default function ClipWords({
         if (response.ok) {
           const data = await response.json()
           // Map to include only needed fields for performance
-          const assetsWithIcons: AssetDatabaseItem[] = data.assets.map((asset: any) => ({
-            id: asset.id,
-            title: asset.title,
-            iconName: asset.iconName,
-          }))
+          const assetsWithIcons: AssetDatabaseItem[] = data.assets.map(
+            (asset: Record<string, unknown>) => ({
+              id: asset.id,
+              title: asset.title,
+              iconName: asset.iconName,
+            })
+          )
           setAllAssets(assetsWithIcons)
         }
       } catch (error) {
@@ -103,7 +103,7 @@ export default function ClipWords({
 
   // Combined word click handler (merging both functionalities)
   const handleWordClick = useCallback(
-    (wordId: string, isCenter: boolean) => {
+    (wordId: string) => {
       const word = words.find((w) => w.id === wordId)
       if (!word) return
 
@@ -125,6 +125,7 @@ export default function ClipWords({
         setSelectedWordId(wordId)
         setCurrentWordAssets(wordAssets)
         // Open expanded waveform for the clicked word
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const store = useEditorStore.getState() as any
         store.expandClip?.(clipId, wordId)
       }, 0)

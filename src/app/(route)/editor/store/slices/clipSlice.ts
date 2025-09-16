@@ -198,9 +198,7 @@ export const createClipSlice: StateCreator<
           ? {
               ...clip,
               words: clip.words.map((word) =>
-                word.id === wordId
-                  ? { ...word, animationTracks: tracks }
-                  : word
+                word.id === wordId ? { ...word, animationTracks: tracks } : word
               ),
             }
           : clip

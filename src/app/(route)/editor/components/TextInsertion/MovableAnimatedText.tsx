@@ -87,7 +87,8 @@ const MovableAnimatedText = forwardRef<
         try {
           const pluginName = text.animation.plugin
           const serverBase = (
-            process.env.NEXT_PUBLIC_MOTIONTEXT_PLUGIN_ORIGIN || 'http://localhost:3300'
+            process.env.NEXT_PUBLIC_MOTIONTEXT_PLUGIN_ORIGIN ||
+            'http://localhost:3300'
           ).replace(/\/$/, '')
           const loadedManifest = await loadPluginManifest(pluginName, {
             mode: 'server',
@@ -150,14 +151,17 @@ const MovableAnimatedText = forwardRef<
           },
         }
 
-        const scenario = (generateLoopedScenarioV2(
+        const scenario = generateLoopedScenarioV2(
           manifest.name,
-          settingsForGenerator as any,
+          settingsForGenerator as any, // eslint-disable-line @typescript-eslint/no-explicit-any
           Math.max(1, text.endTime - text.startTime)
-        ) as any)
+        ) as any // eslint-disable-line @typescript-eslint/no-explicit-any
 
-        setCurrentConfig(scenario)
-        await loadScenario(scenario, { silent: firstLoadDoneRef.current })
+        setCurrentConfig(scenario as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await loadScenario(scenario as any, {
+          silent: firstLoadDoneRef.current,
+        })
 
         // Auto-play on first load
         if (!firstLoadDoneRef.current && !isSelected) {
@@ -221,8 +225,8 @@ const MovableAnimatedText = forwardRef<
     // Update animation config (exposed API)
     const updateAnimation = useCallback(
       (animationConfig: RendererConfigV2) => {
-        setCurrentConfig(animationConfig)
-        loadScenario(animationConfig as any, { silent: true })
+        setCurrentConfig(animationConfig as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+        loadScenario(animationConfig as any, { silent: true }) // eslint-disable-line @typescript-eslint/no-explicit-any
       },
       [loadScenario]
     )

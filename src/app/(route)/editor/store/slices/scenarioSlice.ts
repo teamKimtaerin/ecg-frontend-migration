@@ -1,6 +1,9 @@
 import type { StateCreator } from 'zustand'
 import type { RendererConfigV2 } from '@/app/shared/motiontext'
-import { buildInitialScenarioFromClips, type NodeIndexEntry } from '../../utils/initialScenario'
+import {
+  buildInitialScenarioFromClips,
+  type NodeIndexEntry,
+} from '../../utils/initialScenario'
 import { videoSegmentManager } from '@/utils/video/segmentManager'
 import { computeTimeOffsetSeconds } from '@/app/shared/motiontext'
 
@@ -16,7 +19,11 @@ export interface ScenarioSlice {
   ) => RendererConfigV2
 
   // Update hooks (per word)
-  updateWordBaseTime: (wordId: string, startAbsSec: number, endAbsSec: number) => void
+  updateWordBaseTime: (
+    wordId: string,
+    startAbsSec: number,
+    endAbsSec: number
+  ) => void
   refreshWordPluginChain: (wordId: string) => void
 
   // Set scenario from arbitrary JSON (editor apply)
@@ -30,7 +37,11 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
 
   buildInitialScenario: (clips, opts) => {
     const { config, index } = buildInitialScenarioFromClips(clips, opts)
-    set({ currentScenario: config, nodeIndex: index, scenarioVersion: (get().scenarioVersion || 0) + 1 })
+    set({
+      currentScenario: config,
+      nodeIndex: index,
+      scenarioVersion: (get().scenarioVersion || 0) + 1,
+    })
     return config
   },
 
@@ -63,7 +74,8 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const node: any = cue?.root?.children?.[childIdx]
     if (!node) return
-    const sAdj = videoSegmentManager.mapToAdjustedTime(startAbsSec) ?? startAbsSec
+    const sAdj =
+      videoSegmentManager.mapToAdjustedTime(startAbsSec) ?? startAbsSec
     const eAdj = videoSegmentManager.mapToAdjustedTime(endAbsSec) ?? endAbsSec
     node.baseTime = [Number(sAdj), Number(eAdj)]
     // When baseTime changes, offsets must be recomputed for tracks
@@ -72,9 +84,19 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
 
   refreshWordPluginChain: (wordId) => {
     const state = get() as ScenarioSlice & {
-      wordAnimationTracks: Map<string, Array<{ assetId: string; assetName: string; pluginKey?: string; params?: Record<string, unknown>; timing: { start: number; end: number } }>>
+      wordAnimationTracks: Map<
+        string,
+        Array<{
+          assetId: string
+          assetName: string
+          pluginKey?: string
+          params?: Record<string, unknown>
+          timing: { start: number; end: number }
+        }>
+      >
     }
-    let { currentScenario, nodeIndex, wordAnimationTracks } = state
+    let { currentScenario, nodeIndex } = state
+    const { wordAnimationTracks } = state
     if (!currentScenario) {
       // Lazily build initial scenario if missing so pluginChain updates don't get dropped
       try {
@@ -101,13 +123,21 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const node: any = cue?.root?.children?.[childIdx]
     if (!node) return
-    const baseTime: [number, number] = node.baseTime || cue.root.displayTime || [0, 0]
+    const baseTime: [number, number] = node.baseTime ||
+      cue.root.displayTime || [0, 0]
     const tracks = wordAnimationTracks?.get(wordId) || []
     const pluginChain = tracks.map((t) => {
-      const name = (t.pluginKey || t.assetName || '').split('@')[0] || t.assetName
-      const startAdj = videoSegmentManager.mapToAdjustedTime(t.timing.start) ?? t.timing.start
-      const endAdj = videoSegmentManager.mapToAdjustedTime(t.timing.end) ?? t.timing.end
-      const { timeOffset } = computeTimeOffsetSeconds(baseTime, startAdj, endAdj)
+      const name =
+        (t.pluginKey || t.assetName || '').split('@')[0] || t.assetName
+      const startAdj =
+        videoSegmentManager.mapToAdjustedTime(t.timing.start) ?? t.timing.start
+      const endAdj =
+        videoSegmentManager.mapToAdjustedTime(t.timing.end) ?? t.timing.end
+      const { timeOffset } = computeTimeOffsetSeconds(
+        baseTime,
+        startAdj,
+        endAdj
+      )
       return {
         name,
         params: t.params || {},
@@ -119,15 +149,19 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
     // Make word node visible if it has any animations
     node.style = {
       ...(node.style || {}),
-      opacity: pluginChain.length > 0 ? 1 : node.style?.opacity ?? 0,
+      opacity: pluginChain.length > 0 ? 1 : (node.style?.opacity ?? 0),
     }
-    set({ currentScenario: { ...currentScenario }, scenarioVersion: (get().scenarioVersion || 0) + 1 })
+    set({
+      currentScenario: { ...currentScenario },
+      scenarioVersion: (get().scenarioVersion || 0) + 1,
+    })
   },
 
   setScenarioFromJson: (config) => {
     // Rebuild a minimal index for children by id under each cue root
     const index: Record<string, NodeIndexEntry> = {}
     config.cues?.forEach((cue, cueIndex) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const children = (cue as any)?.root?.children as Array<any> | undefined
       if (Array.isArray(children)) {
         children.forEach((child, childIdx) => {
@@ -137,6 +171,10 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
         })
       }
     })
-    set({ currentScenario: config, nodeIndex: index, scenarioVersion: (get().scenarioVersion || 0) + 1 })
+    set({
+      currentScenario: config,
+      nodeIndex: index,
+      scenarioVersion: (get().scenarioVersion || 0) + 1,
+    })
   },
 })

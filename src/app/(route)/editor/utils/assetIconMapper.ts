@@ -19,7 +19,6 @@ import {
   IoHeart,
   IoSync,
 } from 'react-icons/io5'
-import React from 'react'
 import type { IconType } from 'react-icons'
 
 // Icon mapping registry

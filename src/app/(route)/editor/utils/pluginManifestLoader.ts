@@ -22,7 +22,9 @@ const manifestCache = new Map<string, PluginManifest>()
  * @param pluginKey - Plugin identifier like "elastic@2.0.0"
  * @returns Promise resolving to the manifest or null if not found
  */
-export async function loadPluginManifest(pluginKey?: string): Promise<PluginManifest | null> {
+export async function loadPluginManifest(
+  pluginKey?: string
+): Promise<PluginManifest | null> {
   if (!pluginKey) return null
 
   // Check cache first
@@ -32,12 +34,15 @@ export async function loadPluginManifest(pluginKey?: string): Promise<PluginMani
 
   try {
     // Construct URL to plugin manifest
-    const baseUrl = process.env.NEXT_PUBLIC_PLUGIN_SERVER_URL || 'http://localhost:8080'
+    const baseUrl =
+      process.env.NEXT_PUBLIC_PLUGIN_SERVER_URL || 'http://localhost:8080'
     const manifestUrl = `${baseUrl}/plugins/${pluginKey}/manifest.json`
 
     const response = await fetch(manifestUrl)
     if (!response.ok) {
-      console.warn(`Failed to load plugin manifest for ${pluginKey}: ${response.status}`)
+      console.warn(
+        `Failed to load plugin manifest for ${pluginKey}: ${response.status}`
+      )
       return null
     }
 
@@ -58,7 +63,9 @@ export async function loadPluginManifest(pluginKey?: string): Promise<PluginMani
  * @param pluginKey - Plugin identifier
  * @returns timeOffset tuple [preOffset, postOffset] or [0, 0] if not found
  */
-export async function getPluginTimeOffset(pluginKey?: string): Promise<[number, number]> {
+export async function getPluginTimeOffset(
+  pluginKey?: string
+): Promise<[number, number]> {
   const manifest = await loadPluginManifest(pluginKey)
   return manifest?.timeOffset || [0, 0]
 }
@@ -78,12 +85,12 @@ export async function preloadCommonPluginManifests(): Promise<void> {
     'glitch@2.0.0',
     'magnetic@2.0.0',
     'flames@2.0.0',
-    'glow@2.0.0'
+    'glow@2.0.0',
   ]
 
   // Load manifests in parallel
   await Promise.allSettled(
-    commonPlugins.map(pluginKey => loadPluginManifest(pluginKey))
+    commonPlugins.map((pluginKey) => loadPluginManifest(pluginKey))
   )
 }
 
@@ -92,13 +99,16 @@ export async function preloadCommonPluginManifests(): Promise<void> {
  * @param pluginKey - Plugin identifier
  * @returns Icon URL or null if not found
  */
-export async function getPluginIconUrl(pluginKey?: string): Promise<string | null> {
+export async function getPluginIconUrl(
+  pluginKey?: string
+): Promise<string | null> {
   if (!pluginKey) return null
 
   const manifest = await loadPluginManifest(pluginKey)
   if (!manifest?.icon) return null
 
-  const baseUrl = process.env.NEXT_PUBLIC_PLUGIN_SERVER_URL || 'http://localhost:8080'
+  const baseUrl =
+    process.env.NEXT_PUBLIC_PLUGIN_SERVER_URL || 'http://localhost:8080'
   return `${baseUrl}/plugins/${pluginKey}/${manifest.icon}`
 }
 
