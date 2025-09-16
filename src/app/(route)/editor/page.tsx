@@ -2,7 +2,7 @@
 
 import {
   DndContext,
-  closestCenter,
+  // closestCenter, // Currently unused
   closestCorners,
   DragOverlay,
 } from '@dnd-kit/core'
@@ -470,7 +470,7 @@ export default function EditorPage() {
     setSelectedClipIds,
     clearSelection,
     updateClipWords,
-    updateClipTiming,
+    // updateClipTiming, // Currently unused
     saveProject,
     activeClipId,
     setActiveClipId,

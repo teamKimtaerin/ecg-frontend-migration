@@ -128,7 +128,12 @@ export const VirtualTimelineVideoController: React.FC<
         unsubscribeTimelineChange()
       }
     }
-  }, [virtualPlayerController, onVirtualTimeUpdate, virtualDuration])
+  }, [
+    virtualPlayerController,
+    onVirtualTimeUpdate,
+    virtualDuration,
+    virtualTime,
+  ])
 
   // Format virtual time for display
   const formatVirtualTime = useCallback(
@@ -142,8 +147,8 @@ export const VirtualTimelineVideoController: React.FC<
       }
       return `${minutes}:${secs.toString().padStart(2, '0')}`
     },
-    [virtualTime]
-  ) // Include virtualTime dependency as recommended by ESLint
+    [] // No dependencies needed - function is pure
+  )
 
   // Virtual timeline control handlers
   const handleVirtualPlayPause = useCallback(async () => {

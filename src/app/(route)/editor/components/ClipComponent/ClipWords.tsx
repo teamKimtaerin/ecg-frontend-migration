@@ -34,13 +34,14 @@ export default function ClipWords({
   const {
     // From dev branch
     setFocusedWord,
-    clearWordFocus,
-    draggedWordId,
+    // clearWordFocus, // Currently unused
+    // draggedWordId, // Currently unused
     setActiveClipId,
     // From feat/editor-asset-sidebar-clean branch
     setSelectedWordId,
     setCurrentWordAssets,
     selectedWordAssets,
+    expandClip,
   } = useEditorStore()
 
   // Asset related state with icon support
@@ -91,7 +92,7 @@ export default function ClipWords({
 
   // Combined word click handler (merging both functionalities)
   const handleWordClick = useCallback(
-    (wordId: string) => {
+    (wordId: string, _isCenter: boolean) => {
       const word = words.find((w) => w.id === wordId)
       if (!word) return
 
@@ -125,16 +126,18 @@ export default function ClipWords({
       setActiveClipId(clipId)
       setSelectedWordId(wordId)
       setCurrentWordAssets(wordAssets)
+      // Expand clip to show waveform editor on single click
+      expandClip(clipId, wordId)
     },
     [
       clipId,
       words,
       setFocusedWord,
-      clearWordFocus,
       setActiveClipId,
       setSelectedWordId,
       setCurrentWordAssets,
       selectedWordAssets,
+      expandClip,
     ]
   )
 
@@ -142,7 +145,7 @@ export default function ClipWords({
   const sortableItems = words.map((word) => `${clipId}-${word.id}`)
 
   // Find the dragged word for overlay (from dev)
-  const draggedWord = words.find((w) => w.id === draggedWordId)
+  // const draggedWord = words.find((w) => w.id === draggedWordId) // Currently unused
 
   return (
     <SortableContext

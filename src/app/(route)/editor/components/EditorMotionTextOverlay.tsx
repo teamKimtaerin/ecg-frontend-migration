@@ -1,9 +1,12 @@
 'use client'
 
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useMotionTextRenderer } from '@/app/shared/motiontext'
 import { useEditorStore } from '../store'
-import { type RendererConfigV2 } from '@/app/shared/motiontext'
+import {
+  type RendererConfigV2,
+  type RendererConfig,
+} from '@/app/shared/motiontext'
 import { buildInitialScenarioFromClips } from '../utils/initialScenario'
 import { buildScenarioFromReal, type RealJson } from '../utils/realToScenario'
 
@@ -49,6 +52,7 @@ export default function EditorMotionTextOverlay({
 
   // Internal state
   const isInitRef = useRef(false)
+  const manifestRef = useRef<{ key: string } | null>(null)
   const [usingExternalScenario, setUsingExternalScenario] = useState(false)
   const [isLoadingScenario, setIsLoadingScenario] = useState(false)
 
@@ -129,12 +133,16 @@ export default function EditorMotionTextOverlay({
     const position = { x: 0.5, y: subtitlePosition === 'top' ? 0.15 : 0.925 } // 7.5% from bottom
 
     // Use timeline clips if in sequential mode, otherwise use original clips
-    let activeClips = clips.filter((c) => !deletedClipIds.has(c.id))
+    const activeClips = clips.filter((c) => !deletedClipIds.has(c.id))
     if (timeline.isSequentialMode) {
       const timelineClips = getSequentialClips()
       // TODO: Map timeline clips to regular clip format for buildInitialScenarioFromClips
       // For now, fallback to regular clips
-      console.log('[EditorMotionTextOverlay] Timeline mode detected, using', timelineClips.length, 'timeline clips')
+      console.log(
+        '[EditorMotionTextOverlay] Timeline mode detected, using',
+        timelineClips.length,
+        'timeline clips'
+      )
     }
 
     const { config } = buildInitialScenarioFromClips(activeClips, {
@@ -155,7 +163,17 @@ export default function EditorMotionTextOverlay({
     getSequentialClips,
   ])
 
-  // External scenario (from JSON editor)
+  // External scenario (from JSON editor) - Build scenario with animations
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const buildScenarioFromAnimatedClips = useMemo(() => {
+    // Define variables needed for this scenario generation
+    const fontSizeRel =
+      subtitleSize === 'small' ? 0.05 : subtitleSize === 'large' ? 0.09 : 0.07
+    const centerX = 0.5
+    const centerY = subtitlePosition === 'top' ? 0.15 : 0.925
+    const pluginName = manifestRef.current?.key || 'cwi-bouncing'
+    const params = {} // Default empty params
+
     const toSec = (s: string) => {
       const parts = s.split(':').map(Number)
       if (parts.length === 3) {
@@ -272,9 +290,9 @@ export default function EditorMotionTextOverlay({
         const [startStr, endStr] = (clip.timeline || '').split(' → ')
         const s0 = toSec(startStr || '0:00')
         const s1 = toSec(endStr || '0:00')
-        const adjStart = videoSegmentManager.mapToAdjustedTime(s0)
-        const adjEnd = videoSegmentManager.mapToAdjustedTime(s1)
-        if (adjStart == null || adjEnd == null) continue
+        const adjStart = s0 // Direct time mapping since videoSegmentManager is not available
+        const adjEnd = s1
+        if (isNaN(adjStart) || isNaN(adjEnd)) continue
 
         // Ensure valid timing (absEnd must be greater than absStart)
         if (adjEnd <= adjStart) {
