@@ -286,7 +286,7 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
         videoUrl,
         isBlobUrl: videoUrl?.startsWith('blob:'),
         urlLength: videoUrl?.length,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       })
     }, [videoUrl])
 
@@ -334,7 +334,7 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
               readyState: videoRef.current?.readyState,
               networkState: videoRef.current?.networkState,
               errorCode: (e.target as HTMLVideoElement)?.error?.code,
-              errorMessage: (e.target as HTMLVideoElement)?.error?.message
+              errorMessage: (e.target as HTMLVideoElement)?.error?.message,
             })
           }}
           onLoadStart={() => {
@@ -344,7 +344,7 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
             console.log('[VideoPlayer] Video can play:', {
               videoUrl,
               duration: videoRef.current?.duration,
-              readyState: videoRef.current?.readyState
+              readyState: videoRef.current?.readyState,
             })
           }}
         />

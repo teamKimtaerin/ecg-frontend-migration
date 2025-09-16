@@ -362,11 +362,11 @@ class UploadService {
 
     // 첫 번째 폴링 시작
     console.log(`[UploadService] Starting first poll...`)
-    poll().catch(error => {
+    poll().catch((error) => {
       console.error(`[UploadService] Poll error:`, error)
       onError({
         error: 'POLLING_ERROR',
-        message: error instanceof Error ? error.message : 'Polling failed'
+        message: error instanceof Error ? error.message : 'Polling failed',
       })
     })
 

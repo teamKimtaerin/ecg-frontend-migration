@@ -35,7 +35,14 @@ export default function ProcessingModal({
   fileName,
   canCancel = true,
 }: ProcessingModalProps) {
-  console.log('[ProcessingModal] Render - isOpen:', isOpen, 'status:', status, 'progress:', progress)
+  console.log(
+    '[ProcessingModal] Render - isOpen:',
+    isOpen,
+    'status:',
+    status,
+    'progress:',
+    progress
+  )
 
   const [isMinimized, setIsMinimized] = useState(false)
   const [position, setPosition] = useState({ x: 0, y: 0 })

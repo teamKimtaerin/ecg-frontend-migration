@@ -112,7 +112,7 @@ export const useUploadModal = () => {
           name: data.file.name,
           type: data.file.type,
           size: data.file.size,
-          blobUrl: blobUrl
+          blobUrl: blobUrl,
         })
 
         // 즉시 비디오 플레이어 업데이트 - 업로드 전에 바로 재생 가능!
@@ -125,7 +125,7 @@ export const useUploadModal = () => {
         console.log('[VIDEO DEBUG] Media info set:', {
           videoUrl: blobUrl,
           videoName: data.file.name,
-          videoType: data.file.type
+          videoType: data.file.type,
         })
 
         // State에도 Blob URL 저장 (S3 업로드 중에도 계속 사용)
@@ -240,7 +240,10 @@ export const useUploadModal = () => {
           }
         )
 
-        console.log('[useUploadModal] Polling started, stopPolling function:', stopPolling)
+        console.log(
+          '[useUploadModal] Polling started, stopPolling function:',
+          stopPolling
+        )
         stopPollingRef.current = stopPolling
       } catch (error) {
         log('useUploadModal', `💥 Upload process failed: ${error}`)
@@ -264,8 +267,14 @@ export const useUploadModal = () => {
         log('useUploadModal', '🔄 Converting segments to clips')
 
         // 🔥 중요: state.videoUrl 확인
-        console.log('[VIDEO DEBUG] handleProcessingComplete - state.videoUrl:', state.videoUrl)
-        console.log('[VIDEO DEBUG] handleProcessingComplete - state.fileName:', state.fileName)
+        console.log(
+          '[VIDEO DEBUG] handleProcessingComplete - state.videoUrl:',
+          state.videoUrl
+        )
+        console.log(
+          '[VIDEO DEBUG] handleProcessingComplete - state.fileName:',
+          state.fileName
+        )
 
         // 새 프로젝트 생성 (이전 프로젝트 대체)
         const projectId = `project-${Date.now()}`
@@ -418,7 +427,14 @@ export const useUploadModal = () => {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [setMediaInfo, setClips, setCurrentProject, updateState, state.fileName, state.videoUrl]
+    [
+      setMediaInfo,
+      setClips,
+      setCurrentProject,
+      updateState,
+      state.fileName,
+      state.videoUrl,
+    ]
   )
 
   // 세그먼트 → 클립 변환 함수
