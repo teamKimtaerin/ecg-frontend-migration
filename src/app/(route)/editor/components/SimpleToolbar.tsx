@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import ToolbarButton from './Toolbars/shared/ToolbarButton'
 import ToolbarDivider from './Toolbars/shared/ToolbarDivider'
 import ToolbarBase from './Toolbars/shared/ToolbarBase'
@@ -10,8 +10,13 @@ import {
   AiOutlineFolderAdd,
 } from 'react-icons/ai'
 import ExportModal from './Export/ExportModal'
+import YouTubeUploadModal from './Export/YouTubeUploadModal'
 import ServerVideoExportModal from './Export/ServerVideoExportModal'
-import { ExportFormat } from './Export/ExportTypes'
+import {
+  ExportFormat,
+  SocialPlatform,
+  YouTubeUploadData,
+} from './Export/ExportTypes'
 
 interface SimpleToolbarProps {
   activeClipId: string | null
@@ -25,6 +30,8 @@ interface SimpleToolbarProps {
   onToggleTemplateSidebar: () => void
   onSave?: () => void
   onSaveAs?: () => void
+  forceOpenExportModal?: boolean
+  onExportModalStateChange?: (isOpen: boolean) => void
 }
 
 const SimpleToolbar: React.FC<SimpleToolbarProps> = ({
@@ -39,12 +46,24 @@ const SimpleToolbar: React.FC<SimpleToolbarProps> = ({
   onToggleTemplateSidebar,
   onSave,
   onSaveAs,
+  forceOpenExportModal,
+  onExportModalStateChange,
 }) => {
   const [isExportModalOpen, setIsExportModalOpen] = useState(false)
+  const [isYouTubeModalOpen, setIsYouTubeModalOpen] = useState(false)
   const [isGpuExportModalOpen, setIsGpuExportModalOpen] = useState(false)
+
+  // 강제 모달 오픈 처리
+  useEffect(() => {
+    if (forceOpenExportModal && !isExportModalOpen) {
+      setIsExportModalOpen(true)
+      onExportModalStateChange?.(true)
+    }
+  }, [forceOpenExportModal, isExportModalOpen, onExportModalStateChange])
 
   const handleExportClick = () => {
     setIsExportModalOpen(true)
+    onExportModalStateChange?.(true)
   }
 
   const handleExportConfirm = (format: ExportFormat) => {
@@ -58,8 +77,26 @@ const SimpleToolbar: React.FC<SimpleToolbarProps> = ({
     }
   }
 
+  const handleSocialShare = (platform: SocialPlatform) => {
+    if (platform === 'youtube') {
+      setIsExportModalOpen(false)
+      onExportModalStateChange?.(false) // 내보내기 모달 닫기
+      setIsYouTubeModalOpen(true) // YouTube 설정 모달 열기
+    }
+  }
+
+  const handleYouTubeUpload = (data: YouTubeUploadData) => {
+    // TODO: Implement actual YouTube upload functionality
+    console.log('Uploading to YouTube with data:', data)
+  }
+
+  const handleYouTubeModalClose = () => {
+    setIsYouTubeModalOpen(false)
+  }
+
   const handleCloseModal = () => {
     setIsExportModalOpen(false)
+    onExportModalStateChange?.(false)
   }
 
   const handleCloseGpuModal = () => {
@@ -239,6 +276,15 @@ const SimpleToolbar: React.FC<SimpleToolbarProps> = ({
         isOpen={isExportModalOpen}
         onClose={handleCloseModal}
         onExport={handleExportConfirm}
+        onSocialShare={handleSocialShare}
+      />
+
+      {/* YouTube Upload Modal */}
+      <YouTubeUploadModal
+        isOpen={isYouTubeModalOpen}
+        onClose={handleYouTubeModalClose}
+        onUpload={handleYouTubeUpload}
+        defaultTitle="202509142147"
       />
 
       {/* GPU Export Modal */}

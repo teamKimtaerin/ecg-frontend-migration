@@ -38,19 +38,19 @@ import { useGlobalWordDragAndDrop } from './hooks/useGlobalWordDragAndDrop'
 import SelectionBox from '@/components/DragDrop/SelectionBox'
 import NewUploadModal from '@/components/NewUploadModal'
 import TutorialModal from '@/components/TutorialModal'
+import { ChevronDownIcon } from '@/components/icons'
 import AlertDialog from '@/components/ui/AlertDialog'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
-import Toolbars from './components/Toolbars'
-import SimpleToolbar from './components/SimpleToolbar'
 import ResizablePanelDivider from '@/components/ui/ResizablePanelDivider'
+import { getSpeakerColor } from '@/utils/editor/speakerColors'
+import AnimationAssetSidebar from './components/AnimationAssetSidebar'
 import EditorHeaderTabs from './components/EditorHeaderTabs'
+import SimpleToolbar from './components/SimpleToolbar'
 import SpeakerManagementSidebar from './components/SpeakerManagementSidebar'
 import SubtitleEditList from './components/SubtitleEditList'
-import VideoSection from './components/VideoSection'
-import AnimationAssetSidebar from './components/AnimationAssetSidebar'
 import TemplateSidebar from './components/TemplateSidebar'
-import { ChevronDownIcon } from '@/components/icons'
-import { getSpeakerColor } from '@/utils/editor/speakerColors'
+import Toolbars from './components/Toolbars'
+import VideoSection from './components/VideoSection'
 import { normalizeClipOrder } from '@/utils/editor/clipTimelineUtils'
 
 // Utils
@@ -503,7 +503,7 @@ export default function EditorPage() {
   const [windowWidth, setWindowWidth] = useState(
     typeof window !== 'undefined' ? window.innerWidth : 1920
   )
-  const [isRecovering, setIsRecovering] = useState(true) // 초기값을 true로 설정
+  const [isRecovering, setIsRecovering] = useState(false) // 세션 복구 스피너 비활성화
   const [scrollProgress, setScrollProgress] = useState(0) // 스크롤 진행도
   const [speakers, setSpeakers] = useState<string[]>([]) // Speaker 리스트 전역 관리
   const [speakerColors, setSpeakerColors] = useState<Record<string, string>>({}) // 화자별 색상 매핑
@@ -511,12 +511,32 @@ export default function EditorPage() {
   const [clipboard, setClipboard] = useState<ClipItem[]>([]) // 클립보드 상태
   const [skipAutoFocus, setSkipAutoFocus] = useState(false) // 자동 포커스 스킵 플래그
   const [showRestoreModal, setShowRestoreModal] = useState(false) // 복원 확인 모달 상태
+  const [shouldOpenExportModal, setShouldOpenExportModal] = useState(false) // OAuth 인증 후 모달 재오픈 플래그
 
   // Get media actions from store
   const { setMediaInfo } = useEditorStore()
 
   // Track unsaved changes
   useUnsavedChanges(hasUnsavedChanges)
+
+  // URL 파라미터 감지 및 모달 상태 복원
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      const authStatus = urlParams.get('auth')
+      const returnTo = urlParams.get('returnTo')
+
+      // OAuth 인증 완료 후 YouTube 업로드 모달로 복귀
+      if (authStatus === 'success' && returnTo === 'youtube-upload') {
+        console.log('OAuth 인증 완료, YouTube 업로드 모달 재오픈 예정')
+        setShouldOpenExportModal(true)
+
+        // URL 파라미터 제거
+        const newUrl = window.location.pathname
+        window.history.replaceState({}, '', newUrl)
+      }
+    }
+  }, [])
 
   // Session recovery and initialization
   useEffect(() => {
@@ -1335,6 +1355,14 @@ export default function EditorPage() {
       })
   }, [saveProject, editorHistory, markAsSaved])
 
+  // 내보내기 모달 상태 변경 핸들러
+  const handleExportModalStateChange = useCallback((isOpen: boolean) => {
+    if (!isOpen) {
+      // 모달이 닫힐 때 강제 오픈 플래그 리셋
+      setShouldOpenExportModal(false)
+    }
+  }, [])
+
   // Auto-save every 3 seconds
   useEffect(() => {
     if (!clips.length) return
@@ -1576,7 +1604,7 @@ export default function EditorPage() {
     }
   }, [clips, activeClipId, setActiveClipId, skipAutoFocus])
 
-  // 복구 중일 때 로딩 화면 표시
+  // 복구 중일 때 로딩 화면 표시 (임시 비활성화)
   if (isRecovering) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -1664,6 +1692,8 @@ export default function EditorPage() {
               onToggleTemplateSidebar={handleToggleTemplateSidebar}
               onSave={handleSave}
               onSaveAs={handleSaveAs}
+              forceOpenExportModal={shouldOpenExportModal}
+              onExportModalStateChange={handleExportModalStateChange}
             />
           ) : (
             <SimpleToolbar
@@ -1678,6 +1708,8 @@ export default function EditorPage() {
               onToggleTemplateSidebar={handleToggleTemplateSidebar}
               onSave={handleSave}
               onSaveAs={handleSaveAs}
+              forceOpenExportModal={shouldOpenExportModal}
+              onExportModalStateChange={handleExportModalStateChange}
             />
           )}
         </div>
