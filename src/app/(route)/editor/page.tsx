@@ -2,12 +2,6 @@
 
 import React from 'react'
 import { DndContext, closestCorners, DragOverlay } from '@dnd-kit/core'
-import {
-  DndContext,
-  // closestCenter, // Currently unused
-  closestCorners,
-  DragOverlay,
-} from '@dnd-kit/core'
 import { useCallback, useEffect, useId, useState, useRef } from 'react'
 import { createPortal } from 'react-dom'
 
