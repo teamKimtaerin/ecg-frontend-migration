@@ -280,7 +280,9 @@ export default function EditorHeaderTabs({
         {/* Right Side - Actions */}
         <div className="flex items-center gap-4 mr-4">
           {/* Save Status Indicator */}
-          <div className={`flex items-center gap-2 text-xs ${getTextClasses()}`}>
+          <div
+            className={`flex items-center gap-2 text-xs ${getTextClasses()}`}
+          >
             {saveStatus === 'saving' && (
               <span className="flex items-center gap-1">
                 <span className="text-yellow-400">●</span>
@@ -300,7 +302,11 @@ export default function EditorHeaderTabs({
               </span>
             )}
             {lastSaveTime && saveStatus === 'saved' && (
-              <span className={editingMode === 'advanced' ? 'text-gray-400' : 'text-gray-600'}>
+              <span
+                className={
+                  editingMode === 'advanced' ? 'text-gray-400' : 'text-gray-600'
+                }
+              >
                 (
                 {new Date(lastSaveTime).toLocaleTimeString('ko-KR', {
                   hour: '2-digit',
