@@ -48,6 +48,8 @@ export default function EditorMotionTextOverlay({
     showSubtitles,
     subtitleSize,
     subtitlePosition,
+    timeline,
+    getSequentialClips,
   } = useEditorStore()
 
   // Internal plugin state
@@ -153,12 +155,47 @@ export default function EditorMotionTextOverlay({
   }, [])
 
   const buildScenarioFromClips = useCallback((): RendererConfig => {
+    // Ensure manifest is loaded before building scenario
     const pluginName = (manifestRef.current?.key as string) || 'elastic@1.0.0'
     const rawParams = defaultParamsRef.current || {}
     const manifest = manifestRef.current
     const params = manifest
       ? validateAndNormalizeParams(rawParams, manifest)
       : rawParams
+
+    console.log('[EditorMotionTextOverlay] Building scenario with:', {
+      pluginName,
+      hasManifest: !!manifest,
+      manifestKey: manifestRef.current?.key,
+      paramsKeys: Object.keys(params),
+      sequentialMode: timeline.isSequentialMode,
+    })
+
+    // Safety check: ensure we have a valid plugin name
+    if (!pluginName || pluginName === '') {
+      console.error(
+        '[EditorMotionTextOverlay] No valid plugin name found, using fallback'
+      )
+      const fallbackPluginName = 'elastic@1.0.0'
+      return {
+        version: '1.3',
+        timebase: { unit: 'seconds' },
+        stage: { baseAspect: '16:9' },
+        tracks: [
+          {
+            id: 'editor',
+            type: 'subtitle',
+            layer: 1,
+            defaultStyle: {
+              fontSizeRel: 0.07,
+              fontFamily: 'Arial, sans-serif',
+              color: '#ffffff',
+            },
+          },
+        ],
+        cues: [],
+      }
+    }
 
     // Map editor UI → positioning and font size (using relative coordinates like demo)
     const centerX = 0.5 // Always center horizontally
@@ -167,7 +204,7 @@ export default function EditorMotionTextOverlay({
     const fontSizeRel =
       subtitleSize === 'small' ? 0.05 : subtitleSize === 'large' ? 0.09 : 0.07
 
-    // Build cues for all non-deleted clips using adjusted time mapping
+    // Build cues for sequential timeline mode or regular clips
     const toSec = (s: string) => {
       const parts = s.split(':').map(Number)
       if (parts.length === 3) {
@@ -177,46 +214,170 @@ export default function EditorMotionTextOverlay({
       const [m, sec] = parts
       return (m || 0) * 60 + (sec || 0)
     }
-    const cues = [] as RendererConfig['cues']
-    // Track valid clips for debugging if needed
-    for (const clip of clips) {
-      if (deletedClipIds.has(clip.id)) continue
-      const [startStr, endStr] = (clip.timeline || '').split(' → ')
-      const s0 = toSec(startStr || '0:00')
-      const s1 = toSec(endStr || '0:00')
-      const adjStart = videoSegmentManager.mapToAdjustedTime(s0)
-      const adjEnd = videoSegmentManager.mapToAdjustedTime(s1)
-      if (adjStart == null || adjEnd == null) continue
-      const text = clip.subtitle || clip.fullText || ''
 
-      // Process valid clip
-      cues.push({
-        id: `cue-${clip.id}`,
-        track: 'editor',
-        hintTime: { start: adjStart, end: adjEnd },
-        root: {
-          e_type: 'group',
-          layout: {
-            anchor: 'bc',
-            position: { x: centerX, y: centerY },
-            safeAreaClamp: true,
-          },
-          children: [
-            {
-              e_type: 'text',
-              text,
-              absStart: adjStart,
-              absEnd: adjEnd,
-              layout: {
-                anchor: 'bc',
-              },
-              pluginChain: [
-                { name: pluginName, params, relStartPct: 0, relEndPct: 1 },
-              ],
-            },
-          ],
-        },
+    const cues = [] as RendererConfig['cues']
+
+    // Build cues from timeline clips if in sequential mode, otherwise use original clip timing
+    if (timeline.isSequentialMode) {
+      // Sequential mode: use timeline clips with proper timing
+      const timelineClips = getSequentialClips()
+      console.log('[EditorMotionTextOverlay] Sequential mode debug:', {
+        timelineClipsCount: timelineClips.length,
+        clipOrder: timeline.clipOrder,
+        clipOrderLength: timeline.clipOrder?.length || 0,
+        clipsCount: clips.length,
+        isSequentialMode: timeline.isSequentialMode,
+        timelineClips: timelineClips.map((tc) => ({
+          id: tc.id,
+          sourceClipId: tc.sourceClipId,
+          startTime: tc.startTime,
+          duration: tc.duration,
+        })),
       })
+
+      // Safety check: if no timeline clips available, return early with diagnostic info
+      if (timelineClips.length === 0) {
+        console.warn(
+          '[EditorMotionTextOverlay] No timeline clips available in sequential mode:',
+          {
+            clipOrder: timeline.clipOrder,
+            originalClipsCount: clips.length,
+            isSequentialMode: timeline.isSequentialMode,
+            hasGetSequentialClips: typeof getSequentialClips === 'function',
+          }
+        )
+      }
+
+      for (const timelineClip of timelineClips) {
+        if (deletedClipIds.has(timelineClip.id)) continue
+
+        const adjStart = timelineClip.startTime
+        const adjEnd = timelineClip.startTime + timelineClip.duration
+
+        // Ensure valid timing (absEnd must be greater than absStart)
+        if (adjEnd <= adjStart) {
+          console.warn(
+            `[EditorMotionTextOverlay] Skipping timeline clip ${timelineClip.id} - invalid timing: start=${adjStart}, end=${adjEnd}`
+          )
+          continue
+        }
+
+        // Find corresponding original clip to get text
+        const originalClip = clips.find(
+          (c) => c.id === timelineClip.sourceClipId
+        )
+        if (!originalClip) continue
+
+        const text = originalClip.subtitle || originalClip.fullText || ''
+        if (!text.trim()) continue
+
+        // Process valid timeline clip
+        cues.push({
+          id: `cue-${timelineClip.id}`,
+          track: 'editor',
+          hintTime: { start: adjStart, end: adjEnd },
+          root: {
+            e_type: 'group',
+            layout: {
+              anchor: 'bc',
+              position: { x: centerX, y: centerY },
+              safeAreaClamp: true,
+            },
+            children: [
+              {
+                e_type: 'text',
+                text,
+                absStart: adjStart,
+                absEnd: adjEnd,
+                layout: {
+                  anchor: 'bc',
+                },
+                pluginChain: [
+                  {
+                    name: pluginName, // Use the validated pluginName instead of potentially null manifestRef
+                    params: params,
+                  },
+                ],
+                textProps: {
+                  fontSize: Math.round(360 * fontSizeRel), // 360 = stage height
+                  fill: 'white',
+                  fontFamily: 'sans-serif',
+                  fontWeight: 'bold',
+                  strokeColor: 'black',
+                  strokeWidth: 2,
+                  textAlign: 'center',
+                  maxWidth: Math.round(640 * 0.88), // 88% of stage width
+                },
+              },
+            ],
+          },
+        })
+      }
+    } else {
+      // Regular mode: use original clip timing logic
+      for (const clip of clips) {
+        if (deletedClipIds.has(clip.id)) continue
+
+        const [startStr, endStr] = (clip.timeline || '').split(' → ')
+        const s0 = toSec(startStr || '0:00')
+        const s1 = toSec(endStr || '0:00')
+        const adjStart = videoSegmentManager.mapToAdjustedTime(s0)
+        const adjEnd = videoSegmentManager.mapToAdjustedTime(s1)
+        if (adjStart == null || adjEnd == null) continue
+
+        // Ensure valid timing (absEnd must be greater than absStart)
+        if (adjEnd <= adjStart) {
+          console.warn(
+            `[EditorMotionTextOverlay] Skipping clip ${clip.id} - invalid timing: start=${adjStart}, end=${adjEnd}`
+          )
+          continue
+        }
+
+        const text = clip.subtitle || clip.fullText || ''
+        if (!text.trim()) continue
+
+        // Process valid clip
+        cues.push({
+          id: `cue-${clip.id}`,
+          track: 'editor',
+          hintTime: { start: adjStart, end: adjEnd },
+          root: {
+            e_type: 'group',
+            layout: {
+              anchor: 'bc',
+              position: { x: centerX, y: centerY },
+              safeAreaClamp: true,
+            },
+            children: [
+              {
+                e_type: 'text',
+                text,
+                absStart: adjStart,
+                absEnd: adjEnd,
+                layout: {
+                  anchor: 'bc',
+                },
+                pluginChain: [
+                  {
+                    name: pluginName, // Use the validated pluginName instead of potentially null manifestRef
+                    params: params,
+                  },
+                ],
+                textProps: {
+                  fontSize: Math.round(360 * fontSizeRel), // 360 = stage height
+                  fill: 'white',
+                  fontFamily: 'sans-serif',
+                  fontWeight: 'bold',
+                  strokeColor: 'black',
+                  strokeWidth: 2,
+                  textAlign: 'center',
+                  maxWidth: Math.round(640 * 0.88), // 88% of stage width
+                },
+              },
+            ],
+          },
+        })
+      }
     }
 
     const config: RendererConfig = {
@@ -238,10 +399,109 @@ export default function EditorMotionTextOverlay({
       cues,
     }
 
-    return config
-  }, [subtitlePosition, subtitleSize, clips, deletedClipIds])
+    // Debug logging to check plugin chain structure
+    const firstCueChildren = cues[0]?.root?.children as
+      | Array<Record<string, unknown>>
+      | undefined
+    const firstCuePluginChain = firstCueChildren?.[0]?.pluginChain as
+      | Array<Record<string, unknown>>
+      | undefined
+    console.log('[EditorMotionTextOverlay] Generated config:', {
+      isSequentialMode: timeline.isSequentialMode,
+      cuesCount: cues.length,
+      firstCue: cues[0],
+      pluginChain: firstCuePluginChain?.[0],
+    })
 
-  // Option A: Load external scenario.json when requested
+    // Safety check: ensure all cues have valid plugin chains
+    const validCues = cues.filter((cue, index) => {
+      const children = cue.root?.children as
+        | Array<Record<string, unknown>>
+        | undefined
+      const pluginChain = children?.[0]?.pluginChain as
+        | Array<Record<string, unknown>>
+        | undefined
+      const firstPlugin = pluginChain?.[0] as Record<string, unknown>
+
+      // Enhanced validation
+      if (!firstPlugin) {
+        console.warn(
+          '[EditorMotionTextOverlay] Skipping cue with missing plugin:',
+          { cueId: cue.id, index, children, pluginChain }
+        )
+        return false
+      }
+
+      if (
+        !firstPlugin.name ||
+        (typeof firstPlugin.name === 'string' && firstPlugin.name.trim() === '')
+      ) {
+        console.warn(
+          '[EditorMotionTextOverlay] Skipping cue with invalid plugin name:',
+          {
+            cueId: cue.id,
+            index,
+            pluginName: firstPlugin.name,
+            plugin: firstPlugin,
+          }
+        )
+        return false
+      }
+
+      // Validate timing
+      if (!cue.hintTime || !cue.hintTime.start || !cue.hintTime.end) {
+        console.warn(
+          '[EditorMotionTextOverlay] Skipping cue with invalid timing:',
+          {
+            cueId: cue.id,
+            index,
+            hintTime: cue.hintTime,
+          }
+        )
+        return false
+      }
+
+      return true
+    })
+
+    if (validCues.length === 0) {
+      console.warn(
+        '[EditorMotionTextOverlay] No valid cues found, returning empty config',
+        {
+          totalCuesGenerated: cues.length,
+          validCuesCount: validCues.length,
+          isSequentialMode: timeline.isSequentialMode,
+          clipOrder: timeline.clipOrder,
+          clipsCount: clips.length,
+          deletedClipIdsCount: deletedClipIds.size,
+          pluginName: pluginName,
+          hasManifest: !!manifestRef.current,
+          manifestKey: manifestRef.current?.key,
+          reasonsForFailure:
+            'Check console for individual cue validation failures above',
+        }
+      )
+      return {
+        ...config,
+        cues: [],
+      }
+    }
+
+    return {
+      ...config,
+      cues: validCues,
+    }
+  }, [
+    subtitlePosition,
+    subtitleSize,
+    clips,
+    deletedClipIds,
+    timeline,
+    // timeline.lastUpdated, // Unnecessary dependency - timeline object change is sufficient
+    getSequentialClips,
+  ])
+
+  // Option A: Load external scenario.json when requested (disabled for sequential timeline)
   useEffect(() => {
     const params = new URLSearchParams(
       typeof window !== 'undefined' ? window.location.search : ''
@@ -251,7 +511,8 @@ export default function EditorMotionTextOverlay({
       process.env.NEXT_PUBLIC_EDITOR_USE_SCENARIO === '1' ||
       process.env.NEXT_PUBLIC_EDITOR_USE_SCENARIO === 'true'
 
-    if (!useScenario) return
+    // Disable external scenario loading when using sequential timeline
+    if (!useScenario || timeline.isSequentialMode) return
 
     let cancelled = false
     const path =
@@ -278,7 +539,7 @@ export default function EditorMotionTextOverlay({
     return () => {
       cancelled = true
     }
-  }, [loadScenario, onScenarioUpdate]) // Removed videoEl and seek from dependencies to prevent re-runs
+  }, [loadScenario, onScenarioUpdate, timeline.isSequentialMode]) // Added timeline dependency for sequential mode check
 
   // Handle scenario override from JSON editor
   useEffect(() => {
@@ -352,6 +613,14 @@ export default function EditorMotionTextOverlay({
   useEffect(() => {
     if (usingExternalScenario || isLoadingScenario || scenarioOverride) return
     if (!showSubtitles) return
+
+    // Wait for manifest to be loaded before building scenarios
+    if (!manifestRef.current?.key) {
+      console.log(
+        '[EditorMotionTextOverlay] Waiting for manifest to load before building scenario'
+      )
+      return
+    }
 
     const config = buildScenarioFromClips()
 
