@@ -56,6 +56,16 @@ input[type='range']::-moz-range-thumb {
   animation: slide-right 0.2s ease-out;
 }
 
+/* Shimmer animation for processing modal */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
 /* Custom scrollbar with position indicator */
 .custom-scrollbar {
   scrollbar-width: thin;

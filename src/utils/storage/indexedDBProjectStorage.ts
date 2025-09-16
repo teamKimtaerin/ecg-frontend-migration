@@ -25,12 +25,17 @@ export interface ProjectHistoryEntry {
 }
 
 class IndexedDBProjectStorage implements ProjectStorage {
+  private isInitialized = false
+
   /**
    * IndexedDB 초기화 (DatabaseManager 사용)
    */
   async initialize(): Promise<void> {
+    if (this.isInitialized) return
+
     try {
       await databaseManager.initialize()
+      this.isInitialized = true
       console.log(
         `[${getTimestamp()}] indexedDBProjectStorage.ts Database initialized successfully`
       )

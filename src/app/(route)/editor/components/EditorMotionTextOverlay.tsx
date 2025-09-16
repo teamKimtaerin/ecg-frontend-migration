@@ -488,7 +488,6 @@ export default function EditorMotionTextOverlay({
     clips,
     deletedClipIds,
     timeline,
-    // timeline.lastUpdated, // Unnecessary dependency - timeline object change is sufficient
     getSequentialClips,
   ])
 

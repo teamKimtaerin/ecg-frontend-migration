@@ -13,8 +13,11 @@ import {
 } from './types/render.types'
 import { useAuthStore } from '@/lib/store/authStore'
 
+// 개발 환경에서는 프록시 경로 사용 (CORS 문제 해결)
 const GPU_RENDER_API_BASE =
-  process.env.NEXT_PUBLIC_GPU_RENDER_API_URL || '/api/render'
+  process.env.NODE_ENV === 'development'
+    ? '/api/render' // 프록시 사용 (next.config.ts의 rewrites)
+    : process.env.NEXT_PUBLIC_GPU_RENDER_API_URL || '/api/render'
 
 class RenderService {
   private abortControllers = new Map<string, AbortController>()
@@ -40,33 +43,89 @@ class RenderService {
    */
   async createRenderJob(request: RenderRequest): Promise<CreateRenderResponse> {
     try {
+      // 🔍 디버깅: 요청 데이터 검증
+      console.log('=== GPU Render Request Debug ===')
+      console.log('1. Video URL:', request.videoUrl)
+      console.log('2. Scenario validation:')
+      console.log('   - Version:', request.scenario.version)
+      console.log('   - Tracks count:', request.scenario.tracks?.length)
+      console.log('   - Cues count:', request.scenario.cues?.length)
+      console.log(
+        '   - Valid cues:',
+        request.scenario.cues?.filter((c) => c.hintTime?.start !== undefined)
+          .length
+      )
+
+      const token = useAuthStore.getState().token
+      console.log('3. Auth token exists:', !!token)
+      console.log(
+        '4. Auth token preview:',
+        token ? `${token.substring(0, 20)}...` : 'null'
+      )
+
+      const requestPayload = {
+        videoUrl: request.videoUrl,
+        scenario: request.scenario,
+        options: {
+          width: 1920,
+          height: 1080,
+          fps: 30,
+          quality: 90,
+          format: 'mp4',
+          ...request.options,
+        },
+      }
+
+      console.log(
+        '5. Request payload size:',
+        JSON.stringify(requestPayload).length,
+        'bytes'
+      )
+      console.log('6. Full request URL:', `${GPU_RENDER_API_BASE}/create`)
+      console.log('====================================')
+
       const response = await fetch(`${GPU_RENDER_API_BASE}/create`, {
         method: 'POST',
         headers: this.getAuthHeaders(),
-        body: JSON.stringify({
-          videoUrl: request.videoUrl,
-          scenario: request.scenario,
-          options: {
-            width: 1920,
-            height: 1080,
-            fps: 30,
-            quality: 90,
-            format: 'mp4',
-            ...request.options,
-          },
-        }),
+        body: JSON.stringify(requestPayload),
       })
 
       if (!response.ok) {
-        // 백엔드 에러 응답 처리
-        const errorData: BackendErrorResponse = await response.json()
+        // 🚨 디버깅: 응답 에러 상세 분석
+        console.error('=== GPU Render Response Error ===')
+        console.error('Status:', response.status, response.statusText)
+        console.error(
+          'Headers:',
+          Object.fromEntries(response.headers.entries())
+        )
+
+        let errorData: BackendErrorResponse | null = null
+        let rawErrorText = ''
+
+        try {
+          rawErrorText = await response.text()
+          console.error('Raw response:', rawErrorText)
+
+          if (rawErrorText) {
+            errorData = JSON.parse(rawErrorText)
+          }
+        } catch (parseError) {
+          console.error('Failed to parse error response:', parseError)
+          console.error('Raw response was:', rawErrorText)
+        }
+
+        console.error('Parsed error data:', errorData)
+        console.error('=====================================')
+
         const errorMessage =
-          errorData.detail?.message || '렌더링 작업 생성 실패'
-        const errorCode = errorData.detail?.code || 'UNKNOWN_ERROR'
+          errorData?.detail?.message || rawErrorText || '렌더링 작업 생성 실패'
+        const errorCode = errorData?.detail?.code || 'UNKNOWN_ERROR'
 
         // 에러 타입에 따른 세부 처리
         if (response.status === 401 || response.status === 403) {
           throw new Error(`인증 오류: ${errorMessage}`)
+        } else if (response.status === 400) {
+          throw new Error(`invalid:잘못된 요청 데이터입니다. ${errorMessage}`)
         } else if (response.status === 429) {
           throw new Error(`rate:${errorMessage}`)
         } else if (errorCode.includes('QUOTA')) {

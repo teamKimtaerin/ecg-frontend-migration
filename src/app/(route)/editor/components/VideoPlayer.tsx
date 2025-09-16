@@ -280,6 +280,16 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
       }
     }, [deletedClipIds])
 
+    // 비디오 URL 디버깅
+    useEffect(() => {
+      console.log('[VideoPlayer] Video URL changed:', {
+        videoUrl,
+        isBlobUrl: videoUrl?.startsWith('blob:'),
+        urlLength: videoUrl?.length,
+        timestamp: new Date().toISOString(),
+      })
+    }, [videoUrl])
+
     if (!videoUrl) {
       return (
         <div
@@ -316,6 +326,27 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
           onLoadedMetadata={handleLoadedMetadata}
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
+          onError={(e) => {
+            console.error('[VideoPlayer] Video error:', {
+              error: e,
+              videoUrl,
+              videoElement: videoRef.current,
+              readyState: videoRef.current?.readyState,
+              networkState: videoRef.current?.networkState,
+              errorCode: (e.target as HTMLVideoElement)?.error?.code,
+              errorMessage: (e.target as HTMLVideoElement)?.error?.message,
+            })
+          }}
+          onLoadStart={() => {
+            console.log('[VideoPlayer] Video loading started:', videoUrl)
+          }}
+          onCanPlay={() => {
+            console.log('[VideoPlayer] Video can play:', {
+              videoUrl,
+              duration: videoRef.current?.duration,
+              readyState: videoRef.current?.readyState,
+            })
+          }}
         />
       </div>
     )
