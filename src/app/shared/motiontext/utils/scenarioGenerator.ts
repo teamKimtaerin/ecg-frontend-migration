@@ -90,14 +90,36 @@ export interface PluginManifest {
 }
 
 export interface SchemaProperty {
-  type: 'number' | 'string' | 'boolean' | 'select'
-  label: string
-  description: string
+  type: 'number' | 'string' | 'boolean' | 'object' | 'select'
   default: unknown
+
+  // 레거시 지원 (기존 플러그인용)
+  label?: string
+  description?: string
+
+  // 새로운 i18n 구조
+  i18n?: {
+    label: { ko: string; en?: string }
+    description: { ko: string; en?: string }
+  }
+
+  // UI 컨트롤 정의
+  ui?: {
+    control: 'slider' | 'color' | 'text' | 'checkbox' | 'select' | 'object'
+    allowDefine?: boolean
+    unit?: string  // px, s, °, Hz 등
+    step?: number  // UI에서 사용할 step (schema.step과 별개)
+  }
+
+  // 제약사항
   min?: number
   max?: number
   step?: number
+  pattern?: string
   enum?: string[]
+
+  // 중첩 객체용
+  properties?: Record<string, SchemaProperty>
 }
 
 export interface PreviewSettings {
@@ -534,6 +556,22 @@ export function validateAndNormalizeParams(
         const v = String(value)
         const ok = property.enum?.includes(v)
         normalized[key] = ok ? v : String(property.default ?? '')
+        break
+      }
+      case 'object': {
+        // Handle object type - parse JSON string or use object directly
+        if (typeof value === 'string' && value.trim()) {
+          try {
+            normalized[key] = JSON.parse(value)
+          } catch (error) {
+            console.warn(`Failed to parse JSON for parameter ${key}:`, error)
+            normalized[key] = property.default ?? {}
+          }
+        } else if (typeof value === 'object' && value !== null) {
+          normalized[key] = value
+        } else {
+          normalized[key] = property.default ?? {}
+        }
         break
       }
       case 'string':

@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { IoCheckmark, IoClose, IoSettings } from 'react-icons/io5'
+import { useEditorStore } from '../../store'
 
 interface TemplateControlPanelProps {
   templateId: string
@@ -19,12 +20,14 @@ const TemplateControlPanel: React.FC<TemplateControlPanelProps> = ({
   onClose,
   onApplyTemplate,
 }) => {
+  const { applyTemplateToSelection } = useEditorStore()
   const [opacity, setOpacity] = React.useState(1.0)
   const [scale, setScale] = React.useState(1.0)
   const [borderRadius, setBorderRadius] = React.useState(8)
   const [shadowBlur, setShadowBlur] = React.useState(10)
+  const [isApplying, setIsApplying] = React.useState(false)
 
-  const handleApplyTemplate = () => {
+  const handleApplyTemplate = async () => {
     const settings = {
       opacity,
       scale,
@@ -32,8 +35,22 @@ const TemplateControlPanel: React.FC<TemplateControlPanelProps> = ({
       shadowBlur,
     }
 
-    onApplyTemplate?.(templateId, settings)
-    console.log('Apply template:', templateName, 'with settings:', settings)
+    setIsApplying(true)
+    try {
+      // Apply template using the editor store
+      await applyTemplateToSelection(templateId)
+
+      // Also call the legacy callback if provided
+      onApplyTemplate?.(templateId, settings)
+      console.log('Applied template:', templateName, 'to selected words')
+
+      // Close the panel after successful application
+      onClose()
+    } catch (error) {
+      console.error('Failed to apply template:', error)
+    } finally {
+      setIsApplying(false)
+    }
   }
 
   return (
@@ -124,10 +141,20 @@ const TemplateControlPanel: React.FC<TemplateControlPanelProps> = ({
         <div className="pt-2">
           <button
             onClick={handleApplyTemplate}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors duration-200 flex items-center justify-center gap-2"
+            disabled={isApplying}
+            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-2 px-4 rounded-md text-sm font-medium transition-colors duration-200 flex items-center justify-center gap-2"
           >
-            <IoCheckmark size={16} />
-            템플릿 적용
+            {isApplying ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                적용 중...
+              </>
+            ) : (
+              <>
+                <IoCheckmark size={16} />
+                템플릿 적용
+              </>
+            )}
           </button>
         </div>
       </div>

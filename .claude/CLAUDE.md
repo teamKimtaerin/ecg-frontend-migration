@@ -43,9 +43,9 @@ yarn gen:scenario # Generate scenario from real.json
 yarn test        # Run Jest unit tests
 yarn test:watch  # Run tests in watch mode
 yarn test:coverage # Generate test coverage report
-yarn test:e2e    # Run Playwright E2E tests
-yarn test:e2e:ui # Run Playwright with UI mode
 ```
+
+**Note**: E2E testing with Playwright is configured in the CI pipeline but not currently set up for local development.
 
 ## 🏗️ Architecture
 
@@ -469,15 +469,17 @@ src/
 
 ### TailwindCSS v4
 
-- PostCSS-based configuration
-- Theme variables in globals.css
+- PostCSS-based configuration in `postcss.config.mjs`
+- Theme variables in `src/app/globals.css`
 - Uses @tailwindcss/postcss plugin
+- **Note**: No traditional `tailwind.config.js` file - configuration is CSS-based
 
 ### Next.js
 
-- Static export for S3: `output: 'export'`
-- Image optimization disabled for static hosting
-- CloudFront domains configured
+- Static export for S3: `output: 'export'` (currently disabled for API route compatibility)
+- Image optimization disabled for static hosting (`unoptimized: true`)
+- CloudFront domains configured for remote images
+- Transpiles `motiontext-renderer` ES module package
 
 ## 📝 Git Workflow
 
@@ -506,6 +508,20 @@ Creates PR from already committed changes.
 - Base branch: `dev` (not main)
 - Branch prefixes: `feature/`, `fix/`, `refactor/`
 - Commit prefixes: `[Feat]`, `[Fix]`, `[Refactor]`, `[Docs]`, `[Test]`
+
+### Manual PR Creation
+
+If automated scripts are unavailable:
+
+```bash
+# Create and push commits manually
+git add .
+git commit -m "[Feat] Your feature description"
+git push -u origin your-branch
+
+# Create PR via GitHub CLI
+gh pr create --title "Your PR Title" --base dev --body "Your description"
+```
 
 ## 🐳 Docker Support
 
