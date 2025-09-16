@@ -28,6 +28,19 @@ export interface ClipSlice {
     wordId: string,
     assetIds: string[]
   ) => void
+  updateWordAnimationTracks: (
+    clipId: string,
+    wordId: string,
+    tracks: Array<{
+      assetId: string
+      assetName: string
+      pluginKey?: string
+      params?: Record<string, unknown>
+      timing: { start: number; end: number }
+      intensity: { min: number; max: number }
+      color?: 'blue' | 'green' | 'purple'
+    }>
+  ) => void
   reorderWordsInClip: (
     clipId: string,
     sourceWordId: string,
@@ -195,6 +208,21 @@ export const createClipSlice: StateCreator<
 
       return updatedState
     })
+  },
+
+  updateWordAnimationTracks: (clipId, wordId, tracks) => {
+    set((state) => ({
+      clips: state.clips.map((clip) =>
+        clip.id === clipId
+          ? {
+              ...clip,
+              words: clip.words.map((word) =>
+                word.id === wordId ? { ...word, animationTracks: tracks } : word
+              ),
+            }
+          : clip
+      ),
+    }))
   },
 
   reorderWordsInClip: (clipId, sourceWordId, targetWordId) => {

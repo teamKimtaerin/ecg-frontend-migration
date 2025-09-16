@@ -2,7 +2,7 @@
 
 import {
   DndContext,
-  closestCenter,
+  // closestCenter, // Currently unused
   closestCorners,
   DragOverlay,
 } from '@dnd-kit/core'
@@ -470,7 +470,7 @@ export default function EditorPage() {
     setSelectedClipIds,
     clearSelection,
     updateClipWords,
-    updateClipTiming,
+    // updateClipTiming, // Currently unused
     saveProject,
     activeClipId,
     setActiveClipId,
@@ -485,6 +485,9 @@ export default function EditorPage() {
     assetSidebarWidth,
     setAssetSidebarWidth,
     editingMode,
+    isMultipleWordsSelected,
+    deleteSelectedWords,
+    clearMultiSelection,
   } = useEditorStore()
 
   // Local state
@@ -971,6 +974,8 @@ export default function EditorPage() {
   }
 
   const handleClipSelect = (clipId: string) => {
+    // Clear multi-word selection when clicking on clips
+    clearMultiSelection()
     // 체크된 클립이 있으면 모든 선택 해제, 없으면 포커스만 변경
     if (selectedClipIds.size > 0) {
       clearSelection()
@@ -1003,6 +1008,8 @@ export default function EditorPage() {
       clearSelection()
       setActiveClipId(null)
     }
+    // Clear multi-word selection as well
+    clearMultiSelection()
   }
 
   // Upload modal handler - currently not used, placeholder for future implementation
@@ -1458,6 +1465,13 @@ export default function EditorPage() {
         event.preventDefault()
         handleSplitClip()
       }
+      // Delete key - delete selected words if any are selected
+      else if (event.key === 'Delete' || event.key === 'Backspace') {
+        if (isMultipleWordsSelected()) {
+          event.preventDefault()
+          deleteSelectedWords()
+        }
+      }
     }
 
     window.addEventListener('keydown', handleKeyDown)
@@ -1477,6 +1491,8 @@ export default function EditorPage() {
     clipboard,
     editorHistory,
     markAsSaved,
+    isMultipleWordsSelected,
+    deleteSelectedWords,
   ])
 
   // 에디터 진입 시 첫 번째 클립에 자동 포커스 및 패널 너비 복원

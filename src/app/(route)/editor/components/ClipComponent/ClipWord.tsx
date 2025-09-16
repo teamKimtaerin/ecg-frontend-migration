@@ -34,20 +34,18 @@ export default function ClipWord({
     editingClipId,
     startInlineEdit,
     endInlineEdit,
-    activeTab,
-    setActiveTab,
-    rightSidebarType,
-    setRightSidebarType,
-    isAssetSidebarOpen,
-    setIsAssetSidebarOpen,
-    expandClip,
+    multiSelectedWordIds,
+    selectWordRange,
+    toggleMultiSelectWord,
+    clearMultiSelection,
+    setLastSelectedWord,
     playingWordId,
     playingClipId,
-    // isWordPlaying, // 사용되지 않음
   } = useEditorStore()
 
   const isFocused = focusedWordId === word.id && focusedClipId === clipId
   const isInGroup = groupedWordIds.has(word.id)
+  const isMultiSelected = multiSelectedWordIds.has(word.id)
   const isDraggable = canDragWord(word.id)
   const isBeingDragged = draggedWordId === word.id
   const isDropTarget = dropTargetWordId === word.id
@@ -81,7 +79,7 @@ export default function ClipWord({
     position: 'relative' as const,
   }
 
-  // Handle click with double-click detection
+  // Handle click with double-click detection and multi-selection
   const handleClick = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
       e.stopPropagation()
@@ -91,29 +89,33 @@ export default function ClipWord({
       const currentTime = Date.now()
       const timeDiff = currentTime - lastClickTime
 
-      if (timeDiff < 300 && isFocused) {
-        // Double-click detected on focused word - switch to insert tab, open animation sidebar, and expand clip
-        if (activeTab !== 'insert') {
-          setActiveTab('insert')
-        }
+      // Check for modifier keys
+      const isShiftClick = e.shiftKey
+      const isCtrlOrCmdClick = e.ctrlKey || e.metaKey
 
-        // Open animation sidebar
-        if (rightSidebarType !== 'animation') {
-          setRightSidebarType('animation')
-        }
-        if (!isAssetSidebarOpen) {
-          setIsAssetSidebarOpen(true)
-        }
-
-        expandClip(clipId, word.id)
+      if (timeDiff < 300 && isFocused && !isShiftClick && !isCtrlOrCmdClick) {
+        // Double-click on focused word -> enter inline text edit
+        startInlineEdit(clipId, word.id)
+        setEditingText(word.text)
+      } else if (isShiftClick) {
+        // Shift+click for range selection
+        selectWordRange(clipId, word.id)
+      } else if (isCtrlOrCmdClick) {
+        // Ctrl/Cmd+click for toggle selection
+        toggleMultiSelectWord(clipId, word.id)
       } else {
-        // Single click - handle selection or start inline edit
+        // Single click - handle selection
         if (!wordRef.current) return
         const rect = wordRef.current.getBoundingClientRect()
         const x = e.clientX - rect.left
         const width = rect.width
         const centerThreshold = width * 0.3
         const isCenter = x > centerThreshold && x < width - centerThreshold
+
+        // Clear multi-selection on normal click
+        clearMultiSelection()
+        // Set as last selected for future range selection
+        setLastSelectedWord(clipId, word.id)
 
         // Seek video player to word start time
         const videoPlayer = (
@@ -153,13 +155,17 @@ export default function ClipWord({
       clipId,
       onWordClick,
       startInlineEdit,
-      activeTab,
-      setActiveTab,
-      rightSidebarType,
-      setRightSidebarType,
-      isAssetSidebarOpen,
-      setIsAssetSidebarOpen,
-      expandClip,
+      // activeTab,
+      // setActiveTab,
+      // rightSidebarType,
+      // setRightSidebarType,
+      // isAssetSidebarOpen,
+      // setIsAssetSidebarOpen,
+      // expandClip,
+      selectWordRange,
+      toggleMultiSelectWord,
+      clearMultiSelection,
+      setLastSelectedWord,
     ]
   )
 
@@ -240,6 +246,8 @@ export default function ClipWord({
       )
     } else if (isFocused) {
       classes.push('bg-black', 'text-white')
+    } else if (isMultiSelected) {
+      classes.push('bg-blue-600', 'text-white')
     } else if (isInGroup) {
       classes.push('bg-black', 'text-white')
     } else {

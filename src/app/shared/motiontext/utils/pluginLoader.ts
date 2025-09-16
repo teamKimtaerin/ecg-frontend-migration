@@ -1,7 +1,7 @@
 /**
  * Local plugin loader for MotionText (shared)
  */
-import type { RendererConfig } from './scenarioGenerator'
+import type { RendererConfig, RendererConfigV2 } from './scenarioGenerator'
 import {
   configurePluginSource,
   registerExternalPlugin,
@@ -65,8 +65,21 @@ const LOCAL_PLUGINS = [
   'typewriter@1.0.0',
 ]
 
+function getPluginOrigin(): string {
+  const fromEnv = process.env.NEXT_PUBLIC_MOTIONTEXT_PLUGIN_ORIGIN
+  const fallback = 'http://localhost:3300'
+  return (fromEnv && fromEnv.replace(/\/$/, '')) || fallback
+}
+
 export function configurePluginLoader() {
-  configurePluginSource({ mode: 'local', localBase: '/plugin/' })
+  const origin = getPluginOrigin()
+  try {
+    // Prefer server mode with explicit origin
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    configurePluginSource({ mode: 'server', serverBase: origin } as any)
+  } catch {
+    // Silently ignore if the host library does not support this signature
+  }
 }
 
 function resolveKey(name: string): string {
@@ -80,10 +93,9 @@ export async function loadLocalPlugin(
   const key = resolveKey(name)
   if (cache.has(key)) return cache.get(key) as PluginRuntimeModule
 
-  const url = new URL(
-    `/plugin/${encodeURIComponent(key)}/index.mjs`,
-    window.location.origin
-  ).toString()
+  const origin = getPluginOrigin()
+  const base = `${origin}/plugins/${key}`
+  const url = `${base}/index.mjs`
   const mod: PluginRuntimeModule = await import(
     /* webpackIgnore: true */ /* @vite-ignore */ url
   )
@@ -91,9 +103,7 @@ export async function loadLocalPlugin(
 
   if (!registeredPlugins.has(key)) {
     try {
-      const manifestResponse = await fetch(
-        `/plugin/${encodeURIComponent(key)}/manifest.json`
-      )
+      const manifestResponse = await fetch(`${base}/manifest.json`)
       const manifest = manifestResponse.ok
         ? await manifestResponse.json()
         : { version: '1.0.0' }
@@ -102,7 +112,7 @@ export async function loadLocalPlugin(
         name: pluginNameWithoutVersion,
         version: manifest.version || '1.0.0',
         module: mod,
-        baseUrl: `/plugin/${encodeURIComponent(key)}/`,
+        baseUrl: `${base}/`,
         manifest: manifest,
       })
       registeredPlugins.add(key)
@@ -124,9 +134,13 @@ export async function preloadAllPlugins() {
   }
 }
 
-function extractPluginNames(scenario: RendererConfig): Set<string> {
+function extractPluginNames(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  scenario: RendererConfig | RendererConfigV2 | any
+): Set<string> {
   const pluginNames = new Set<string>()
-  scenario.cues?.forEach((cue) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  scenario.cues?.forEach((cue: any) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const traverse = (node: any): void => {
       if (node?.plugin?.name) pluginNames.add(node.plugin.name)
@@ -143,7 +157,9 @@ function extractPluginNames(scenario: RendererConfig): Set<string> {
   return pluginNames
 }
 
-export async function preloadPluginsForScenario(scenario: RendererConfig) {
+export async function preloadPluginsForScenario(
+  scenario: RendererConfig | RendererConfigV2
+) {
   const requiredPlugins = extractPluginNames(scenario)
   for (const pluginName of requiredPlugins) {
     try {

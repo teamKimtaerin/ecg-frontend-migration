@@ -6,10 +6,10 @@ import { mediaStorage } from '@/utils/storage/mediaStorage'
 import { log } from '@/utils/logger'
 import { VIDEO_PLAYER_CONSTANTS } from '@/lib/utils/constants'
 import { videoSegmentManager } from '@/utils/video/segmentManager'
-import {
-  findCurrentWord,
-  shouldUpdateWordSelection,
-} from '@/utils/video/currentWordFinder'
+// import {
+//   findCurrentWord,
+//   shouldUpdateWordSelection,
+// } from '@/utils/video/currentWordFinder' // Currently unused
 import API_CONFIG from '@/config/api.config'
 
 interface VideoPlayerProps {
@@ -34,9 +34,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [currentSubtitle, setCurrentSubtitle] = useState<string | null>(null)
 
   // Track last word selection update time to throttle updates
-  const lastWordUpdateTimeRef = useRef(0)
+  // const lastWordUpdateTimeRef = useRef(0) // Currently unused
   // Track when user manually selects a word to pause auto selection
-  const manualSelectionPauseUntilRef = useRef(0)
+  // const manualSelectionPauseUntilRef = useRef(0) // Currently unused
 
   // Get media state from store
   const {
@@ -47,10 +47,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     setVideoError,
     clips,
     deletedClipIds,
-    setFocusedWord,
-    setActiveClipId,
-    setPlayingWord,
-    clearPlayingWord,
+    // setFocusedWord, // Currently unused
+    // setActiveClipId, // Currently unused
+    // setPlayingWord, // Currently unused
+    // clearPlayingWord, // Currently unused
   } = useEditorStore()
 
   // Load video from IndexedDB or URL
