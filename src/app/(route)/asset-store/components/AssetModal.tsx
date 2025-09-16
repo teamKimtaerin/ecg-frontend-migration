@@ -219,6 +219,7 @@ export const AssetModal: React.FC<AssetModalProps> = ({
               <MotionTextPreview
                 ref={previewRef}
                 manifestFile={asset.manifestFile || ''}
+                pluginKey={asset.pluginKey}
                 text={text}
                 onParameterChange={handleParametersInit}
                 onManifestLoad={handlePreviewManifestLoad}

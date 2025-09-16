@@ -1,4 +1,6 @@
-interface PluginManifest {
+import type { SchemaProperty } from '../../../shared/motiontext/utils/scenarioGenerator'
+
+export interface PluginManifest {
   name: string
   version: string
   type?: string
@@ -10,7 +12,7 @@ interface PluginManifest {
   peer?: Record<string, string>
   preload?: string[]
   timeOffset?: [number, number] // [preOffset, postOffset]
-  schema?: Record<string, unknown>
+  schema?: Record<string, SchemaProperty>
   icon?: string // Optional icon path relative to plugin directory
 }
 
