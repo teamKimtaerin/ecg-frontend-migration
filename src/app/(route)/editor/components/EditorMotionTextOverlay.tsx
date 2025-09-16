@@ -179,15 +179,22 @@ export default function EditorMotionTextOverlay({
     }
     const cues = [] as RendererConfig['cues']
     // Track valid clips for debugging if needed
+    let clipIndex = 0
     for (const clip of clips) {
       if (deletedClipIds.has(clip.id)) continue
       const [startStr, endStr] = (clip.timeline || '').split(' → ')
       const s0 = toSec(startStr || '0:00')
       const s1 = toSec(endStr || '0:00')
       const adjStart = videoSegmentManager.mapToAdjustedTime(s0)
-      const adjEnd = videoSegmentManager.mapToAdjustedTime(s1)
+      let adjEnd = videoSegmentManager.mapToAdjustedTime(s1)
       if (adjStart == null || adjEnd == null) continue
       const text = clip.subtitle || clip.fullText || ''
+
+      // Fix timing issues only when they are exactly equal
+      if (adjEnd <= adjStart) {
+        // Ensure minimum duration for MotionText validation
+        adjEnd = adjStart + 0.001
+      }
 
       // Process valid clip
       cues.push({
@@ -205,8 +212,8 @@ export default function EditorMotionTextOverlay({
             {
               e_type: 'text',
               text,
-              absStart: adjStart,
-              absEnd: adjEnd,
+              absStart: Math.max(0, adjStart),
+              absEnd: Math.max(adjStart + 0.001, adjEnd), // Ensure absEnd > absStart
               layout: {
                 anchor: 'bc',
               },
@@ -217,6 +224,7 @@ export default function EditorMotionTextOverlay({
           ],
         },
       })
+      clipIndex++
     }
 
     const config: RendererConfig = {

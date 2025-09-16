@@ -24,6 +24,7 @@ import { EditorTab } from './types'
 
 // Hooks
 import { useUploadModal } from '@/hooks/useUploadModal'
+import ProcessingModal from '@/components/ProcessingModal'
 import { useDragAndDrop } from './hooks/useDragAndDrop'
 import { useSelectionBox } from './hooks/useSelectionBox'
 import { useUnsavedChanges } from './hooks/useUnsavedChanges'
@@ -482,7 +483,6 @@ export default function EditorPage() {
 
   // Local state
   const [activeTab, setActiveTab] = useState<EditorTab>('home')
-  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
   const [showTutorialModal, setShowTutorialModal] = useState(false)
   const [isToolbarVisible, setIsToolbarVisible] = useState(true)
   const [editorHistory] = useState(() => {
@@ -507,6 +507,21 @@ export default function EditorPage() {
 
   // Get media actions from store
   const { setMediaInfo } = useEditorStore()
+
+  // Cleanup blob URLs when component unmounts
+  useEffect(() => {
+    return () => {
+      // Cleanup any blob URLs on unmount to prevent memory leaks
+      const urls = document.querySelectorAll('video[src^="blob:"]')
+      urls.forEach((video) => {
+        const videoElement = video as HTMLVideoElement
+        if (videoElement.src && videoElement.src.startsWith('blob:')) {
+          console.log('🧹 Cleaning up blob URL:', videoElement.src)
+          URL.revokeObjectURL(videoElement.src)
+        }
+      })
+    }
+  }, [])
 
   // Track unsaved changes
   useUnsavedChanges(hasUnsavedChanges)
@@ -577,11 +592,49 @@ export default function EditorPage() {
         // Check for project to recover
         const projectId = sessionStorage.getItem('currentProjectId')
         const mediaId = sessionStorage.getItem('currentMediaId')
+        const lastUploadProjectId = sessionStorage.getItem('lastUploadProjectId')
 
-        if (projectId || mediaId) {
+        // Only recover if it's not from a fresh upload (to avoid loading old projects)
+        if ((projectId || mediaId) && projectId === lastUploadProjectId) {
           log(
             'EditorPage.tsx',
-            `Found session data - projectId: ${projectId}, mediaId: ${mediaId}`
+            `Fresh upload detected - projectId: ${projectId}, loading project with videoUrl`
+          )
+
+          // Load the newly created project (complete data)
+          try {
+            const savedProject = projectStorage.loadCurrentProject()
+            if (savedProject) {
+              log('EditorPage.tsx', `🎬 Restoring new project: ${savedProject.name}`)
+
+              // Restore clips
+              if (savedProject.clips && savedProject.clips.length > 0) {
+                setClips(savedProject.clips)
+                log('EditorPage.tsx', `📝 Loaded ${savedProject.clips.length} clips`)
+              }
+
+              // Restore media info
+              if (savedProject.videoUrl) {
+                setMediaInfo({
+                  videoUrl: savedProject.videoUrl,
+                  videoName: savedProject.videoName,
+                  videoDuration: savedProject.videoDuration,
+                  videoType: savedProject.videoType,
+                  videoMetadata: savedProject.videoMetadata,
+                })
+                log('EditorPage.tsx', `🎬 Restored video: ${savedProject.videoUrl}`)
+              }
+            }
+          } catch (error) {
+            log('EditorPage.tsx', `❌ Failed to restore new project: ${error}`)
+          }
+
+          // Clear the lastUploadProjectId flag after use
+          sessionStorage.removeItem('lastUploadProjectId')
+        } else if (projectId || mediaId) {
+          log(
+            'EditorPage.tsx',
+            `Found session data to recover - projectId: ${projectId}, mediaId: ${mediaId}`
           )
 
           try {
@@ -705,8 +758,8 @@ export default function EditorPage() {
   // Generate stable ID for DndContext to prevent hydration mismatch
   const dndContextId = useId()
 
-  // Upload modal hook
-  const { isTranscriptionLoading, handleFileSelect } = useUploadModal()
+  // Upload modal hook - 새로운 API 사용
+  const uploadModal = useUploadModal()
 
   // DnD functionality
   const {
@@ -966,11 +1019,14 @@ export default function EditorPage() {
     }
   }
 
-  // Upload modal handler - currently not used, placeholder for future implementation
-  const wrappedHandleStartTranscription = async () => {
-    // TODO: Implement actual file upload and transcription logic
-    setIsUploadModalOpen(false)
-    showToast('파일 업로드 기능은 준비 중입니다')
+  // 새로운 업로드 모달 래퍼
+  const wrappedHandleStartTranscription = async (data: { files: File[], settings: { language: string } }) => {
+    if (data.files.length > 0) {
+      await uploadModal.handleStartTranscription({
+        file: data.files[0],
+        language: data.settings.language as 'ko' | 'en' | 'ja',
+      })
+    }
   }
 
   // Merge clips handler
@@ -1670,7 +1726,7 @@ export default function EditorPage() {
               canUndo={editorHistory.canUndo()}
               canRedo={editorHistory.canRedo()}
               onSelectionChange={setSelectedClipIds}
-              onNewClick={() => setIsUploadModalOpen(true)}
+              onNewClick={() => uploadModal.openModal()}
               onMergeClips={handleMergeClips}
               onUndo={handleUndo}
               onRedo={handleRedo}
@@ -1689,7 +1745,7 @@ export default function EditorPage() {
               activeClipId={activeClipId}
               canUndo={editorHistory.canUndo()}
               canRedo={editorHistory.canRedo()}
-              onNewClick={() => setIsUploadModalOpen(true)}
+              onNewClick={() => uploadModal.openModal()}
               onMergeClips={handleMergeClips}
               onUndo={handleUndo}
               onRedo={handleRedo}
@@ -1901,19 +1957,26 @@ export default function EditorPage() {
         </div>
 
         <NewUploadModal
-          isOpen={isUploadModalOpen}
-          onClose={() => !isTranscriptionLoading && setIsUploadModalOpen(false)}
-          onFileSelect={(files: File[]) => {
-            // Convert File[] to FileList for compatibility
-            const fileList = new DataTransfer()
-            files.forEach((file) => fileList.items.add(file))
-            handleFileSelect(fileList.files)
-          }}
+          isOpen={uploadModal.isOpen}
+          onClose={() => !uploadModal.isTranscriptionLoading && uploadModal.closeModal()}
+          onFileSelect={uploadModal.handleFileSelect}
           onStartTranscription={wrappedHandleStartTranscription}
           acceptedTypes={['audio/*', 'video/*']}
-          maxFileSize={100 * 1024 * 1024} // 100MB
-          multiple={true}
-          isLoading={isTranscriptionLoading}
+          maxFileSize={500 * 1024 * 1024} // 500MB
+          multiple={false}
+          isLoading={uploadModal.isTranscriptionLoading}
+        />
+
+        <ProcessingModal
+          isOpen={uploadModal.step !== 'select' && uploadModal.step !== 'completed'}
+          onClose={uploadModal.step === 'completed' ? uploadModal.goToEditor : uploadModal.closeModal}
+          onCancel={uploadModal.cancelProcessing}
+          status={uploadModal.step as 'uploading' | 'processing' | 'completed' | 'failed' | 'select'}
+          progress={uploadModal.step === 'uploading' ? uploadModal.uploadProgress : uploadModal.processingProgress}
+          currentStage={uploadModal.currentStage}
+          estimatedTimeRemaining={uploadModal.estimatedTimeRemaining}
+          fileName={uploadModal.fileName}
+          canCancel={uploadModal.step !== 'failed'}
         />
 
         <TutorialModal

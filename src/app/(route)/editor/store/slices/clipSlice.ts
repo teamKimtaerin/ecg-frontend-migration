@@ -10,6 +10,7 @@ import { ClipItem } from '../../types'
 import { ProjectData } from '../../types/project'
 import { SaveSlice } from './saveSlice'
 import { UISlice } from './uiSlice'
+import { MediaSlice } from './mediaSlice'
 
 export interface ClipSlice {
   clips: ClipItem[]
@@ -51,7 +52,7 @@ export interface ClipSlice {
 }
 
 export const createClipSlice: StateCreator<
-  ClipSlice & SaveSlice & UISlice,
+  ClipSlice & SaveSlice & UISlice & MediaSlice,
   [],
   [],
   ClipSlice
@@ -261,14 +262,7 @@ export const createClipSlice: StateCreator<
 
   // Project management methods
   saveProject: async (name?: string) => {
-    const state = get() as ClipSlice & {
-      mediaId?: string | null
-      videoUrl?: string | null
-      videoName?: string | null
-      videoType?: string | null
-      videoDuration?: number | null
-      videoMetadata?: Record<string, unknown>
-    }
+    const state = get()
     let project = state.currentProject
 
     if (!project) {
@@ -280,7 +274,7 @@ export const createClipSlice: StateCreator<
         settings: defaultProjectSettings,
         createdAt: new Date(),
         updatedAt: new Date(),
-        // Include media information
+        // Include media information from MediaSlice
         mediaId: state.mediaId || undefined,
         videoUrl: state.videoUrl || undefined,
         videoName: state.videoName || undefined,
@@ -295,7 +289,7 @@ export const createClipSlice: StateCreator<
         name: name || project.name,
         clips: state.clips,
         updatedAt: new Date(),
-        // Update media information
+        // Update media information from MediaSlice
         mediaId: state.mediaId || project.mediaId,
         videoUrl: state.videoUrl || project.videoUrl,
         videoName: state.videoName || project.videoName,
@@ -327,10 +321,24 @@ export const createClipSlice: StateCreator<
   loadProject: async (id: string) => {
     const project = await projectStorage.loadProject(id)
     if (project) {
+      const state = get()
+
       set({
         clips: project.clips,
         currentProject: project,
       })
+
+      // Restore media information to MediaSlice if available
+      if (state.setMediaInfo && (project.mediaId || project.videoUrl)) {
+        state.setMediaInfo({
+          mediaId: project.mediaId || null,
+          videoUrl: project.videoUrl || null,
+          videoName: project.videoName || null,
+          videoType: project.videoType || null,
+          videoDuration: project.videoDuration || null,
+          videoMetadata: project.videoMetadata || null,
+        })
+      }
     }
   },
 
