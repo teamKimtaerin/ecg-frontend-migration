@@ -28,13 +28,15 @@ const nextConfig: NextConfig = {
 
   // 환경변수 설정
   env: {
-    STATIC_EXPORT: 'true',
+    // 개발 환경에서는 YouTube 업로드를 위해 STATIC_EXPORT를 false로 설정
+    STATIC_EXPORT: process.env.NODE_ENV === 'production' ? 'true' : 'false',
   },
 
   // CORS 해결을 위한 API 프록시 (개발 환경에만 활성화)
   ...(process.env.NODE_ENV === 'development' && {
     async rewrites() {
-      const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000'
+      const backendUrl =
+        process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000'
 
       return [
         // 백엔드 API 프록시 (모든 /api 요청을 localhost:8000으로)
