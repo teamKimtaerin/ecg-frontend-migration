@@ -23,6 +23,7 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
     const [currentTime, setCurrentTime] = useState(0)
     const [duration, setDuration] = useState(0)
     const [isToggling, setIsToggling] = useState(false)
+    const [videoError, setVideoError] = useState<string | null>(null)
 
     const {
       videoUrl,
@@ -42,6 +43,95 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
     const lastWordUpdateTimeRef = useRef(0) // eslint-disable-line @typescript-eslint/no-unused-vars
     // Track when user manually selects a word to pause auto selection
     const manualSelectionPauseUntilRef = useRef(0)
+    // Track src changes to ignore transient error events during swaps
+    const lastSrcChangeAtRef = useRef(0)
+    const lastErrorLogAtRef = useRef(0)
+
+    // MediaError code to message mapping
+    const getMediaErrorMessage = useCallback(
+      (errorCode: number | undefined): string => {
+        switch (errorCode) {
+          case 1: // MEDIA_ERR_ABORTED
+            return '비디오 로드가 중단되었습니다'
+          case 2: // MEDIA_ERR_NETWORK
+            return '네트워크 오류로 비디오를 로드할 수 없습니다'
+          case 3: // MEDIA_ERR_DECODE
+            return '비디오 디코딩 중 오류가 발생했습니다'
+          case 4: // MEDIA_ERR_SRC_NOT_SUPPORTED
+            return '비디오 형식이 지원되지 않거나 소스를 찾을 수 없습니다'
+          default:
+            return '알 수 없는 비디오 오류가 발생했습니다'
+        }
+      },
+      []
+    )
+
+    // Enhanced error handler
+    const handleVideoError = useCallback(
+      (e: React.SyntheticEvent<HTMLVideoElement>) => {
+        const video = e.currentTarget as HTMLVideoElement
+        const error = video.error || undefined
+        const errorCode = error?.code
+        const errorMessage = getMediaErrorMessage(errorCode)
+
+        // Ignore transient errors right after src changes
+        const now = Date.now()
+        if (now - lastSrcChangeAtRef.current < 800) {
+          // Likely emitted while swapping sources; ignore noise
+          return
+        }
+
+        // Throttle noisy repeated logs
+        if (now - lastErrorLogAtRef.current < 500) return
+        lastErrorLogAtRef.current = now
+
+        const details = {
+          errorCode,
+          errorName:
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (error as any)?.name || undefined,
+          errorMessage,
+          originalMessage:
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (error as any)?.message || undefined,
+          videoUrl,
+          urlType: videoUrl?.startsWith('blob:')
+            ? 'blob'
+            : videoUrl?.startsWith('http')
+              ? 'http'
+              : 'unknown',
+          readyState: video.readyState,
+          networkState: video.networkState,
+          currentSrc: video.currentSrc,
+          timestamp: new Date().toISOString(),
+        }
+
+        try {
+          console.error(
+            '[VideoPlayer] Video error details:',
+            JSON.stringify(details)
+          )
+        } catch {
+          console.error('[VideoPlayer] Video error details:', details)
+        }
+
+        setVideoError(errorMessage)
+
+        // Special handling for Blob URL expiration or invalid persisted blob
+        if (
+          (errorCode === 4 || errorCode == null) &&
+          videoUrl?.startsWith('blob:')
+        ) {
+          console.warn(
+            '[VideoPlayer] Blob URL may be invalid/expired - suggesting re-upload'
+          )
+          setVideoError(
+            '업로드한 비디오를 재생할 수 없습니다. 파일을 다시 업로드해주세요.'
+          )
+        }
+      },
+      [videoUrl, getMediaErrorMessage]
+    )
 
     // Handle time update
     const handleTimeUpdate = useCallback(() => {
@@ -106,7 +196,7 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
       stopSegmentPlayback,
       isPlaying,
       clips,
-      // videoRef is a ref, not needed in dependencies
+      videoRef, // Added to satisfy ESLint dependency check
       // setFocusedWord, setActiveClipId, setPlayingWord, clearPlayingWord - unused in current implementation
     ])
 
@@ -127,7 +217,7 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
           videoSegmentManager.initialize(clips, videoDuration)
         }
       }
-    }, [onLoadedMetadata, clips]) // videoRef is a ref, not needed in dependencies
+    }, [onLoadedMetadata, clips, videoRef]) // Added videoRef to satisfy ESLint
 
     // Play/Pause toggle with debounce to prevent rapid clicks
     const togglePlayPause = useCallback(
@@ -174,7 +264,7 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
           setTimeout(() => setIsToggling(false), 100)
         }
       },
-      [isPlaying, isToggling] // videoRef is a ref, not needed in dependencies
+      [isPlaying, isToggling, videoRef] // Added videoRef to satisfy ESLint
     )
 
     // Seek to specific time
@@ -185,7 +275,7 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
           setCurrentTime(time)
         }
       },
-      [duration] // videoRef is a ref, not needed in dependencies
+      [duration, videoRef] // Added videoRef to satisfy ESLint
     )
 
     // Keyboard shortcuts
@@ -226,14 +316,14 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
           console.warn('Failed to start segment playback:', err)
         })
       }
-    }, [isSegmentPlayback, segmentStart]) // videoRef is a ref, not needed in dependencies
+    }, [isSegmentPlayback, segmentStart, videoRef]) // Added videoRef to satisfy ESLint
 
     // Function to pause auto word selection temporarily
     const pauseAutoWordSelection = useCallback(() => {
       const currentTime = videoRef.current?.currentTime || 0
       // Pause auto selection for 3 seconds after manual word selection
       manualSelectionPauseUntilRef.current = currentTime + 3
-    }, []) // videoRef is a ref, not needed in dependencies
+    }, [videoRef]) // Added videoRef to satisfy ESLint
 
     // Expose methods to parent via ref (optional)
     useEffect(() => {
@@ -261,7 +351,7 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
           pauseAutoWordSelection,
         }
       }
-    }, [seekTo, pauseAutoWordSelection]) // videoRef is a ref, not needed in dependencies
+    }, [seekTo, pauseAutoWordSelection, videoRef]) // Added videoRef to satisfy ESLint
 
     // Update segment manager when clips or duration change
     useEffect(() => {
@@ -280,8 +370,9 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
       }
     }, [deletedClipIds])
 
-    // 비디오 URL 디버깅
+    // 비디오 URL 디버깅 및 src 변경 타임스탬프 기록
     useEffect(() => {
+      lastSrcChangeAtRef.current = Date.now()
       console.log('[VideoPlayer] Video URL changed:', {
         videoUrl,
         isBlobUrl: videoUrl?.startsWith('blob:'),
@@ -289,6 +380,44 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
         timestamp: new Date().toISOString(),
       })
     }, [videoUrl])
+
+    // Error state
+    if (videoError) {
+      return (
+        <div
+          className={`flex items-center justify-center bg-black text-red-400 ${className}`}
+        >
+          <div className="text-center p-4">
+            <svg
+              className="w-12 h-12 mx-auto mb-2 text-red-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
+              />
+            </svg>
+            <p className="text-sm font-medium mb-2">비디오 오류</p>
+            <p className="text-xs text-red-300 mb-4">{videoError}</p>
+            <button
+              onClick={() => {
+                setVideoError(null)
+                if (videoRef.current) {
+                  videoRef.current.load() // Reload video
+                }
+              }}
+              className="px-3 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
+            >
+              다시 시도
+            </button>
+          </div>
+        </div>
+      )
+    }
 
     if (!videoUrl) {
       return (
@@ -320,25 +449,18 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
         <video
           ref={videoRef}
           src={videoUrl}
-          className="w-full h-full object-contain cursor-pointer"
+          playsInline
+          controls
+          className="w-full h-full object-contain"
           onClick={(e) => togglePlayPause(e)}
           onTimeUpdate={handleTimeUpdate}
           onLoadedMetadata={handleLoadedMetadata}
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
-          onError={(e) => {
-            console.error('[VideoPlayer] Video error:', {
-              error: e,
-              videoUrl,
-              videoElement: videoRef.current,
-              readyState: videoRef.current?.readyState,
-              networkState: videoRef.current?.networkState,
-              errorCode: (e.target as HTMLVideoElement)?.error?.code,
-              errorMessage: (e.target as HTMLVideoElement)?.error?.message,
-            })
-          }}
+          onError={handleVideoError}
           onLoadStart={() => {
             console.log('[VideoPlayer] Video loading started:', videoUrl)
+            setVideoError(null) // Clear any previous errors
           }}
           onCanPlay={() => {
             console.log('[VideoPlayer] Video can play:', {
@@ -346,6 +468,7 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
               duration: videoRef.current?.duration,
               readyState: videoRef.current?.readyState,
             })
+            setVideoError(null) // Clear errors when video can play
           }}
         />
       </div>

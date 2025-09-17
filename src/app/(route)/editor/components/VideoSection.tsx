@@ -1,13 +1,14 @@
 'use client'
 
 import React, { useRef, useState, useCallback, useEffect } from 'react'
-import type { RendererConfig } from '@/app/shared/motiontext'
+import type { RendererConfigV2 as RendererConfig } from '@/app/shared/motiontext'
 import VideoPlayer from './VideoPlayer'
+import { useEditorStore } from '../store'
 import EditorMotionTextOverlay from './EditorMotionTextOverlay'
 import TextInsertionOverlay from './TextInsertion/TextInsertionOverlay'
 import TextEditInput from './TextInsertion/TextEditInput'
+import ScenarioJsonEditor from './ScenarioJsonEditor'
 import VirtualTimelineVideoController from './VirtualTimelineVideoController'
-import { useEditorStore } from '../store'
 import { playbackEngine } from '@/utils/timeline/playbackEngine'
 import { timelineEngine } from '@/utils/timeline/timelineEngine'
 import {
@@ -16,7 +17,6 @@ import {
 } from '@/utils/virtual-timeline/VirtualPlayerController'
 import { ECGTimelineMapper } from '@/utils/virtual-timeline/ECGTimelineMapper'
 import { VirtualTimelineManager } from '@/utils/virtual-timeline/VirtualTimeline'
-// import ScenarioJsonEditor from './ScenarioJsonEditor' // TODO: Re-enable when needed
 
 interface VideoSectionProps {
   width?: number
@@ -26,7 +26,6 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
   const videoContainerRef = useRef<HTMLDivElement>(null)
   const videoPlayerRef = useRef<HTMLVideoElement>(null)
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [currentScenario, setCurrentScenario] = useState<RendererConfig | null>(
     null
   )
@@ -57,9 +56,13 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
     setCurrentScenario(scenario)
   }, [])
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleScenarioApply = useCallback((newScenario: RendererConfig) => {
     console.log('[VideoSection] Applying new scenario:', newScenario)
+    // Update store's scenario for ongoing sync
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const store = useEditorStore.getState() as any
+    store.setScenarioFromJson?.(newScenario)
+    // Also push as override for immediate apply
     setScenarioOverride(newScenario)
   }, [])
 
@@ -273,6 +276,15 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
 
         {/* Text Edit Input Panel */}
         <TextEditInput />
+
+        {/* Scenario JSON Editor */}
+        {currentScenario && (
+          <ScenarioJsonEditor
+            initialScenario={currentScenario}
+            onApply={handleScenarioApply}
+            className="mt-3"
+          />
+        )}
       </div>
     </div>
   )

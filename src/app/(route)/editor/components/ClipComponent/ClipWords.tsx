@@ -1,13 +1,3 @@
-import {
-  IoRefresh,
-  IoDocument,
-  IoChevronUp,
-  IoFlash,
-  IoArrowBack,
-  IoEye,
-  IoExpand,
-  IoTrendingUp,
-} from 'react-icons/io5'
 import { useRef } from 'react'
 import React, { useCallback } from 'react'
 import {
@@ -18,6 +8,7 @@ import { Word } from './types'
 import ClipWord from './ClipWord'
 import { useWordGrouping } from '../../hooks/useWordGrouping'
 import { useEditorStore } from '../../store'
+import { getAssetIcon } from '../../utils/assetIconMapper'
 
 interface ClipWordsProps {
   clipId: string
@@ -25,19 +16,11 @@ interface ClipWordsProps {
   onWordEdit: (clipId: string, wordId: string, newText: string) => void
 }
 
-// Asset icon mapping (from feat/editor-asset-sidebar-clean)
-const getAssetIcon = (assetName: string) => {
-  const iconMap = {
-    'Rotation Text': IoRefresh,
-    'TypeWriter Effect': IoDocument,
-    'Elastic Bounce': IoChevronUp,
-    'Glitch Effect': IoFlash,
-    'Magnetic Pull': IoArrowBack,
-    'Fade In Stagger': IoEye,
-    'Scale Pop': IoExpand,
-    'Slide Up': IoTrendingUp,
-  }
-  return iconMap[assetName as keyof typeof iconMap] || null
+// Asset database interface
+interface AssetDatabaseItem {
+  id: string
+  title: string
+  iconName?: string
 }
 
 export default function ClipWords({
@@ -51,21 +34,18 @@ export default function ClipWords({
   const {
     // From dev branch
     setFocusedWord,
-    clearWordFocus,
-    draggedWordId,
+    // clearWordFocus, // Currently unused
+    // draggedWordId, // Currently unused
     setActiveClipId,
     // From feat/editor-asset-sidebar-clean branch
-    selectedWordId,
     setSelectedWordId,
-    currentWordAssets,
     setCurrentWordAssets,
     selectedWordAssets,
+    expandClip,
   } = useEditorStore()
 
-  // Asset related state (from feat/editor-asset-sidebar-clean)
-  const [allAssets, setAllAssets] = React.useState<
-    Array<{ id: string; title: string }>
-  >([])
+  // Asset related state with icon support
+  const [allAssets, setAllAssets] = React.useState<AssetDatabaseItem[]>([])
 
   // Setup grouping functionality (from dev)
   const {
@@ -80,14 +60,22 @@ export default function ClipWords({
     },
   })
 
-  // Fetch assets database for asset names (from feat/editor-asset-sidebar-clean)
+  // Fetch assets database for asset names and icons
   React.useEffect(() => {
     const fetchAssets = async () => {
       try {
         const response = await fetch('/asset-store/assets-database.json')
         if (response.ok) {
           const data = await response.json()
-          setAllAssets(data.assets)
+          // Map to include only needed fields for performance
+          const assetsWithIcons: AssetDatabaseItem[] = data.assets.map(
+            (asset: Record<string, unknown>) => ({
+              id: asset.id,
+              title: asset.title,
+              iconName: asset.iconName,
+            })
+          )
+          setAllAssets(assetsWithIcons)
         }
       } catch (error) {
         console.error('Failed to fetch assets:', error)
@@ -104,7 +92,7 @@ export default function ClipWords({
 
   // Combined word click handler (merging both functionalities)
   const handleWordClick = useCallback(
-    (wordId: string, isCenter: boolean) => {
+    (wordId: string, _isCenter: boolean) => {
       const word = words.find((w) => w.id === wordId)
       if (!word) return
 
@@ -132,50 +120,24 @@ export default function ClipWords({
         }
       }
 
-      if (isCenter) {
-        // Batch all state updates for center click
-        const wordAssets =
-          selectedWordAssets[wordId] || word.appliedAssets || []
-
-        // Update all states in a single batch
-        setFocusedWord(clipId, wordId)
-        setActiveClipId(clipId)
-        setSelectedWordId(wordId)
-        setCurrentWordAssets(wordAssets)
-      } else {
-        // Batch all state updates for non-center click
-        const wordAssets =
-          selectedWordAssets[wordId] || word.appliedAssets || []
-        const shouldEdit =
-          selectedWordId === wordId && currentWordAssets.length === 0
-
-        // Clear previous focus first, then set new states
-        clearWordFocus()
-
-        // Use setTimeout to ensure clearWordFocus completes before setting new states
-        setTimeout(() => {
-          setActiveClipId(clipId)
-          setSelectedWordId(wordId)
-          setCurrentWordAssets(wordAssets)
-
-          if (shouldEdit) {
-            onWordEdit(clipId, wordId, word.text)
-          }
-        }, 0)
-      }
+      // Focus on clicked word (center click logic handled by ClipWord component)
+      const wordAssets = selectedWordAssets[wordId] || word.appliedAssets || []
+      setFocusedWord(clipId, wordId)
+      setActiveClipId(clipId)
+      setSelectedWordId(wordId)
+      setCurrentWordAssets(wordAssets)
+      // Expand clip to show waveform editor on single click
+      expandClip(clipId, wordId)
     },
     [
       clipId,
       words,
       setFocusedWord,
-      clearWordFocus,
       setActiveClipId,
-      selectedWordId,
       setSelectedWordId,
-      currentWordAssets,
       setCurrentWordAssets,
       selectedWordAssets,
-      onWordEdit,
+      expandClip,
     ]
   )
 
@@ -183,7 +145,7 @@ export default function ClipWords({
   const sortableItems = words.map((word) => `${clipId}-${word.id}`)
 
   // Find the dragged word for overlay (from dev)
-  const draggedWord = words.find((w) => w.id === draggedWordId)
+  // const draggedWord = words.find((w) => w.id === draggedWordId) // Currently unused
 
   return (
     <SortableContext
@@ -209,12 +171,12 @@ export default function ClipWords({
                 onWordEdit={onWordEdit}
               />
 
-              {/* Render asset icons after each word (from feat/editor-asset-sidebar-clean) */}
+              {/* Render asset icons after each word */}
               {appliedAssets.length > 0 && (
                 <div className="flex gap-1 items-center">
                   {appliedAssets.map((assetId: string) => {
+                    const IconComponent = getAssetIcon(assetId, allAssets)
                     const assetName = getAssetNameById(assetId)
-                    const IconComponent = getAssetIcon(assetName)
                     return IconComponent ? (
                       <div
                         key={assetId}

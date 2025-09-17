@@ -8,10 +8,17 @@
 import { clsx } from 'clsx'
 import { TRANSITIONS, type BaseComponentProps } from '@/lib/utils'
 import React, { useCallback } from 'react'
-import type { PluginManifest, SchemaProperty } from '../utils/scenarioGenerator'
+import ColorPicker from '@/components/ui/ColorPicker'
+import type { SchemaProperty } from '../utils/scenarioGenerator'
+
+// Generic manifest interface that works with both editor and asset-store types
+interface PluginManifestBase {
+  name: string
+  schema?: Record<string, SchemaProperty>
+}
 
 interface PluginParameterControlsProps extends BaseComponentProps {
-  manifest: PluginManifest | null
+  manifest: PluginManifestBase | null
   parameters: Record<string, unknown>
   onParameterChange: (key: string, value: unknown) => void
 }
@@ -20,6 +27,40 @@ interface ControlProps {
   property: SchemaProperty
   value: unknown
   onChange: (value: unknown) => void
+}
+
+/**
+ * 헬퍼 함수: i18n 구조에서 한국어 라벨 추출 (레거시 폴백 포함)
+ */
+const getLabel = (property: SchemaProperty): string => {
+  return property.i18n?.label?.ko || property.label || ''
+}
+
+/**
+ * 헬퍼 함수: i18n 구조에서 한국어 설명 추출 (레거시 폴백 포함)
+ */
+const getDescription = (property: SchemaProperty): string => {
+  return property.i18n?.description?.ko || property.description || ''
+}
+
+/**
+ * 헬퍼 함수: 적절한 컨트롤 타입 결정
+ */
+const getControlType = (property: SchemaProperty): string => {
+  // ui.control 우선
+  if (property.ui?.control) return property.ui.control
+
+  // type 기반 자동 매핑
+  if (property.type === 'boolean') return 'checkbox'
+  if (property.type === 'number') return 'slider'
+  if (property.type === 'string') {
+    if (property.enum) return 'select'
+    if (property.pattern?.includes('[0-9a-fA-F]{6}')) return 'color'
+    return 'text'
+  }
+  if (property.type === 'object') return 'object'
+
+  return 'text'
 }
 
 /**
@@ -39,6 +80,7 @@ const NumberControl: React.FC<ControlProps> = ({
   const min = property.min ?? 0
   const max = property.max ?? 100
   const step = property.step ?? 1
+  const unit = property.ui?.unit || ''
 
   return (
     <div className="space-y-2">
@@ -52,19 +94,26 @@ const NumberControl: React.FC<ControlProps> = ({
           onChange={(e) => onChange(Number(e.target.value))}
           className="flex-1 h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
         />
-        <input
-          type="number"
-          min={min}
-          max={max}
-          step={step}
-          value={numValue}
-          onChange={(e) => onChange(Number(e.target.value))}
-          className={clsx(
-            'w-16 px-2 py-1 text-sm bg-gray-700 border border-gray-600',
-            'rounded text-white focus:outline-none focus:border-blue-500',
-            TRANSITIONS.colors
+        <div className="flex items-center space-x-1">
+          <input
+            type="number"
+            min={min}
+            max={max}
+            step={step}
+            value={numValue}
+            onChange={(e) => onChange(Number(e.target.value))}
+            className={clsx(
+              'w-16 px-2 py-1 text-sm bg-gray-700 border border-gray-600',
+              'rounded text-white focus:outline-none focus:border-blue-500',
+              TRANSITIONS.colors
+            )}
+          />
+          {unit && (
+            <span className="text-xs text-gray-400 font-mono min-w-0">
+              {unit}
+            </span>
           )}
-        />
+        </div>
       </div>
     </div>
   )
@@ -164,6 +213,107 @@ const SelectControl: React.FC<ControlProps> = ({
   )
 }
 
+/**
+ * Color 타입 컨트롤 (색상 선택기)
+ */
+const ColorControl: React.FC<ControlProps> = ({
+  property,
+  value,
+  onChange,
+}) => {
+  const colorValue =
+    typeof value === 'string'
+      ? value
+      : String(value ?? property.default ?? '#FFFFFF')
+
+  return (
+    <div className="flex items-center space-x-3">
+      <ColorPicker
+        value={colorValue}
+        onChange={onChange}
+        variant="toolbar"
+        size="medium"
+      />
+      <input
+        type="text"
+        value={colorValue}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="#FFFFFF"
+        className={clsx(
+          'flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded',
+          'text-white placeholder-gray-400',
+          'focus:outline-none focus:border-blue-500',
+          TRANSITIONS.colors
+        )}
+      />
+    </div>
+  )
+}
+
+/**
+ * Object 타입 컨트롤 (JSON 입력)
+ */
+const ObjectControl: React.FC<ControlProps> = ({
+  property,
+  value,
+  onChange,
+}) => {
+  const jsonValue =
+    typeof value === 'string'
+      ? value
+      : typeof value === 'object' && value !== null
+        ? JSON.stringify(value, null, 2)
+        : JSON.stringify(property.default ?? {}, null, 2)
+
+  const [inputValue, setInputValue] = React.useState(jsonValue)
+  const [isValid, setIsValid] = React.useState(true)
+
+  // Update input when value changes from outside
+  React.useEffect(() => {
+    setInputValue(jsonValue)
+  }, [jsonValue])
+
+  const handleChange = (newValue: string) => {
+    setInputValue(newValue)
+
+    if (!newValue.trim()) {
+      setIsValid(true)
+      onChange('')
+      return
+    }
+
+    try {
+      JSON.parse(newValue)
+      setIsValid(true)
+      onChange(newValue)
+    } catch (error) {
+      setIsValid(false)
+      // Don't call onChange for invalid JSON
+    }
+  }
+
+  return (
+    <div className="space-y-2">
+      <textarea
+        value={inputValue}
+        onChange={(e) => handleChange(e.target.value)}
+        placeholder='{"key": "value"}'
+        rows={4}
+        className={clsx(
+          'w-full px-3 py-2 bg-gray-700 border rounded',
+          'text-white placeholder-gray-400 font-mono text-sm',
+          'focus:outline-none',
+          isValid ? 'border-gray-600 focus:border-blue-500' : 'border-red-500',
+          TRANSITIONS.colors
+        )}
+      />
+      {!isValid && (
+        <p className="text-xs text-red-400">올바른 JSON 형식이 아닙니다</p>
+      )}
+    </div>
+  )
+}
+
 export const PluginParameterControls: React.FC<
   PluginParameterControlsProps
 > = ({ manifest, parameters, onParameterChange, className }) => {
@@ -190,15 +340,21 @@ export const PluginParameterControls: React.FC<
         onChange: (newValue: unknown) => handleParameterChange(key, newValue),
       }
 
-      switch (property.type) {
-        case 'number':
+      const controlType = getControlType(property)
+
+      switch (controlType) {
+        case 'slider':
           return <NumberControl {...controlProps} />
-        case 'boolean':
+        case 'checkbox':
           return <BooleanControl {...controlProps} />
-        case 'string':
+        case 'text':
           return <StringControl {...controlProps} />
         case 'select':
           return <SelectControl {...controlProps} />
+        case 'color':
+          return <ColorControl {...controlProps} />
+        case 'object':
+          return <ObjectControl {...controlProps} />
         default:
           return <StringControl {...controlProps} />
       }
@@ -241,10 +397,12 @@ export const PluginParameterControls: React.FC<
             {/* 라벨과 설명 */}
             <div className="space-y-1">
               <label className="text-sm font-medium text-white">
-                {property.label}
+                {getLabel(property)}
               </label>
-              {property.description && (
-                <p className="text-xs text-gray-400">{property.description}</p>
+              {getDescription(property) && (
+                <p className="text-xs text-gray-400">
+                  {getDescription(property)}
+                </p>
               )}
             </div>
 

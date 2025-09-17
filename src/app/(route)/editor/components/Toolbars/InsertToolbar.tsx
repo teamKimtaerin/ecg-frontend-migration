@@ -14,14 +14,14 @@ interface InsertToolbarProps {
 
 const InsertToolbar: React.FC<InsertToolbarProps> = () => {
   const {
-    isAssetSidebarOpen,
-    setIsAssetSidebarOpen,
+    rightSidebarType,
+    setRightSidebarType,
     addTextAtCenter,
     currentTime,
   } = useEditorStore()
 
   const handleToggleAssetSidebar = () => {
-    setIsAssetSidebarOpen(!isAssetSidebarOpen)
+    setRightSidebarType(rightSidebarType === 'animation' ? null : 'animation')
   }
 
   const handleAddTextAtCenter = () => {
@@ -52,7 +52,7 @@ const InsertToolbar: React.FC<InsertToolbarProps> = () => {
         icon={<IoLayers />}
         label="애니메이션 에셋"
         shortcut="Alt+A"
-        active={isAssetSidebarOpen}
+        active={rightSidebarType === 'animation'}
         onClick={handleToggleAssetSidebar}
       />
 
