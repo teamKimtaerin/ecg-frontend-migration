@@ -234,8 +234,10 @@ export class AnimationSelector {
       variables: contextInfo.variables,
       wordIndex: contextInfo.wordIndex,
       segmentIndex: contextInfo.segmentIndex,
+      wordPositionInSegment: segment.words.findIndex(w => w.word === word.word && w.start === word.start),
       totalWords: this.countTotalWords(audioData),
       totalSegments: audioData.segments.length,
+      helpers: this.createExpressionHelpers(),
     }
 
     // Evaluate rules
@@ -390,6 +392,47 @@ export class AnimationSelector {
         warnings: [],
         estimatedComplexity: 'high',
       }
+    }
+  }
+
+  /**
+   * Create expression helpers for rule evaluation
+   */
+  private createExpressionHelpers(): import('../types/rule.types').ExpressionHelpers {
+    return {
+      // Math functions
+      min: (...values: number[]) => Math.min(...values),
+      max: (...values: number[]) => Math.max(...values),
+      avg: (values: number[]) => values.reduce((a, b) => a + b, 0) / values.length,
+      abs: (value: number) => Math.abs(value),
+      round: (value: number, decimals = 0) => Number(value.toFixed(decimals)),
+
+      // Statistical functions
+      percentile: (values: number[], p: number) => {
+        const sorted = [...values].sort((a, b) => a - b)
+        const index = (p / 100) * (sorted.length - 1)
+        return sorted[Math.round(index)]
+      },
+      standardDeviation: (values: number[]) => {
+        const avg = values.reduce((a, b) => a + b, 0) / values.length
+        const variance = values.reduce((a, b) => a + Math.pow(b - avg, 2), 0) / values.length
+        return Math.sqrt(variance)
+      },
+
+      // String functions
+      toLowerCase: (str: string) => str.toLowerCase(),
+      toUpperCase: (str: string) => str.toUpperCase(),
+      trim: (str: string) => str.trim(),
+
+      // Audio-specific helpers
+      dbToLinear: (db: number) => Math.pow(10, db / 20),
+      linearToDb: (linear: number) => 20 * Math.log10(linear),
+      hzToMidi: (hz: number) => 12 * Math.log2(hz / 440) + 69,
+      midiToHz: (midi: number) => 440 * Math.pow(2, (midi - 69) / 12),
+
+      // Timing helpers
+      secondsToFrames: (seconds: number, fps: number) => seconds * fps,
+      framesToSeconds: (frames: number, fps: number) => frames / fps,
     }
   }
 }

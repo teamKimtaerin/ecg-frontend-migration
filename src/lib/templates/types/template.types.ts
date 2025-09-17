@@ -315,8 +315,12 @@ export interface RuleEvaluationContext {
   // Index information
   wordIndex: number
   segmentIndex: number
+  wordPositionInSegment: number
   totalWords: number
   totalSegments: number
+
+  // Helper functions for expressions
+  helpers: import('./rule.types').ExpressionHelpers
 }
 
 // Template application result

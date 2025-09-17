@@ -124,11 +124,23 @@ export class TemplateParser {
       })
     }
 
+    // Separate errors and warnings with proper typing
+    const actualErrors = errors.filter((e) => e.severity === 'error')
+    const warningErrors = errors.filter((e) => e.severity === 'warning')
+    
+    // Convert warning errors to warning objects
+    const warnings = warningErrors.map((e): import('../types/rule.types').TemplateValidationWarning => ({
+      type: e.type === 'performance' ? 'performance' : 
+            e.type === 'logic' ? 'best-practice' : 'compatibility',
+      message: e.message,
+      location: e.location,
+    }))
+
     return {
-      isValid: errors.filter((e) => e.severity === 'error').length === 0,
-      errors,
-      warnings: errors.filter((e) => e.severity === 'warning'),
-      fieldDependencies,
+      isValid: actualErrors.length === 0,
+      errors: actualErrors,
+      warnings,
+      fieldDependencies: fieldDependencies as Set<import('../types/rule.types').AudioFieldPath>,
       estimatedComplexity: this.estimateComplexity(template),
     }
   }

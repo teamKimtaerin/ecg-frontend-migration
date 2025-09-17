@@ -135,8 +135,8 @@ export class AudioDataMapper {
       speaker: {
         speaker_id: rawSegment.speaker?.speaker_id || 'UNKNOWN',
         confidence: rawSegment.speaker?.confidence || 0,
-        gender: rawSegment.speaker?.gender || null,
-        age_group: rawSegment.speaker?.age_group || null,
+        gender: rawSegment.speaker?.gender || undefined,
+        age_group: rawSegment.speaker?.age_group || undefined,
       },
       emotion: {
         emotion: rawSegment.emotion?.emotion || 'neutral',
