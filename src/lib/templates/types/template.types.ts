@@ -5,6 +5,8 @@
  * and rule-based animations based on audio analysis data.
  */
 
+import { ExpressionHelpers } from './rule.types'
+
 // Audio Analysis Data Types (from real.json)
 export interface AudioAnalysisData {
   metadata: {
@@ -318,8 +320,12 @@ export interface RuleEvaluationContext {
   // Index information
   wordIndex: number
   segmentIndex: number
+  wordPositionInSegment: number
   totalWords: number
   totalSegments: number
+
+  // Helper functions available in expressions
+  helpers: ExpressionHelpers
 }
 
 // Template application result

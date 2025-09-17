@@ -15,7 +15,7 @@ import {
   TemplateApplicationResult,
   AnimationConfig,
 } from '../types/template.types'
-import { ExpressionContext } from '../types/rule.types'
+import { ExpressionContext, ExpressionHelpers } from '../types/rule.types'
 import { RuleEngine, RuleEvaluationResult } from './RuleEngine'
 import { TemplateParser } from './TemplateParser'
 import { ExpressionEvaluator } from './ExpressionEvaluator'
@@ -241,8 +241,10 @@ export class AnimationSelector {
       variables: contextInfo.variables,
       wordIndex: contextInfo.wordIndex,
       segmentIndex: contextInfo.segmentIndex,
+      wordPositionInSegment: this.calculateWordPositionInSegment(word, segment),
       totalWords: this.countTotalWords(audioData),
       totalSegments: audioData.segments.length,
+      helpers: this.createExpressionHelpers(),
     }
 
     // Evaluate rules
@@ -397,6 +399,63 @@ export class AnimationSelector {
         warnings: [],
         estimatedComplexity: 'high',
       }
+    }
+  }
+
+  /**
+   * Calculate word position within segment
+   */
+  private calculateWordPositionInSegment(word: AudioWord, segment: AudioSegment): number {
+    return segment.words.findIndex(w => w.word === word.word && w.start === word.start)
+  }
+
+  /**
+   * Create expression helpers
+   */
+  private createExpressionHelpers(): ExpressionHelpers {
+    return {
+      // Math functions
+      min: (...values: number[]) => Math.min(...values),
+      max: (...values: number[]) => Math.max(...values),
+      avg: (values: number[]) => values.reduce((a, b) => a + b, 0) / values.length,
+      abs: Math.abs,
+      round: (value: number, decimals: number = 0) => {
+        const factor = Math.pow(10, decimals)
+        return Math.round(value * factor) / factor
+      },
+
+      // Statistical functions
+      percentile: (values: number[], p: number) => {
+        const sorted = [...values].sort((a, b) => a - b)
+        const index = (p / 100) * (sorted.length - 1)
+        const lower = Math.floor(index)
+        const upper = Math.ceil(index)
+        const weight = index % 1
+
+        if (upper >= sorted.length) return sorted[sorted.length - 1]
+        return sorted[lower] * (1 - weight) + sorted[upper] * weight
+      },
+      standardDeviation: (values: number[]) => {
+        const avg = values.reduce((a, b) => a + b, 0) / values.length
+        const squareDiffs = values.map(value => Math.pow(value - avg, 2))
+        const avgSquareDiff = squareDiffs.reduce((a, b) => a + b, 0) / squareDiffs.length
+        return Math.sqrt(avgSquareDiff)
+      },
+
+      // String functions
+      toLowerCase: (str: string) => str.toLowerCase(),
+      toUpperCase: (str: string) => str.toUpperCase(),
+      trim: (str: string) => str.trim(),
+
+      // Audio-specific helpers
+      dbToLinear: (db: number) => Math.pow(10, db / 20),
+      linearToDb: (linear: number) => 20 * Math.log10(linear),
+      hzToMidi: (hz: number) => 69 + 12 * Math.log2(hz / 440),
+      midiToHz: (midi: number) => 440 * Math.pow(2, (midi - 69) / 12),
+
+      // Timing helpers
+      secondsToFrames: (seconds: number, fps: number) => seconds * fps,
+      framesToSeconds: (frames: number, fps: number) => frames / fps,
     }
   }
 }

@@ -21,6 +21,7 @@ import {
   ExpressionHelpers,
   TemplateValidationResult,
   TemplateValidationError,
+  AudioFieldPath,
 } from '../types/rule.types'
 
 export class TemplateParser {
@@ -124,11 +125,19 @@ export class TemplateParser {
       })
     }
 
+    const warnings = errors
+      .filter((e) => e.severity === 'warning')
+      .map((e) => ({
+        type: (e.type === 'performance' ? 'performance' : 'best-practice') as 'performance' | 'best-practice' | 'compatibility',
+        message: e.message,
+        location: e.location,
+      }))
+
     return {
       isValid: errors.filter((e) => e.severity === 'error').length === 0,
       errors,
-      warnings: errors.filter((e) => e.severity === 'warning'),
-      fieldDependencies,
+      warnings,
+      fieldDependencies: fieldDependencies as Set<AudioFieldPath>,
       estimatedComplexity: this.estimateComplexity(template),
     }
   }
