@@ -59,6 +59,7 @@ export default function EditorMotionTextOverlay({
 
   // MotionTextController for automatic video-renderer synchronization
   const controllerRef = useRef<{ destroy: () => void } | null>(null)
+  const attachedVideoRef = useRef<HTMLVideoElement | null>(null)
 
   // Obtain the existing video element from the global video controller
   // Add retry mechanism for video element detection
@@ -112,6 +113,29 @@ export default function EditorMotionTextOverlay({
     }
   }, [videoContainerRef])
 
+  // Observe DOM changes to detect when the <video> element is replaced
+  useEffect(() => {
+    if (!videoContainerRef?.current) return
+
+    const container = videoContainerRef.current
+    const updateVideoEl = () => {
+      const latest = container.querySelector('video')
+      if (latest && latest !== videoEl) {
+        setVideoEl(latest as HTMLVideoElement)
+      }
+    }
+
+    // Initial sync
+    updateVideoEl()
+
+    const observer = new MutationObserver(() => {
+      updateVideoEl()
+    })
+    observer.observe(container, { childList: true, subtree: true })
+
+    return () => observer.disconnect()
+  }, [videoContainerRef, videoEl])
+
   useEffect(() => {
     if (!videoRef || !containerRef) return
     if (videoEl) {
@@ -125,26 +149,17 @@ export default function EditorMotionTextOverlay({
     }
   }, [initializeRenderer, videoEl, videoRef, containerRef])
 
-  // Timeline initialization effect
+  // Ensure renderer stays attached to the current <video> when it changes
   useEffect(() => {
-    // If we have clips but no timeline clips or clipOrder is empty, initialize timeline
-    if (
-      clips.length > 0 &&
-      (timeline.clips.length === 0 || timeline.clipOrder.length === 0)
-    ) {
-      console.log(
-        '[EditorMotionTextOverlay] Initializing timeline with',
-        clips.length,
-        'clips'
-      )
-      initializeTimeline(clips)
+    if (!videoEl || !renderer) return
+    try {
+      // Some versions expose attachMedia for swapping media element
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ;(renderer as any)?.attachMedia?.(videoEl)
+    } catch {
+      // no-op: best-effort reattach
     }
-  }, [
-    clips,
-    timeline.clips.length,
-    timeline.clipOrder.length,
-    initializeTimeline,
-  ])
+  }, [videoEl, renderer])
 
   // No manifest preload required for initial, animation-less scenario
   // Use the simplified scenario building approach
@@ -661,44 +676,46 @@ export default function EditorMotionTextOverlay({
   useEffect(() => {
     if (!videoEl || !renderer || !containerRef?.current) return
 
-    // Only initialize controller once
-    if (controllerRef.current) return
-
     let cancelled = false
 
-    const initController = async () => {
+    const mountOrRemount = async () => {
       try {
         const { MotionTextController } = await import('motiontext-renderer')
-
         if (cancelled) return
 
-        const controller = new MotionTextController(
-          videoEl,
-          renderer,
-          videoContainerRef.current ||
-            containerRef.current!.parentElement ||
-            containerRef.current!,
-          { captionsVisible: true }
-        )
-        controller.mount()
-        controllerRef.current = controller
+        // If controller exists but video element changed, remount
+        const needsRemount =
+          !!controllerRef.current && attachedVideoRef.current !== videoEl
+
+        if (needsRemount && controllerRef.current) {
+          try {
+            controllerRef.current.destroy()
+          } catch {}
+          controllerRef.current = null
+        }
+
+        if (!controllerRef.current) {
+          const controller = new MotionTextController(
+            videoEl,
+            renderer,
+            videoContainerRef.current ||
+              containerRef.current!.parentElement ||
+              containerRef.current!,
+            { captionsVisible: true }
+          )
+          controller.mount()
+          controllerRef.current = controller
+          attachedVideoRef.current = videoEl
+        }
       } catch {
         // Ignore controller initialization errors
       }
     }
 
-    void initController()
+    void mountOrRemount()
 
     return () => {
       cancelled = true
-      if (controllerRef.current) {
-        try {
-          controllerRef.current.destroy()
-          controllerRef.current = null
-        } catch {
-          // Ignore controller cleanup errors
-        }
-      }
     }
   }, [videoEl, renderer, containerRef, videoContainerRef])
 

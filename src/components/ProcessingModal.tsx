@@ -1,5 +1,6 @@
 'use client'
 
+import { FaTimes } from 'react-icons/fa'
 import React, { useState, useEffect, useRef } from 'react'
 import Draggable from 'react-draggable'
 import { ChevronDownIcon, ChevronUpIcon } from '@/components/icons'
@@ -14,14 +15,15 @@ export interface ProcessingModalProps {
   estimatedTimeRemaining?: number
   fileName?: string
   canCancel?: boolean
+  backdrop?: boolean
 }
 
 const STAGE_MESSAGES = {
-  file_validation: '파일 검증 중...',
-  audio_extraction: '오디오 추출 중...',
-  whisper_transcription: '음성 인식 중...',
-  speaker_diarization: '화자 분리 중...',
-  post_processing: '후처리 중...',
+  file_validation: '파일 검증 중',
+  audio_extraction: '오디오 추출 중',
+  whisper_transcription: '음성 인식 중',
+  speaker_diarization: '화자 분리 중',
+  post_processing: '후처리 중',
 } as const
 
 export default function ProcessingModal({
@@ -34,38 +36,44 @@ export default function ProcessingModal({
   estimatedTimeRemaining,
   fileName,
   canCancel = true,
+  backdrop = true,
 }: ProcessingModalProps) {
-  console.log(
-    '[ProcessingModal] Render - isOpen:',
-    isOpen,
-    'status:',
-    status,
-    'progress:',
-    progress
-  )
-
-  const [isMinimized, setIsMinimized] = useState(false)
   const [position, setPosition] = useState({ x: 0, y: 0 })
-  const nodeRef = useRef<HTMLDivElement>(null) // React 19 호환성을 위한 ref
-  const [initialized, setInitialized] = useState(false)
+  const [dragging, setDragging] = useState(false)
 
-  // 초기 위치를 화면 중앙으로 설정
-  useEffect(() => {
-    if (!initialized && isOpen && typeof window !== 'undefined') {
-      const modalWidth = 420
-      const modalHeight = 300
+  const dragStartRef = useRef({ x: 0, y: 0 })
 
-      const centerX = (window.innerWidth - modalWidth) / 2
-      const centerY = (window.innerHeight - modalHeight) / 2
+  const handleMouseDown = (e: React.MouseEvent) => {
+    // 텍스트 선택 등 기본 동작 방지
+    e.preventDefault()
+    setDragging(true)
 
-      setPosition({ x: centerX, y: centerY })
-      setInitialized(true)
-
-      console.log('[ProcessingModal] Centered at:', { x: centerX, y: centerY })
+    // 현재 마우스 위치에서 모달의 현재 위치를 뺀 값을 저장
+    // 이렇게 해야 모달의 어느 곳을 클릭해도 그 위치를 기준으로 이동합니다.
+    dragStartRef.current = {
+      x: e.clientX - position.x,
+      y: e.clientY - position.y,
     }
-  }, [isOpen, initialized])
+  }
 
-  if (!isOpen || status === 'select') return null
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!dragging) return
+
+    const newX = e.clientX - dragStartRef.current.x
+    const newY = e.clientY - dragStartRef.current.y
+    setPosition({ x: newX, y: newY })
+  }
+
+  const handleMouseUp = () => {
+    setDragging(false)
+  }
+
+  // 모달 바깥으로 마우스가 나가도 드래그가 풀리도록 이벤트 추가
+  const handleMouseLeave = () => {
+    if (dragging) {
+      setDragging(false)
+    }
+  }
 
   const getStatusText = () => {
     switch (status) {
@@ -78,7 +86,7 @@ export default function ProcessingModal({
       case 'failed':
         return '오류 발생'
       default:
-        return '처리 중'
+        return '준비 중'
     }
   }
 
@@ -87,7 +95,7 @@ export default function ProcessingModal({
       case 'uploading':
         return '📤'
       case 'processing':
-        return '🎬'
+        return '⚙️'
       case 'completed':
         return '✅'
       case 'failed':
@@ -97,15 +105,11 @@ export default function ProcessingModal({
     }
   }
 
-  const formatTime = (seconds?: number) => {
+  const formatTime = (seconds: number) => {
     if (!seconds || seconds <= 0) return ''
     const mins = Math.floor(seconds / 60)
     const secs = Math.floor(seconds % 60)
-
-    if (mins > 0) {
-      return `약 ${mins}분 ${secs > 0 ? `${secs}초` : ''}`
-    }
-    return `약 ${secs}초`
+    return mins > 0 ? `${mins}분 ${secs}초` : `${secs}초`
   }
 
   const getCurrentStageMessage = () => {
@@ -116,188 +120,230 @@ export default function ProcessingModal({
     )
   }
 
-  // 조건부 렌더링 - isOpen이 false면 아무것도 렌더링하지 않음
-  if (!isOpen) {
-    console.log('[ProcessingModal] Not rendering - isOpen is false')
-    return null
+  const getGradientColor = () => {
+    switch (status) {
+      case 'uploading':
+        return 'from-blue-500 to-cyan-500'
+      case 'processing':
+        return 'from-purple-500 to-pink-500'
+      case 'completed':
+        return 'from-green-500 to-emerald-500'
+      case 'failed':
+        return 'from-red-500 to-rose-500'
+      default:
+        return 'from-gray-500 to-gray-600'
+    }
   }
 
-  console.log('[ProcessingModal] Rendering modal with Draggable at:', position)
+  const getProgressBarColor = () => {
+    switch (status) {
+      case 'uploading':
+        return 'bg-gradient-to-r from-blue-400 to-cyan-400'
+      case 'processing':
+        return 'bg-gradient-to-r from-purple-400 to-pink-400'
+      case 'completed':
+        return 'bg-gradient-to-r from-green-400 to-emerald-400'
+      case 'failed':
+        return 'bg-gradient-to-r from-red-400 to-rose-400'
+      default:
+        return 'bg-gradient-to-r from-gray-400 to-gray-500'
+    }
+  }
+
+  const shouldShowCloseButton = status === 'completed' || status === 'failed'
+
+  if (!isOpen) return null
 
   return (
-    <Draggable
-      handle=".drag-handle"
-      position={position}
-      onDrag={(_, data) => {
-        setPosition({ x: data.x, y: data.y })
-      }}
-      nodeRef={nodeRef}
-    >
+    <>
+      {/* Backdrop with blur effect - clickable background */}
+      {backdrop && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm pointer-events-none z-[9998]" />
+      )}
+
+      {/* Draggable Modal */}
       <div
-        ref={nodeRef}
-        data-testid="processing-modal"
-        className="fixed z-[9999] bg-white rounded-xl shadow-2xl border border-gray-200/50"
+        className="fixed w-[500px] max-w-[90vw] shadow-2xl rounded-xl overflow-hidden pointer-events-auto z-[9999]"
         style={{
-          width: isMinimized ? '320px' : '420px',
-          transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          backdropFilter: 'blur(10px)',
+          left: '50%',
+          top: '50%',
+          transform: `translate(calc(-50% + ${position.x}px), calc(-50% + ${position.y}px))`,
         }}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseLeave}
+        role="dialog"
+        aria-label="처리 진행 상황"
       >
-        {/* 헤더 - 드래그 가능 영역 */}
-        <div className="drag-handle flex items-center justify-between px-5 py-3.5 bg-gradient-to-b from-gray-50 to-white rounded-t-xl cursor-move select-none border-b border-gray-100">
-          <div className="flex items-center gap-3">
-            <span className="text-xl">{getStatusEmoji()}</span>
-            <div className="flex flex-col">
-              <span className="font-semibold text-gray-800 text-sm">
-                {getStatusText()}
+        {/* 그라디언트 헤더 */}
+        <div
+          className={`bg-gradient-to-r ${getGradientColor()} p-6 rounded-t-xl cursor-grab`}
+          onMouseDown={handleMouseDown}
+        >
+          <div className="flex items-center justify-between pointer-events-none">
+            <div className="flex items-center gap-3">
+              <span className="text-3xl animate-bounce">
+                {getStatusEmoji()}
               </span>
-              {isMinimized &&
-                estimatedTimeRemaining !== undefined &&
-                estimatedTimeRemaining > 0 && (
-                  <span className="text-xs text-gray-500">
-                    {formatTime(estimatedTimeRemaining)}
-                  </span>
+              <div>
+                <h2 className="text-xl font-bold text-white">
+                  {getStatusText()}
+                </h2>
+                {getCurrentStageMessage() && (
+                  <p className="text-sm text-white/90 mt-1">
+                    {getCurrentStageMessage()}
+                  </p>
                 )}
+              </div>
             </div>
-          </div>
-          <button
-            onClick={() => setIsMinimized(!isMinimized)}
-            className="p-1.5 hover:bg-gray-100 rounded-lg transition-all duration-200"
-            title={isMinimized ? '확장' : '최소화'}
-          >
-            {isMinimized ? (
-              <ChevronUpIcon className="w-4 h-4 text-gray-500" />
-            ) : (
-              <ChevronDownIcon className="w-4 h-4 text-gray-500" />
+            {shouldShowCloseButton && (
+              <button
+                onClick={onClose}
+                onMouseDown={(e) => e.stopPropagation()}
+                className="text-white/80 hover:text-white transition-colors p-1 pointer-events-auto"
+              >
+                <FaTimes size={20} />
+              </button>
             )}
-          </button>
+          </div>
         </div>
 
         {/* 본문 */}
-        <div className={`${isMinimized ? 'px-5 py-3' : 'p-5'}`}>
-          {/* 파일명 - 확장 모드에만 표시 */}
-          {!isMinimized && fileName && (
-            <div className="flex items-center gap-2.5 mb-4 p-3 bg-gray-50 rounded-lg">
-              <span className="text-2xl">📁</span>
-              <span className="text-sm font-medium text-gray-700 truncate flex-1">
-                {fileName}
-              </span>
-            </div>
-          )}
-
-          {/* 처리 단계 - 확장 모드에만 표시 */}
-          {!isMinimized && currentStage && getCurrentStageMessage() && (
-            <div className="mb-4">
-              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                처리 단계
-              </span>
-              <p className="text-sm text-gray-700 font-medium mt-1">
-                {getCurrentStageMessage()}
+        <div className="p-6 bg-white rounded-b-xl">
+          {/* 파일명 */}
+          {fileName && (
+            <div className="mb-6 p-3 bg-gray-50 rounded-lg">
+              <p className="text-sm font-medium text-gray-700 truncate">
+                📁 {fileName}
               </p>
             </div>
           )}
 
-          {/* 프로그레스 바 - 항상 표시 */}
-          <div className={isMinimized ? '' : 'mb-4'}>
+          {/* 진행률 바 */}
+          <div className="mb-6">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm font-medium text-gray-700">진행률</span>
+              <span className="text-sm font-bold text-gray-900">
+                {Math.round(progress)}%
+              </span>
+            </div>
             <div className="relative">
-              {/* 배경 트랙 */}
-              <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                {/* 진행률 바 */}
+              <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
                 <div
-                  className="h-full rounded-full transition-all duration-500 ease-out relative overflow-hidden"
-                  style={{
-                    width: `${Math.min(100, Math.max(0, progress))}%`,
-                    background:
-                      status === 'failed'
-                        ? 'linear-gradient(90deg, #ef4444, #dc2626)'
-                        : status === 'completed'
-                          ? 'linear-gradient(90deg, #10b981, #059669)'
-                          : 'linear-gradient(90deg, #3b82f6, #2563eb)',
-                  }}
+                  className={`h-full ${getProgressBarColor()} transition-all duration-500 ease-out rounded-full relative overflow-hidden`}
+                  style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
                 >
                   {/* 애니메이션 효과 */}
-                  {status === 'processing' && (
-                    <div
-                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
-                      style={{
-                        animation: 'shimmer 2s infinite',
-                      }}
-                    />
-                  )}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer" />
                 </div>
               </div>
             </div>
-
-            {/* 진행률 텍스트 */}
-            <div className="flex justify-between items-center mt-2">
-              <span className="text-sm font-semibold text-gray-700">
-                {Math.round(progress)}%
-              </span>
-              {!isMinimized &&
-                estimatedTimeRemaining !== undefined &&
-                estimatedTimeRemaining > 0 && (
-                  <span className="text-xs text-gray-500">
-                    {formatTime(estimatedTimeRemaining)} 남음
-                  </span>
-                )}
-            </div>
           </div>
 
-          {/* 상태 메시지 - 확장 모드에만 표시 */}
-          {!isMinimized && status === 'completed' && (
-            <div className="p-3 bg-green-50 border border-green-200 rounded-lg mb-4">
-              <p className="text-sm text-green-700 font-medium">
+          {/* 예상 시간 */}
+          {estimatedTimeRemaining && estimatedTimeRemaining > 0 && (
+            <div className="mb-6 text-center">
+              <p className="text-sm text-gray-500">
+                예상 남은 시간:{' '}
+                <span className="font-medium text-gray-700">
+                  {formatTime(estimatedTimeRemaining)}
+                </span>
+              </p>
+            </div>
+          )}
+
+          {/* 상태별 메시지 */}
+          {status === 'uploading' && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+              <p className="text-sm text-blue-700">
+                파일을 안전하게 업로드하고 있습니다...
+              </p>
+            </div>
+          )}
+
+          {status === 'processing' && (
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" />
+                <p className="text-sm text-purple-700">
+                  AI가 콘텐츠를 분석하고 있습니다
+                </p>
+              </div>
+              <p className="text-xs text-purple-600 mt-1">
+                파일 크기에 따라 시간이 소요될 수 있습니다
+              </p>
+            </div>
+          )}
+
+          {status === 'completed' && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+              <p className="text-sm font-medium text-green-700">
                 🎉 처리가 완료되었습니다!
               </p>
               <p className="text-xs text-green-600 mt-1">
-                에디터로 이동하여 편집을 시작하세요.
+                이제 편집을 시작할 수 있습니다
               </p>
             </div>
           )}
 
-          {!isMinimized && status === 'failed' && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg mb-4">
-              <p className="text-sm text-red-700 font-medium">
-                처리 중 오류가 발생했습니다.
+          {status === 'failed' && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+              <p className="text-sm font-medium text-red-700">
+                처리 중 문제가 발생했습니다
               </p>
-              <p className="text-xs text-red-600 mt-1">다시 시도해 주세요.</p>
+              <p className="text-xs text-red-600 mt-1">
+                다시 시도하거나 지원팀에 문의해주세요
+              </p>
             </div>
           )}
 
-          {/* 버튼 영역 - 확장 모드에만 표시 */}
-          {!isMinimized && (
-            <div className="flex justify-end gap-2 mt-4">
-              {status === 'failed' && (
-                <button
-                  onClick={onClose}
-                  className="px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors"
-                >
-                  닫기
-                </button>
-              )}
-              {status === 'completed' && (
-                <button
-                  onClick={onClose}
-                  className="px-4 py-2 text-sm font-medium text-white bg-green-500 hover:bg-green-600 rounded-lg transition-colors"
-                >
-                  에디터로 이동
-                </button>
-              )}
-              {canCancel &&
-                status !== 'completed' &&
-                status !== 'failed' &&
-                onCancel && (
-                  <button
-                    onClick={onCancel}
-                    className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-                  >
-                    취소
-                  </button>
-                )}
-            </div>
-          )}
+          {/* 액션 버튼 */}
+          <div className="flex justify-end gap-3">
+            {canCancel && !shouldShowCloseButton && onCancel && (
+              <button
+                onClick={onCancel}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                취소
+              </button>
+            )}
+
+            {status === 'completed' && (
+              <button
+                onClick={onClose}
+                className="px-6 py-2 text-sm font-medium text-white bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 rounded-lg transition-all shadow-lg hover:shadow-xl"
+              >
+                에디터로 이동 →
+              </button>
+            )}
+
+            {status === 'failed' && (
+              <button
+                onClick={onClose}
+                className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 rounded-lg transition-all"
+              >
+                닫기
+              </button>
+            )}
+          </div>
         </div>
+
+        {/* 애니메이션을 위한 스타일 */}
+        <style jsx>{`
+          @keyframes shimmer {
+            0% {
+              transform: translateX(-100%);
+            }
+            100% {
+              transform: translateX(100%);
+            }
+          }
+
+          .animate-shimmer {
+            animation: shimmer 2s infinite;
+          }
+        `}</style>
       </div>
-    </Draggable>
+    </>
   )
 }

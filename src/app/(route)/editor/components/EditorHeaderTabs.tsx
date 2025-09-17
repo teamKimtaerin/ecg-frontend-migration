@@ -237,14 +237,17 @@ export default function EditorHeaderTabs({
           {isNavDropdownOpen &&
             typeof window !== 'undefined' &&
             createPortal(
-              <div 
+              <div
                 className="nav-dropdown fixed bg-white border border-gray-200 rounded-lg shadow-lg z-[9999] min-w-[150px]"
                 style={{
                   top: navButtonRef.current
-                    ? navButtonRef.current.getBoundingClientRect().bottom + window.scrollY + 4
+                    ? navButtonRef.current.getBoundingClientRect().bottom +
+                      window.scrollY +
+                      4
                     : 0,
                   left: navButtonRef.current
-                    ? navButtonRef.current.getBoundingClientRect().left + window.scrollX
+                    ? navButtonRef.current.getBoundingClientRect().left +
+                      window.scrollX
                     : 0,
                 }}
               >

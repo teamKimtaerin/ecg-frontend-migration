@@ -107,8 +107,8 @@ export interface SchemaProperty {
   ui?: {
     control: 'slider' | 'color' | 'text' | 'checkbox' | 'select' | 'object'
     allowDefine?: boolean
-    unit?: string  // px, s, °, Hz 등
-    step?: number  // UI에서 사용할 step (schema.step과 별개)
+    unit?: string // px, s, °, Hz 등
+    step?: number // UI에서 사용할 step (schema.step과 별개)
   }
 
   // 제약사항

@@ -5,6 +5,7 @@
  * and rule-based animations based on audio analysis data.
  */
 
+import { ExpressionHelpers } from './rule.types'
 // Audio Analysis Data Types (from real.json)
 export interface AudioAnalysisData {
   metadata: {
@@ -15,12 +16,15 @@ export interface AudioAnalysisData {
     dominant_emotion: string
     avg_confidence: number
   }
-  speakers: Record<string, {
-    total_duration: number
-    segment_count: number
-    avg_confidence: number
-    emotions: string[]
-  }>
+  speakers: Record<
+    string,
+    {
+      total_duration: number
+      segment_count: number
+      avg_confidence: number
+      emotions: string[]
+    }
+  >
   segments: AudioSegment[]
   volume_statistics: {
     global_min_db: number
@@ -319,8 +323,8 @@ export interface RuleEvaluationContext {
   totalWords: number
   totalSegments: number
 
-  // Helper functions for expressions
-  helpers: import('./rule.types').ExpressionHelpers
+  // Helper functions available in expressions
+  helpers: ExpressionHelpers
 }
 
 // Template application result

@@ -15,7 +15,7 @@ import {
   TemplateApplicationResult,
   AnimationConfig,
 } from '../types/template.types'
-import { ExpressionContext } from '../types/rule.types'
+import { ExpressionContext, ExpressionHelpers } from '../types/rule.types'
 import { RuleEngine, RuleEvaluationResult } from './RuleEngine'
 import { TemplateParser } from './TemplateParser'
 import { ExpressionEvaluator } from './ExpressionEvaluator'
@@ -115,14 +115,21 @@ export class AnimationSelector {
       let totalAnimationsApplied = 0
 
       // Process each segment and its words
-      for (let segmentIndex = 0; segmentIndex < audioData.segments.length; segmentIndex++) {
+      for (
+        let segmentIndex = 0;
+        segmentIndex < audioData.segments.length;
+        segmentIndex++
+      ) {
         const segment = audioData.segments[segmentIndex]
 
         for (let wordIndex = 0; wordIndex < segment.words.length; wordIndex++) {
           const word = segment.words[wordIndex]
 
           // Skip low confidence words if option is enabled
-          if (options.skipLowConfidenceWords && word.confidence < options.confidenceThreshold) {
+          if (
+            options.skipLowConfidenceWords &&
+            word.confidence < options.confidenceThreshold
+          ) {
             continue
           }
 
@@ -145,7 +152,7 @@ export class AnimationSelector {
             totalAnimationsApplied += selection.result.selectedRules.length
 
             // Convert to application result format
-            selection.result.selectedRules.forEach(selectedRule => {
+            selection.result.selectedRules.forEach((selectedRule) => {
               appliedRules.push({
                 ruleId: selectedRule.rule.id,
                 wordId: `${segmentIndex}-${wordIndex}`,
@@ -155,12 +162,11 @@ export class AnimationSelector {
             })
 
             // Collect warnings from conflicts
-            selection.result.conflicts.forEach(conflict => {
+            selection.result.conflicts.forEach((conflict) => {
               warnings.push(
                 `Rule conflict for word ${segmentIndex}-${wordIndex}: ${conflict.conflictingRules.join(', ')}`
               )
             })
-
           } catch (error) {
             errors.push(
               `Failed to select animations for word ${segmentIndex}-${wordIndex}: ${error}`
@@ -182,7 +188,6 @@ export class AnimationSelector {
           animationsApplied: totalAnimationsApplied,
         },
       }
-
     } catch (error) {
       return {
         success: false,
@@ -220,10 +225,12 @@ export class AnimationSelector {
     // Filter rules based on options
     let rules = compiledTemplate.compiledRules
     if (options.enabledRuleIds) {
-      rules = rules.filter(rule => options.enabledRuleIds!.includes(rule.id))
+      rules = rules.filter((rule) => options.enabledRuleIds!.includes(rule.id))
     }
     if (options.disabledRuleIds) {
-      rules = rules.filter(rule => !options.disabledRuleIds!.includes(rule.id))
+      rules = rules.filter(
+        (rule) => !options.disabledRuleIds!.includes(rule.id)
+      )
     }
 
     // Create evaluation context
@@ -234,7 +241,7 @@ export class AnimationSelector {
       variables: contextInfo.variables,
       wordIndex: contextInfo.wordIndex,
       segmentIndex: contextInfo.segmentIndex,
-      wordPositionInSegment: segment.words.findIndex(w => w.word === word.word && w.start === word.start),
+      wordPositionInSegment: this.calculateWordPositionInSegment(word, segment),
       totalWords: this.countTotalWords(audioData),
       totalSegments: audioData.segments.length,
       helpers: this.createExpressionHelpers(),
@@ -246,14 +253,14 @@ export class AnimationSelector {
     // Convert to animation selection format
     const selection: AnimationSelection = {
       wordId: `${contextInfo.segmentIndex}-${contextInfo.wordPositionInSegment}`,
-      animations: result.selectedRules.map(selectedRule => ({
+      animations: result.selectedRules.map((selectedRule) => ({
         pluginName: selectedRule.animation.pluginName,
         params: selectedRule.animation.params || {},
         timing: selectedRule.animation.timing,
         intensity: selectedRule.intensity,
         ruleId: selectedRule.rule.id,
       })),
-      appliedRuleIds: result.selectedRules.map(sr => sr.rule.id),
+      appliedRuleIds: result.selectedRules.map((sr) => sr.rule.id),
       executionTime: result.totalExecutionTime,
     }
 
@@ -380,9 +387,9 @@ export class AnimationSelector {
       return {
         isValid: validationResult.isValid,
         errors: validationResult.errors
-          .filter(e => e.severity === 'error')
-          .map(e => e.message),
-        warnings: validationResult.warnings.map(w => w.message),
+          .filter((e) => e.severity === 'error')
+          .map((e) => e.message),
+        warnings: validationResult.warnings.map((w) => w.message),
         estimatedComplexity: validationResult.estimatedComplexity,
       }
     } catch (error) {
@@ -396,27 +403,50 @@ export class AnimationSelector {
   }
 
   /**
-   * Create expression helpers for rule evaluation
+   * Calculate word position within segment
    */
-  private createExpressionHelpers(): import('../types/rule.types').ExpressionHelpers {
+  private calculateWordPositionInSegment(
+    word: AudioWord,
+    segment: AudioSegment
+  ): number {
+    return segment.words.findIndex(
+      (w) => w.word === word.word && w.start === word.start
+    )
+  }
+
+  /**
+   * Create expression helpers
+   */
+  private createExpressionHelpers(): ExpressionHelpers {
     return {
       // Math functions
       min: (...values: number[]) => Math.min(...values),
       max: (...values: number[]) => Math.max(...values),
-      avg: (values: number[]) => values.reduce((a, b) => a + b, 0) / values.length,
-      abs: (value: number) => Math.abs(value),
-      round: (value: number, decimals = 0) => Number(value.toFixed(decimals)),
+      avg: (values: number[]) =>
+        values.reduce((a, b) => a + b, 0) / values.length,
+      abs: Math.abs,
+      round: (value: number, decimals: number = 0) => {
+        const factor = Math.pow(10, decimals)
+        return Math.round(value * factor) / factor
+      },
 
       // Statistical functions
       percentile: (values: number[], p: number) => {
         const sorted = [...values].sort((a, b) => a - b)
         const index = (p / 100) * (sorted.length - 1)
-        return sorted[Math.round(index)]
+        const lower = Math.floor(index)
+        const upper = Math.ceil(index)
+        const weight = index % 1
+
+        if (upper >= sorted.length) return sorted[sorted.length - 1]
+        return sorted[lower] * (1 - weight) + sorted[upper] * weight
       },
       standardDeviation: (values: number[]) => {
         const avg = values.reduce((a, b) => a + b, 0) / values.length
-        const variance = values.reduce((a, b) => a + Math.pow(b - avg, 2), 0) / values.length
-        return Math.sqrt(variance)
+        const squareDiffs = values.map((value) => Math.pow(value - avg, 2))
+        const avgSquareDiff =
+          squareDiffs.reduce((a, b) => a + b, 0) / squareDiffs.length
+        return Math.sqrt(avgSquareDiff)
       },
 
       // String functions
@@ -427,7 +457,7 @@ export class AnimationSelector {
       // Audio-specific helpers
       dbToLinear: (db: number) => Math.pow(10, db / 20),
       linearToDb: (linear: number) => 20 * Math.log10(linear),
-      hzToMidi: (hz: number) => 12 * Math.log2(hz / 440) + 69,
+      hzToMidi: (hz: number) => 69 + 12 * Math.log2(hz / 440),
       midiToHz: (midi: number) => 440 * Math.pow(2, (midi - 69) / 12),
 
       // Timing helpers

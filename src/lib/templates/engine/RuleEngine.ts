@@ -171,8 +171,11 @@ export class RuleEngine {
 
       // Collect field values for debugging
       if (debugInfo) {
-        rule.compiledCondition.dependencies.forEach(fieldPath => {
-          debugInfo!.fieldValues[fieldPath] = this.getFieldValue(fieldPath, context)
+        rule.compiledCondition.dependencies.forEach((fieldPath) => {
+          debugInfo!.fieldValues[fieldPath] = this.getFieldValue(
+            fieldPath,
+            context
+          )
         })
       }
 
@@ -203,12 +206,18 @@ export class RuleEngine {
           case 'gt':
           case 'gte':
             // Strength based on how much greater the value is
-            return Math.min(1.0, Math.max(0.1, (fieldValue - compareValue) / compareValue))
+            return Math.min(
+              1.0,
+              Math.max(0.1, (fieldValue - compareValue) / compareValue)
+            )
 
           case 'lt':
           case 'lte':
             // Strength based on how much smaller the value is
-            return Math.min(1.0, Math.max(0.1, (compareValue - fieldValue) / compareValue))
+            return Math.min(
+              1.0,
+              Math.max(0.1, (compareValue - fieldValue) / compareValue)
+            )
 
           case 'between':
             if (condition.secondValue !== undefined) {
@@ -219,7 +228,13 @@ export class RuleEngine {
               // Strength based on position within range
               const range = secondValue - compareValue
               const position = fieldValue - compareValue
-              return Math.min(1.0, Math.max(0.1, 1.0 - Math.abs(position - range / 2) / (range / 2)))
+              return Math.min(
+                1.0,
+                Math.max(
+                  0.1,
+                  1.0 - Math.abs(position - range / 2) / (range / 2)
+                )
+              )
             }
             return 1.0
 
@@ -262,7 +277,7 @@ export class RuleEngine {
 
     // Default linear mapping
     const range = intensityConfig.max - intensityConfig.min
-    return intensityConfig.min + (range * matchStrength)
+    return intensityConfig.min + range * matchStrength
   }
 
   /**
@@ -348,7 +363,7 @@ export class RuleEngine {
     // Group rules by plugin name to detect conflicts
     const rulesByPlugin = new Map<string, typeof matchingRules>()
 
-    matchingRules.forEach(ruleResult => {
+    matchingRules.forEach((ruleResult) => {
       const pluginName = ruleResult.animation.pluginName
       if (!rulesByPlugin.has(pluginName)) {
         rulesByPlugin.set(pluginName, [])
@@ -370,10 +385,10 @@ export class RuleEngine {
         switch (conflict.resolution) {
           case 'highest-priority':
             const highestPriority = Math.max(
-              ...rulesForPlugin.map(r => r.rule.priority)
+              ...rulesForPlugin.map((r) => r.rule.priority)
             )
             const selectedRule = rulesForPlugin.find(
-              r => r.rule.priority === highestPriority
+              (r) => r.rule.priority === highestPriority
             )!
             resolvedRules.push(selectedRule)
             break
@@ -388,7 +403,9 @@ export class RuleEngine {
             break
 
           case 'error':
-            throw new Error(`Unresolvable rule conflict for plugin ${pluginName}`)
+            throw new Error(
+              `Unresolvable rule conflict for plugin ${pluginName}`
+            )
         }
       }
     })
@@ -407,8 +424,8 @@ export class RuleEngine {
       matchStrength: number
     }>
   ): RuleConflict {
-    const ruleIds = conflictingRules.map(r => r.rule.id)
-    const hasExclusiveRule = conflictingRules.some(r => r.rule.exclusive)
+    const ruleIds = conflictingRules.map((r) => r.rule.id)
+    const hasExclusiveRule = conflictingRules.some((r) => r.rule.exclusive)
 
     let resolution: RuleConflict['resolution'] = 'highest-priority'
 
@@ -424,11 +441,16 @@ export class RuleEngine {
       conflictingRules: ruleIds,
       type: 'priority',
       resolution,
-      result: resolution === 'highest-priority' ? {
-        selectedRule: conflictingRules.reduce((highest, current) =>
-          current.rule.priority > highest.rule.priority ? current : highest
-        ).rule.id
-      } : undefined,
+      result:
+        resolution === 'highest-priority'
+          ? {
+              selectedRule: conflictingRules.reduce((highest, current) =>
+                current.rule.priority > highest.rule.priority
+                  ? current
+                  : highest
+              ).rule.id,
+            }
+          : undefined,
     }
   }
 
@@ -437,13 +459,15 @@ export class RuleEngine {
    */
   private canMergeRules(rules: Array<{ rule: AnimationRule }>): boolean {
     // Simple heuristic: rules can be merged if they have different parameter focuses
-    const parameterSets = rules.map(r => new Set(Object.keys(r.rule.animation.params || {})))
+    const parameterSets = rules.map(
+      (r) => new Set(Object.keys(r.rule.animation.params || {}))
+    )
 
     // Check for parameter overlap
     for (let i = 0; i < parameterSets.length; i++) {
       for (let j = i + 1; j < parameterSets.length; j++) {
         const intersection = new Set(
-          [...parameterSets[i]].filter(x => parameterSets[j].has(x))
+          [...parameterSets[i]].filter((x) => parameterSets[j].has(x))
         )
         if (intersection.size > 0) {
           return false // Overlapping parameters can't be merged
@@ -464,12 +488,12 @@ export class RuleEngine {
       intensity: number
       matchStrength: number
     }>
-  ): typeof rules[0] {
+  ): (typeof rules)[0] {
     const baseRule = rules[0]
     const mergedParams = { ...baseRule.animation.params }
 
     // Merge parameters from all rules
-    rules.slice(1).forEach(ruleResult => {
+    rules.slice(1).forEach((ruleResult) => {
       Object.assign(mergedParams, ruleResult.animation.params)
     })
 
@@ -479,15 +503,18 @@ export class RuleEngine {
         ...baseRule.animation,
         params: mergedParams,
       },
-      intensity: Math.max(...rules.map(r => r.intensity)),
-      matchStrength: Math.max(...rules.map(r => r.matchStrength)),
+      intensity: Math.max(...rules.map((r) => r.intensity)),
+      matchStrength: Math.max(...rules.map((r) => r.matchStrength)),
     }
   }
 
   /**
    * Get field value from context
    */
-  private getFieldValue(fieldPath: string, context: RuleEvaluationContext): any {
+  private getFieldValue(
+    fieldPath: string,
+    context: RuleEvaluationContext
+  ): any {
     if (fieldPath in context.word) {
       return (context.word as any)[fieldPath]
     }
@@ -544,10 +571,9 @@ export class RuleEngine {
     return {
       evaluations: allStats.reduce((sum, stats) => sum + stats.evaluations, 0),
       matches: allStats.reduce((sum, stats) => sum + stats.matches, 0),
-      averageExecutionTime: allStats.reduce(
-        (sum, stats) => sum + stats.averageExecutionTime,
-        0
-      ) / allStats.length || 0,
+      averageExecutionTime:
+        allStats.reduce((sum, stats) => sum + stats.averageExecutionTime, 0) /
+          allStats.length || 0,
       cacheHits: allStats.reduce((sum, stats) => sum + stats.cacheHits, 0),
       cacheMisses: allStats.reduce((sum, stats) => sum + stats.cacheMisses, 0),
     }
@@ -565,14 +591,16 @@ export class RuleEngine {
     })
 
     this.intensityCalculators.set('exponential', {
-      calculate: (value: number, threshold: number, context) => Math.pow(value, 2),
+      calculate: (value: number, threshold: number, context) =>
+        Math.pow(value, 2),
       mapping: 'exponential',
       clampMin: 0,
       clampMax: 1,
     })
 
     this.intensityCalculators.set('logarithmic', {
-      calculate: (value: number, threshold: number, context) => Math.log(1 + value),
+      calculate: (value: number, threshold: number, context) =>
+        Math.log(1 + value),
       mapping: 'logarithmic',
       clampMin: 0,
       clampMax: 1,

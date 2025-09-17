@@ -94,21 +94,28 @@ const NumberControl: React.FC<ControlProps> = ({
           onChange={(e) => onChange(Number(e.target.value))}
           className="flex-1 h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer"
         />
-        <input
-          type="number"
-          min={min}
-          max={max}
-          step={step}
-          value={numValue}
-          onChange={(e) => onChange(Number(e.target.value))}
-          className={clsx(
-            'w-16 px-2 py-1 text-sm bg-white border border-gray-300',
-            'rounded text-black focus:outline-none focus:border-gray-500',
-            TRANSITIONS.colors
-          )}
+        <div className="flex items-center space-x-1">
+          <input
+            type="number"
+            min={min}
+            max={max}
+            step={step}
+            value={numValue}
+            onChange={(e) => onChange(Number(e.target.value))}
+            className={clsx(
+              'w-16 px-2 py-1 text-sm bg-gray-700 border border-gray-600',
+              'rounded text-white focus:outline-none focus:border-blue-500',
+              TRANSITIONS.colors
+            )}
           />
+          {unit && (
+            <span className="text-xs text-gray-400 font-mono min-w-0">
+              {unit}
+            </span>
+          )}
         </div>
       </div>
+    </div>
   )
 }
 
@@ -215,7 +222,9 @@ const ColorControl: React.FC<ControlProps> = ({
   onChange,
 }) => {
   const colorValue =
-    typeof value === 'string' ? value : String(value ?? property.default ?? '#FFFFFF')
+    typeof value === 'string'
+      ? value
+      : String(value ?? property.default ?? '#FFFFFF')
 
   return (
     <div className="flex items-center space-x-3">
@@ -249,11 +258,12 @@ const ObjectControl: React.FC<ControlProps> = ({
   value,
   onChange,
 }) => {
-  const jsonValue = typeof value === 'string'
-    ? value
-    : typeof value === 'object' && value !== null
-      ? JSON.stringify(value, null, 2)
-      : JSON.stringify(property.default ?? {}, null, 2)
+  const jsonValue =
+    typeof value === 'string'
+      ? value
+      : typeof value === 'object' && value !== null
+        ? JSON.stringify(value, null, 2)
+        : JSON.stringify(property.default ?? {}, null, 2)
 
   const [inputValue, setInputValue] = React.useState(jsonValue)
   const [isValid, setIsValid] = React.useState(true)
@@ -386,11 +396,13 @@ export const PluginParameterControls: React.FC<
           <div key={key} className="space-y-2">
             {/* 라벨과 설명 */}
             <div className="space-y-1">
-              <label className="text-sm font-medium text-black">
-                {property.label}
+              <label className="text-sm font-medium text-white">
+                {getLabel(property)}
               </label>
-              {property.description && (
-                <p className="text-xs text-gray-600">{property.description}</p>
+              {getDescription(property) && (
+                <p className="text-xs text-gray-400">
+                  {getDescription(property)}
+                </p>
               )}
             </div>
 

@@ -156,9 +156,12 @@ export interface WordSlice extends WordDragState {
   applyTemplateToWords: (
     templateId: string,
     wordIds: string[],
-    audioData?: any
+    audioData?: unknown
   ) => Promise<void>
-  applyTemplateToSelection: (templateId: string, audioData?: any) => Promise<void>
+  applyTemplateToSelection: (
+    templateId: string,
+    audioData?: unknown
+  ) => Promise<void>
 
   // Utility
   isWordFocused: (wordId: string) => boolean
@@ -1178,9 +1181,12 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
             // Apply template parameters
             if (track.params) {
               // Use the existing method for updating animation track parameters
-              const animationTracks = state.wordAnimationTracks.get(wordId) || []
-              const updatedTracks = animationTracks.map(t =>
-                t.assetId === track.assetId ? { ...t, params: { ...t.params, ...track.params } } : t
+              const animationTracks =
+                state.wordAnimationTracks.get(wordId) || []
+              const updatedTracks = animationTracks.map((t) =>
+                t.assetId === track.assetId
+                  ? { ...t, params: { ...t.params, ...track.params } }
+                  : t
               )
               state.wordAnimationTracks.set(wordId, updatedTracks)
             }
@@ -1212,7 +1218,11 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
     if (selectedWordIds.length === 0) {
       // If no multi-selection, apply to focused word
       if (state.focusedWordId) {
-        await get().applyTemplateToWords(templateId, [state.focusedWordId], audioData)
+        await get().applyTemplateToWords(
+          templateId,
+          [state.focusedWordId],
+          audioData
+        )
       } else {
         console.warn('No words selected for template application')
       }

@@ -38,18 +38,15 @@ export type AudioFieldPath =
   | 'volume_statistics.baseline_db'
   | 'volume_statistics.whisper_threshold_db'
   | 'volume_statistics.loud_threshold_db'
-
   | 'pitch_statistics.global_min_hz'
   | 'pitch_statistics.global_max_hz'
   | 'pitch_statistics.global_mean_hz'
   | 'pitch_statistics.baseline_range.min_hz'
   | 'pitch_statistics.baseline_range.max_hz'
-
   | 'harmonics_statistics.global_min_ratio'
   | 'harmonics_statistics.global_max_ratio'
   | 'harmonics_statistics.global_mean_ratio'
   | 'harmonics_statistics.baseline_ratio'
-
   | 'spectral_statistics.global_min_hz'
   | 'spectral_statistics.global_max_hz'
   | 'spectral_statistics.global_mean_hz'

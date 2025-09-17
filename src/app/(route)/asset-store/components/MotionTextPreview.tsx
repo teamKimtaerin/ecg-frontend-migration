@@ -46,7 +46,9 @@ export const MotionTextPreview = React.forwardRef<
   ) => {
     // State
     const [manifest, setManifest] = useState<PluginManifest | null>(null)
-    const [extractedPluginKey, setExtractedPluginKey] = useState<string | null>(null)
+    const [extractedPluginKey, setExtractedPluginKey] = useState<string | null>(
+      null
+    )
     const [parameters, setParameters] = useState<Record<string, unknown>>({})
     const [position, setPosition] = useState({ x: 200, y: 140 }) // 초기값은 640x360 기준
     const [size, setSize] = useState({ width: 240, height: 80 })
@@ -105,7 +107,8 @@ export const MotionTextPreview = React.forwardRef<
       const loadManifest = async () => {
         try {
           // Use provided pluginKey or extract from manifestFile path
-          const pluginName = pluginKey || manifestFile.split('/').slice(-2, -1)[0] // '/plugin/rotation@1.0.0/manifest.json' -> 'rotation@1.0.0'
+          const pluginName =
+            pluginKey || manifestFile.split('/').slice(-2, -1)[0] // '/plugin/rotation@1.0.0/manifest.json' -> 'rotation@1.0.0'
           setExtractedPluginKey(pluginName)
 
           const serverBase = (

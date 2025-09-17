@@ -37,7 +37,10 @@ export { AudioDataMapper } from './processor/AudioDataMapper'
 
 // Registry
 export { TemplateRegistry } from './registry/TemplateRegistry'
-export type { TemplateInfo, TemplateSearchOptions } from './registry/TemplateRegistry'
+export type {
+  TemplateInfo,
+  TemplateSearchOptions,
+} from './registry/TemplateRegistry'
 
 // Import types
 import { TemplateRegistry } from './registry/TemplateRegistry'

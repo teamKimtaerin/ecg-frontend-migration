@@ -50,7 +50,8 @@ export class TemplateRegistry {
       {
         id: 'caption-with-intention',
         name: 'Caption with Intention',
-        description: 'Dynamic captions that emphasize important words based on volume, pitch, and emotional content',
+        description:
+          'Dynamic captions that emphasize important words based on volume, pitch, and emotional content',
         category: 'emphasis',
         author: 'ECG Template System',
         version: '1.0.0',
@@ -61,7 +62,8 @@ export class TemplateRegistry {
       {
         id: 'smooth-narration',
         name: 'Smooth Narration',
-        description: 'Elegant, minimal captions perfect for narration and educational content',
+        description:
+          'Elegant, minimal captions perfect for narration and educational content',
         category: 'narrative',
         author: 'ECG Template System',
         version: '1.0.0',
@@ -72,7 +74,8 @@ export class TemplateRegistry {
       {
         id: 'dynamic-conversation',
         name: 'Dynamic Conversation',
-        description: 'Vibrant captions designed for multi-speaker conversations',
+        description:
+          'Vibrant captions designed for multi-speaker conversations',
         category: 'conversation',
         author: 'ECG Template System',
         version: '1.0.0',
@@ -82,7 +85,7 @@ export class TemplateRegistry {
       },
     ]
 
-    builtInTemplates.forEach(info => {
+    builtInTemplates.forEach((info) => {
       this.templateInfos.set(info.id, info)
     })
   }
@@ -96,24 +99,26 @@ export class TemplateRegistry {
     if (options) {
       // Filter by category
       if (options.category) {
-        templates = templates.filter(t => t.category === options.category)
+        templates = templates.filter((t) => t.category === options.category)
       }
 
       // Filter by complexity
       if (options.complexity && options.complexity.length > 0) {
-        templates = templates.filter(t => options.complexity!.includes(t.complexity))
+        templates = templates.filter((t) =>
+          options.complexity!.includes(t.complexity)
+        )
       }
 
       // Filter by tags
       if (options.tags && options.tags.length > 0) {
-        templates = templates.filter(t =>
-          options.tags!.some(tag => t.tags.includes(tag))
+        templates = templates.filter((t) =>
+          options.tags!.some((tag) => t.tags.includes(tag))
         )
       }
 
       // Filter by author
       if (options.author) {
-        templates = templates.filter(t =>
+        templates = templates.filter((t) =>
           t.author?.toLowerCase().includes(options.author!.toLowerCase())
         )
       }
@@ -121,10 +126,11 @@ export class TemplateRegistry {
       // Filter by search text
       if (options.searchText) {
         const searchLower = options.searchText.toLowerCase()
-        templates = templates.filter(t =>
-          t.name.toLowerCase().includes(searchLower) ||
-          t.description.toLowerCase().includes(searchLower) ||
-          t.tags.some(tag => tag.toLowerCase().includes(searchLower))
+        templates = templates.filter(
+          (t) =>
+            t.name.toLowerCase().includes(searchLower) ||
+            t.description.toLowerCase().includes(searchLower) ||
+            t.tags.some((tag) => tag.toLowerCase().includes(searchLower))
         )
       }
     }
@@ -187,7 +193,9 @@ export class TemplateRegistry {
     try {
       const response = await fetch(info.filePath)
       if (!response.ok) {
-        throw new Error(`Failed to fetch template ${id}: ${response.statusText}`)
+        throw new Error(
+          `Failed to fetch template ${id}: ${response.statusText}`
+        )
       }
 
       const templateData = await response.json()
@@ -198,10 +206,14 @@ export class TemplateRegistry {
       }
 
       // Parse and validate the template
-      const compiledTemplate = await this.templateParser.parseTemplate(templateData)
+      const compiledTemplate =
+        await this.templateParser.parseTemplate(templateData)
 
       if (compiledTemplate.validationErrors.length > 0) {
-        console.warn(`Template ${id} has validation warnings:`, compiledTemplate.validationErrors)
+        console.warn(
+          `Template ${id} has validation warnings:`,
+          compiledTemplate.validationErrors
+        )
       }
 
       return templateData as SubtitleTemplate
@@ -214,7 +226,16 @@ export class TemplateRegistry {
    * Validate basic template structure
    */
   private isValidTemplateStructure(template: any): boolean {
-    const required = ['id', 'name', 'version', 'category', 'style', 'layout', 'animationRules', 'metadata']
+    const required = [
+      'id',
+      'name',
+      'version',
+      'category',
+      'style',
+      'layout',
+      'animationRules',
+      'metadata',
+    ]
 
     for (const field of required) {
       if (!(field in template)) {
@@ -234,12 +255,17 @@ export class TemplateRegistry {
   /**
    * Register a new template (for custom templates)
    */
-  async registerTemplate(template: SubtitleTemplate, filePath?: string): Promise<void> {
+  async registerTemplate(
+    template: SubtitleTemplate,
+    filePath?: string
+  ): Promise<void> {
     // Validate the template
     const validationResult = this.templateParser.validateTemplate(template)
 
     if (!validationResult.isValid) {
-      throw new Error(`Template validation failed: ${validationResult.errors.map(e => e.message).join(', ')}`)
+      throw new Error(
+        `Template validation failed: ${validationResult.errors.map((e) => e.message).join(', ')}`
+      )
     }
 
     // Create template info
@@ -272,7 +298,9 @@ export class TemplateRegistry {
   /**
    * Get templates by category
    */
-  async getTemplatesByCategory(category: TemplateCategory): Promise<TemplateInfo[]> {
+  async getTemplatesByCategory(
+    category: TemplateCategory
+  ): Promise<TemplateInfo[]> {
     return this.getTemplateInfos({ category })
   }
 
@@ -292,55 +320,65 @@ export class TemplateRegistry {
     isDynamic: boolean
     contentType: 'conversation' | 'narration' | 'presentation' | 'other'
   }): TemplateInfo[] {
-    let recommendations: TemplateInfo[] = []
+    const recommendations: TemplateInfo[] = []
 
     // Rule-based recommendations
     if (audioFeatures.hasMultipleSpeakers) {
-      recommendations.push(...this.getTemplateInfos({
-        tags: ['conversation', 'multi-speaker']
-      }))
+      recommendations.push(
+        ...this.getTemplateInfos({
+          tags: ['conversation', 'multi-speaker'],
+        })
+      )
     }
 
     if (audioFeatures.hasEmotionalContent && audioFeatures.isDynamic) {
-      recommendations.push(...this.getTemplateInfos({
-        tags: ['emphasis', 'dynamic', 'emotional']
-      }))
+      recommendations.push(
+        ...this.getTemplateInfos({
+          tags: ['emphasis', 'dynamic', 'emotional'],
+        })
+      )
     }
 
     if (audioFeatures.contentType === 'narration') {
-      recommendations.push(...this.getTemplateInfos({
-        category: 'narrative'
-      }))
+      recommendations.push(
+        ...this.getTemplateInfos({
+          category: 'narrative',
+        })
+      )
     }
 
     if (audioFeatures.contentType === 'conversation') {
-      recommendations.push(...this.getTemplateInfos({
-        category: 'conversation'
-      }))
+      recommendations.push(
+        ...this.getTemplateInfos({
+          category: 'conversation',
+        })
+      )
     }
 
     // Remove duplicates
     const unique = Array.from(
-      new Map(recommendations.map(t => [t.id, t])).values()
+      new Map(recommendations.map((t) => [t.id, t])).values()
     )
 
     // Sort by relevance (simplified scoring)
-    return unique.sort((a, b) => {
-      let scoreA = 0
-      let scoreB = 0
+    return unique
+      .sort((a, b) => {
+        let scoreA = 0
+        let scoreB = 0
 
-      // Boost score for matching content type
-      if (a.category === audioFeatures.contentType) scoreA += 10
-      if (b.category === audioFeatures.contentType) scoreB += 10
+        // Boost score for matching content type
+        if (a.category === audioFeatures.contentType) scoreA += 10
+        if (b.category === audioFeatures.contentType) scoreB += 10
 
-      // Boost score for dynamic content if audio is dynamic
-      if (audioFeatures.isDynamic) {
-        if (a.tags.includes('dynamic')) scoreA += 5
-        if (b.tags.includes('dynamic')) scoreB += 5
-      }
+        // Boost score for dynamic content if audio is dynamic
+        if (audioFeatures.isDynamic) {
+          if (a.tags.includes('dynamic')) scoreA += 5
+          if (b.tags.includes('dynamic')) scoreB += 5
+        }
 
-      return scoreB - scoreA
-    }).slice(0, 5) // Top 5 recommendations
+        return scoreB - scoreA
+      })
+      .slice(0, 5) // Top 5 recommendations
   }
 
   /**
@@ -370,10 +408,12 @@ export class TemplateRegistry {
    * Preload commonly used templates
    */
   async preloadTemplates(templateIds: string[]): Promise<void> {
-    const loadPromises = templateIds.map(id => this.loadTemplate(id).catch(error => {
-      console.warn(`Failed to preload template ${id}:`, error)
-      return null
-    }))
+    const loadPromises = templateIds.map((id) =>
+      this.loadTemplate(id).catch((error) => {
+        console.warn(`Failed to preload template ${id}:`, error)
+        return null
+      })
+    )
 
     await Promise.all(loadPromises)
   }
