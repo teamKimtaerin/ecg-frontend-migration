@@ -16,8 +16,8 @@ import { API_CONFIG } from '@/config/api.config'
 // API Base URL - 개발 환경에서는 프록시 사용 (CORS 우회)
 const API_BASE_URL =
   process.env.NODE_ENV === 'development'
-    ? '/api' // Next.js 프록시 경로
-    : API_CONFIG.FASTAPI_BASE_URL
+    ? '' // 개발 환경: Next.js 프록시 사용 (/api/* 경로가 백엔드로 라우팅)
+    : API_CONFIG.FASTAPI_BASE_URL // 프로덕션: CloudFront 통해 직접 호출
 
 class UploadService {
   private abortControllers = new Map<string, AbortController>()
@@ -100,8 +100,8 @@ class UploadService {
   ): Promise<ServiceResponse<PresignedUrlResponse>> {
     // 백엔드 API 스펙에 맞게 필드명 조정
     const request = {
-      file_name: filename,
-      file_type: contentType, // backend expects 'file_type'
+      filename: filename,        // 백엔드는 'filename' 기대 (언더스코어 없음)
+      content_type: contentType, // 백엔드는 'content_type' 기대
     }
 
     // Backend response might have different field names
@@ -116,7 +116,7 @@ class UploadService {
     }
 
     const response = await this.makeRequest<BackendPresignedResponse>(
-      '/upload-video/generate-url', // /api 제거 (프록시가 추가함)
+      '/api/upload-video/generate-url',
       {
         method: 'POST',
         body: JSON.stringify(request),
@@ -225,7 +225,7 @@ class UploadService {
     }
 
     return this.makeRequest<MLProcessingResponse>(
-      '/upload-video/request-process', // /api 제거 (프록시가 추가함)
+      '/api/upload-video/request-process',
       {
         method: 'POST',
         body: JSON.stringify(request),
@@ -239,7 +239,7 @@ class UploadService {
   async checkProcessingStatus(
     jobId: string
   ): Promise<ServiceResponse<ProcessingStatus>> {
-    return this.makeRequest<ProcessingStatus>(`/upload-video/status/${jobId}`, {
+    return this.makeRequest<ProcessingStatus>(`/api/upload-video/status/${jobId}`, {
       method: 'GET',
     })
   }
@@ -253,7 +253,7 @@ class UploadService {
       this.abortControllers.delete(jobId)
     }
 
-    return this.makeRequest<void>(`/upload-video/cancel/${jobId}`, {
+    return this.makeRequest<void>(`/api/upload-video/cancel/${jobId}`, {
       method: 'POST',
     })
   }
