@@ -20,7 +20,6 @@ export const API_CONFIG = {
   // API Base URLs (환경변수에서 가져오기)
   FASTAPI_BASE_URL: process.env.NEXT_PUBLIC_API_URL!,
   API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL!,
-  MODEL_SERVER_URL: process.env.NEXT_PUBLIC_MODEL_SERVER_URL!,
 
   // S3 Configuration
   S3_BUCKET: process.env.NEXT_PUBLIC_S3_BUCKET || 'ecg-videos',
