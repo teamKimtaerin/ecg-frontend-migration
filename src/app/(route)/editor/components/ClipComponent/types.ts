@@ -36,14 +36,15 @@ export interface ClipComponentProps {
   onOpenSpeakerManagement?: () => void
   onAddSpeaker?: (name: string) => void
   onRenameSpeaker?: (oldName: string, newName: string) => void
+  speakerColors?: Record<string, string> // 화자별 색상 매핑
   onMouseDown?: () => void
   onMouseEnter?: () => void
 }
 
 export interface ClipStyleState {
   isSelected: boolean
-  isChecked: boolean
-  isMultiSelected: boolean
+  isChecked?: boolean
+  isMultiSelected?: boolean
   isHovered: boolean
   isDragging?: boolean
 }

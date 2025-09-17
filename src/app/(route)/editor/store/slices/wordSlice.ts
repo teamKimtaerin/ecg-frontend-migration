@@ -31,9 +31,27 @@ export interface WordDragState {
   wordTimingHistoryIndex: Map<string, number>
   // Animation tracks per word (max 3 tracks)
   wordAnimationTracks: Map<string, AnimationTrack[]>
+  // Video playback synchronization
+  playingWordId: string | null // Currently playing word from video timeline
+  playingClipId: string | null // Currently playing clip from video timeline
+}
+
+// State priority levels (higher number = higher priority)
+export enum WordStatePriority {
+  NORMAL = 0,
+  GROUPED = 1,
+  FOCUSED = 2,
+  EDITING = 3,
 }
 
 export interface WordSlice extends WordDragState {
+  // State priority and guards
+  getWordStatePriority: (wordId: string) => WordStatePriority | null
+  canChangeWordState: (
+    wordId: string,
+    newPriority: WordStatePriority
+  ) => boolean
+
   // Focus management
   setFocusedWord: (clipId: string, wordId: string | null) => void
   clearWordFocus: () => void
@@ -95,6 +113,11 @@ export interface WordSlice extends WordDragState {
   ) => void
   clearAnimationTracks: (wordId: string) => void
 
+  // Video playback synchronization
+  setPlayingWord: (clipId: string | null, wordId: string | null) => void
+  clearPlayingWord: () => void
+  isWordPlaying: (wordId: string) => boolean
+
   // Utility
   isWordFocused: (wordId: string) => boolean
   isWordInGroup: (wordId: string) => boolean
@@ -126,20 +149,55 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
   wordTimingHistory: new Map(),
   wordTimingHistoryIndex: new Map(),
   wordAnimationTracks: new Map(),
+  playingWordId: null,
+  playingClipId: null,
 
   // Focus management
   setFocusedWord: (clipId, wordId) =>
-    set({
-      focusedClipId: clipId,
-      focusedWordId: wordId,
-      groupedWordIds: wordId ? new Set([wordId]) : new Set(),
+    set((state) => {
+      // Prevent unnecessary updates if already focused on the same word
+      if (state.focusedClipId === clipId && state.focusedWordId === wordId) {
+        return state
+      }
+
+      // Check if clip focus is changing - if so, close waveform modal
+      const isClipFocusChanging =
+        state.focusedClipId && state.focusedClipId !== clipId
+
+      return {
+        focusedClipId: clipId,
+        focusedWordId: wordId,
+        groupedWordIds: wordId ? new Set([wordId]) : new Set(),
+        // Clear editing state when focusing on different word
+        editingWordId:
+          state.editingWordId === wordId ? state.editingWordId : null,
+        editingClipId:
+          state.editingClipId === clipId ? state.editingClipId : null,
+        // Close waveform modal if clip focus is changing
+        expandedClipId: isClipFocusChanging ? null : state.expandedClipId,
+        expandedWordId: isClipFocusChanging ? null : state.expandedWordId,
+      }
     }),
 
   clearWordFocus: () =>
-    set({
-      focusedWordId: null,
-      focusedClipId: null,
-      groupedWordIds: new Set(),
+    set((state) => {
+      // Only clear if there's actually something to clear
+      if (
+        !state.focusedWordId &&
+        !state.focusedClipId &&
+        state.groupedWordIds.size === 0
+      ) {
+        return state
+      }
+
+      return {
+        focusedWordId: null,
+        focusedClipId: null,
+        groupedWordIds: new Set(),
+        // Close waveform modal when clearing focus
+        expandedClipId: null,
+        expandedWordId: null,
+      }
     }),
 
   // Group selection
@@ -446,6 +504,31 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
       return { wordAnimationTracks: newTracks }
     }),
 
+  // Video playback synchronization
+  setPlayingWord: (clipId, wordId) =>
+    set((state) => {
+      // Only update if the playing word has actually changed
+      if (state.playingClipId === clipId && state.playingWordId === wordId) {
+        return state
+      }
+
+      return {
+        playingClipId: clipId,
+        playingWordId: wordId,
+      }
+    }),
+
+  clearPlayingWord: () =>
+    set({
+      playingWordId: null,
+      playingClipId: null,
+    }),
+
+  isWordPlaying: (wordId) => {
+    const state = get()
+    return state.playingWordId === wordId
+  },
+
   // Utility functions
   isWordFocused: (wordId) => {
     const state = get()
@@ -465,5 +548,24 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
   isEditingWord: (wordId) => {
     const state = get()
     return state.editingWordId === wordId
+  },
+
+  getWordStatePriority: (wordId) => {
+    const state = get()
+    if (state.editingWordId === wordId) return WordStatePriority.EDITING
+    if (state.focusedWordId === wordId) return WordStatePriority.FOCUSED
+    if (state.groupedWordIds.has(wordId)) return WordStatePriority.GROUPED
+    return WordStatePriority.NORMAL
+  },
+
+  canChangeWordState: (wordId, newPriority) => {
+    const state = get()
+    if (state.isDraggingWord || state.isGroupSelecting) return false
+
+    const currentPriority = get().getWordStatePriority(wordId)
+    if (currentPriority === null) return true
+
+    // Higher priority states can override lower ones
+    return newPriority >= currentPriority
   },
 })
