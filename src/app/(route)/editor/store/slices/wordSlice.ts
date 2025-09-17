@@ -1,6 +1,6 @@
 import { StateCreator } from 'zustand'
 import { getPluginTimeOffset } from '../../utils/pluginManifestLoader'
-import { Word } from '../../types'
+import { Word, ClipItem } from '../../types'
 
 export interface AnimationTrack {
   assetId: string
@@ -776,7 +776,7 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
           // appliedAssets
           if (anyGet.applyAssetsToWord) {
             for (const clip of clips) {
-              const has = clip.words?.some((w: any) => w.id === wordId) // eslint-disable-line @typescript-eslint/no-explicit-any
+              const has = clip.words?.some((w: Word) => w.id === wordId)
               if (has) {
                 anyGet.applyAssetsToWord(
                   clip.id,
@@ -790,7 +790,7 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
           // mirror animationTracks onto word
           if (anyGet.updateWordAnimationTracks) {
             for (const clip of clips) {
-              const has = clip.words?.some((w: any) => w.id === wordId) // eslint-disable-line @typescript-eslint/no-explicit-any
+              const has = clip.words?.some((w: Word) => w.id === wordId)
               if (has) {
                 anyGet.updateWordAnimationTracks(clip.id, wordId, tracks)
                 break
@@ -949,8 +949,10 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
       const fromWordId = state.lastSelectedWordId
 
       // Find clip indices
-      const fromClipIndex = clips.findIndex((c: any) => c.id === fromClipId) // eslint-disable-line @typescript-eslint/no-explicit-any
-      const toClipIndex = clips.findIndex((c: any) => c.id === toClipId) // eslint-disable-line @typescript-eslint/no-explicit-any
+      const fromClipIndex = clips.findIndex(
+        (c: ClipItem) => c.id === fromClipId
+      )
+      const toClipIndex = clips.findIndex((c: ClipItem) => c.id === toClipId)
 
       if (fromClipIndex === -1 || toClipIndex === -1) return state
 
@@ -964,8 +966,8 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
 
         if (ci === fromClipIndex && ci === toClipIndex) {
           // Same clip - select range within
-          const fromIdx = clip.words.findIndex((w: any) => w.id === fromWordId) // eslint-disable-line @typescript-eslint/no-explicit-any
-          const toIdx = clip.words.findIndex((w: any) => w.id === toWordId) // eslint-disable-line @typescript-eslint/no-explicit-any
+          const fromIdx = clip.words.findIndex((w: Word) => w.id === fromWordId)
+          const toIdx = clip.words.findIndex((w: Word) => w.id === toWordId)
           const start = Math.min(fromIdx, toIdx)
           const end = Math.max(fromIdx, toIdx)
 
@@ -974,19 +976,19 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
           }
         } else if (ci === fromClipIndex) {
           // Start clip - select from word to end
-          const fromIdx = clip.words.findIndex((w: any) => w.id === fromWordId) // eslint-disable-line @typescript-eslint/no-explicit-any
+          const fromIdx = clip.words.findIndex((w: Word) => w.id === fromWordId)
           for (let wi = fromIdx; wi < clip.words.length; wi++) {
             selectedIds.add(clip.words[wi].id)
           }
         } else if (ci === toClipIndex) {
           // End clip - select from start to word
-          const toIdx = clip.words.findIndex((w: any) => w.id === toWordId) // eslint-disable-line @typescript-eslint/no-explicit-any
+          const toIdx = clip.words.findIndex((w: Word) => w.id === toWordId)
           for (let wi = 0; wi <= toIdx; wi++) {
             selectedIds.add(clip.words[wi].id)
           }
         } else {
           // Middle clips - select all words
-          clip.words.forEach((w: any) => selectedIds.add(w.id)) // eslint-disable-line @typescript-eslint/no-explicit-any
+          clip.words.forEach((w: Word) => selectedIds.add(w.id))
         }
       }
 
@@ -1015,10 +1017,10 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const anyGet = get() as any
         const clips = anyGet.clips || []
-        const clip = clips.find((c: any) => c.id === clipId) // eslint-disable-line @typescript-eslint/no-explicit-any
+        const clip = clips.find((c: ClipItem) => c.id === clipId)
         if (clip) {
           const hasOtherSelectedWords = clip.words.some(
-            (w: any) => w.id !== wordId && newSelection.has(w.id) // eslint-disable-line @typescript-eslint/no-explicit-any
+            (w: Word) => w.id !== wordId && newSelection.has(w.id)
           )
           if (!hasOtherSelectedWords) {
             newClipSelection.delete(clipId)
@@ -1065,11 +1067,11 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
 
         // Filter out selected words
         const remainingWords = clip.words.filter(
-          (w: any) => !selectedInClip.includes(w.id) // eslint-disable-line @typescript-eslint/no-explicit-any
+          (w: Word) => !selectedInClip.includes(w.id)
         )
 
         // Rebuild fullText and subtitle
-        const fullText = remainingWords.map((w: any) => w.text).join(' ') // eslint-disable-line @typescript-eslint/no-explicit-any
+        const fullText = remainingWords.map((w: Word) => w.text).join(' ')
 
         return {
           ...clip,
@@ -1121,8 +1123,8 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     clips.forEach((clip: any) => {
       const selectedInClip = clip.words
-        .filter((w: any) => state.multiSelectedWordIds.has(w.id)) // eslint-disable-line @typescript-eslint/no-explicit-any
-        .map((w: any) => w.id) // eslint-disable-line @typescript-eslint/no-explicit-any
+        .filter((w: Word) => state.multiSelectedWordIds.has(w.id))
+        .map((w: Word) => w.id)
 
       if (selectedInClip.length > 0) {
         result.set(clip.id, selectedInClip)

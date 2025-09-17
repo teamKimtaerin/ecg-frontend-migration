@@ -48,7 +48,7 @@ export default function EditorMotionTextOverlay({
     wordAnimationTracks,
     timeline,
     getSequentialClips,
-    initializeTimeline,
+    initializeTimeline: _initializeTimeline,
   } = useEditorStore()
 
   // Internal state

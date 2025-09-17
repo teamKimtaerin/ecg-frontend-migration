@@ -4,7 +4,7 @@
 
 import {
   TimelineClip,
-  TrackType,
+  // TrackType, // Unused import
 } from '@/app/(route)/editor/store/slices/timelineSlice'
 import { timelineEngine } from './timelineEngine'
 import { ClipItem } from '@/app/(route)/editor/components/ClipComponent/types'

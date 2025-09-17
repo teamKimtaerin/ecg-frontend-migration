@@ -180,13 +180,16 @@ export const useUploadModal = () => {
 
             // friends_result.json -> SegmentData[] 매핑
             const segments = (json.segments || []).map(
-              (seg: any, idx: number) => {
-                const words = (seg.words || []).map((w: any) => ({
-                  word: String(w.word ?? ''),
-                  start: Number(w.start_time ?? w.start ?? 0),
-                  end: Number(w.end_time ?? w.end ?? 0),
-                  confidence: Number(w.confidence ?? 0.9),
-                }))
+              (seg: Record<string, unknown>, idx: number) => {
+                const words = ((seg.words as unknown[]) || []).map((w) => {
+                  const wordObj = w as Record<string, unknown>
+                  return {
+                    word: String(wordObj.word ?? ''),
+                    start: Number(wordObj.start_time ?? wordObj.start ?? 0),
+                    end: Number(wordObj.end_time ?? wordObj.end ?? 0),
+                    confidence: Number(wordObj.confidence ?? 0.9),
+                  }
+                })
 
                 return {
                   id: seg.id ?? idx,
@@ -355,6 +358,7 @@ export const useUploadModal = () => {
         })
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [updateState, setMediaInfo, clearMedia, setClips, state]
   )
 
@@ -555,8 +559,8 @@ export const useUploadModal = () => {
   // 세그먼트 → 클립 변환 함수
   const convertSegmentsToClips = useCallback(
     (segments: SegmentData[]): ClipItem[] => {
-      // 모든 세그먼트의 타이밍이 0인지 확인
-      const allTimingsZero = segments.every(
+      // 모든 세그먼트의 타이밍이 0인지 확인 - TODO: Use this for validation
+      const _allTimingsZero = segments.every(
         (seg) => (!seg.start || seg.start === 0) && (!seg.end || seg.end === 0)
       )
 

@@ -57,7 +57,7 @@ export function useGlobalWordDragAndDrop() {
 
       if (over && overData?.type === 'word') {
         const overWordId = overData.wordId as string
-        const overClipId = overData.clipId as string
+        const _overClipId = overData.clipId as string
 
         // Allow dropping within any clip (cross-clip support)
         // Calculate drop position based on cursor location

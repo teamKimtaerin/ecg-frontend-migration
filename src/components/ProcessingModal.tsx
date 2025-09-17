@@ -1,9 +1,9 @@
 'use client'
 
 import { FaTimes } from 'react-icons/fa'
-import React, { useState, useEffect, useRef } from 'react'
-import Draggable from 'react-draggable'
-import { ChevronDownIcon, ChevronUpIcon } from '@/components/icons'
+import React, { useState, useRef } from 'react'
+// import Draggable from 'react-draggable' // Currently unused
+// import { ChevronDownIcon, ChevronUpIcon } from '@/components/icons' // Currently unused
 
 export interface ProcessingModalProps {
   isOpen: boolean
