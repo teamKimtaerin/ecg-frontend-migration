@@ -315,7 +315,7 @@ export const createClipSlice: StateCreator<
   },
 
   reorderClips: (activeId, overId, selectedIds) => {
-    const fullState = get()
+    const _fullState = get()
 
     set((state) => {
       const { clips } = state
@@ -352,7 +352,7 @@ export const createClipSlice: StateCreator<
           // If dropping on a selected item, find its position in the original array
           // and maintain relative position
           const overIndex = clips.findIndex((item) => item.id === overId)
-          const selectedIndexes = clips
+          const _selectedIndexes = clips
             .map((item, index) => ({ item, index }))
             .filter(({ item }) => selectedIds.has(item.id))
             .map(({ index }) => index)

@@ -48,6 +48,7 @@ export default function EditorMotionTextOverlay({
     wordAnimationTracks,
     timeline,
     getSequentialClips,
+    initializeTimeline: _initializeTimeline,
   } = useEditorStore()
 
   // Internal state
@@ -724,7 +725,7 @@ export default function EditorMotionTextOverlay({
 
   return (
     <div className="absolute inset-0" aria-label="motiontext-overlay">
-      <div ref={containerRef} className="w-full h-full pointer-events-none" />
+      <div ref={containerRef} className="w-full h-full" />
       {/* Lightweight debug status (non-interactive) */}
       {process.env.NODE_ENV === 'development' && (
         <div className="absolute top-1 right-2 text-[10px] text-white/70 bg-black/50 px-1 rounded">

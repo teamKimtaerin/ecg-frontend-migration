@@ -5,7 +5,8 @@
  * Supports complex expressions like: ({{volume_statistics.global_max_db}} - {{volume_statistics.baseline_db}}) * 9/10 + {{volume_statistics.baseline_db}}
  */
 
-import { ExpressionContext, ExpressionHelpers } from '../types/rule.types'
+import { ExpressionContext } from '../types/rule.types'
+// import { ExpressionHelpers } from '../types/rule.types' // Unused import
 
 export class ExpressionEvaluator {
   private readonly OPERATORS = {
@@ -91,7 +92,10 @@ export class ExpressionEvaluator {
   /**
    * Resolve global variable path from audio analysis data
    */
-  private resolveGlobalVariable(path: string, context: ExpressionContext): any {
+  private resolveGlobalVariable(
+    path: string,
+    context: ExpressionContext
+  ): unknown {
     // Handle special context variables
     if (path === 'wordIndex') return context.wordIndex
     if (path === 'segmentIndex') return context.segmentIndex
@@ -104,7 +108,7 @@ export class ExpressionEvaluator {
 
     // Navigate through object path in audioData
     const pathParts = path.split('.')
-    let value: any = context.audioData
+    let value: unknown = context.audioData
 
     for (const part of pathParts) {
       if (value === null || value === undefined) {
@@ -112,7 +116,7 @@ export class ExpressionEvaluator {
           `Cannot access property '${part}' of ${value} in path '${path}'`
         )
       }
-      value = value[part]
+      value = (value as Record<string, unknown>)[part]
     }
 
     if (value === undefined) {
@@ -128,10 +132,10 @@ export class ExpressionEvaluator {
   private resolveWordVariable(
     fieldName: string,
     context: ExpressionContext
-  ): any {
+  ): unknown {
     // Direct word properties
     if (fieldName in context.word) {
-      return (context.word as any)[fieldName]
+      return (context.word as unknown as Record<string, unknown>)[fieldName]
     }
 
     // Segment properties with prefix
@@ -146,19 +150,19 @@ export class ExpressionEvaluator {
   /**
    * Get nested property from object using dot notation
    */
-  private getNestedProperty(obj: any, path: string): any {
+  private getNestedProperty(obj: unknown, path: string): unknown {
     return path.split('.').reduce((current, key) => {
       if (current === null || current === undefined) {
         throw new Error(`Cannot access property '${key}' of ${current}`)
       }
-      return current[key]
+      return (current as Record<string, unknown>)[key]
     }, obj)
   }
 
   /**
    * Format number for expression interpolation
    */
-  private formatNumber(value: any): string {
+  private formatNumber(value: unknown): string {
     if (typeof value === 'number') {
       // Preserve precision for calculations
       return Number.isInteger(value) ? value.toString() : value.toString()
@@ -176,8 +180,8 @@ export class ExpressionEvaluator {
   private tokenize(expression: string): string[] {
     const tokens: string[] = []
     let current = ''
-    let inFunction = false
-    let parenCount = 0
+    let _inFunction = false
+    let _parenCount = 0
 
     for (let i = 0; i < expression.length; i++) {
       const char = expression[i]
@@ -194,20 +198,20 @@ export class ExpressionEvaluator {
         if (current.trim() && this.FUNCTIONS.has(current.trim())) {
           tokens.push(current.trim())
           current = ''
-          inFunction = true
+          _inFunction = true
         } else if (current.trim()) {
           tokens.push(current.trim())
           current = ''
         }
         tokens.push(char)
-        parenCount++
+        _parenCount++
       } else if (char === ')') {
         if (current.trim()) {
           tokens.push(current.trim())
           current = ''
         }
         tokens.push(char)
-        parenCount--
+        _parenCount--
       } else if (char === ',') {
         if (current.trim()) {
           tokens.push(current.trim())

@@ -225,15 +225,16 @@ export const MotionTextPreview = React.forwardRef<
           },
         }
 
+        /* eslint-disable @typescript-eslint/no-explicit-any */
         const scenario = generateLoopedScenarioV2(
           extractedPluginKey || manifest.name, // Use plugin key with version
-          settingsForGenerator as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+          settingsForGenerator as any,
           3
-        ) as any // eslint-disable-line @typescript-eslint/no-explicit-any
-        await loadScenario(
-          scenario as any, // eslint-disable-line @typescript-eslint/no-explicit-any
-          { silent: firstLoadDoneRef.current }
-        )
+        ) as any
+        await loadScenario(scenario as any, {
+          silent: firstLoadDoneRef.current,
+        })
+        /* eslint-enable @typescript-eslint/no-explicit-any */
         console.log('[MotionTextPreview] Scenario loaded successfully')
         // Attempt to probe DOM to estimate rendered group/text center (best-effort)
         setTimeout(() => {
@@ -284,6 +285,7 @@ export const MotionTextPreview = React.forwardRef<
       containerRef,
       play,
       showControls,
+      extractedPluginKey,
     ])
 
     /**

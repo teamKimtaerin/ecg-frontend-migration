@@ -107,12 +107,12 @@ class UploadService {
     // Backend response might have different field names
     interface BackendPresignedResponse {
       url?: string
-      upload_url?: string  // API doc specifies this field
+      upload_url?: string // API doc specifies this field
       presigned_url?: string
       fileKey?: string
       file_key?: string
       expires_in?: number
-      expires_at?: string  // API doc specifies this field
+      expires_at?: string // API doc specifies this field
     }
 
     const response = await this.makeRequest<BackendPresignedResponse>(
@@ -126,7 +126,11 @@ class UploadService {
     // 응답 매핑: 백엔드 응답을 프론트엔드 형식으로 변환
     if (response.success && response.data) {
       const mappedResponse: PresignedUrlResponse = {
-        presigned_url: response.data.upload_url || response.data.url || response.data.presigned_url || '',
+        presigned_url:
+          response.data.upload_url ||
+          response.data.url ||
+          response.data.presigned_url ||
+          '',
         file_key: response.data.fileKey || response.data.file_key || '',
         expires_in: response.data.expires_in || 3600,
       }

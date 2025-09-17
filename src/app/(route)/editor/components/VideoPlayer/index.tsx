@@ -10,7 +10,7 @@ import { videoSegmentManager } from '@/utils/video/segmentManager'
 //   findCurrentWord,
 //   shouldUpdateWordSelection,
 // } from '@/utils/video/currentWordFinder' // Currently unused
-import API_CONFIG from '@/config/api.config'
+// import API_CONFIG from '@/config/api.config' // Currently unused
 
 interface VideoPlayerProps {
   className?: string

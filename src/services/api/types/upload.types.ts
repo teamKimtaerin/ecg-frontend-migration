@@ -25,7 +25,7 @@ export interface MLProcessingResponse {
   job_id: string
   status: string
   estimated_time: number
-  message?: string  // Backend may include this field
+  message?: string // Backend may include this field
 }
 
 // 처리 상태

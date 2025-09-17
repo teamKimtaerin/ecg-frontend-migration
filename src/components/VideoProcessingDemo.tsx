@@ -79,7 +79,9 @@ const VideoProcessingDemo: React.FC = () => {
         const statusResponse = await uploadService.checkProcessingStatus(jobId)
 
         if (!statusResponse.success) {
-          throw new Error(`Status check failed: ${statusResponse.error?.message}`)
+          throw new Error(
+            `Status check failed: ${statusResponse.error?.message}`
+          )
         }
 
         const jobStatus = statusResponse.data!
@@ -99,7 +101,9 @@ const VideoProcessingDemo: React.FC = () => {
           }
 
           if (jobStatus.result) {
-            setTranscriptionResult(jobStatus.result as unknown as TranscriptionResult)
+            setTranscriptionResult(
+              jobStatus.result as unknown as TranscriptionResult
+            )
           }
         }
       } catch (error) {
@@ -137,7 +141,9 @@ const VideoProcessingDemo: React.FC = () => {
       )
 
       if (!urlResponse.success) {
-        throw new Error(`Failed to get upload URL: ${urlResponse.error?.message}`)
+        throw new Error(
+          `Failed to get upload URL: ${urlResponse.error?.message}`
+        )
       }
 
       const { presigned_url: url, file_key: fileKey } = urlResponse.data!
@@ -169,7 +175,9 @@ const VideoProcessingDemo: React.FC = () => {
       const processResponse = await uploadService.requestMLProcessing(fileKey)
 
       if (!processResponse.success) {
-        throw new Error(`Process request failed: ${processResponse.error?.message}`)
+        throw new Error(
+          `Process request failed: ${processResponse.error?.message}`
+        )
       }
 
       const { job_id: jobId } = processResponse.data!

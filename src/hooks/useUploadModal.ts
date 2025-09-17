@@ -299,7 +299,10 @@ export const useUploadModal = () => {
         updateState({ step: 'processing', processingProgress: 0 })
         log('useUploadModal', '🤖 Requesting ML processing')
 
-        const mlResponse = await uploadService.requestMLProcessing(file_key, data.language)
+        const mlResponse = await uploadService.requestMLProcessing(
+          file_key,
+          data.language
+        )
 
         if (!mlResponse.success || !mlResponse.data) {
           throw new Error(mlResponse.error?.message || 'ML 처리 요청 실패')
@@ -575,7 +578,6 @@ export const useUploadModal = () => {
   // 세그먼트 → 클립 변환 함수
   const convertSegmentsToClips = useCallback(
     (segments: SegmentData[]): ClipItem[] => {
-
       return segments.map((segment, index) => {
         // segment.id가 없으면 index 사용
         const segmentId = segment.id || index

@@ -28,6 +28,8 @@ export interface TemplateSearchOptions {
   author?: string
 }
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// Template system will be rewritten - temporarily disable any types
 export class TemplateRegistry {
   private templates: Map<string, SubtitleTemplate>
   private templateInfos: Map<string, TemplateInfo>

@@ -8,9 +8,11 @@ import UserDropdown from '@/components/ui/UserDropdown'
 import { useDeployModal } from '@/hooks/useDeployModal'
 import { AutosaveManager } from '@/utils/managers/AutosaveManager'
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { LuHouse, LuMenu, LuShoppingBag } from 'react-icons/lu'
 import { useEditorStore } from '../store'
 import { EDITOR_TABS } from '../types'
+import { EDITOR_COLORS, getToolbarClasses } from '../constants/colors'
 import EditingModeToggle from './EditingModeToggle'
 import ToolbarToggle from './ToolbarToggle'
 
@@ -189,46 +191,88 @@ export default function EditorHeaderTabs({
     }
   }
 
+  // 편집 모드에 따른 테마 클래스 결정
+  const getTabBarClasses = () => {
+    if (editingMode === 'advanced') {
+      // 상세 편집 모드: 어두운 테마
+      const darkColors = EDITOR_COLORS.toolbar.dark
+      return `${darkColors.background} ${darkColors.border} shadow-sm relative`
+    } else {
+      // 쉬운 편집 모드: 밝은 테마 (툴바와 동일)
+      return `${getToolbarClasses('base')} shadow-sm relative`
+    }
+  }
+
+  const getTextClasses = () => {
+    if (editingMode === 'advanced') {
+      return EDITOR_COLORS.toolbar.dark.text
+    } else {
+      return EDITOR_COLORS.toolbar.base.text
+    }
+  }
+
+  const getHoverClasses = () => {
+    if (editingMode === 'advanced') {
+      return EDITOR_COLORS.toolbar.dark.hover
+    } else {
+      return EDITOR_COLORS.toolbar.base.hover
+    }
+  }
+
   return (
-    // <div className="bg-gray-100 border-b border-gray-300 shadow-sm relative">
-    <div className="bg-gray-800 border-b border-gray-700 shadow-sm relative">
+    <div className={getTabBarClasses()}>
       <div className="flex items-center px-6 py-1">
         {/* Left Side - Navigation Menu */}
         <div className="relative mr-4">
           <button
             ref={navButtonRef}
             onClick={() => setIsNavDropdownOpen(!isNavDropdownOpen)}
-            // className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-lg transition-all duration-200 cursor-pointer"
-            className="p-2 text-white hover:bg-gray-700 rounded-lg transition-all duration-200 cursor-pointer"
+            className={`p-2 ${getTextClasses()} ${getHoverClasses()} rounded-lg transition-all duration-200 cursor-pointer`}
             title="메뉴"
           >
             <LuMenu className="w-5 h-5" />
           </button>
 
           {/* Navigation Dropdown */}
-          {isNavDropdownOpen && (
-            <div className="nav-dropdown absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-[9999] min-w-[150px]">
-              <button
-                onClick={() => (window.location.href = '/')}
-                className="w-full flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 first:rounded-t-lg transition-colors cursor-pointer"
+          {isNavDropdownOpen &&
+            typeof window !== 'undefined' &&
+            createPortal(
+              <div
+                className="nav-dropdown fixed bg-white border border-gray-200 rounded-lg shadow-lg z-[9999] min-w-[150px]"
+                style={{
+                  top: navButtonRef.current
+                    ? navButtonRef.current.getBoundingClientRect().bottom +
+                      window.scrollY +
+                      4
+                    : 0,
+                  left: navButtonRef.current
+                    ? navButtonRef.current.getBoundingClientRect().left +
+                      window.scrollX
+                    : 0,
+                }}
               >
-                <LuHouse className="w-4 h-4 mr-3" />
-                메인 페이지
-              </button>
-              <button
-                onClick={() => (window.location.href = '/asset-store')}
-                className="w-full flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 last:rounded-b-lg transition-colors cursor-pointer"
-              >
-                <LuShoppingBag className="w-4 h-4 mr-3" />
-                에셋 스토어
-              </button>
-            </div>
-          )}
+                <button
+                  onClick={() => (window.location.href = '/')}
+                  className="w-full flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 first:rounded-t-lg transition-colors cursor-pointer"
+                >
+                  <LuHouse className="w-4 h-4 mr-3" />
+                  메인 페이지
+                </button>
+                <button
+                  onClick={() => (window.location.href = '/asset-store')}
+                  className="w-full flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 last:rounded-b-lg transition-colors cursor-pointer"
+                >
+                  <LuShoppingBag className="w-4 h-4 mr-3" />
+                  에셋 스토어
+                </button>
+              </div>,
+              document.body
+            )}
         </div>
 
         {/* User Dropdown */}
         <div className="relative">
-          <UserDropdown />
+          <UserDropdown theme={editingMode === 'advanced' ? 'dark' : 'light'} />
         </div>
 
         {/* Center - Tab Navigation */}
@@ -253,7 +297,9 @@ export default function EditorHeaderTabs({
         {/* Right Side - Actions */}
         <div className="flex items-center gap-4 mr-4">
           {/* Save Status Indicator */}
-          <div className="flex items-center gap-2 text-xs text-gray-700">
+          <div
+            className={`flex items-center gap-2 text-xs ${getTextClasses()}`}
+          >
             {saveStatus === 'saving' && (
               <span className="flex items-center gap-1">
                 <span className="text-yellow-400">●</span>
@@ -273,7 +319,11 @@ export default function EditorHeaderTabs({
               </span>
             )}
             {lastSaveTime && saveStatus === 'saved' && (
-              <span className="text-gray-600">
+              <span
+                className={
+                  editingMode === 'advanced' ? 'text-gray-400' : 'text-gray-600'
+                }
+              >
                 (
                 {new Date(lastSaveTime).toLocaleTimeString('ko-KR', {
                   hour: '2-digit',
@@ -289,7 +339,7 @@ export default function EditorHeaderTabs({
             <button
               ref={documentButtonRef}
               onClick={() => setIsDocumentModalOpen(!isDocumentModalOpen)}
-              className="p-2 text-white hover:text-white hover:bg-gray-700 hover:scale-110 hover:shadow-md rounded-lg transition-all duration-200 cursor-pointer"
+              className={`p-2 ${getTextClasses()} ${getHoverClasses()} hover:scale-110 hover:shadow-md rounded-lg transition-all duration-200 cursor-pointer`}
               title="문서함"
             >
               <svg
