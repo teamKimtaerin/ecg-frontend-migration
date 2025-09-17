@@ -8,6 +8,7 @@ import UserDropdown from '@/components/ui/UserDropdown'
 import { useDeployModal } from '@/hooks/useDeployModal'
 import { AutosaveManager } from '@/utils/managers/AutosaveManager'
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { LuHouse, LuMenu, LuShoppingBag } from 'react-icons/lu'
 import { useEditorStore } from '../store'
 import { EDITOR_TABS } from '../types'
@@ -233,24 +234,37 @@ export default function EditorHeaderTabs({
           </button>
 
           {/* Navigation Dropdown */}
-          {isNavDropdownOpen && (
-            <div className="nav-dropdown absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-[9999] min-w-[150px]">
-              <button
-                onClick={() => (window.location.href = '/')}
-                className="w-full flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 first:rounded-t-lg transition-colors cursor-pointer"
+          {isNavDropdownOpen &&
+            typeof window !== 'undefined' &&
+            createPortal(
+              <div 
+                className="nav-dropdown fixed bg-white border border-gray-200 rounded-lg shadow-lg z-[9999] min-w-[150px]"
+                style={{
+                  top: navButtonRef.current
+                    ? navButtonRef.current.getBoundingClientRect().bottom + window.scrollY + 4
+                    : 0,
+                  left: navButtonRef.current
+                    ? navButtonRef.current.getBoundingClientRect().left + window.scrollX
+                    : 0,
+                }}
               >
-                <LuHouse className="w-4 h-4 mr-3" />
-                메인 페이지
-              </button>
-              <button
-                onClick={() => (window.location.href = '/asset-store')}
-                className="w-full flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 last:rounded-b-lg transition-colors cursor-pointer"
-              >
-                <LuShoppingBag className="w-4 h-4 mr-3" />
-                에셋 스토어
-              </button>
-            </div>
-          )}
+                <button
+                  onClick={() => (window.location.href = '/')}
+                  className="w-full flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 first:rounded-t-lg transition-colors cursor-pointer"
+                >
+                  <LuHouse className="w-4 h-4 mr-3" />
+                  메인 페이지
+                </button>
+                <button
+                  onClick={() => (window.location.href = '/asset-store')}
+                  className="w-full flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 last:rounded-b-lg transition-colors cursor-pointer"
+                >
+                  <LuShoppingBag className="w-4 h-4 mr-3" />
+                  에셋 스토어
+                </button>
+              </div>,
+              document.body
+            )}
         </div>
 
         {/* User Dropdown */}
