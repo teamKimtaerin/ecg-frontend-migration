@@ -147,6 +147,22 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
       return
     }
 
+    // Also update the UI state for compatibility
+    const isCurrentlySelected = currentWordAssets.includes(asset.id)
+    let newSelectedAssets: string[]
+
+    if (isCurrentlySelected) {
+      // 제거
+      newSelectedAssets = currentWordAssets.filter((id) => id !== asset.id)
+    } else {
+      // 추가 - 최대 3개 제한 확인
+      if (currentWordAssets.length >= 3) {
+        showToast('최대 3개의 애니메이션만 선택할 수 있습니다.', 'warning')
+        return // Don't proceed with the click
+      }
+      newSelectedAssets = [...currentWordAssets, asset.id]
+    }
+
     // Single word operation (original logic)
     const singleTargetWordId =
       focusedWordId ||
@@ -184,18 +200,6 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
         showToast('최대 3개의 애니메이션만 선택할 수 있습니다.', 'warning')
         return // Don't proceed with the click
       }
-    }
-
-    // Also update the UI state for compatibility
-    const isCurrentlySelected = currentWordAssets.includes(asset.id)
-    let newSelectedAssets: string[]
-
-    if (isCurrentlySelected) {
-      // 제거
-      newSelectedAssets = currentWordAssets.filter((id) => id !== asset.id)
-    } else {
-      // 추가
-      newSelectedAssets = [...currentWordAssets, asset.id]
     }
 
     // Update current word assets in UI state
