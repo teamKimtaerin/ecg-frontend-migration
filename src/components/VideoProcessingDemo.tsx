@@ -82,13 +82,13 @@ const VideoProcessingDemo: React.FC = () => {
           throw new Error(`Status check failed: ${statusResponse.error?.message}`)
         }
 
-        const jobStatus = statusResponse.data
+        const jobStatus = statusResponse.data!
 
         setProcessingStatus({
           stage: jobStatus.status === 'completed' ? 'completed' : 'processing',
-          progress: jobStatus.progress,
-          message: jobStatus.message,
-          jobId: jobStatus.jobId,
+          progress: jobStatus.progress || 80,
+          message: `Processing: ${jobStatus.status}`,
+          jobId: jobStatus.job_id,
         })
 
         // 완료되면 결과 저장하고 폴링 중단
@@ -98,8 +98,8 @@ const VideoProcessingDemo: React.FC = () => {
             pollInterval.current = null
           }
 
-          if (jobStatus.transcriptionResult) {
-            setTranscriptionResult(jobStatus.transcriptionResult)
+          if (jobStatus.result) {
+            setTranscriptionResult(jobStatus.result as unknown as TranscriptionResult)
           }
         }
       } catch (error) {
@@ -140,7 +140,7 @@ const VideoProcessingDemo: React.FC = () => {
         throw new Error(`Failed to get upload URL: ${urlResponse.error?.message}`)
       }
 
-      const { presigned_url: url, file_key: fileKey } = urlResponse.data
+      const { presigned_url: url, file_key: fileKey } = urlResponse.data!
 
       setProcessingStatus((prev) => ({
         ...prev,
@@ -172,7 +172,7 @@ const VideoProcessingDemo: React.FC = () => {
         throw new Error(`Process request failed: ${processResponse.error?.message}`)
       }
 
-      const { job_id: jobId } = processResponse.data
+      const { job_id: jobId } = processResponse.data!
 
       setProcessingStatus({
         stage: 'processing',

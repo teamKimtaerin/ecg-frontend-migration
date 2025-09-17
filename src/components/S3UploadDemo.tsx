@@ -61,7 +61,7 @@ const S3UploadDemo = () => {
         )
       }
 
-      const { presigned_url: url, file_key: fileKey } = urlResponse.data
+      const { presigned_url: url, file_key: fileKey } = urlResponse.data!
       setFileKey(fileKey)
 
       setUploadStatus({

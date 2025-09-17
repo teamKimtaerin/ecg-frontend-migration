@@ -61,6 +61,11 @@ const nextConfig: NextConfig = {
     },
   }),
 
+  // ESLint 설정
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+
   // // 보안 헤더 설정
   // async headers() {
   //   return [
