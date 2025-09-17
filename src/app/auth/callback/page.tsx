@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useAuthStore } from '@/lib/store/authStore'
+import { API_CONFIG } from '@/config/api.config'
 
 function AuthCallbackContent() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>(
@@ -45,7 +46,7 @@ function AuthCallbackContent() {
 
         // 사용자 정보 가져오기
         const userResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/me`,
+          `${API_CONFIG.FASTAPI_BASE_URL}${API_CONFIG.endpoints.auth.me}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

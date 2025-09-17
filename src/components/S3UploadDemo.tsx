@@ -2,6 +2,7 @@
 
 import React, { useState, useCallback, useRef } from 'react'
 import Button from './ui/Button'
+import { uploadService } from '@/services/api/uploadService'
 
 interface UploadStatus {
   status: 'idle' | 'uploading' | 'success' | 'error'
@@ -49,27 +50,18 @@ const S3UploadDemo = () => {
       })
 
       // 1단계: 백엔드에서 presigned URL 요청
-      const urlResponse = await fetch(
-        'http://localhost:8000/api/upload-video/generate-url',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            filename: selectedFile.name,
-            filetype: selectedFile.type,
-          }),
-        }
+      const urlResponse = await uploadService.getPresignedUrl(
+        selectedFile.name,
+        selectedFile.type
       )
 
-      if (!urlResponse.ok) {
+      if (!urlResponse.success) {
         throw new Error(
-          `Failed to get presigned URL: ${urlResponse.statusText}`
+          `Failed to get presigned URL: ${urlResponse.error?.message}`
         )
       }
 
-      const { url, fileKey } = await urlResponse.json()
+      const { presigned_url: url, file_key: fileKey } = urlResponse.data
       setFileKey(fileKey)
 
       setUploadStatus({
@@ -97,27 +89,13 @@ const S3UploadDemo = () => {
         message: 'Upload successful! Getting download URL...',
       })
 
-      // 다운로드용 presigned URL 요청
-      const downloadResponse = await fetch(
-        `http://localhost:8000/api/upload-video/download-url/${encodeURIComponent(fileKey)}`
-      )
-
-      if (downloadResponse.ok) {
-        const { downloadUrl } = await downloadResponse.json()
-        setUploadStatus({
-          status: 'success',
-          progress: 100,
-          message: 'Upload successful! File is now accessible.',
-          s3Url: downloadUrl,
-        })
-      } else {
-        setUploadStatus({
-          status: 'success',
-          progress: 100,
-          message: 'Upload successful! (Download URL generation failed)',
-          s3Url: url.split('?')[0], // fallback to direct S3 URL
-        })
-      }
+      // Upload completed successfully
+      setUploadStatus({
+        status: 'success',
+        progress: 100,
+        message: 'Upload successful! File is now accessible.',
+        s3Url: url.split('?')[0], // Clean S3 URL without query params
+      })
 
       console.log('[S3 UPLOAD SUCCESS]')
       console.log('File Key:', fileKey)
