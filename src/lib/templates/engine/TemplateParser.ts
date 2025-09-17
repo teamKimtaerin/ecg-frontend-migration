@@ -128,7 +128,10 @@ export class TemplateParser {
     const warnings = errors
       .filter((e) => e.severity === 'warning')
       .map((e) => ({
-        type: (e.type === 'performance' ? 'performance' : 'best-practice') as 'performance' | 'best-practice' | 'compatibility',
+        type: (e.type === 'performance' ? 'performance' : 'best-practice') as
+          | 'performance'
+          | 'best-practice'
+          | 'compatibility',
         message: e.message,
         location: e.location,
       }))

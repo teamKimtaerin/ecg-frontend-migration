@@ -405,8 +405,13 @@ export class AnimationSelector {
   /**
    * Calculate word position within segment
    */
-  private calculateWordPositionInSegment(word: AudioWord, segment: AudioSegment): number {
-    return segment.words.findIndex(w => w.word === word.word && w.start === word.start)
+  private calculateWordPositionInSegment(
+    word: AudioWord,
+    segment: AudioSegment
+  ): number {
+    return segment.words.findIndex(
+      (w) => w.word === word.word && w.start === word.start
+    )
   }
 
   /**
@@ -417,7 +422,8 @@ export class AnimationSelector {
       // Math functions
       min: (...values: number[]) => Math.min(...values),
       max: (...values: number[]) => Math.max(...values),
-      avg: (values: number[]) => values.reduce((a, b) => a + b, 0) / values.length,
+      avg: (values: number[]) =>
+        values.reduce((a, b) => a + b, 0) / values.length,
       abs: Math.abs,
       round: (value: number, decimals: number = 0) => {
         const factor = Math.pow(10, decimals)
@@ -437,8 +443,9 @@ export class AnimationSelector {
       },
       standardDeviation: (values: number[]) => {
         const avg = values.reduce((a, b) => a + b, 0) / values.length
-        const squareDiffs = values.map(value => Math.pow(value - avg, 2))
-        const avgSquareDiff = squareDiffs.reduce((a, b) => a + b, 0) / squareDiffs.length
+        const squareDiffs = values.map((value) => Math.pow(value - avg, 2))
+        const avgSquareDiff =
+          squareDiffs.reduce((a, b) => a + b, 0) / squareDiffs.length
         return Math.sqrt(avgSquareDiff)
       },
 
