@@ -10,7 +10,7 @@ export default function MyPage() {
   const { user, logout } = useAuthStatus()
   const [isEditing, setIsEditing] = useState(false)
   const [editForm, setEditForm] = useState({
-    username: user?.username || '',
+    name: user?.name || '',
     email: user?.email || '',
   })
 
@@ -18,7 +18,7 @@ export default function MyPage() {
     if (isEditing) {
       // 편집 취소 시 원래 값으로 되돌리기
       setEditForm({
-        username: user?.username || '',
+        name: user?.name || '',
         email: user?.email || '',
       })
     }
@@ -123,18 +123,18 @@ export default function MyPage() {
                 </label>
                 {isEditing ? (
                   <Input
-                    value={editForm.username}
+                    value={editForm.name}
                     onChange={(value: string) =>
                       setEditForm((prev) => ({
                         ...prev,
-                        username: value,
+                        name: value,
                       }))
                     }
                     placeholder="사용자명을 입력하세요"
                   />
                 ) : (
                   <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg">
-                    {user.username}
+                    {user.name}
                   </div>
                 )}
               </div>

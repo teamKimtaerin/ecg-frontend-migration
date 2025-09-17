@@ -18,10 +18,24 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'localhost',
       },
-      // CloudFront 도메인 추가
+      // CloudFront 도메인들
       {
         protocol: 'https',
         hostname: '*.cloudfront.net',
+      },
+      {
+        protocol: 'https',
+        hostname: 'd31nzc58rhgh3i.cloudfront.net',
+      },
+      // 커스텀 도메인
+      {
+        protocol: 'https',
+        hostname: 'ho-it.site',
+      },
+      // S3 도메인
+      {
+        protocol: 'https',
+        hostname: '*.amazonaws.com',
       },
     ],
   },
@@ -35,11 +49,10 @@ const nextConfig: NextConfig = {
   // CORS 해결을 위한 API 프록시 (개발 환경에만 활성화)
   ...(process.env.NODE_ENV === 'development' && {
     async rewrites() {
-      const backendUrl =
-        process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000'
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL
 
       return [
-        // 백엔드 API 프록시 (모든 /api 요청을 localhost:8000으로)
+        // 백엔드 API 프록시 (모든 /api 요청을 NEXT_PUBLIC_API_URL로)
         {
           source: '/api/:path*',
           destination: `${backendUrl}/api/:path*`,

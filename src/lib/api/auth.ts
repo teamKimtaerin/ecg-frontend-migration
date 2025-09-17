@@ -1,5 +1,5 @@
 interface SignupRequest {
-  username: string
+  name: string
   email: string
   password: string
 }
@@ -11,7 +11,7 @@ interface LoginRequest {
 
 interface User {
   id: number
-  username: string
+  name: string
   email: string
   auth_provider: string
   is_active: boolean
@@ -25,11 +25,13 @@ interface AuthResponse {
   user: User
 }
 
+import { API_CONFIG } from '@/config/api.config'
+
 // 개발 환경에서는 프록시 경로 사용 (CORS 문제 해결)
 const BASE_URL =
   process.env.NODE_ENV === 'development'
     ? '' // 프록시 사용 (next.config.ts의 rewrites)
-    : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+    : API_CONFIG.FASTAPI_BASE_URL
 
 export class AuthAPI {
   private static getHeaders(token?: string) {

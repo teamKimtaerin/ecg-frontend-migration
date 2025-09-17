@@ -76,13 +76,13 @@ const UserDropdown: React.FC = () => {
         {/* User Avatar */}
         <div className="w-8 h-8 bg-blue-400 rounded-full flex items-center justify-center">
           <span className="text-white text-sm font-semibold">
-            {user.username?.charAt(0).toUpperCase() || 'U'}
+            {user.name?.charAt(0).toUpperCase() || 'U'}
           </span>
         </div>
 
         {/* Username */}
         <span className="text-gray-700 text-sm font-medium">
-          {user.username}
+          {user.name}
         </span>
 
         {/* Dropdown Arrow */}
@@ -118,12 +118,12 @@ const UserDropdown: React.FC = () => {
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center">
                   <span className="text-white font-semibold">
-                    {user.username?.charAt(0).toUpperCase() || 'U'}
+                    {user.name?.charAt(0).toUpperCase() || 'U'}
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium text-gray-800 truncate">
-                    {user.username}
+                    {user.name}
                   </div>
                   <div className="text-xs text-gray-500 truncate">
                     {user.email}

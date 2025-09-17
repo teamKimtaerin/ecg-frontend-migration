@@ -11,13 +11,13 @@ import {
   UploadErrorResponse,
 } from './types/upload.types'
 import { useAuthStore } from '@/lib/store/authStore'
+import { API_CONFIG } from '@/config/api.config'
 
 // API Base URL - 개발 환경에서는 프록시 사용 (CORS 우회)
 const API_BASE_URL =
   process.env.NODE_ENV === 'development'
     ? '/api' // Next.js 프록시 경로
-    : process.env.NEXT_PUBLIC_API_BASE_URL ||
-      'http://ecg-project-pipeline-dev-alb-1703405864.us-east-1.elb.amazonaws.com'
+    : API_CONFIG.FASTAPI_BASE_URL
 
 class UploadService {
   private abortControllers = new Map<string, AbortController>()
@@ -100,8 +100,8 @@ class UploadService {
   ): Promise<ServiceResponse<PresignedUrlResponse>> {
     // 백엔드 API 스펙에 맞게 필드명 조정
     const request = {
-      filename,
-      filetype: contentType, // backend expects 'filetype' not 'content_type'
+      file_name: filename,
+      file_type: contentType, // backend expects 'file_type'
     }
 
     // Backend response might have different field names
@@ -210,14 +210,10 @@ class UploadService {
    * ML 처리 요청
    */
   async requestMLProcessing(
-    fileKey: string,
-    language: string,
-    whisperModel: string = 'large-v3'
+    fileKey: string
   ): Promise<ServiceResponse<MLProcessingResponse>> {
     const request = {
-      fileKey: fileKey,
-      language,
-      whisperModel: whisperModel,
+      file_key: fileKey,
     }
 
     return this.makeRequest<MLProcessingResponse>(

@@ -12,12 +12,13 @@ import {
   RenderErrorCode,
 } from './types/render.types'
 import { useAuthStore } from '@/lib/store/authStore'
+import { API_CONFIG } from '@/config/api.config'
 
 // 개발 환경에서는 프록시 경로 사용 (CORS 문제 해결)
 const GPU_RENDER_API_BASE =
   process.env.NODE_ENV === 'development'
     ? '/api/render' // 프록시 사용 (next.config.ts의 rewrites)
-    : process.env.NEXT_PUBLIC_GPU_RENDER_API_URL || '/api/render'
+    : `${API_CONFIG.FASTAPI_BASE_URL}/render`
 
 class RenderService {
   private abortControllers = new Map<string, AbortController>()

@@ -277,10 +277,7 @@ export const useUploadModal = () => {
         updateState({ step: 'processing', processingProgress: 0 })
         log('useUploadModal', '🤖 Requesting ML processing')
 
-        const mlResponse = await uploadService.requestMLProcessing(
-          file_key,
-          data.language
-        )
+        const mlResponse = await uploadService.requestMLProcessing(file_key)
 
         if (!mlResponse.success || !mlResponse.data) {
           throw new Error(mlResponse.error?.message || 'ML 처리 요청 실패')
