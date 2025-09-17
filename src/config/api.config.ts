@@ -17,24 +17,44 @@ export const API_CONFIG = {
       process.env.NEXT_PUBLIC_DEBUG_MODE === 'true') ||
     false, // Toggle between mock and real API
 
-  // API Base URLs
-  FASTAPI_BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
-  MODEL_SERVER_URL:
-    process.env.NEXT_PUBLIC_MODEL_SERVER_URL || 'http://localhost:8001',
+  // API Base URL (환경변수에서 가져오기)
+  FASTAPI_BASE_URL: process.env.NEXT_PUBLIC_API_URL!,
 
   // S3 Configuration
   S3_BUCKET: process.env.NEXT_PUBLIC_S3_BUCKET || 'ecg-videos',
 
   // API Endpoints
   endpoints: {
+    // Authentication
+    auth: {
+      signup: '/api/auth/signup',
+      login: '/api/auth/login',
+      me: '/api/auth/me',
+      googleLogin: '/api/auth/google/login',
+      googleCallback: '/api/auth/google/callback',
+    },
     // Video upload endpoints
     uploadVideo: {
       generateUrl: '/api/upload-video/generate-url',
       requestProcess: '/api/upload-video/request-process',
+      status: '/api/upload-video/status',
     },
-    // Processing status
+    // Project management
+    projects: {
+      list: '/api/projects',
+      create: '/api/projects',
+      update: '/api/projects',
+      delete: '/api/projects',
+    },
+    // GPU Rendering
+    render: {
+      create: '/api/render/create',
+      status: '/api/render',
+      cancel: '/api/render',
+      history: '/api/render/history',
+    },
+    // Legacy endpoints (deprecated)
     processingStatus: '/api/processing/status',
-    // Results
     getResults: '/api/results',
   },
 

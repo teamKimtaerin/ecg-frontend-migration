@@ -24,9 +24,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# local env files
-.env*.local
-.env
+# env files (keep all environment files out of git)
+.env*
 
 # vercel
 .vercel
@@ -67,8 +66,8 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# env files (track .env for production defaults, exclude local overrides)
+.env*.local
 
 # vercel
 .vercel

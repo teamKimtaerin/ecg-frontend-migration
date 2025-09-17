@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useAuthStore } from '@/lib/store/authStore'
+import { API_CONFIG } from '@/config/api.config'
 
 function AuthCallbackContent() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>(
@@ -45,7 +46,7 @@ function AuthCallbackContent() {
 
         // 사용자 정보 가져오기
         const userResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/me`,
+          `${API_CONFIG.FASTAPI_BASE_URL}${API_CONFIG.endpoints.auth.me}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -59,10 +60,10 @@ function AuthCallbackContent() {
           // Zustand store에 토큰과 사용자 정보 저장
           authStore.setAuthData(userData, token)
 
-          console.log('✅ Google OAuth 로그인 성공:', userData.username)
+          console.log('✅ Google OAuth 로그인 성공:', userData.name)
 
           setStatus('success')
-          setMessage(`환영합니다, ${userData.username}님!`)
+          setMessage(`환영합니다, ${userData.name}님!`)
 
           // 성공 시 홈페이지로 리디렉션
           setTimeout(() => {
