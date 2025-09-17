@@ -1116,7 +1116,7 @@ export default function EditorPage() {
       // step이 변경되면 NewUploadModal은 자동으로 닫히고 ProcessingModal이 표시됨
       await uploadModal.handleStartTranscription({
         file: data.files[0],
-        language: data.settings.language as 'ko' | 'en' | 'ja',
+        language: data.settings.language as 'auto' | 'ko' | 'en' | 'ja' | 'zh',
       })
     }
   }

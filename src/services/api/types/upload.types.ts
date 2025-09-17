@@ -25,6 +25,7 @@ export interface MLProcessingResponse {
   job_id: string
   status: string
   estimated_time: number
+  message?: string  // Backend may include this field
 }
 
 // 처리 상태
@@ -82,7 +83,7 @@ export interface WordData {
 // 업로드 폼 데이터
 export interface UploadFormData {
   file: File
-  language: 'ko' | 'en' | 'ja'
+  language: 'auto' | 'ko' | 'en' | 'ja' | 'zh'
 }
 
 // 업로드 진행 상태

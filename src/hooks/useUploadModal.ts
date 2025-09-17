@@ -179,9 +179,31 @@ export const useUploadModal = () => {
             const json = await res.json()
 
             // friends_result.json -> SegmentData[] 매핑
+            interface MockSegment {
+              id?: number
+              start_time?: number
+              start?: number
+              end_time?: number
+              end?: number
+              text?: string
+              speaker_id?: string
+              speaker?: string | { speaker_id: string }
+              confidence?: number
+              words?: MockWord[]
+            }
+
+            interface MockWord {
+              word?: string
+              start_time?: number
+              start?: number
+              end_time?: number
+              end?: number
+              confidence?: number
+            }
+
             const segments = (json.segments || []).map(
-              (seg: any, idx: number) => {
-                const words = (seg.words || []).map((w: any) => ({
+              (seg: MockSegment, idx: number) => {
+                const words = (seg.words || []).map((w: MockWord) => ({
                   word: String(w.word ?? ''),
                   start: Number(w.start_time ?? w.start ?? 0),
                   end: Number(w.end_time ?? w.end ?? 0),
@@ -277,7 +299,7 @@ export const useUploadModal = () => {
         updateState({ step: 'processing', processingProgress: 0 })
         log('useUploadModal', '🤖 Requesting ML processing')
 
-        const mlResponse = await uploadService.requestMLProcessing(file_key)
+        const mlResponse = await uploadService.requestMLProcessing(file_key, data.language)
 
         if (!mlResponse.success || !mlResponse.data) {
           throw new Error(mlResponse.error?.message || 'ML 처리 요청 실패')
@@ -352,6 +374,7 @@ export const useUploadModal = () => {
         })
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [updateState, setMediaInfo, clearMedia, setClips, state]
   )
 
@@ -552,10 +575,6 @@ export const useUploadModal = () => {
   // 세그먼트 → 클립 변환 함수
   const convertSegmentsToClips = useCallback(
     (segments: SegmentData[]): ClipItem[] => {
-      // 모든 세그먼트의 타이밍이 0인지 확인
-      const allTimingsZero = segments.every(
-        (seg) => (!seg.start || seg.start === 0) && (!seg.end || seg.end === 0)
-      )
 
       return segments.map((segment, index) => {
         // segment.id가 없으면 index 사용

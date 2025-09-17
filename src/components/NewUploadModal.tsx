@@ -20,7 +20,7 @@ interface NewUploadModalProps {
 }
 
 interface TranscriptionSettings {
-  language: 'ko' | 'en' | 'ja' | 'zh'
+  language: 'auto' | 'ko' | 'en' | 'ja' | 'zh'
 }
 
 type TabType = 'upload' | 'link'
@@ -37,7 +37,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('upload')
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
-  const [language, setLanguage] = useState<'ko' | 'en' | 'ja' | 'zh'>('ko')
+  const [language, setLanguage] = useState<'auto' | 'ko' | 'en' | 'ja' | 'zh'>('auto')
   const [isDragOver, setIsDragOver] = useState(false)
   const [videoUrl, setVideoUrl] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -340,11 +340,12 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
                 <select
                   value={language}
                   onChange={(e) =>
-                    setLanguage(e.target.value as 'ko' | 'en' | 'ja' | 'zh')
+                    setLanguage(e.target.value as 'auto' | 'ko' | 'en' | 'ja' | 'zh')
                   }
                   className="w-full h-12 px-4 bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-900 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   disabled={isLoading}
                 >
+                  <option value="auto">Auto Detect</option>
                   <option value="ko">한국어 (Korean)</option>
                   <option value="en">English</option>
                   <option value="ja">日本語 (Japanese)</option>
