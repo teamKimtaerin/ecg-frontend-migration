@@ -320,7 +320,7 @@ export class TemplateRegistry {
     isDynamic: boolean
     contentType: 'conversation' | 'narration' | 'presentation' | 'other'
   }): TemplateInfo[] {
-    let recommendations: TemplateInfo[] = []
+    const recommendations: TemplateInfo[] = []
 
     // Rule-based recommendations
     if (audioFeatures.hasMultipleSpeakers) {
