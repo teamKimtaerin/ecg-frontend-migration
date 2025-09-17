@@ -138,21 +138,26 @@ export const useUploadModal = () => {
           fileName: data.file.name,
         })
 
-
         // 백업용으로 sessionStorage에도 저장
         sessionStorage.setItem('currentVideoUrl', blobUrl)
         console.log('[VIDEO DEBUG] Saved videoUrl to sessionStorage:', blobUrl)
 
         // DEBUG MODE: 서버 업로드/처리 플로우를 생략하고 로컬 friends_result.json 사용
         if (API_CONFIG.DEBUG_MODE) {
-          log('useUploadModal', '🐞 DEBUG_MODE enabled: using local friends_result.json')
+          log(
+            'useUploadModal',
+            '🐞 DEBUG_MODE enabled: using local friends_result.json'
+          )
           // 간단한 진행률 시뮬레이션 + 상태 업데이트
           updateState({ step: 'processing', processingProgress: 0 })
 
           try {
             // 약간의 딜레이로 진행률 업데이트
             await new Promise((r) => setTimeout(r, 300))
-            updateState({ processingProgress: 25, currentStage: 'Mock: 초기화' })
+            updateState({
+              processingProgress: 25,
+              currentStage: 'Mock: 초기화',
+            })
             await new Promise((r) => setTimeout(r, 400))
             updateState({
               processingProgress: 50,
@@ -174,29 +179,31 @@ export const useUploadModal = () => {
             const json = await res.json()
 
             // friends_result.json -> SegmentData[] 매핑
-            const segments = (json.segments || []).map((seg: any, idx: number) => {
-              const words = (seg.words || []).map((w: any) => ({
-                word: String(w.word ?? ''),
-                start: Number(w.start_time ?? w.start ?? 0),
-                end: Number(w.end_time ?? w.end ?? 0),
-                confidence: Number(w.confidence ?? 0.9),
-              }))
+            const segments = (json.segments || []).map(
+              (seg: any, idx: number) => {
+                const words = (seg.words || []).map((w: any) => ({
+                  word: String(w.word ?? ''),
+                  start: Number(w.start_time ?? w.start ?? 0),
+                  end: Number(w.end_time ?? w.end ?? 0),
+                  confidence: Number(w.confidence ?? 0.9),
+                }))
 
-              return {
-                id: seg.id ?? idx,
-                start: Number(seg.start_time ?? seg.start ?? 0),
-                end: Number(seg.end_time ?? seg.end ?? 0),
-                text: String(seg.text ?? ''),
-                speaker:
-                  seg.speaker_id != null
-                    ? String(seg.speaker_id)
-                    : seg.speaker && typeof seg.speaker === 'object'
-                    ? seg.speaker
-                    : String(seg.speaker ?? 'Unknown'),
-                confidence: Number(seg.confidence ?? 0.9),
-                words,
-              } as SegmentData
-            }) as SegmentData[]
+                return {
+                  id: seg.id ?? idx,
+                  start: Number(seg.start_time ?? seg.start ?? 0),
+                  end: Number(seg.end_time ?? seg.end ?? 0),
+                  text: String(seg.text ?? ''),
+                  speaker:
+                    seg.speaker_id != null
+                      ? String(seg.speaker_id)
+                      : seg.speaker && typeof seg.speaker === 'object'
+                        ? seg.speaker
+                        : String(seg.speaker ?? 'Unknown'),
+                  confidence: Number(seg.confidence ?? 0.9),
+                  words,
+                } as SegmentData
+              }
+            ) as SegmentData[]
 
             // ProcessingResult 형태로 포장해서 기존 완료 핸들러 재사용
             const mockResult: ProcessingResult = {
@@ -208,9 +215,7 @@ export const useUploadModal = () => {
                   duration: Number(json?.metadata?.duration ?? 0),
                   language: String(json?.metadata?.language ?? 'en'),
                   model: String(json?.metadata?.unified_model ?? 'mock'),
-                  processing_time: Number(
-                    json?.metadata?.processing_time ?? 0
-                  ),
+                  processing_time: Number(json?.metadata?.processing_time ?? 0),
                 },
               },
             }
@@ -230,7 +235,6 @@ export const useUploadModal = () => {
             return
           }
         }
-
 
         // 1. Presigned URL 요청 (백그라운드 처리)
         log('useUploadModal', '📝 Requesting presigned URL')

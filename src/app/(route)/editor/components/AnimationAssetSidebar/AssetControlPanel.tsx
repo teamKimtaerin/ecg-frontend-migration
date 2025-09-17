@@ -53,7 +53,11 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
           const initialParams: Record<string, unknown> = {}
           if (loadedManifest.schema) {
             Object.entries(loadedManifest.schema).forEach(([key, property]) => {
-              if (typeof property === 'object' && property !== null && 'default' in property) {
+              if (
+                typeof property === 'object' &&
+                property !== null &&
+                'default' in property
+              ) {
                 initialParams[key] = property.default
               }
             })
@@ -71,14 +75,18 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
   }, [assetName])
 
   const handleParameterChange = (key: string, value: unknown) => {
-    setParameters(prev => ({ ...prev, [key]: value }))
+    setParameters((prev) => ({ ...prev, [key]: value }))
   }
 
   const handleReset = () => {
     if (manifest?.schema) {
       const resetParams: Record<string, unknown> = {}
       Object.entries(manifest.schema).forEach(([key, property]) => {
-        if (typeof property === 'object' && property !== null && 'default' in property) {
+        if (
+          typeof property === 'object' &&
+          property !== null &&
+          'default' in property
+        ) {
           resetParams[key] = property.default
         }
       })

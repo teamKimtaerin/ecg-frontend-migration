@@ -107,7 +107,10 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
         }
 
         try {
-          console.error('[VideoPlayer] Video error details:', JSON.stringify(details))
+          console.error(
+            '[VideoPlayer] Video error details:',
+            JSON.stringify(details)
+          )
         } catch {
           console.error('[VideoPlayer] Video error details:', details)
         }
@@ -115,7 +118,10 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
         setVideoError(errorMessage)
 
         // Special handling for Blob URL expiration or invalid persisted blob
-        if ((errorCode === 4 || errorCode == null) && videoUrl?.startsWith('blob:')) {
+        if (
+          (errorCode === 4 || errorCode == null) &&
+          videoUrl?.startsWith('blob:')
+        ) {
           console.warn(
             '[VideoPlayer] Blob URL may be invalid/expired - suggesting re-upload'
           )
@@ -412,7 +418,6 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
         </div>
       )
     }
-
 
     if (!videoUrl) {
       return (

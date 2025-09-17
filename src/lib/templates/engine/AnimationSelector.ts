@@ -115,14 +115,21 @@ export class AnimationSelector {
       let totalAnimationsApplied = 0
 
       // Process each segment and its words
-      for (let segmentIndex = 0; segmentIndex < audioData.segments.length; segmentIndex++) {
+      for (
+        let segmentIndex = 0;
+        segmentIndex < audioData.segments.length;
+        segmentIndex++
+      ) {
         const segment = audioData.segments[segmentIndex]
 
         for (let wordIndex = 0; wordIndex < segment.words.length; wordIndex++) {
           const word = segment.words[wordIndex]
 
           // Skip low confidence words if option is enabled
-          if (options.skipLowConfidenceWords && word.confidence < options.confidenceThreshold) {
+          if (
+            options.skipLowConfidenceWords &&
+            word.confidence < options.confidenceThreshold
+          ) {
             continue
           }
 
@@ -145,7 +152,7 @@ export class AnimationSelector {
             totalAnimationsApplied += selection.result.selectedRules.length
 
             // Convert to application result format
-            selection.result.selectedRules.forEach(selectedRule => {
+            selection.result.selectedRules.forEach((selectedRule) => {
               appliedRules.push({
                 ruleId: selectedRule.rule.id,
                 wordId: `${segmentIndex}-${wordIndex}`,
@@ -155,12 +162,11 @@ export class AnimationSelector {
             })
 
             // Collect warnings from conflicts
-            selection.result.conflicts.forEach(conflict => {
+            selection.result.conflicts.forEach((conflict) => {
               warnings.push(
                 `Rule conflict for word ${segmentIndex}-${wordIndex}: ${conflict.conflictingRules.join(', ')}`
               )
             })
-
           } catch (error) {
             errors.push(
               `Failed to select animations for word ${segmentIndex}-${wordIndex}: ${error}`
@@ -182,7 +188,6 @@ export class AnimationSelector {
           animationsApplied: totalAnimationsApplied,
         },
       }
-
     } catch (error) {
       return {
         success: false,
@@ -220,10 +225,12 @@ export class AnimationSelector {
     // Filter rules based on options
     let rules = compiledTemplate.compiledRules
     if (options.enabledRuleIds) {
-      rules = rules.filter(rule => options.enabledRuleIds!.includes(rule.id))
+      rules = rules.filter((rule) => options.enabledRuleIds!.includes(rule.id))
     }
     if (options.disabledRuleIds) {
-      rules = rules.filter(rule => !options.disabledRuleIds!.includes(rule.id))
+      rules = rules.filter(
+        (rule) => !options.disabledRuleIds!.includes(rule.id)
+      )
     }
 
     // Create evaluation context
@@ -244,14 +251,14 @@ export class AnimationSelector {
     // Convert to animation selection format
     const selection: AnimationSelection = {
       wordId: `${contextInfo.segmentIndex}-${contextInfo.wordPositionInSegment}`,
-      animations: result.selectedRules.map(selectedRule => ({
+      animations: result.selectedRules.map((selectedRule) => ({
         pluginName: selectedRule.animation.pluginName,
         params: selectedRule.animation.params || {},
         timing: selectedRule.animation.timing,
         intensity: selectedRule.intensity,
         ruleId: selectedRule.rule.id,
       })),
-      appliedRuleIds: result.selectedRules.map(sr => sr.rule.id),
+      appliedRuleIds: result.selectedRules.map((sr) => sr.rule.id),
       executionTime: result.totalExecutionTime,
     }
 
@@ -378,9 +385,9 @@ export class AnimationSelector {
       return {
         isValid: validationResult.isValid,
         errors: validationResult.errors
-          .filter(e => e.severity === 'error')
-          .map(e => e.message),
-        warnings: validationResult.warnings.map(w => w.message),
+          .filter((e) => e.severity === 'error')
+          .map((e) => e.message),
+        warnings: validationResult.warnings.map((w) => w.message),
         estimatedComplexity: validationResult.estimatedComplexity,
       }
     } catch (error) {

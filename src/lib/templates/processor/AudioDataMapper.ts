@@ -5,7 +5,11 @@
  * Provides helper functions for common audio analysis computations.
  */
 
-import { AudioAnalysisData, AudioSegment, AudioWord } from '../types/template.types'
+import {
+  AudioAnalysisData,
+  AudioSegment,
+  AudioWord,
+} from '../types/template.types'
 
 export interface RawAudioData {
   metadata?: any
@@ -109,11 +113,18 @@ export class AudioDataMapper {
     return {
       metadata: {
         filename: rawData.metadata?.filename || 'unknown',
-        duration: rawData.metadata?.duration || statistics.timing.total_duration,
+        duration:
+          rawData.metadata?.duration || statistics.timing.total_duration,
         total_segments: rawData.segments?.length || 0,
-        unique_speakers: rawData.metadata?.unique_speakers || this.countUniqueSpeakers(rawData),
-        dominant_emotion: rawData.metadata?.dominant_emotion || statistics.emotion.dominant_emotion,
-        avg_confidence: rawData.metadata?.avg_confidence || this.computeAverageConfidence(rawData),
+        unique_speakers:
+          rawData.metadata?.unique_speakers ||
+          this.countUniqueSpeakers(rawData),
+        dominant_emotion:
+          rawData.metadata?.dominant_emotion ||
+          statistics.emotion.dominant_emotion,
+        avg_confidence:
+          rawData.metadata?.avg_confidence ||
+          this.computeAverageConfidence(rawData),
       },
       speakers: rawData.speakers || this.computeSpeakerStats(rawData),
       segments: rawData.segments.map(this.mapSegment),
@@ -127,7 +138,9 @@ export class AudioDataMapper {
   /**
    * Map individual segment
    */
-  private static mapSegment(rawSegment: RawAudioData['segments'][0]): AudioSegment {
+  private static mapSegment(
+    rawSegment: RawAudioData['segments'][0]
+  ): AudioSegment {
     return {
       start_time: rawSegment.start_time,
       end_time: rawSegment.end_time,
@@ -146,7 +159,8 @@ export class AudioDataMapper {
       acoustic_features: {
         spectral_centroid: rawSegment.acoustic_features?.spectral_centroid || 0,
         spectral_rolloff: rawSegment.acoustic_features?.spectral_rolloff || 0,
-        zero_crossing_rate: rawSegment.acoustic_features?.zero_crossing_rate || 0,
+        zero_crossing_rate:
+          rawSegment.acoustic_features?.zero_crossing_rate || 0,
         energy: rawSegment.acoustic_features?.energy || 0,
         pitch_mean: rawSegment.acoustic_features?.pitch_mean || 0,
         pitch_std: rawSegment.acoustic_features?.pitch_std || 0,
@@ -160,7 +174,9 @@ export class AudioDataMapper {
   /**
    * Map individual word
    */
-  private static mapWord(rawWord: RawAudioData['segments'][0]['words'][0]): AudioWord {
+  private static mapWord(
+    rawWord: RawAudioData['segments'][0]['words'][0]
+  ): AudioWord {
     return {
       word: rawWord.word,
       start: rawWord.start,
@@ -177,10 +193,16 @@ export class AudioDataMapper {
    * Compute enhanced statistics from raw data
    */
   static computeEnhancedStatistics(rawData: RawAudioData): AudioStatistics {
-    const allWords = rawData.segments.flatMap(s => s.words)
-    const volumeValues = allWords.map(w => w.volume_db || -30).filter(v => v !== null)
-    const pitchValues = allWords.map(w => w.pitch_hz || 440).filter(v => v !== null)
-    const spectralValues = allWords.map(w => w.spectral_centroid || 1000).filter(v => v !== null)
+    const allWords = rawData.segments.flatMap((s) => s.words)
+    const volumeValues = allWords
+      .map((w) => w.volume_db || -30)
+      .filter((v) => v !== null)
+    const pitchValues = allWords
+      .map((w) => w.pitch_hz || 440)
+      .filter((v) => v !== null)
+    const spectralValues = allWords
+      .map((w) => w.spectral_centroid || 1000)
+      .filter((v) => v !== null)
 
     // Volume statistics
     const volumeStats = {
@@ -207,7 +229,7 @@ export class AudioDataMapper {
     }
 
     // Harmonics statistics
-    const harmonicsValues = allWords.map(w => w.harmonics_ratio || 1.0)
+    const harmonicsValues = allWords.map((w) => w.harmonics_ratio || 1.0)
     const harmonicsStats = {
       global_min_ratio: Math.min(...harmonicsValues),
       global_max_ratio: Math.max(...harmonicsValues),
@@ -225,10 +247,14 @@ export class AudioDataMapper {
     }
 
     // Timing statistics
-    const totalDuration = rawData.metadata?.duration ||
-      Math.max(...rawData.segments.map(s => s.end_time))
-    const speechDuration = rawData.segments.reduce((sum, s) => sum + s.duration, 0)
-    const wordDurations = allWords.map(w => w.end - w.start)
+    const totalDuration =
+      rawData.metadata?.duration ||
+      Math.max(...rawData.segments.map((s) => s.end_time))
+    const speechDuration = rawData.segments.reduce(
+      (sum, s) => sum + s.duration,
+      0
+    )
+    const wordDurations = allWords.map((w) => w.end - w.start)
 
     const timingStats = {
       total_duration: totalDuration,
@@ -244,7 +270,7 @@ export class AudioDataMapper {
     let totalEmotionConfidence = 0
     let emotionSampleCount = 0
 
-    rawData.segments.forEach(segment => {
+    rawData.segments.forEach((segment) => {
       if (segment.emotion) {
         const emotion = segment.emotion.emotion
         emotionCounts[emotion] = (emotionCounts[emotion] || 0) + 1
@@ -253,17 +279,18 @@ export class AudioDataMapper {
       }
     })
 
-    const dominantEmotion = Object.entries(emotionCounts)
-      .reduce((max, [emotion, count]) =>
-        count > max[1] ? [emotion, count] : max,
-        ['neutral', 0]
-      )[0]
+    const dominantEmotion = Object.entries(emotionCounts).reduce(
+      (max, [emotion, count]) => (count > max[1] ? [emotion, count] : max),
+      ['neutral', 0]
+    )[0]
 
     const emotionStats = {
       dominant_emotion: dominantEmotion,
       emotion_distribution: this.normalizeDistribution(emotionCounts),
-      emotional_intensity_avg: emotionSampleCount > 0 ?
-        totalEmotionConfidence / emotionSampleCount : 0,
+      emotional_intensity_avg:
+        emotionSampleCount > 0
+          ? totalEmotionConfidence / emotionSampleCount
+          : 0,
     }
 
     return {
@@ -296,21 +323,35 @@ export class AudioDataMapper {
   /**
    * Calculate derived metrics for template conditions
    */
-  static calculateDerivedMetrics(data: AudioAnalysisData): Record<string, number> {
+  static calculateDerivedMetrics(
+    data: AudioAnalysisData
+  ): Record<string, number> {
     return {
       // Volume-based metrics
-      volume_loudness_threshold: data.volume_statistics.baseline_db +
-        (data.volume_statistics.global_max_db - data.volume_statistics.baseline_db) * 0.7,
+      volume_loudness_threshold:
+        data.volume_statistics.baseline_db +
+        (data.volume_statistics.global_max_db -
+          data.volume_statistics.baseline_db) *
+          0.7,
 
-      volume_whisper_threshold: data.volume_statistics.baseline_db +
-        (data.volume_statistics.baseline_db - data.volume_statistics.global_min_db) * 0.3,
+      volume_whisper_threshold:
+        data.volume_statistics.baseline_db +
+        (data.volume_statistics.baseline_db -
+          data.volume_statistics.global_min_db) *
+          0.3,
 
       // Pitch-based metrics
-      pitch_high_threshold: data.pitch_statistics.baseline_range.max_hz +
-        (data.pitch_statistics.global_max_hz - data.pitch_statistics.baseline_range.max_hz) * 0.5,
+      pitch_high_threshold:
+        data.pitch_statistics.baseline_range.max_hz +
+        (data.pitch_statistics.global_max_hz -
+          data.pitch_statistics.baseline_range.max_hz) *
+          0.5,
 
-      pitch_low_threshold: data.pitch_statistics.baseline_range.min_hz -
-        (data.pitch_statistics.baseline_range.min_hz - data.pitch_statistics.global_min_hz) * 0.5,
+      pitch_low_threshold:
+        data.pitch_statistics.baseline_range.min_hz -
+        (data.pitch_statistics.baseline_range.min_hz -
+          data.pitch_statistics.global_min_hz) *
+          0.5,
 
       // Energy-based metrics (if available)
       energy_threshold: 0.05, // Default energy threshold for dynamic content
@@ -329,8 +370,11 @@ export class AudioDataMapper {
    * Calculate emphasis score based on volume and pitch dynamics
    */
   private static calculateEmphasisScore(data: AudioAnalysisData): number {
-    const volumeRange = data.volume_statistics.global_max_db - data.volume_statistics.global_min_db
-    const pitchRange = data.pitch_statistics.global_max_hz - data.pitch_statistics.global_min_hz
+    const volumeRange =
+      data.volume_statistics.global_max_db -
+      data.volume_statistics.global_min_db
+    const pitchRange =
+      data.pitch_statistics.global_max_hz - data.pitch_statistics.global_min_hz
 
     // Normalize to 0-1 scale
     const normalizedVolumeRange = Math.min(volumeRange / 30, 1) // 30dB is high dynamic range
@@ -353,8 +397,14 @@ export class AudioDataMapper {
    * Calculate dynamic range score
    */
   private static calculateDynamicRangeScore(data: AudioAnalysisData): number {
-    const volumeDynamics = (data.volume_statistics.global_max_db - data.volume_statistics.global_min_db) / 40
-    const pitchDynamics = (data.pitch_statistics.global_max_hz - data.pitch_statistics.global_min_hz) / 2000
+    const volumeDynamics =
+      (data.volume_statistics.global_max_db -
+        data.volume_statistics.global_min_db) /
+      40
+    const pitchDynamics =
+      (data.pitch_statistics.global_max_hz -
+        data.pitch_statistics.global_min_hz) /
+      2000
 
     return Math.min((volumeDynamics + pitchDynamics) / 2, 1)
   }
@@ -377,7 +427,9 @@ export class AudioDataMapper {
     return sorted[lower] * (upper - index) + sorted[upper] * (index - lower)
   }
 
-  private static normalizeDistribution(counts: Record<string, number>): Record<string, number> {
+  private static normalizeDistribution(
+    counts: Record<string, number>
+  ): Record<string, number> {
     const total = Object.values(counts).reduce((sum, count) => sum + count, 0)
     const normalized: Record<string, number> = {}
 
@@ -390,7 +442,7 @@ export class AudioDataMapper {
 
   private static countUniqueSpeakers(rawData: RawAudioData): number {
     const speakers = new Set()
-    rawData.segments.forEach(segment => {
+    rawData.segments.forEach((segment) => {
       if (segment.speaker?.speaker_id) {
         speakers.add(segment.speaker.speaker_id)
       }
@@ -399,15 +451,17 @@ export class AudioDataMapper {
   }
 
   private static computeAverageConfidence(rawData: RawAudioData): number {
-    const allWords = rawData.segments.flatMap(s => s.words)
-    const confidences = allWords.map(w => w.confidence).filter(c => c > 0)
+    const allWords = rawData.segments.flatMap((s) => s.words)
+    const confidences = allWords.map((w) => w.confidence).filter((c) => c > 0)
     return confidences.length > 0 ? this.mean(confidences) : 0
   }
 
-  private static computeSpeakerStats(rawData: RawAudioData): Record<string, any> {
+  private static computeSpeakerStats(
+    rawData: RawAudioData
+  ): Record<string, any> {
     const speakerStats: Record<string, any> = {}
 
-    rawData.segments.forEach(segment => {
+    rawData.segments.forEach((segment) => {
       const speakerId = segment.speaker?.speaker_id || 'UNKNOWN'
 
       if (!speakerStats[speakerId]) {

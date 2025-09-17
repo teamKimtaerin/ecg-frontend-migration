@@ -19,16 +19,34 @@ export class ExpressionEvaluator {
   }
 
   private readonly FUNCTIONS = new Set([
-    'min', 'max', 'avg', 'abs', 'round',
-    'sin', 'cos', 'tan', 'sqrt', 'log', 'exp',
-    'floor', 'ceil', 'percentile', 'standardDeviation',
-    'dbToLinear', 'linearToDb', 'hzToMidi', 'midiToHz'
+    'min',
+    'max',
+    'avg',
+    'abs',
+    'round',
+    'sin',
+    'cos',
+    'tan',
+    'sqrt',
+    'log',
+    'exp',
+    'floor',
+    'ceil',
+    'percentile',
+    'standardDeviation',
+    'dbToLinear',
+    'linearToDb',
+    'hzToMidi',
+    'midiToHz',
   ])
 
   /**
    * Evaluate a mathematical expression safely
    */
-  evaluate(expression: string, context: ExpressionContext): number | string | boolean {
+  evaluate(
+    expression: string,
+    context: ExpressionContext
+  ): number | string | boolean {
     try {
       // First, interpolate all variables
       const interpolated = this.interpolateVariables(expression, context)
@@ -40,14 +58,19 @@ export class ExpressionEvaluator {
 
       return result
     } catch (error) {
-      throw new Error(`Expression evaluation failed for "${expression}": ${error}`)
+      throw new Error(
+        `Expression evaluation failed for "${expression}": ${error}`
+      )
     }
   }
 
   /**
    * Interpolate template variables in the expression
    */
-  private interpolateVariables(expression: string, context: ExpressionContext): string {
+  private interpolateVariables(
+    expression: string,
+    context: ExpressionContext
+  ): string {
     let result = expression
 
     // Replace global variables {{variable_path}}
@@ -85,7 +108,9 @@ export class ExpressionEvaluator {
 
     for (const part of pathParts) {
       if (value === null || value === undefined) {
-        throw new Error(`Cannot access property '${part}' of ${value} in path '${path}'`)
+        throw new Error(
+          `Cannot access property '${part}' of ${value} in path '${path}'`
+        )
       }
       value = value[part]
     }
@@ -100,7 +125,10 @@ export class ExpressionEvaluator {
   /**
    * Resolve word-level variable from current word context
    */
-  private resolveWordVariable(fieldName: string, context: ExpressionContext): any {
+  private resolveWordVariable(
+    fieldName: string,
+    context: ExpressionContext
+  ): any {
     // Direct word properties
     if (fieldName in context.word) {
       return (context.word as any)[fieldName]
@@ -225,21 +253,30 @@ export class ExpressionEvaluator {
         operators.push(token)
       } else if (token === ',') {
         // Pop operators until we find opening parenthesis
-        while (operators.length > 0 && operators[operators.length - 1] !== '(') {
+        while (
+          operators.length > 0 &&
+          operators[operators.length - 1] !== '('
+        ) {
           output.push(operators.pop()!)
         }
       } else if (token === '(') {
         operators.push(token)
       } else if (token === ')') {
         // Pop operators until opening parenthesis
-        while (operators.length > 0 && operators[operators.length - 1] !== '(') {
+        while (
+          operators.length > 0 &&
+          operators[operators.length - 1] !== '('
+        ) {
           output.push(operators.pop()!)
         }
         if (operators.length > 0) {
           operators.pop() // Remove opening parenthesis
         }
         // If there's a function on the stack, pop it to output
-        if (operators.length > 0 && this.FUNCTIONS.has(operators[operators.length - 1])) {
+        if (
+          operators.length > 0 &&
+          this.FUNCTIONS.has(operators[operators.length - 1])
+        ) {
           output.push(operators.pop()!)
         }
       } else if (this.isOperator(token)) {
@@ -248,9 +285,16 @@ export class ExpressionEvaluator {
         while (
           operators.length > 0 &&
           operators[operators.length - 1] !== '(' &&
-          this.OPERATORS[operators[operators.length - 1] as keyof typeof this.OPERATORS] &&
-          (this.OPERATORS[operators[operators.length - 1] as keyof typeof this.OPERATORS].precedence > op.precedence ||
-            (this.OPERATORS[operators[operators.length - 1] as keyof typeof this.OPERATORS].precedence === op.precedence && op.associativity === 'left'))
+          this.OPERATORS[
+            operators[operators.length - 1] as keyof typeof this.OPERATORS
+          ] &&
+          (this.OPERATORS[
+            operators[operators.length - 1] as keyof typeof this.OPERATORS
+          ].precedence > op.precedence ||
+            (this.OPERATORS[
+              operators[operators.length - 1] as keyof typeof this.OPERATORS
+            ].precedence === op.precedence &&
+              op.associativity === 'left'))
         ) {
           output.push(operators.pop()!)
         }
@@ -270,7 +314,10 @@ export class ExpressionEvaluator {
   /**
    * Evaluate postfix expression
    */
-  private evaluatePostfix(tokens: string[], context: ExpressionContext): number | string {
+  private evaluatePostfix(
+    tokens: string[],
+    context: ExpressionContext
+  ): number | string {
     const stack: (number | string)[] = []
 
     for (const token of tokens) {
@@ -291,7 +338,9 @@ export class ExpressionEvaluator {
     }
 
     if (stack.length !== 1) {
-      throw new Error('Invalid expression: stack should contain exactly one value')
+      throw new Error(
+        'Invalid expression: stack should contain exactly one value'
+      )
     }
 
     return stack[0]
@@ -300,7 +349,11 @@ export class ExpressionEvaluator {
   /**
    * Apply binary operator
    */
-  private applyOperator(operator: string, a: number | string, b: number | string): number | string {
+  private applyOperator(
+    operator: string,
+    a: number | string,
+    b: number | string
+  ): number | string {
     // Handle string concatenation
     if (operator === '+' && (typeof a === 'string' || typeof b === 'string')) {
       return String(a) + String(b)
@@ -311,19 +364,26 @@ export class ExpressionEvaluator {
     const numB = typeof b === 'string' ? parseFloat(b) : b
 
     if (isNaN(numA) || isNaN(numB)) {
-      throw new Error(`Cannot apply operator '${operator}' to non-numeric values: ${a}, ${b}`)
+      throw new Error(
+        `Cannot apply operator '${operator}' to non-numeric values: ${a}, ${b}`
+      )
     }
 
     switch (operator) {
-      case '+': return numA + numB
-      case '-': return numA - numB
-      case '*': return numA * numB
+      case '+':
+        return numA + numB
+      case '-':
+        return numA - numB
+      case '*':
+        return numA * numB
       case '/':
         if (numB === 0) throw new Error('Division by zero')
         return numA / numB
-      case '%': return numA % numB
+      case '%':
+        return numA % numB
       case '^':
-      case '**': return Math.pow(numA, numB)
+      case '**':
+        return Math.pow(numA, numB)
       default:
         throw new Error(`Unknown operator: ${operator}`)
     }
@@ -332,7 +392,11 @@ export class ExpressionEvaluator {
   /**
    * Apply function with arguments from stack
    */
-  private applyFunction(funcName: string, stack: (number | string)[], context: ExpressionContext): number | string {
+  private applyFunction(
+    funcName: string,
+    stack: (number | string)[],
+    context: ExpressionContext
+  ): number | string {
     const helpers = context.helpers
 
     switch (funcName) {
@@ -383,14 +447,22 @@ export class ExpressionEvaluator {
         return helpers.midiToHz(midi)
       }
       // Math functions
-      case 'sin': return Math.sin(Number(stack.pop()!))
-      case 'cos': return Math.cos(Number(stack.pop()!))
-      case 'tan': return Math.tan(Number(stack.pop()!))
-      case 'sqrt': return Math.sqrt(Number(stack.pop()!))
-      case 'log': return Math.log(Number(stack.pop()!))
-      case 'exp': return Math.exp(Number(stack.pop()!))
-      case 'floor': return Math.floor(Number(stack.pop()!))
-      case 'ceil': return Math.ceil(Number(stack.pop()!))
+      case 'sin':
+        return Math.sin(Number(stack.pop()!))
+      case 'cos':
+        return Math.cos(Number(stack.pop()!))
+      case 'tan':
+        return Math.tan(Number(stack.pop()!))
+      case 'sqrt':
+        return Math.sqrt(Number(stack.pop()!))
+      case 'log':
+        return Math.log(Number(stack.pop()!))
+      case 'exp':
+        return Math.exp(Number(stack.pop()!))
+      case 'floor':
+        return Math.floor(Number(stack.pop()!))
+      case 'ceil':
+        return Math.ceil(Number(stack.pop()!))
 
       default:
         throw new Error(`Unknown function: ${funcName}`)
@@ -400,7 +472,10 @@ export class ExpressionEvaluator {
   /**
    * Pop function arguments from stack
    */
-  private popFunctionArgs(stack: (number | string)[], count: number): (number | string)[] {
+  private popFunctionArgs(
+    stack: (number | string)[],
+    count: number
+  ): (number | string)[] {
     if (count === -1) {
       // Variable arguments - pop all remaining
       const args = [...stack]

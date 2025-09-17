@@ -24,16 +24,18 @@ const TemplateGrid: React.FC<TemplateGridProps> = ({
         const response = await fetch('/asset-store/templates-database.json')
         const data = await response.json()
 
-        const templateItems: TemplateItem[] = data.templates.map((template: any) => ({
-          id: template.id,
-          name: template.title,
-          category: template.category,
-          type: template.isPro ? 'premium' : 'free',
-          preview: template.preview,
-          description: template.description,
-          manifestFile: template.manifestFile,
-          thumbnail: template.thumbnail,
-        }))
+        const templateItems: TemplateItem[] = data.templates.map(
+          (template: any) => ({
+            id: template.id,
+            name: template.title,
+            category: template.category,
+            type: template.isPro ? 'premium' : 'free',
+            preview: template.preview,
+            description: template.description,
+            manifestFile: template.manifestFile,
+            thumbnail: template.thumbnail,
+          })
+        )
 
         setTemplates(templateItems)
         setLoading(false)

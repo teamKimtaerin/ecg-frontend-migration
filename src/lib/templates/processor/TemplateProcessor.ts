@@ -11,7 +11,10 @@ import {
   TemplateApplicationResult,
 } from '../types/template.types'
 import { RawAudioData, AudioDataMapper } from './AudioDataMapper'
-import { AnimationSelector, BatchSelectionOptions } from '../engine/AnimationSelector'
+import {
+  AnimationSelector,
+  BatchSelectionOptions,
+} from '../engine/AnimationSelector'
 
 export interface TemplateProcessorOptions {
   // Performance options
@@ -100,7 +103,10 @@ export class TemplateProcessor {
       if (finalOptions.enableDebugOutput) {
         console.log('Audio data mapping completed:', {
           segments: audioData.segments.length,
-          totalWords: audioData.segments.reduce((sum, s) => sum + s.words.length, 0),
+          totalWords: audioData.segments.reduce(
+            (sum, s) => sum + s.words.length,
+            0
+          ),
           processingTime: audioMappingTime,
         })
       }
@@ -133,7 +139,10 @@ export class TemplateProcessor {
       const scenarioStartTime = performance.now()
       let scenario: any | undefined
 
-      if (templateApplication.success && templateApplication.appliedRules.length > 0) {
+      if (
+        templateApplication.success &&
+        templateApplication.appliedRules.length > 0
+      ) {
         scenario = await this.generateMotionTextScenario(
           template,
           audioData,
@@ -145,7 +154,10 @@ export class TemplateProcessor {
       const scenarioGenerationTime = performance.now() - scenarioStartTime
 
       // Step 4: Generate animation tracks for editor integration
-      const animationTracks = this.generateAnimationTracks(templateApplication, audioData)
+      const animationTracks = this.generateAnimationTracks(
+        templateApplication,
+        audioData
+      )
 
       // Calculate final statistics
       const totalProcessingTime = performance.now() - startTime
@@ -176,7 +188,6 @@ export class TemplateProcessor {
         errors,
         warnings,
       }
-
     } catch (error) {
       return {
         success: false,
@@ -236,7 +247,7 @@ export class TemplateProcessor {
 
     // Group applied rules by word/segment
     const rulesByWord = new Map<string, typeof applicationResult.appliedRules>()
-    applicationResult.appliedRules.forEach(rule => {
+    applicationResult.appliedRules.forEach((rule) => {
       if (!rulesByWord.has(rule.wordId)) {
         rulesByWord.set(rule.wordId, [])
       }
@@ -244,7 +255,11 @@ export class TemplateProcessor {
     })
 
     // Generate cues for each segment
-    for (let segmentIndex = 0; segmentIndex < audioData.segments.length; segmentIndex++) {
+    for (
+      let segmentIndex = 0;
+      segmentIndex < audioData.segments.length;
+      segmentIndex++
+    ) {
       const segment = audioData.segments[segmentIndex]
 
       // Create group cue for the entire segment
@@ -255,7 +270,10 @@ export class TemplateProcessor {
         root: {
           id: `group-${segmentIndex}`,
           eType: 'group' as const,
-          displayTime: [segment.start_time, segment.end_time] as [number, number],
+          displayTime: [segment.start_time, segment.end_time] as [
+            number,
+            number,
+          ],
           layout: this.convertTemplateLayoutToMotionText(template.layout),
           children: [] as any[],
         },
@@ -279,7 +297,7 @@ export class TemplateProcessor {
             // Base text styling from template
             ...this.convertTemplateStyleToMotionText(template.style).text,
           },
-          pluginChain: appliedRules.map(rule => ({
+          pluginChain: appliedRules.map((rule) => ({
             name: rule.animation.pluginName,
             baseTime: [word.start, word.end] as [number, number],
             timeOffset: rule.animation.timing.offset,
@@ -315,12 +333,17 @@ export class TemplateProcessor {
         letterSpacing: templateStyle.text?.letterSpacing,
         lineHeight: templateStyle.text?.lineHeight || 1.2,
       },
-      background: templateStyle.background ? {
-        backgroundColor: templateStyle.background.color || 'rgba(0,0,0,0.9)',
-        opacity: templateStyle.background.opacity || 0.9,
-        borderRadius: templateStyle.background.borderRadius || 8,
-        padding: this.convertSpacingValue(templateStyle.background.padding || '8px'),
-      } : undefined,
+      background: templateStyle.background
+        ? {
+            backgroundColor:
+              templateStyle.background.color || 'rgba(0,0,0,0.9)',
+            opacity: templateStyle.background.opacity || 0.9,
+            borderRadius: templateStyle.background.borderRadius || 8,
+            padding: this.convertSpacingValue(
+              templateStyle.background.padding || '8px'
+            ),
+          }
+        : undefined,
     }
   }
 
@@ -336,10 +359,18 @@ export class TemplateProcessor {
       right: templateLayout.track?.safeArea?.right || '5%',
       display: 'flex',
       flexDirection: 'column',
-      justifyContent: templateLayout.track?.position === 'top' ? 'flex-start' :
-        templateLayout.track?.position === 'bottom' ? 'flex-end' : 'center',
-      alignItems: templateLayout.track?.alignment === 'left' ? 'flex-start' :
-        templateLayout.track?.alignment === 'right' ? 'flex-end' : 'center',
+      justifyContent:
+        templateLayout.track?.position === 'top'
+          ? 'flex-start'
+          : templateLayout.track?.position === 'bottom'
+            ? 'flex-end'
+            : 'center',
+      alignItems:
+        templateLayout.track?.alignment === 'left'
+          ? 'flex-start'
+          : templateLayout.track?.alignment === 'right'
+            ? 'flex-end'
+            : 'center',
       textAlign: templateLayout.track?.alignment || 'center',
     }
   }
@@ -423,7 +454,7 @@ export class TemplateProcessor {
     }
 
     // Convert template application results to animation tracks
-    templateApplication.appliedRules.forEach(appliedRule => {
+    templateApplication.appliedRules.forEach((appliedRule) => {
       const word = this.findWordById(audioData, appliedRule.wordId)
       if (!word) return
 
@@ -458,7 +489,7 @@ export class TemplateProcessor {
    */
   private findWordById(audioData: AudioAnalysisData, wordId: string) {
     for (const segment of audioData.segments) {
-      const word = segment.words.find(w => (w as any).id === wordId)
+      const word = segment.words.find((w) => (w as any).id === wordId)
       if (word) return word
     }
     return null
@@ -470,13 +501,13 @@ export class TemplateProcessor {
   private mapPluginNameToKey(pluginName: string): string {
     const pluginMap: Record<string, string> = {
       'cwi-bouncing': 'cwi-bouncing@2.0.0',
-      'elastic': 'elastic@1.0.0',
-      'rotation': 'rotation@2.0.0',
-      'glow': 'glow@1.0.0',
-      'pulse': 'pulse@1.0.0',
-      'scale': 'scale@1.0.0',
-      'fade': 'fade@1.0.0',
-      'shake': 'shake@1.0.0',
+      elastic: 'elastic@1.0.0',
+      rotation: 'rotation@2.0.0',
+      glow: 'glow@1.0.0',
+      pulse: 'pulse@1.0.0',
+      scale: 'scale@1.0.0',
+      fade: 'fade@1.0.0',
+      shake: 'shake@1.0.0',
     }
 
     return pluginMap[pluginName] || `${pluginName}@1.0.0`

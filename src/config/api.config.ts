@@ -8,12 +8,14 @@ export const API_CONFIG = {
   // Global debug mode: when true, mock upload + transcription using local data
   DEBUG_MODE:
     (typeof process !== 'undefined' &&
-      process.env.NEXT_PUBLIC_DEBUG_MODE === 'true') || false,
+      process.env.NEXT_PUBLIC_DEBUG_MODE === 'true') ||
+    false,
 
   // Legacy flag kept for compatibility; derived from DEBUG_MODE when set
   USE_MOCK_DATA:
     (typeof process !== 'undefined' &&
-      process.env.NEXT_PUBLIC_DEBUG_MODE === 'true') || false, // Toggle between mock and real API
+      process.env.NEXT_PUBLIC_DEBUG_MODE === 'true') ||
+    false, // Toggle between mock and real API
 
   // API Base URLs
   FASTAPI_BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
@@ -46,8 +48,8 @@ export const API_CONFIG = {
   // Mock data paths
   MOCK_VIDEO_PATH: '/friends.mp4',
   MOCK_TRANSCRIPTION_PATH:
-    (typeof process !== 'undefined' &&
-      process.env.NEXT_PUBLIC_DEBUG_MODE === 'true')
+    typeof process !== 'undefined' &&
+    process.env.NEXT_PUBLIC_DEBUG_MODE === 'true'
       ? '/friends_result.json'
       : '/real.json',
 }

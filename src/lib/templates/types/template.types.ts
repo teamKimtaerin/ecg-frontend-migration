@@ -15,12 +15,15 @@ export interface AudioAnalysisData {
     dominant_emotion: string
     avg_confidence: number
   }
-  speakers: Record<string, {
-    total_duration: number
-    segment_count: number
-    avg_confidence: number
-    emotions: string[]
-  }>
+  speakers: Record<
+    string,
+    {
+      total_duration: number
+      segment_count: number
+      avg_confidence: number
+      emotions: string[]
+    }
+  >
   segments: AudioSegment[]
   volume_statistics: {
     global_min_db: number

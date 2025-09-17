@@ -48,11 +48,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 225.587,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "You know, we should all do. Go see a musical.",
       "words": [
@@ -180,11 +176,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 295.265,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "Sure.",
       "words": [
@@ -213,11 +205,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 299.653,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "And you know which one we should see? The 1996 Tony Award winner.",
       "words": [
@@ -378,11 +366,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 349.885,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "Do you happen to know the name of that one?",
       "words": [
@@ -510,11 +494,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 254.251,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "I don't know, Greece.",
       "words": [
@@ -576,11 +556,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 150.0,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "No.",
       "words": [
@@ -609,11 +585,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 189.424,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "Rent.",
       "words": [
@@ -642,11 +614,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 359.186,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "Yes! Rint!",
       "words": [
@@ -686,11 +654,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 318.356,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "Okay, so when do you want to go?",
       "words": [
@@ -796,11 +760,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 150.0,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "What?",
       "words": [
@@ -829,11 +789,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 228.855,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "Oh, I'm sorry I can't, I'm busy.",
       "words": [
@@ -928,11 +884,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 183.721,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "Hey, man, it is so hard to shop for girls.",
       "words": [
@@ -1060,11 +1012,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 282.826,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "Yes, it is at office max.",
       "words": [
@@ -1148,11 +1096,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 337.389,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "What did you get her?",
       "words": [
@@ -1225,11 +1169,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 184.767,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "A pen.",
       "words": [
@@ -1269,11 +1209,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 268.907,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "It's two gifts in one. It's a pen. That's also a clock.",
       "words": [
@@ -1423,11 +1359,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 284.934,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "You can't give her that.",
       "words": [
@@ -1500,11 +1432,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 263.991,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "Why not? Because she's not 11. And it's not the seventh night of Hanukkah.",
       "words": [
@@ -1676,11 +1604,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 289.008,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "Honey, what he means by that is, while this is a very nice gift, maybe it's just not something a boyfriend gives?",
       "words": [
@@ -1940,11 +1864,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 255.715,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "Sure it is. She needs a pen for work. She's writing. She turns it over. Whoa! It's time for my date with Joey!",
       "words": [
@@ -2215,11 +2135,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 350.248,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "All right, look, look.",
       "words": [
@@ -2281,11 +2197,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 222.701,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "What did you get for Angela Delvecchio for her birthday?",
       "words": [
@@ -2413,11 +2325,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 195.514,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "She didn't have a birthday while we were going out. For three years,",
       "words": [
@@ -2578,11 +2486,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 288.47,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "Look, it's too late and I got an audition. I can't shop anymore.",
       "words": [
@@ -2743,11 +2647,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 218.16,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "I will go out and I will try to find something for her, okay?",
       "words": [
@@ -2919,11 +2819,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 219.131,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "Thanks, man.",
       "words": [
@@ -2963,11 +2859,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 214.502,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "And oh, while you're at it, could you get her a card?",
       "words": [
@@ -3117,11 +3009,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 320.246,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "Would you like me to write her a little poem as well?",
       "words": [
@@ -3271,11 +3159,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 219.16,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "Or just get a card that has a poem already in it?",
       "words": [
@@ -3425,11 +3309,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 220.755,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "you",
       "words": [

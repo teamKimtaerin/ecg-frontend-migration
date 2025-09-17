@@ -184,10 +184,7 @@ export class TemplateParser {
   /**
    * Resolve global variable path (e.g., "volume_statistics.global_max_db")
    */
-  private resolveGlobalVariable(
-    path: string,
-    context: ExpressionContext
-  ): any {
+  private resolveGlobalVariable(path: string, context: ExpressionContext): any {
     const pathParts = path.split('.')
     let value: any = context.audioData
 
@@ -267,10 +264,7 @@ export class TemplateParser {
       }
 
       // Very basic eval replacement for demo - in production use a proper expression evaluator
-      const sanitizedExpression = expression.replace(
-        /[^0-9+\-*/.() ]/g,
-        ''
-      )
+      const sanitizedExpression = expression.replace(/[^0-9+\-*/.() ]/g, '')
 
       if (sanitizedExpression !== expression) {
         // If expression contains functions or variables, handle them
@@ -287,10 +281,7 @@ export class TemplateParser {
   /**
    * Handle complex expressions with functions and variables
    */
-  private evaluateComplexExpression(
-    expression: string,
-    evalContext: any
-  ): any {
+  private evaluateComplexExpression(expression: string, evalContext: any): any {
     // This is a simplified version - use a proper expression parser in production
     let result = expression
 
@@ -319,16 +310,15 @@ export class TemplateParser {
       evaluate: (context: RuleEvaluationContext) => {
         try {
           const fieldValue = this.resolveFieldValue(condition.field, context)
-          const compareValue = this.evaluateExpression(
-            condition.value,
-            context
-          )
+          const compareValue = this.evaluateExpression(condition.value, context)
 
           return this.compareValues(
             fieldValue,
             compareValue,
             condition.operator,
-            condition.secondValue ? this.evaluateExpression(condition.secondValue, context) : undefined
+            condition.secondValue
+              ? this.evaluateExpression(condition.secondValue, context)
+              : undefined
           )
         } catch (error) {
           console.warn(`Rule condition evaluation failed: ${error}`)
@@ -364,7 +354,11 @@ export class TemplateParser {
       case 'in':
         return Array.isArray(compareValue) && compareValue.includes(fieldValue)
       case 'between':
-        return secondValue !== undefined && fieldValue >= compareValue && fieldValue <= secondValue
+        return (
+          secondValue !== undefined &&
+          fieldValue >= compareValue &&
+          fieldValue <= secondValue
+        )
       default:
         throw new Error(`Unknown operator: ${operator}`)
     }
@@ -373,7 +367,10 @@ export class TemplateParser {
   /**
    * Resolve field value from context
    */
-  private resolveFieldValue(field: string, context: RuleEvaluationContext): any {
+  private resolveFieldValue(
+    field: string,
+    context: RuleEvaluationContext
+  ): any {
     if (field.startsWith('segment.')) {
       return this.getNestedValue(context.segment, field.substring(8))
     }
@@ -454,12 +451,24 @@ export class TemplateParser {
       throw new Error('Condition must have field and operator')
     }
 
-    const validOperators = ['gt', 'gte', 'lt', 'lte', 'eq', 'neq', 'in', 'between']
+    const validOperators = [
+      'gt',
+      'gte',
+      'lt',
+      'lte',
+      'eq',
+      'neq',
+      'in',
+      'between',
+    ]
     if (!validOperators.includes(condition.operator)) {
       throw new Error(`Invalid operator: ${condition.operator}`)
     }
 
-    if (condition.operator === 'between' && condition.secondValue === undefined) {
+    if (
+      condition.operator === 'between' &&
+      condition.secondValue === undefined
+    ) {
       throw new Error('Between operator requires secondValue')
     }
   }
@@ -492,7 +501,13 @@ export class TemplateParser {
    */
   private isValidPluginName(pluginName: string): boolean {
     // In production, check against available plugins
-    const knownPlugins = ['cwi-loud', 'cwi-bouncing', 'rotation', 'elastic', 'fade']
+    const knownPlugins = [
+      'cwi-loud',
+      'cwi-bouncing',
+      'rotation',
+      'elastic',
+      'fade',
+    ]
     return knownPlugins.includes(pluginName)
   }
 

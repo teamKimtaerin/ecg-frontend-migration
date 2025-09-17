@@ -120,7 +120,6 @@ export default function ProcessingModal({
     )
   }
 
-
   const getGradientColor = () => {
     switch (status) {
       case 'uploading':

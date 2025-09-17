@@ -222,7 +222,9 @@ const ColorControl: React.FC<ControlProps> = ({
   onChange,
 }) => {
   const colorValue =
-    typeof value === 'string' ? value : String(value ?? property.default ?? '#FFFFFF')
+    typeof value === 'string'
+      ? value
+      : String(value ?? property.default ?? '#FFFFFF')
 
   return (
     <div className="flex items-center space-x-3">
@@ -256,11 +258,12 @@ const ObjectControl: React.FC<ControlProps> = ({
   value,
   onChange,
 }) => {
-  const jsonValue = typeof value === 'string'
-    ? value
-    : typeof value === 'object' && value !== null
-      ? JSON.stringify(value, null, 2)
-      : JSON.stringify(property.default ?? {}, null, 2)
+  const jsonValue =
+    typeof value === 'string'
+      ? value
+      : typeof value === 'object' && value !== null
+        ? JSON.stringify(value, null, 2)
+        : JSON.stringify(property.default ?? {}, null, 2)
 
   const [inputValue, setInputValue] = React.useState(jsonValue)
   const [isValid, setIsValid] = React.useState(true)
@@ -397,7 +400,9 @@ export const PluginParameterControls: React.FC<
                 {getLabel(property)}
               </label>
               {getDescription(property) && (
-                <p className="text-xs text-gray-400">{getDescription(property)}</p>
+                <p className="text-xs text-gray-400">
+                  {getDescription(property)}
+                </p>
               )}
             </div>
 
