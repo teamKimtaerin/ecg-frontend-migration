@@ -140,6 +140,8 @@ export default function ExpandedClipWaveform({
     playSegment,
     stopSegmentPlayback,
     isPlaying: isVideoPlaying,
+    updateWordBaseTime,
+    refreshWordPluginChain,
   } = useEditorStore()
 
   // Find the focused word
@@ -322,10 +324,14 @@ export default function ExpandedClipWaveform({
       if (dragType === 'timing-start') {
         const newStart = Math.min(time, currentTiming.end - 0.01)
         updateWordTiming(draggedWordId, newStart, currentTiming.end)
+        updateWordBaseTime?.(draggedWordId, newStart, currentTiming.end)
+        refreshWordPluginChain?.(draggedWordId)
         setHasUnsavedChanges(true)
       } else if (dragType === 'timing-end') {
         const newEnd = Math.max(time, currentTiming.start + 0.01)
         updateWordTiming(draggedWordId, currentTiming.start, newEnd)
+        updateWordBaseTime?.(draggedWordId, currentTiming.start, newEnd)
+        refreshWordPluginChain?.(draggedWordId)
         setHasUnsavedChanges(true)
       } else if (dragType === 'animation-min') {
         const newMin = Math.min(position, currentIntensity.max - 0.05)
@@ -350,6 +356,7 @@ export default function ExpandedClipWaveform({
               newStart,
               track.timing.end
             )
+            refreshWordPluginChain?.(draggedWordId)
             setHasUnsavedChanges(true)
           } else if (barType === 'end') {
             const newEnd = Math.max(time, track.timing.start + 0.01)
@@ -359,6 +366,7 @@ export default function ExpandedClipWaveform({
               track.timing.start,
               newEnd
             )
+            refreshWordPluginChain?.(draggedWordId)
             setHasUnsavedChanges(true)
           } else if (barType === 'move') {
             // Move the entire track to follow mouse position
@@ -379,6 +387,7 @@ export default function ExpandedClipWaveform({
               constrainedStart,
               constrainedEnd
             )
+            refreshWordPluginChain?.(draggedWordId)
             setHasUnsavedChanges(true)
           }
         }
@@ -413,22 +422,50 @@ export default function ExpandedClipWaveform({
     updateAnimationIntensity,
     updateAnimationTrackTiming,
     setHasUnsavedChanges,
+    refreshWordPluginChain,
+    updateWordBaseTime,
   ])
 
   // Undo/Redo handlers
   const handleUndo = useCallback(() => {
     if (focusedWord) {
       undoWordTiming(focusedWord.id)
+      const timing = wordTimingAdjustments.get(focusedWord.id) || {
+        start: focusedWord.start,
+        end: focusedWord.end,
+      }
+      updateWordBaseTime?.(focusedWord.id, timing.start, timing.end)
+      refreshWordPluginChain?.(focusedWord.id)
       setHasUnsavedChanges(true)
     }
-  }, [focusedWord, undoWordTiming, setHasUnsavedChanges])
+  }, [
+    focusedWord,
+    undoWordTiming,
+    setHasUnsavedChanges,
+    wordTimingAdjustments,
+    updateWordBaseTime,
+    refreshWordPluginChain,
+  ])
 
   const handleRedo = useCallback(() => {
     if (focusedWord) {
       redoWordTiming(focusedWord.id)
+      const timing = wordTimingAdjustments.get(focusedWord.id) || {
+        start: focusedWord.start,
+        end: focusedWord.end,
+      }
+      updateWordBaseTime?.(focusedWord.id, timing.start, timing.end)
+      refreshWordPluginChain?.(focusedWord.id)
       setHasUnsavedChanges(true)
     }
-  }, [focusedWord, redoWordTiming, setHasUnsavedChanges])
+  }, [
+    focusedWord,
+    redoWordTiming,
+    setHasUnsavedChanges,
+    wordTimingAdjustments,
+    updateWordBaseTime,
+    refreshWordPluginChain,
+  ])
 
   // Sync playback state with video player
   useEffect(() => {

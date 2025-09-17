@@ -93,7 +93,7 @@ export function useWordDragAndDrop(clipId: string) {
         setDropTarget(null, null)
       }
     },
-    [clipId, setDropTarget]
+    [setDropTarget]
   )
 
   const handleWordDragEnd = useCallback(
@@ -152,7 +152,7 @@ export function useWordDragAndDrop(clipId: string) {
         }
       }
     },
-    [clipId, endWordDrag]
+    [endWordDrag]
   )
 
   const handleWordDragCancel = useCallback(() => {
