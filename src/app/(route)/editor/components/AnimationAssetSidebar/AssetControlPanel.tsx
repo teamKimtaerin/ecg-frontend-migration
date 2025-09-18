@@ -100,7 +100,7 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
           (a) => a.id === idToFind || a.title === assetName
         )
         if (match?.pluginKey) setFallbackPluginKey(match.pluginKey)
-      } catch (e) {
+      } catch {
         // Silent fallback; panel will show a message if unresolved
       }
     }
@@ -248,28 +248,28 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
   }
 
   return (
-    <div className="bg-slate-800/90 rounded-lg border border-slate-600/40 p-4 mt-3 transition-all duration-300 ease-in-out">
+    <div className="bg-slate-50 rounded-lg border border-slate-200 p-4 mb-4 transition-all duration-300 ease-in-out">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <IoSettings size={16} className="text-blue-400" />
-          <h3 className="text-sm font-medium text-white">
+          <IoSettings size={16} className="text-blue-600" />
+          <h3 className="text-sm font-medium text-slate-800">
             {assetName} 세부 조정
           </h3>
         </div>
         <button
           onClick={onClose}
-          className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-slate-700/50 transition-colors"
+          className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-slate-200 transition-colors"
         >
-          <IoClose size={14} className="text-slate-400" />
+          <IoClose size={14} className="text-slate-600" />
         </button>
       </div>
 
-      {/* Controls */}
-      <div className="space-y-4">
+      {/* Controls - Make scrollable */}
+      <div className="space-y-4 max-h-80 overflow-y-auto">
         {loading ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="text-sm text-slate-400">설정을 불러오는 중...</div>
+          <div className="flex items-center justify-center py-6">
+            <div className="text-sm text-slate-600">설정을 불러오는 중...</div>
           </div>
         ) : manifest ? (
           <PluginParameterControls
@@ -279,7 +279,7 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
             className=""
           />
         ) : (
-          <div className="pt-2 border-t border-slate-700/50">
+          <div className="pt-2 border-t border-slate-200">
             <p className="text-xs text-slate-500 italic">
               플러그인 매니페스트를 찾을 수 없습니다: {assetName}
             </p>
@@ -288,10 +288,10 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
       </div>
 
       {/* Action Buttons */}
-      <div className="flex gap-2 mt-6">
+      <div className="flex gap-2 mt-4">
         <button
           onClick={handleReset}
-          className="flex-1 px-3 py-2 text-xs font-medium text-slate-300 bg-slate-700/50 hover:bg-slate-600/50 rounded-md transition-colors flex items-center justify-center gap-2"
+          className="flex-1 px-3 py-2 text-xs font-medium text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 rounded-md transition-colors flex items-center justify-center gap-2"
         >
           <IoRefresh size={12} />
           초기화

@@ -260,24 +260,26 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
           />
         </div>
 
-        {/* Virtual Timeline Video Controller */}
-        <div className="mb-4">
-          <VirtualTimelineVideoController
-            virtualPlayerController={virtualPlayerControllerRef.current}
-            onVirtualTimeUpdate={() => {
-              // Virtual Time은 이미 RVFC 콜백을 통해 자동으로 MotionText Renderer에 전달됨
+        {/* Virtual Timeline Video Controller - Show only when DEBUG_UI is enabled */}
+        {process.env.NEXT_PUBLIC_DEBUG_UI === 'true' && (
+          <div className="mb-4">
+            <VirtualTimelineVideoController
+              virtualPlayerController={virtualPlayerControllerRef.current}
+              onVirtualTimeUpdate={() => {
+                // Virtual Time은 이미 RVFC 콜백을 통해 자동으로 MotionText Renderer에 전달됨
             }}
             showSegmentVisualization={true}
             showVolumeControls={true}
             className="rounded-lg border border-gray-200 bg-white shadow-sm"
           />
-        </div>
+          </div>
+        )}
 
         {/* Text Edit Input Panel */}
         <TextEditInput />
 
-        {/* Scenario JSON Editor */}
-        {currentScenario && (
+        {/* Scenario JSON Editor - Show only when DEBUG_UI is enabled */}
+        {process.env.NEXT_PUBLIC_DEBUG_UI === 'true' && currentScenario && (
           <ScenarioJsonEditor
             initialScenario={currentScenario}
             onApply={handleScenarioApply}

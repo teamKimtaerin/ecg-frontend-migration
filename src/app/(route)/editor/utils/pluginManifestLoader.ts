@@ -37,7 +37,7 @@ export async function loadPluginManifest(
   try {
     // Construct URL to plugin manifest
     const baseUrl =
-      process.env.NEXT_PUBLIC_PLUGIN_SERVER_URL || 'http://localhost:8080'
+      process.env.NEXT_PUBLIC_MOTIONTEXT_PLUGIN_ORIGIN || 'http://localhost:3300'
     const manifestUrl = `${baseUrl}/plugins/${pluginKey}/manifest.json`
 
     const response = await fetch(manifestUrl)
@@ -108,7 +108,7 @@ export async function getPluginIconUrl(
   if (!manifest?.icon) return null
 
   const baseUrl =
-    process.env.NEXT_PUBLIC_PLUGIN_SERVER_URL || 'http://localhost:8080'
+    process.env.NEXT_PUBLIC_MOTIONTEXT_PLUGIN_ORIGIN || 'http://localhost:3300'
   return `${baseUrl}/plugins/${pluginKey}/${manifest.icon}`
 }
 

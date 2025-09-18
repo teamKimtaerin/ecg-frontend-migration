@@ -4838,10 +4838,10 @@ mkdirp@^3.0.1:
   resolved "https://registry.yarnpkg.com/mkdirp/-/mkdirp-3.0.1.tgz#e44e4c5607fb279c168241713cc6e0fea9adcb50"
   integrity sha512-+NsyUUAZDmo6YVHzL/stxSu3t9YS1iljliy3BSDrXJ/dkn1KYdmtZODGGjLcc9XLgVVpH4KshHB8XmZgMhaBXg==
 
-motiontext-renderer@^1.1.1:
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/motiontext-renderer/-/motiontext-renderer-1.1.1.tgz#bd1153e10f3bf1b476af6947d7275d1fe47abf73"
-  integrity sha512-BQC6Z7nXRzGxZ0aa3F6/6VhDydETYxB1Ma7tiVdR40nfYHMzDJ0iffHjUvinU5BbpKTb1j9O9oDYC+o0RKkqrg==
+motiontext-renderer@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/motiontext-renderer/-/motiontext-renderer-1.2.0.tgz#2d738fe5031bf7699e2abfa23967356fefc127b8"
+  integrity sha512-Lb38DTTrl6Fb+YNou8HuWlsVf04TocJsONcG7caPrCke7JUbj5eABYuXFk3Ukb1yUsmsQcpjJ4FtWjyZUXgreA==
   dependencies:
     cors "^2.8.5"
     dotenv "^16.4.5"

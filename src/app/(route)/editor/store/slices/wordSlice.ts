@@ -546,20 +546,15 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
           (anyGet.applyAssetsToWord || anyGet.updateWordAnimationTracks) &&
           anyGet.clips
         ) {
-          // Find the clip containing this word
-          for (const clip of anyGet.clips) {
-            const word = clip.words?.find((w: Word) => w.id === wordId)
-            if (word) {
-              // Get all current asset IDs for this word
-              const allTracks = newTracks.get(wordId) || []
-              const assetIds = allTracks.map((track) => track.assetId)
-              if (anyGet.applyAssetsToWord) {
-                anyGet.applyAssetsToWord(clip.id, wordId, assetIds)
-              }
-              if (anyGet.updateWordAnimationTracks) {
-                anyGet.updateWordAnimationTracks(clip.id, wordId, allTracks)
-              }
-              break
+          const clipId = anyGet.getClipIdByWordId?.(wordId)
+          if (clipId) {
+            const allTracks = newTracks.get(wordId) || []
+            const assetIds = allTracks.map((track) => track.assetId)
+            if (anyGet.applyAssetsToWord) {
+              anyGet.applyAssetsToWord(clipId, wordId, assetIds)
+            }
+            if (anyGet.updateWordAnimationTracks) {
+              anyGet.updateWordAnimationTracks(clipId, wordId, allTracks)
             }
           }
         }
@@ -611,24 +606,15 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
           (anyGet.applyAssetsToWord || anyGet.updateWordAnimationTracks) &&
           anyGet.clips
         ) {
-          // Find the clip containing this word
-          for (const clip of anyGet.clips) {
-            const word = clip.words?.find((w: Word) => w.id === wordId)
-            if (word) {
-              // Get remaining asset IDs for this word
-              const remainingTracks = newTracks.get(wordId) || []
-              const assetIds = remainingTracks.map((track) => track.assetId)
-              if (anyGet.applyAssetsToWord) {
-                anyGet.applyAssetsToWord(clip.id, wordId, assetIds)
-              }
-              if (anyGet.updateWordAnimationTracks) {
-                anyGet.updateWordAnimationTracks(
-                  clip.id,
-                  wordId,
-                  remainingTracks
-                )
-              }
-              break
+          const clipId = anyGet.getClipIdByWordId?.(wordId)
+          if (clipId) {
+            const remainingTracks = newTracks.get(wordId) || []
+            const assetIds = remainingTracks.map((track) => track.assetId)
+            if (anyGet.applyAssetsToWord) {
+              anyGet.applyAssetsToWord(clipId, wordId, assetIds)
+            }
+            if (anyGet.updateWordAnimationTracks) {
+              anyGet.updateWordAnimationTracks(clipId, wordId, remainingTracks)
             }
           }
         }
@@ -644,9 +630,41 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
       const newTracks = new Map(state.wordAnimationTracks)
       const existingTracks = newTracks.get(wordId) || []
 
-      const updatedTracks = existingTracks.map((track) =>
-        track.assetId === assetId ? { ...track, timing: { start, end } } : track
-      )
+      // Find the word's original baseTime from clips (not wordTimingAdjustments)
+      let wordBaseTime: { start: number; end: number } | undefined = undefined
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const anyGet = get() as any
+        const clips = anyGet.clips || []
+        for (const clip of clips) {
+          const word = clip.words?.find((w: Word) => w.id === wordId)
+          if (word) {
+            wordBaseTime = { start: word.start, end: word.end }
+            break
+          }
+        }
+      } catch {
+        // ignore
+      }
+
+      const updatedTracks = existingTracks.map((track) => {
+        if (track.assetId === assetId) {
+          // Calculate timeOffset based on difference from word's original baseTime
+          let timeOffset: [number, number] | undefined = undefined
+          if (wordBaseTime) {
+            const preOffset = start - wordBaseTime.start
+            const postOffset = end - wordBaseTime.end
+            timeOffset = [preOffset, postOffset]
+          }
+
+          return {
+            ...track,
+            timing: { start, end },
+            timeOffset
+          }
+        }
+        return track
+      })
 
       newTracks.set(wordId, updatedTracks)
 
@@ -664,12 +682,9 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const anyGet = get() as any
         if (anyGet.updateWordAnimationTracks && anyGet.clips) {
-          for (const clip of anyGet.clips) {
-            const hasWord = clip.words?.some((w: Word) => w.id === wordId)
-            if (hasWord) {
-              anyGet.updateWordAnimationTracks(clip.id, wordId, updatedTracks)
-              break
-            }
+          const clipId = anyGet.getClipIdByWordId?.(wordId)
+          if (clipId) {
+            anyGet.updateWordAnimationTracks(clipId, wordId, updatedTracks)
           }
         }
       } catch {}
@@ -709,12 +724,9 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const anyGet = get() as any
         if (anyGet.updateWordAnimationTracks && anyGet.clips) {
-          for (const clip of anyGet.clips) {
-            const hasWord = clip.words?.some((w: Word) => w.id === wordId)
-            if (hasWord) {
-              anyGet.updateWordAnimationTracks(clip.id, wordId, [])
-              break
-            }
+          const clipId = anyGet.getClipIdByWordId?.(wordId)
+          if (clipId) {
+            anyGet.updateWordAnimationTracks(clipId, wordId, [])
           }
         }
       } catch {}
@@ -783,31 +795,24 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const anyGet = get() as any
-        const clips = anyGet.clips || []
         for (const wordId of wordIds) {
           const tracks = newTracks.get(wordId) || []
           // appliedAssets
           if (anyGet.applyAssetsToWord) {
-            for (const clip of clips) {
-              const has = clip.words?.some((w: Word) => w.id === wordId)
-              if (has) {
-                anyGet.applyAssetsToWord(
-                  clip.id,
-                  wordId,
-                  tracks.map((t: AnimationTrack) => t.assetId)
-                )
-                break
-              }
+            const clipId = anyGet.getClipIdByWordId?.(wordId)
+            if (clipId) {
+              anyGet.applyAssetsToWord(
+                clipId,
+                wordId,
+                tracks.map((t: AnimationTrack) => t.assetId)
+              )
             }
           }
           // mirror animationTracks onto word
           if (anyGet.updateWordAnimationTracks) {
-            for (const clip of clips) {
-              const has = clip.words?.some((w: Word) => w.id === wordId)
-              if (has) {
-                anyGet.updateWordAnimationTracks(clip.id, wordId, tracks)
-                break
-              }
+            const clipId = anyGet.getClipIdByWordId?.(wordId)
+            if (clipId) {
+              anyGet.updateWordAnimationTracks(clipId, wordId, tracks)
             }
           }
           // scenario refresh
@@ -865,12 +870,9 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const anyGet = get() as any
           if (anyGet.updateWordAnimationTracks && anyGet.clips) {
-            for (const clip of anyGet.clips) {
-              const hasWord = clip.words?.some((w: Word) => w.id === wordId)
-              if (hasWord) {
-                anyGet.updateWordAnimationTracks(clip.id, wordId, updated)
-                break
-              }
+            const clipId = anyGet.getClipIdByWordId?.(wordId)
+            if (clipId) {
+              anyGet.updateWordAnimationTracks(clipId, wordId, updated)
             }
           }
         } catch (error) {
@@ -1010,12 +1012,9 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const anyGet = get() as any
         if (anyGet.updateWordAnimationTracks && anyGet.clips) {
-          for (const clip of anyGet.clips) {
-            const hasWord = clip.words?.some((w: Word) => w.id === wordId)
-            if (hasWord) {
-              anyGet.updateWordAnimationTracks(clip.id, wordId, updated)
-              break
-            }
+          const clipId = anyGet.getClipIdByWordId?.(wordId)
+          if (clipId) {
+            anyGet.updateWordAnimationTracks(clipId, wordId, updated)
           }
         }
         anyGet.refreshWordPluginChain?.(wordId)

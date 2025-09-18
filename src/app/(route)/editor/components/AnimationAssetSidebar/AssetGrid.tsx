@@ -33,10 +33,8 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
     setCurrentWordAssets,
     selectedWordId,
     applyAssetsToWord,
-    clips,
     focusedWordId,
     addAnimationTrackAsync,
-    removeAnimationTrack,
     wordAnimationTracks,
     multiSelectedWordIds,
   } = useEditorStore()
@@ -176,17 +174,19 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
       // Check if already added
       if (currentTracks.find((t) => t.assetId === asset.id)) {
         // If already exists, remove it
+        const { removeAnimationTrack } = useEditorStore.getState()
         removeAnimationTrack(singleTargetWordId, asset.id)
       } else if (currentTracks.length < 3) {
-        // Find the word to get its timing
+        // Find the word to get its timing using index cache
         let wordTiming = undefined
-        for (const clip of clips) {
-          const word = clip.words?.find((w) => w.id === singleTargetWordId)
-          if (word) {
-            wordTiming = { start: word.start, end: word.end }
-            break
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const store = useEditorStore.getState() as any
+          const entry = store.getWordEntryById?.(singleTargetWordId)
+          if (entry?.word) {
+            wordTiming = { start: entry.word.start, end: entry.word.end }
           }
-        }
+        } catch {}
         // Add the animation track with word timing - this creates the bars immediately
         await addAnimationTrackAsync(
           singleTargetWordId,
@@ -207,14 +207,15 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
 
     // If a word is selected, apply the asset changes to it
     if (selectedWordId) {
-      // Find the clip containing the selected word
-      const targetClip = clips.find((clip) =>
-        clip.words.some((word) => word.id === selectedWordId)
-      )
-
-      if (targetClip) {
-        applyAssetsToWord(targetClip.id, selectedWordId, newSelectedAssets)
-      }
+      // Use index to resolve clipId quickly
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const store = useEditorStore.getState() as any
+        const clipId = store.getClipIdByWordId?.(selectedWordId)
+        if (clipId) {
+          applyAssetsToWord(clipId, selectedWordId, newSelectedAssets)
+        }
+      } catch {}
     }
 
     console.log(
@@ -229,10 +230,8 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
   // Show loading state
   if (loading) {
     return (
-      <div className="px-4 pb-4">
-        <div className="text-center py-8">
-          <p className="text-gray-700 text-sm">에셋을 불러오는 중...</p>
-        </div>
+      <div className="text-center py-8">
+        <p className="text-gray-700 text-sm">에셋을 불러오는 중...</p>
       </div>
     )
   }
@@ -240,19 +239,17 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
   // Show error state
   if (error) {
     return (
-      <div className="px-4 pb-4">
-        <div className="text-center py-8">
-          <p className="text-red-400 text-sm">
-            에셋을 불러오는데 실패했습니다.
-          </p>
-          <p className="text-slate-400 text-xs mt-1">{error}</p>
-        </div>
+      <div className="text-center py-8">
+        <p className="text-red-400 text-sm">
+          에셋을 불러오는데 실패했습니다.
+        </p>
+        <p className="text-slate-400 text-xs mt-1">{error}</p>
       </div>
     )
   }
 
   return (
-    <div className="px-4 pb-4">
+    <div>
       <div className="grid grid-cols-2 gap-3">
         {filteredAssets.map((asset) => {
           // Check if this asset is applied to the focused word

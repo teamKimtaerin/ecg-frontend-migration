@@ -547,11 +547,12 @@ export default function EditorMotionTextOverlay({
   }, [loadScenario, onScenarioUpdate, timeline.isSequentialMode]) // Added timeline dependency for sequential mode check
 
   // Handle scenario override from JSON editor
+  // Do not gate on `renderer` being truthy — loader will initialize as needed
   useEffect(() => {
-    if (scenarioOverride && renderer) {
+    if (scenarioOverride) {
       void loadScenario(scenarioOverride)
     }
-  }, [scenarioOverride, renderer, loadScenario])
+  }, [scenarioOverride, loadScenario])
 
   // Option B: Convert real.json to scenario on the fly when requested
   useEffect(() => {

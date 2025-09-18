@@ -40,7 +40,21 @@ export const getTargetWordDisplayName = (store: EditorStore): string => {
   const wordId = determineTargetWordId(store)
   if (!wordId) return '선택된 단어 없음'
 
-  // Find the word text from clips
+  // Fast path via indexes if available
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const anyStore = store as any
+    const clipId: string | null = anyStore.getClipIdByWordId?.(wordId) || null
+    if (clipId) {
+      const clip = (store.clips || []).find((c) => c.id === clipId)
+      if (clip) {
+        const word = clip.words.find((w) => w.id === wordId)
+        if (word) return `"${word.text}"`
+      }
+    }
+  } catch {}
+
+  // Fallback: linear search
   for (const clip of store.clips || []) {
     const word = clip.words.find((w) => w.id === wordId)
     if (word) {

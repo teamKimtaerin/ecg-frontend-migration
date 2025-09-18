@@ -24,7 +24,7 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
   onAssetSelect,
   onClose,
 }) => {
-  const { assetSidebarWidth, selectedWordId, clips } = useEditorStore()
+  const { assetSidebarWidth, selectedWordId } = useEditorStore()
 
   const [expandedAssetId, setExpandedAssetId] = useState<string | null>(null)
   const [expandedAssetName, setExpandedAssetName] = useState<string | null>(
@@ -34,23 +34,39 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
   // Find selected word info
   const selectedWordInfo = React.useMemo(() => {
     if (!selectedWordId) return null
-
-    for (const clip of clips) {
-      const word = clip.words.find((w) => w.id === selectedWordId)
-      if (word) {
-        return { word, clipId: clip.id }
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const store = useEditorStore.getState() as any
+      const entry = store.getWordEntryById?.(selectedWordId)
+      if (entry?.word) {
+        return { word: entry.word, clipId: entry.clipId }
       }
-    }
+    } catch {}
     return null
-  }, [selectedWordId, clips])
+  }, [selectedWordId])
 
   const handleAssetSelect = (asset: AssetItem) => {
-    // Here you would typically apply the glitch effect to the focused clip
     console.log('Selected asset:', asset)
-    onAssetSelect?.(asset)
 
-    // TODO: Implement actual glitch effect application to focused clip
-    // This would integrate with the existing clip editing system
+    // Check if the asset is already applied to determine the action
+    const store = useEditorStore.getState()
+    const targetWordId = determineTargetWordId(store)
+
+    if (targetWordId) {
+      const currentTracks = store.wordAnimationTracks.get(targetWordId) || []
+      const isAlreadyApplied = currentTracks.find((t) => t.assetId === asset.id)
+
+      if (isAlreadyApplied) {
+        // Asset is already applied, open parameter panel
+        setExpandedAssetId(asset.id)
+        setExpandedAssetName(asset.name)
+        console.log('Opening parameter panel for applied asset:', asset.name)
+        return
+      }
+    }
+
+    // Asset is not applied, normal selection callback
+    onAssetSelect?.(asset)
   }
 
   const handleExpandedAssetChange = (
@@ -96,52 +112,51 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
       className={`relative flex-shrink-0 bg-white border-l border-gray-200 flex flex-col h-full ${className || ''}`}
       style={{ width: assetSidebarWidth }}
     >
-      {/* Header */}
-      <SidebarHeader onClose={onClose} />
+      {/* Fixed Header */}
+      <div className="flex-shrink-0">
+        <SidebarHeader onClose={onClose} />
+      </div>
 
-      {/* Word Selection Indicator */}
-      {selectedWordInfo && (
-        <div className="px-4 py-2 bg-blue-50 border-b border-blue-200">
-          <div className="text-xs text-blue-600">
-            선택된 단어:{' '}
-            <span className="font-medium text-blue-800">
-              &ldquo;{selectedWordInfo.word.text}&rdquo;
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* Filter Controls */}
-      <div className="flex-shrink-0 pt-4 relative">
-        <SearchBar />
-
-        {/* Used Assets Strip */}
-        <UsedAssetsStrip onExpandedAssetChange={handleExpandedAssetChange} />
-
-        {/* AssetControlPanel - Below UsedAssetsStrip, centered vertically in viewport */}
-        {expandedAssetId && expandedAssetName && (
-          <div
-            className="absolute left-0 right-0 px-4 z-50"
-            style={{
-              top: '50%',
-              transform: 'translateY(-50%)',
-            }}
-          >
-            <AssetControlPanel
-              assetName={expandedAssetName}
-              assetId={expandedAssetId}
-              onClose={handleControlPanelClose}
-              onSettingsChange={handleSettingsChange}
-            />
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+        {/* Word Selection Indicator */}
+        {selectedWordInfo && (
+          <div className="px-4 py-2 bg-blue-50 border-b border-blue-200">
+            <div className="text-xs text-blue-600">
+              선택된 단어:{' '}
+              <span className="font-medium text-blue-800">
+                &ldquo;{selectedWordInfo.word.text}&rdquo;
+              </span>
+            </div>
           </div>
         )}
 
-        <TabNavigation />
-      </div>
+        {/* Filter Controls */}
+        <div className="pt-4">
+          <SearchBar />
 
-      {/* Scrollable Asset Grid */}
-      <div className="flex-1 overflow-y-auto">
-        <AssetGrid onAssetSelect={handleAssetSelect} />
+          {/* Used Assets Strip */}
+          <UsedAssetsStrip onExpandedAssetChange={handleExpandedAssetChange} />
+
+          {/* AssetControlPanel - Inline between UsedAssetsStrip and TabNavigation */}
+          {expandedAssetId && expandedAssetName && (
+            <div className="px-4 pb-2">
+              <AssetControlPanel
+                assetName={expandedAssetName}
+                assetId={expandedAssetId}
+                onClose={handleControlPanelClose}
+                onSettingsChange={handleSettingsChange}
+              />
+            </div>
+          )}
+
+          <TabNavigation />
+        </div>
+
+        {/* Asset Grid - Remove individual scroll */}
+        <div className="px-4 pb-4">
+          <AssetGrid onAssetSelect={handleAssetSelect} />
+        </div>
       </div>
     </div>
   )
