@@ -10,6 +10,7 @@ export interface ProgressTask {
   type: 'upload' | 'export'
   currentStage?: string
   estimatedTimeRemaining?: number
+  isTimeout?: boolean
 }
 
 interface ProgressStore {
@@ -136,6 +137,37 @@ export const useProgressStore = create<ProgressStore>()(
 
       getTask: (id) => {
         return get().tasks.find((task) => task.id === id)
+      },
+
+      // 2분 이상 진행 중인 작업을 완료로 처리
+      expireOldTasks: () => {
+        const now = Date.now()
+        const timeout = 2 * 60 * 1000 // 2분 (120초)
+
+        set((state) => ({
+          tasks: state.tasks.map((task) => {
+            // 진행 중 작업이고 2분 이상 경과한 경우
+            if (
+              (task.status === 'uploading' || task.status === 'processing') &&
+              (now - task.id) > timeout
+            ) {
+              return {
+                ...task,
+                status: 'failed' as const,
+                progress: 100,
+                isTimeout: true,
+                completedAt: task.completedAt || new Date().toLocaleString('ko-KR', {
+                  year: 'numeric',
+                  month: '2-digit',
+                  day: '2-digit',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })
+              }
+            }
+            return task
+          })
+        }))
       }
     }),
     {

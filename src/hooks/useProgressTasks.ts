@@ -7,10 +7,11 @@ export interface ExportTask {
   id: number
   filename: string
   progress: number
-  status: 'processing' | 'completed'
+  status: 'processing' | 'completed' | 'failed'
   completedAt?: string
   currentStage?: string
   estimatedTimeRemaining?: number
+  isTimeout?: boolean
 }
 
 export interface UploadTask {
@@ -21,6 +22,7 @@ export interface UploadTask {
   completedAt?: string
   currentStage?: string
   estimatedTimeRemaining?: number
+  isTimeout?: boolean
 }
 
 /**
@@ -32,7 +34,8 @@ export const useProgressTasks = () => {
     getActiveUploadTasks,
     getActiveExportTasks,
     getCompletedTasks,
-    getAllActiveTasks
+    getAllActiveTasks,
+    expireOldTasks
   } = useProgressStore()
 
   // Get raw data from store
@@ -57,15 +60,16 @@ export const useProgressTasks = () => {
       })),
     // Completed export tasks
     ...completedTasks
-      .filter(task => task.type === 'export' && task.status === 'completed')
+      .filter(task => task.type === 'export' && (task.status === 'completed' || task.status === 'failed'))
       .map(task => ({
         id: task.id,
         filename: task.filename,
         progress: task.progress,
-        status: 'completed' as const,
+        status: task.status as 'completed' | 'failed',
         completedAt: task.completedAt,
         currentStage: task.currentStage,
         estimatedTimeRemaining: task.estimatedTimeRemaining,
+        isTimeout: task.isTimeout,
       }))
   ]
 
@@ -82,6 +86,7 @@ export const useProgressTasks = () => {
         completedAt: task.completedAt,
         currentStage: task.currentStage,
         estimatedTimeRemaining: task.estimatedTimeRemaining,
+        isTimeout: task.isTimeout,
       })),
     // Completed and failed upload tasks
     ...completedTasks
@@ -94,6 +99,7 @@ export const useProgressTasks = () => {
         completedAt: task.completedAt,
         currentStage: task.currentStage,
         estimatedTimeRemaining: task.estimatedTimeRemaining,
+        isTimeout: task.isTimeout,
       }))
   ]
 
@@ -148,5 +154,8 @@ export const useProgressTasks = () => {
     hasAnyActiveTasks: hasAnyActiveTasks(),
     hasActiveUploads: hasActiveUploads(),
     hasActiveExports: hasActiveExports(),
+
+    // Utility functions
+    expireOldTasks,
   }
 }

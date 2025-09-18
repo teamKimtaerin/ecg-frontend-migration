@@ -22,8 +22,15 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
   const [position, setPosition] = useState({ top: 0, left: 0 })
   const [isMounted, setIsMounted] = useState(false)
 
-  // Get formatted progress data
-  const { exportTasks, uploadTasks, raw: { activeUploadTasks } } = useProgressTasks()
+  // Get formatted progress data and expire old tasks when modal opens
+  const { exportTasks, uploadTasks, raw: { activeUploadTasks }, expireOldTasks } = useProgressTasks()
+
+  // Expire old tasks when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      expireOldTasks()
+    }
+  }, [isOpen, expireOldTasks])
 
   // Set mounted state
   useEffect(() => {
@@ -168,7 +175,7 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
               <h3 className="text-sm font-semibold text-gray-800 mb-3">
                 종료된 내보내기
               </h3>
-              {exportTasks.filter((task) => task.status === 'completed')
+              {exportTasks.filter((task) => task.status === 'completed' || task.status === 'failed')
                 .length === 0 ? (
                 <div className="text-center py-6">
                   <div className="w-10 h-10 mx-auto mb-2 bg-gray-100 rounded-full flex items-center justify-center">
@@ -193,21 +200,29 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
               ) : (
                 <div className="space-y-2">
                   {exportTasks
-                    .filter((task) => task.status === 'completed')
+                    .filter((task) => task.status === 'completed' || task.status === 'failed')
                     .map((task) => (
                       <div
                         key={task.id}
-                        className="bg-green-50 border border-green-200 rounded-lg p-3 hover:bg-green-100 transition-colors cursor-pointer"
-                        onClick={() => onDeployClick?.(task)}
+                        className={`rounded-lg p-3 border ${
+                          task.status === 'completed'
+                            ? 'bg-green-50 border-green-200 hover:bg-green-100 cursor-pointer'
+                            : 'bg-red-50 border-red-200'
+                        } transition-colors`}
+                        onClick={() => task.status === 'completed' && onDeployClick?.(task)}
                       >
                         <div className="flex items-center justify-between mb-1">
                           <span className="text-sm font-medium text-gray-800 truncate">
                             {task.filename}
                           </span>
                           <div className="flex items-center">
-                            <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                            <span className="text-xs text-green-600 font-medium">
-                              완료
+                            <div className={`w-2 h-2 rounded-full mr-2 ${
+                              task.status === 'completed' ? 'bg-green-500' : 'bg-red-500'
+                            }`}></div>
+                            <span className={`text-xs font-medium ${
+                              task.status === 'completed' ? 'text-green-600' : 'text-red-600'
+                            }`}>
+                              {task.status === 'completed' ? '완료' : '실패'}
                             </span>
                           </div>
                         </div>
@@ -215,9 +230,11 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
                           <span className="text-xs text-gray-500">
                             {task.completedAt}
                           </span>
-                          <span className="text-xs text-blue-600 font-medium">
-                            배포하기
-                          </span>
+                          {task.status === 'completed' && (
+                            <span className="text-xs text-blue-600 font-medium">
+                              배포하기
+                            </span>
+                          )}
                         </div>
                       </div>
                     ))}
