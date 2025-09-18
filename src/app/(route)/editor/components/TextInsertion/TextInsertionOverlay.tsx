@@ -53,10 +53,14 @@ export default function TextInsertionOverlay({
   // Handle text selection
   const handleTextSelect = useCallback(
     (textId: string) => {
+      console.log('📝 handleTextSelect called:', {
+        textId,
+        currentSelectedTextId: selectedTextId,
+      })
       selectText(textId)
       onTextClick?.(textId)
     },
-    [selectText, onTextClick]
+    [selectText, onTextClick, selectedTextId]
   )
 
   // Handle text double-click for editing
@@ -92,7 +96,7 @@ export default function TextInsertionOverlay({
         <MovableAnimatedText
           key={text.id}
           text={text}
-          isSelected={text.id === selectedTextId}
+          isSelected={text.isSelected || false}
           isVisible={true}
           videoContainerRef={videoContainerRef}
           onUpdate={(updates) => handleTextUpdate(text.id, updates)}

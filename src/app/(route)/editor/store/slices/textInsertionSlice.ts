@@ -111,15 +111,30 @@ export const createTextInsertionSlice: StateCreator<
 
   // Selection management
   selectText: (id: string | null) => {
-    set((state) => ({
-      ...state,
-      selectedTextId: id,
-      // Don't auto-open panel when text is selected
-      insertedTexts: state.insertedTexts.map((text) => ({
-        ...text,
-        isSelected: text.id === id,
-      })),
-    }))
+    console.log('🔧 selectText called:', {
+      id,
+      currentSelectedId: get().selectedTextId,
+      textsCount: get().insertedTexts.length,
+    })
+
+    set((state) => {
+      const newState = {
+        ...state,
+        selectedTextId: id,
+        // Don't auto-open panel when text is selected
+        insertedTexts: state.insertedTexts.map((text) => ({
+          ...text,
+          isSelected: text.id === id,
+        })),
+      }
+
+      console.log('✅ selectText state updated:', {
+        newSelectedId: newState.selectedTextId,
+        selectedTextObject: newState.insertedTexts.find(t => t.isSelected),
+      })
+
+      return newState
+    })
   },
 
   clearSelection: () => {
