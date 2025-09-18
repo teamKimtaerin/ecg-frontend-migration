@@ -281,27 +281,6 @@
       "updatedAt": "2024-03-15T14:20:00Z"
     },
     {
-      "id": "14",
-      "title": "CWI Comprehensive",
-      "category": "Smooth",
-      "description": "CWI 시스템의 모든 기능을 통합한 종합적인 텍스트 애니메이션 효과입니다.",
-      "pluginKey": "cwi@2.0.0",
-      "thumbnailPath": "assets/thumbnail.svg",
-      "iconName": "IoApps",
-      "authorId": "cwi-team",
-      "authorName": "CWI Team",
-      "isPro": false,
-      "price": 0,
-      "rating": 5,
-      "downloads": 1234,
-      "likes": 892,
-      "usageCount": 1876,
-      "tags": ["text", "cwi", "comprehensive", "speaker", "token"],
-      "isFavorite": true,
-      "createdAt": "2024-09-10T12:00:00Z",
-      "updatedAt": "2024-09-10T12:00:00Z"
-    },
-    {
       "id": "15",
       "title": "Flames Effect",
       "category": "Unique",

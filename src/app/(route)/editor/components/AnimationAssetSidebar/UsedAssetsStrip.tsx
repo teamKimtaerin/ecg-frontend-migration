@@ -46,11 +46,9 @@ const UsedAssetsStrip: React.FC<UsedAssetsStripProps> = ({
     setCurrentWordAssets,
     selectedWordId,
     applyAssetsToWord,
-    clips,
     expandedAssetId,
     setExpandedAssetId,
     focusedWordId,
-    addAnimationTrack,
     removeAnimationTrack,
     wordAnimationTracks,
   } = useEditorStore()
@@ -168,58 +166,29 @@ const UsedAssetsStrip: React.FC<UsedAssetsStripProps> = ({
     // Remove animation track from focused word
     if (targetWordId) {
       removeAnimationTrack(targetWordId, assetId)
-      // Update scenario pluginChain for this word
-      useEditorStore.getState().refreshWordPluginChain?.(targetWordId)
+      // Note: removeAnimationTrack handles refreshWordPluginChain internally
     }
 
     // If a word is selected, apply the changes to the word
     if (selectedWordId) {
-      const targetClip = clips.find((clip) =>
-        clip.words.some((word) => word.id === selectedWordId)
-      )
-
-      if (targetClip) {
-        applyAssetsToWord(targetClip.id, selectedWordId, newAssets)
-      }
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const store = useEditorStore.getState() as any
+        const clipId = store.getClipIdByWordId?.(selectedWordId)
+        if (clipId) {
+          applyAssetsToWord(clipId, selectedWordId, newAssets)
+        }
+      } catch {}
     }
   }
 
   const handleAssetClick = (asset: AssetItem) => {
-    // If a word is focused/selected, add this animation to it (max 3)
-    if (targetWordId) {
-      const currentTracks = wordAnimationTracks.get(targetWordId) || []
-
-      // Check if already added or reached max
-      if (currentTracks.find((t) => t.assetId === asset.id)) {
-        // If already exists, remove it
-        removeAnimationTrack(targetWordId, asset.id)
-      } else if (currentTracks.length < 3) {
-        // Find the word to get its timing
-        let wordTiming = undefined
-        for (const clip of clips) {
-          const word = clip.words?.find((w) => w.id === targetWordId)
-          if (word) {
-            wordTiming = { start: word.start, end: word.end }
-            break
-          }
-        }
-        // Add the animation track with word timing
-        addAnimationTrack(
-          targetWordId,
-          asset.id,
-          asset.name,
-          wordTiming,
-          asset.pluginKey
-        )
-      } else {
-        console.log('Maximum 3 animations per word')
-      }
-    }
-
-    // Toggle control panel expansion
+    // Only toggle control panel expansion - no add/remove logic
     const newExpandedId = expandedAssetId === asset.id ? null : asset.id
     setExpandedAssetId(newExpandedId)
     onExpandedAssetChange?.(newExpandedId, newExpandedId ? asset.name : null)
+
+    console.log('Opening parameter panel for:', asset.name)
   }
 
   if (loading) {

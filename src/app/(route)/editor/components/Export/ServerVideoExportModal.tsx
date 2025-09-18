@@ -159,6 +159,7 @@ export default function ServerVideoExportModal({
       onClose={onClose}
       closeOnBackdropClick={!isExporting}
       isblind={false}
+      aria-label="GPU 렌더링 내보내기"
     >
       <div className="p-6">
         {/* 준비 단계 */}

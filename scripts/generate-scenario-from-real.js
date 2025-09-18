@@ -35,7 +35,7 @@ function buildScenarioFromSegments(segments) {
   const centerX = Math.round(stageW / 2)
   const centerY = Math.max(0, Math.min(stageH, stageH - marginY - boxH / 2))
   const fontSizeRel = 0.07
-  const pluginName = 'elastic@1.0.0'
+  const pluginName = 'elastic@2.0.0'
 
   const cues = []
   for (let i = 0; i < segments.length; i++) {

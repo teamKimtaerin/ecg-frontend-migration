@@ -9,7 +9,7 @@ import {
 describe('scenarioGenerator', () => {
   test('generatePreviewScenario builds a valid config with pluginChain', () => {
     const cfg = generatePreviewScenario(
-      'elastic@1.0.0',
+      'elastic@2.0.0',
       {
         text: 'Hello',
         position: { x: 100, y: 200 },
@@ -35,7 +35,7 @@ describe('scenarioGenerator', () => {
   test('validateAndNormalizeParams clamps numbers and coerces types', () => {
     const manifest = {
       name: 'elastic',
-      version: '1.0.0',
+      version: '2.0.0',
       pluginApi: '2.1',
       targets: ['text'],
       schema: {
@@ -82,7 +82,7 @@ describe('scenarioGenerator', () => {
 
   test('generatePreviewScenarioV2 emits v2.0 structure with baseTime/timeOffset', () => {
     const cfg = generatePreviewScenarioV2(
-      'elastic@1.0.0',
+      'elastic@2.0.0',
       {
         text: 'Hello',
         position: { x: 100, y: 200 },
@@ -108,7 +108,7 @@ describe('scenarioGenerator', () => {
 
   test('generateLoopedScenarioV2 includes rotate and uses percent offsets', () => {
     const cfg = generateLoopedScenarioV2(
-      'fadein@1.0.0',
+      'fadein@2.0.0',
       {
         text: 'Hi',
         position: { x: 0, y: 0 },
