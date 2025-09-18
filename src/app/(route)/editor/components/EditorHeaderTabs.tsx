@@ -10,7 +10,7 @@ import { useProgressTasks } from '@/hooks/useProgressTasks'
 import { AutosaveManager } from '@/utils/managers/AutosaveManager'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { LuHouse, LuMenu, LuShoppingBag } from 'react-icons/lu'
+import { LuBell, LuHouse, LuMenu, LuShoppingBag } from 'react-icons/lu'
 import { useEditorStore } from '../store'
 import { EDITOR_TABS } from '../types'
 import { EDITOR_COLORS, getToolbarClasses } from '../constants/colors'
@@ -297,21 +297,9 @@ export default function EditorHeaderTabs({
               ref={documentButtonRef}
               onClick={() => setIsDocumentModalOpen(!isDocumentModalOpen)}
               className={`p-2 ${getTextClasses()} ${getHoverClasses()} hover:scale-110 hover:shadow-md rounded-lg transition-all duration-200 cursor-pointer`}
-              title="문서함"
+              title="알림"
             >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2V7zm16 0V6a2 2 0 00-2-2H7a2 2 0 00-2 2v1m14 0H3"
-                />
-              </svg>
+              <LuBell className="w-5 h-5" />
             </button>
 
             <DocumentModal
