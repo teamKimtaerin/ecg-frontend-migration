@@ -220,6 +220,36 @@ export class VirtualPlayerController
       // 가상 시간 진행 시작
       this.startVirtualTimeProgression()
       this.isPlaying = true
+      
+      // 현재 가상 시간에 해당하는 활성 세그먼트 찾기
+      const activeSegment = this.getActiveSegmentOptimized(
+        this.currentVirtualTime,
+        performance.now()
+      )
+      
+      if (activeSegment) {
+        // 활성 세그먼트가 있으면 해당 세그먼트의 실제 비디오 시간으로 이동
+        this.jumpToSegmentStart(activeSegment)
+        this.currentActiveSegment = activeSegment
+        
+        // 비디오 재생 시작
+        await this.video.play()
+        
+        if (this.config.debugMode) {
+          log(
+            'VirtualPlayerController',
+            `Started playback at segment ${activeSegment.id}, virtual time: ${this.currentVirtualTime.toFixed(3)}s, real time: ${this.video.currentTime.toFixed(3)}s`
+          )
+        }
+      } else {
+        if (this.config.debugMode) {
+          log(
+            'VirtualPlayerController',
+            `No active segment at virtual time ${this.currentVirtualTime.toFixed(3)}s`
+          )
+        }
+      }
+      
       this.notifyPlayCallbacks()
       log('VirtualPlayerController', 'Virtual Timeline playback started')
     } catch (error) {
