@@ -46,12 +46,10 @@ function calculateAdjustedDomLifetime(
       const tracks = wordAnimationTracks.get(word.id) || []
 
       for (const track of tracks) {
-        if (track.timeOffset) {
-          const [preOffset, postOffset] = track.timeOffset
-          // preOffset is negative, extends start earlier
-          domStart = Math.min(domStart, word.start + preOffset)
-          // postOffset is positive, extends end later
-          domEnd = Math.max(domEnd, word.end + postOffset)
+        if (track.timing) {
+          // Use timing field which has converted absolute values (not percentage strings)
+          domStart = Math.min(domStart, track.timing.start)
+          domEnd = Math.max(domEnd, track.timing.end)
         }
       }
     }

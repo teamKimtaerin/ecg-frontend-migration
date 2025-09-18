@@ -130,18 +130,23 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
   const handleAssetClick = async (asset: AssetItem) => {
     // Check if multiple words are selected for batch operations
     if (multiSelectedWordIds.size > 1) {
-      // Centralized batch toggle for scenario + UI sync
-      useEditorStore
-        .getState()
-        .toggleAnimationForWords(Array.from(multiSelectedWordIds), {
-          id: asset.id,
-          name: asset.name,
-          pluginKey: asset.pluginKey,
-        })
-      showToast(
-        `${multiSelectedWordIds.size}개 단어에 애니메이션을 적용/해제했습니다.`,
-        'success'
-      )
+      // Centralized batch toggle for scenario + UI sync (async)
+      try {
+        await useEditorStore
+          .getState()
+          .toggleAnimationForWords(Array.from(multiSelectedWordIds), {
+            id: asset.id,
+            name: asset.name,
+            pluginKey: asset.pluginKey,
+          })
+        showToast(
+          `${multiSelectedWordIds.size}개 단어에 애니메이션을 적용/해제했습니다.`,
+          'success'
+        )
+      } catch (error) {
+        console.error('Failed to apply animation to multiple words:', error)
+        showToast('애니메이션 적용 중 오류가 발생했습니다.', 'error')
+      }
       return
     }
 

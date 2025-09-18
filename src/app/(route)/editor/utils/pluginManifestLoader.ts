@@ -11,7 +11,7 @@ export interface PluginManifest {
   capabilities?: string[]
   peer?: Record<string, string>
   preload?: string[]
-  timeOffset?: [number, number] // [preOffset, postOffset]
+  timeOffset?: [number, number] | [string, string] // [preOffset, postOffset] - can be seconds or percentages like "50%"
   schema?: Record<string, SchemaProperty>
   icon?: string // Optional icon path relative to plugin directory
 }
@@ -64,10 +64,11 @@ export async function loadPluginManifest(
  * Get the timeOffset for a specific plugin
  * @param pluginKey - Plugin identifier
  * @returns timeOffset tuple [preOffset, postOffset] or [0, 0] if not found
+ * @note Returns the raw timeOffset from manifest - may be numbers or percentage strings
  */
 export async function getPluginTimeOffset(
   pluginKey?: string
-): Promise<[number, number]> {
+): Promise<[number, number] | [string, string]> {
   const manifest = await loadPluginManifest(pluginKey)
   return manifest?.timeOffset || [0, 0]
 }
