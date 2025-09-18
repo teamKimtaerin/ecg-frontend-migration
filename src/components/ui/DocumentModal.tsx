@@ -23,7 +23,7 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
   const [isMounted, setIsMounted] = useState(false)
 
   // Get formatted progress data (automatic timeout checking is now handled in useProgressTasks)
-  const { exportTasks, uploadTasks, raw: { activeUploadTasks } } = useProgressTasks()
+  const { exportTasks, uploadTasks, raw: { activeUploadTasks }, clearCompletedTasksByType } = useProgressTasks()
 
   // Set mounted state
   useEffect(() => {
@@ -165,9 +165,24 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
 
             {/* 완료된 내보내기 */}
             <div className="border-t border-gray-200 pt-4">
-              <h3 className="text-sm font-semibold text-gray-800 mb-3">
-                종료된 내보내기
-              </h3>
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-sm font-semibold text-gray-800">
+                  종료된 내보내기
+                </h3>
+                {exportTasks.filter((task) => task.status === 'completed' || task.status === 'failed').length > 0 && (
+                  <button
+                    onClick={() => {
+                      if (confirm('모든 완료된 내보내기 기록을 삭제하시겠습니까?')) {
+                        clearCompletedTasksByType('export')
+                      }
+                    }}
+                    className="text-xs text-gray-500 hover:text-red-600 transition-colors"
+                    title="모든 내보내기 기록 삭제"
+                  >
+                    전체 삭제
+                  </button>
+                )}
+              </div>
               {exportTasks.filter((task) => task.status === 'completed' || task.status === 'failed')
                 .length === 0 ? (
                 <div className="text-center py-6">
@@ -305,9 +320,24 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
 
             {/* 완료된 업로드 */}
             <div className="border-t border-gray-200 pt-4">
-              <h3 className="text-sm font-semibold text-gray-800 mb-3">
-                종료된 업로드
-              </h3>
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-sm font-semibold text-gray-800">
+                  종료된 업로드
+                </h3>
+                {uploadTasks.filter((task) => task.status === 'completed' || task.status === 'failed').length > 0 && (
+                  <button
+                    onClick={() => {
+                      if (confirm('모든 완료된 업로드 기록을 삭제하시겠습니까?')) {
+                        clearCompletedTasksByType('upload')
+                      }
+                    }}
+                    className="text-xs text-gray-500 hover:text-red-600 transition-colors"
+                    title="모든 업로드 기록 삭제"
+                  >
+                    전체 삭제
+                  </button>
+                )}
+              </div>
               {uploadTasks.filter(
                 (task) =>
                   task.status === 'completed' || task.status === 'failed'

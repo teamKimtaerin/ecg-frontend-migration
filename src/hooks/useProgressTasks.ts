@@ -36,7 +36,8 @@ export const useProgressTasks = () => {
     getActiveExportTasks,
     getCompletedTasks,
     getAllActiveTasks,
-    expireOldTasks
+    expireOldTasks,
+    clearCompletedTasksByType
   } = useProgressStore()
 
   // Set up automatic timeout checking every 30 seconds
@@ -167,5 +168,6 @@ export const useProgressTasks = () => {
 
     // Utility functions
     expireOldTasks,
+    clearCompletedTasksByType,
   }
 }

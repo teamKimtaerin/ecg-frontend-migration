@@ -31,6 +31,7 @@ interface ProgressStore {
   getCompletedTasks: () => ProgressTask[]
   getTask: (id: number) => ProgressTask | undefined
   expireOldTasks: () => void
+  clearCompletedTasksByType: (type: 'upload' | 'export') => void
 }
 
 export const useProgressStore = create<ProgressStore>()(
@@ -167,6 +168,16 @@ export const useProgressStore = create<ProgressStore>()(
               }
             }
             return task
+          })
+        }))
+      },
+
+      // 완료된 작업 타입별 삭제
+      clearCompletedTasksByType: (type) => {
+        set((state) => ({
+          tasks: state.tasks.filter((task) => {
+            // 해당 타입이 아니거나 완료/실패 상태가 아닌 경우만 유지
+            return task.type !== type || (task.status !== 'completed' && task.status !== 'failed')
           })
         }))
       }
