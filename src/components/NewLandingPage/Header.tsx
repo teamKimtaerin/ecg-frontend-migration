@@ -9,6 +9,7 @@ import DocumentModal from '@/components/ui/DocumentModal'
 import DeployModal from '@/components/ui/DeployModal'
 import UserDropdown from '@/components/ui/UserDropdown'
 import { useDeployModal } from '@/hooks/useDeployModal'
+import { useProgressTasks } from '@/hooks/useProgressTasks'
 
 export interface HeaderProps {
   onTryClick?: () => void
@@ -30,60 +31,8 @@ const Header: React.FC<HeaderProps> = ({
   const { openDeployModal, deployModalProps } = useDeployModal()
   const buttonRef = useRef<HTMLButtonElement>(null)
 
-  // TODO 데이터를 실제 서버에서 받은 데이터로 받은 진행도 + 사용자가 정한 프로젝트 이름으로 바꾸면 될듯.
-  // Mock data for demonstration
-  const exportTasks = [
-    {
-      id: 1,
-      filename: 'video_project_1.mp4',
-      progress: 75,
-      status: 'processing' as const,
-    },
-    {
-      id: 2,
-      filename: 'video_project_2.mp4',
-      progress: 100,
-      status: 'completed' as const,
-      completedAt: '2025-01-11 14:30',
-    },
-    {
-      id: 3,
-      filename: 'video_project_3.mp4',
-      progress: 100,
-      status: 'completed' as const,
-      completedAt: '2025-01-11 12:15',
-    },
-  ]
-
-  const uploadTasks = [
-    {
-      id: 1,
-      filename: 'video_raw_1.mp4',
-      progress: 45,
-      status: 'uploading' as const,
-    },
-    {
-      id: 2,
-      filename: 'video_raw_2.mp4',
-      progress: 100,
-      status: 'completed' as const,
-      completedAt: '2025-01-11 13:45',
-    },
-    {
-      id: 3,
-      filename: 'video_raw_3.mp4',
-      progress: 0,
-      status: 'failed' as const,
-      completedAt: '2025-01-11 11:20',
-    },
-    {
-      id: 4,
-      filename: 'video_raw_4.mp4',
-      progress: 100,
-      status: 'completed' as const,
-      completedAt: '2025-01-11 10:15',
-    },
-  ]
+  // Get real progress data
+  const { exportTasks, uploadTasks } = useProgressTasks()
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-gray-200 shadow-sm">
       <div className="container flex h-16 items-center justify-between px-4 mx-auto max-w-7xl">
@@ -160,8 +109,6 @@ const Header: React.FC<HeaderProps> = ({
               isOpen={isDocumentModalOpen}
               onClose={() => setIsDocumentModalOpen(false)}
               buttonRef={buttonRef}
-              exportTasks={exportTasks}
-              uploadTasks={uploadTasks}
               onDeployClick={(task) => {
                 openDeployModal({
                   id: task.id,

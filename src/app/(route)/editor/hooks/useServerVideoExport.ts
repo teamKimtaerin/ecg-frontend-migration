@@ -6,6 +6,7 @@ import {
   RendererScenario,
 } from '@/services/api/types/render.types'
 import { showToast } from '@/utils/ui/toast'
+import { useProgressStore } from '@/lib/store/progressStore'
 
 interface ExportState {
   isExporting: boolean
@@ -47,6 +48,10 @@ export function useServerVideoExport(): UseServerVideoExportResult {
   const currentJobIdRef = useRef<string | null>(null)
   const startTimeRef = useRef<number>(0)
 
+  // Progress store integration
+  const { addTask, updateTask, removeTask } = useProgressStore()
+  const [currentProgressTaskId, setCurrentProgressTaskId] = useState<number>()
+
   /**
    * 상태 업데이트 헬퍼
    */
@@ -79,12 +84,22 @@ export function useServerVideoExport(): UseServerVideoExportResult {
         timeRemaining,
       })
 
+      // Progress store 업데이트
+      if (currentProgressTaskId) {
+        updateTask(currentProgressTaskId, {
+          progress: status.progress || 0,
+          status: status.status === 'completed' ? 'completed' : 'processing',
+          currentStage: status.status === 'processing' ? 'GPU 렌더링 중' : undefined,
+          estimatedTimeRemaining: timeRemaining,
+        })
+      }
+
       // 상태별 토스트 메시지
       if (status.status === 'processing' && status.progress === 0) {
         showToast('GPU 렌더링이 시작되었습니다', 'success')
       }
     },
-    [updateState]
+    [updateState, currentProgressTaskId, updateTask]
   )
 
   /**
@@ -143,6 +158,16 @@ export function useServerVideoExport(): UseServerVideoExportResult {
           suggestedFileName: fileName,
         })
 
+        // Progress store에 내보내기 작업 추가
+        const progressTaskId = addTask({
+          filename: fileName,
+          progress: 0,
+          status: 'processing',
+          type: 'export',
+          currentStage: '렌더링 준비 중',
+        })
+        setCurrentProgressTaskId(progressTaskId)
+
         startTimeRef.current = Date.now()
 
         // 1. 렌더링 작업 생성
@@ -190,6 +215,14 @@ export function useServerVideoExport(): UseServerVideoExportResult {
           timeRemaining: 0,
         })
 
+        // Progress store 완료 업데이트
+        if (progressTaskId) {
+          updateTask(progressTaskId, {
+            progress: 100,
+            status: 'completed',
+          })
+        }
+
         const totalTime = Math.round((Date.now() - startTimeRef.current) / 1000)
         showToast(`✅ GPU 렌더링 완료! (${totalTime}초)`, 'success')
 
@@ -228,6 +261,13 @@ export function useServerVideoExport(): UseServerVideoExportResult {
           status: 'failed',
         })
 
+        // Progress store 실패 업데이트
+        if (currentProgressTaskId) {
+          updateTask(currentProgressTaskId, {
+            status: 'failed',
+          })
+        }
+
         showToast(`❌ 렌더링 실패: ${userMessage}`, 'error')
         throw error
       } finally {
@@ -235,7 +275,7 @@ export function useServerVideoExport(): UseServerVideoExportResult {
         currentJobIdRef.current = null
       }
     },
-    [handleProgress, updateState]
+    [handleProgress, updateState, addTask, updateTask]
   )
 
   /**
@@ -257,12 +297,18 @@ export function useServerVideoExport(): UseServerVideoExportResult {
         progress: 0,
       })
 
+      // Progress store에서 작업 제거
+      if (currentProgressTaskId) {
+        removeTask(currentProgressTaskId)
+        setCurrentProgressTaskId(undefined)
+      }
+
       currentJobIdRef.current = null
     } catch (error) {
       console.error('Failed to cancel export:', error)
       showToast('취소 중 오류가 발생했습니다', 'error')
     }
-  }, [updateState])
+  }, [updateState, currentProgressTaskId, removeTask])
 
   /**
    * 파일 다운로드
@@ -335,8 +381,14 @@ export function useServerVideoExport(): UseServerVideoExportResult {
       selectedFileHandle: null,
       suggestedFileName: null,
     })
+
+    // Progress store 정리
+    if (currentProgressTaskId) {
+      setCurrentProgressTaskId(undefined)
+    }
+
     currentJobIdRef.current = null
-  }, [])
+  }, [currentProgressTaskId])
 
   return {
     ...state,

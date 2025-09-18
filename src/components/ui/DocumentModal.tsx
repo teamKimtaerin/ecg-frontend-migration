@@ -2,44 +2,28 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-
-export interface ExportTask {
-  id: number
-  filename: string
-  progress: number
-  status: 'processing' | 'completed'
-  completedAt?: string
-}
-
-export interface UploadTask {
-  id: number
-  filename: string
-  progress: number
-  status: 'uploading' | 'completed' | 'failed'
-  completedAt?: string
-}
+import { useProgressTasks, ExportTask, UploadTask } from '@/hooks/useProgressTasks'
 
 export interface DocumentModalProps {
   isOpen: boolean
   onClose: () => void
   buttonRef: React.RefObject<HTMLButtonElement | null>
-  exportTasks?: ExportTask[]
-  uploadTasks?: UploadTask[]
-  onDeployClick?: (task: ExportTask) => void
+  onDeployClick?: (task: { id: number; filename: string }) => void
 }
 
 const DocumentModal: React.FC<DocumentModalProps> = ({
   isOpen,
   onClose,
   buttonRef,
-  exportTasks = [],
-  uploadTasks = [],
   onDeployClick,
 }) => {
   const [activeTab, setActiveTab] = useState<'export' | 'upload'>('export')
   const modalRef = useRef<HTMLDivElement>(null)
   const [position, setPosition] = useState({ top: 0, left: 0 })
   const [isMounted, setIsMounted] = useState(false)
+
+  // Get formatted progress data
+  const { exportTasks, uploadTasks, raw: { activeUploadTasks } } = useProgressTasks()
 
   // Set mounted state
   useEffect(() => {
@@ -250,7 +234,7 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
               <h3 className="text-sm font-semibold text-gray-800 mb-3">
                 현재 진행중인 업로드
               </h3>
-              {uploadTasks.filter((task) => task.status === 'uploading')
+              {uploadTasks.filter((task) => task.status === 'uploading' || task.status === 'processing')
                 .length === 0 ? (
                 <div className="text-center py-6">
                   <div className="w-10 h-10 mx-auto mb-2 bg-gray-100 rounded-full flex items-center justify-center">
@@ -275,7 +259,7 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
               ) : (
                 <div className="space-y-2">
                   {uploadTasks
-                    .filter((task) => task.status === 'uploading')
+                    .filter((task) => task.status === 'uploading' || task.status === 'processing')
                     .map((task) => (
                       <div key={task.id} className="bg-blue-50 rounded-lg p-3">
                         <div className="flex items-center justify-between mb-2">
@@ -295,8 +279,13 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
                         <div className="flex items-center mt-2">
                           <div className="w-2 h-2 bg-gray-600 rounded-full animate-pulse mr-2"></div>
                           <span className="text-xs text-gray-600">
-                            업로드 중...
+                            {task.status === 'processing' ? '처리 중...' : '업로드 중...'}
                           </span>
+                          {task.currentStage && (
+                            <span className="text-xs text-gray-500 ml-2">
+                              {task.currentStage}
+                            </span>
+                          )}
                         </div>
                       </div>
                     ))}
