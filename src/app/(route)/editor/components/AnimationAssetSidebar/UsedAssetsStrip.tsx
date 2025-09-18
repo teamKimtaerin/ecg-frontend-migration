@@ -168,8 +168,7 @@ const UsedAssetsStrip: React.FC<UsedAssetsStripProps> = ({
     // Remove animation track from focused word
     if (targetWordId) {
       removeAnimationTrack(targetWordId, assetId)
-      // Update scenario pluginChain for this word
-      useEditorStore.getState().refreshWordPluginChain?.(targetWordId)
+      // Note: removeAnimationTrack handles refreshWordPluginChain internally
     }
 
     // If a word is selected, apply the changes to the word

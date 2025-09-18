@@ -818,44 +818,82 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
       return { wordAnimationTracks: newTracks }
     }),
 
-  // Optional: update params for a track
+  // Atomic update params for a track with rollback support
   updateAnimationTrackParams: (
     wordId: string,
     assetId: string,
     partialParams: Record<string, unknown>
   ) =>
     set((state) => {
-      const newTracks = new Map(state.wordAnimationTracks)
-      const existing = newTracks.get(wordId) || []
-      const updated = existing.map((t) =>
-        t.assetId === assetId
-          ? { ...t, params: { ...(t.params || {}), ...partialParams } }
-          : t
-      )
-      newTracks.set(wordId, updated)
-      // Refresh scenario to apply param changes to pluginChain
+      // Create backup for rollback
+      const backupTracks = new Map(state.wordAnimationTracks)
+
       try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const anyGet = get() as any
-        anyGet.refreshWordPluginChain?.(wordId)
-      } catch {
-        // ignore
-      }
-      // Mirror params to word.animationTracks
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const anyGet = get() as any
-        if (anyGet.updateWordAnimationTracks && anyGet.clips) {
-          for (const clip of anyGet.clips) {
-            const hasWord = clip.words?.some((w: Word) => w.id === wordId)
-            if (hasWord) {
-              anyGet.updateWordAnimationTracks(clip.id, wordId, updated)
-              break
+        const newTracks = new Map(state.wordAnimationTracks)
+        const existing = newTracks.get(wordId) || []
+
+        // Validate that the track exists
+        const trackExists = existing.some((t) => t.assetId === assetId)
+        if (!trackExists) {
+          console.warn(`Animation track ${assetId} not found for word ${wordId}`)
+          return state // No change if track doesn't exist
+        }
+
+        const updated = existing.map((t) =>
+          t.assetId === assetId
+            ? { ...t, params: { ...(t.params || {}), ...partialParams } }
+            : t
+        )
+        newTracks.set(wordId, updated)
+
+        // Atomic updates: all operations must succeed or rollback
+        let scenarioUpdateFailed = false
+        let clipUpdateFailed = false
+
+        // Update scenario
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const anyGet = get() as any
+          anyGet.refreshWordPluginChain?.(wordId)
+        } catch (error) {
+          console.error('Failed to update scenario for word params:', error)
+          scenarioUpdateFailed = true
+        }
+
+        // Update clip data
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const anyGet = get() as any
+          if (anyGet.updateWordAnimationTracks && anyGet.clips) {
+            for (const clip of anyGet.clips) {
+              const hasWord = clip.words?.some((w: Word) => w.id === wordId)
+              if (hasWord) {
+                anyGet.updateWordAnimationTracks(clip.id, wordId, updated)
+                break
+              }
             }
           }
+        } catch (error) {
+          console.error('Failed to update clip data for word params:', error)
+          clipUpdateFailed = true
         }
-      } catch {}
-      return { wordAnimationTracks: newTracks }
+
+        // If critical updates failed, rollback
+        if (scenarioUpdateFailed) {
+          console.warn('Rolling back parameter update due to scenario update failure')
+          return { wordAnimationTracks: backupTracks }
+        }
+
+        // Clip update failure is less critical, just log it
+        if (clipUpdateFailed) {
+          console.warn('Clip data sync failed, but parameter update succeeded')
+        }
+
+        return { wordAnimationTracks: newTracks }
+      } catch (error) {
+        console.error('Failed to update animation track params:', error)
+        return { wordAnimationTracks: backupTracks }
+      }
     }),
 
   // Video playback synchronization

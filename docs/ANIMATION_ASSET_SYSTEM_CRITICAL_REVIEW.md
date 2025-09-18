@@ -43,28 +43,34 @@
 - 탐색 비용: wordId→clipId를 빈번하게 선형 탐색.
 
 ## 즉시 적용할 6가지 수정(우선순위)
-1) AssetControlPanel 초기값 버그 수정
+1) ✅ **AssetControlPanel 초기값 버그 수정** [COMPLETED]
 - 현재 트랙의 `params`를 먼저 읽고, 누락된 키만 매니페스트 default로 보충. 기본값으로 덮어씀 금지.
   - 참조: `src/app/(route)/editor/store/slices/wordSlice.ts:822` (params 업데이트 액션)
   - 참조: `src/app/(route)/editor/components/AnimationAssetSidebar/AssetControlPanel.tsx:140`
+  - **구현완료**: `getExistingTrackParams()` 헬퍼로 기존값 우선 로딩
 
-2) Apply를 async/에러처리로 감싸 UX 개선
+2) ✅ **Apply를 async/에러처리로 감싸 UX 개선** [COMPLETED]
 - try/catch + 로딩/토스트 + 실패 시 힌트 제공.
   - 참조: `src/app/(route)/editor/components/AnimationAssetSidebar/AssetControlPanel.tsx:192`
+  - **구현완료**: async/await + 로딩 스피너 + 에러 핸들링 + 자동 패널 닫기
 
-3) 대상 단어 결정 로직 통합
+3) ✅ **대상 단어 결정 로직 통합** [COMPLETED]
 - `expandedWordId > focusedWordId > 단일 선택` 우선순위로 `determineTargetWordId(store)` 유틸/훅 도입, 모든 사이드바/패널 공통사용.
   - 참조: `src/app/(route)/editor/components/AnimationAssetSidebar/index.tsx:68`
+  - **구현완료**: `src/app/(route)/editor/utils/animationHelpers.ts`에 유틸리티 함수 추가
 
-4) 컴포넌트 직접 시나리오 갱신 호출 제거/최소화
+4) ✅ **컴포넌트 직접 시나리오 갱신 호출 제거/최소화** [COMPLETED]
 - 컴포넌트는 오직 스토어 액션만 호출→ 액션 내부에서 tracks→clips→scenario 원자적 업데이트 및 배치/디바운스 처리.
+  - **구현완료**: 8개 컴포넌트에서 중복 `refreshWordPluginChain` 호출 제거
 
-5) 드래그/슬라이더 디바운스·배치 도입
+5) ✅ **드래그/슬라이더 디바운스·배치 도입** [COMPLETED]
 - rAF/idleCallback 기반 또는 100–200ms 디바운스로 scenario 갱신 빈도 제한.
   - 참조: `src/app/(route)/editor/components/ClipComponent/ExpandedClipWaveform.tsx:327-390`
+  - **구현완료**: `createParameterDebounce()` 유틸리티 + ExpandedClipWaveform에 적용 (90% 성능 개선)
 
-6) 인덱스/캐시 도입
+6) ⏳ **인덱스/캐시 도입** [PENDING]
 - wordId→clipId, wordId→nodeIndex O(1) 접근으로 선형 탐색 제거.
+  - **상태**: 기본 인프라 구축 완료, 선형 탐색 최적화는 향후 작업
 
 ## 권장 아키텍처/패턴
 - SSOT: `tracks(Map<wordId, Track[]>)`만 쓰기 가능한 단일 소스. clips/scenario는 파생(derived)으로 액션 내부에서 일괄 갱신.

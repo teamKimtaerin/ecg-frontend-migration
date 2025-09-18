@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import { useEditorStore } from '../../store'
+import { determineTargetWordId, getTargetWordDisplayName } from '../../utils/animationHelpers'
 
 // Components
 import SidebarHeader from './SidebarHeader'
@@ -65,18 +66,28 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
     setExpandedAssetName(null)
   }
 
-  const handleSettingsChange = (settings: Record<string, unknown>) => {
+  const handleSettingsChange = async (settings: Record<string, unknown>) => {
     console.log('Settings changed:', settings)
-    // Apply settings to the animation track for the focused word
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const store = useEditorStore.getState() as any
-    const wordId =
-      (store.focusedWordId as string | null) ||
-      (store.selectedWordId as string | null)
+
+    const store = useEditorStore.getState()
+    const wordId = determineTargetWordId(store)
     const assetId = expandedAssetId
-    if (wordId && assetId) {
-      store.updateAnimationTrackParams?.(wordId, assetId, settings)
-      store.refreshWordPluginChain?.(wordId)
+
+    if (!wordId || !assetId) {
+      throw new Error('애니메이션을 적용할 단어를 선택해주세요.')
+    }
+
+    // Apply settings to the animation track
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const storeActions = store as any
+      await storeActions.updateAnimationTrackParams?.(wordId, assetId, settings)
+
+      // Note: refreshWordPluginChain is called automatically in updateAnimationTrackParams
+      console.log(`Applied settings to word "${getTargetWordDisplayName(store)}"`)
+    } catch (error) {
+      console.error('Failed to apply animation settings:', error)
+      throw error // Re-throw for UI error handling
     }
   }
 

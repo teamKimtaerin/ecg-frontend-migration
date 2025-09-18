@@ -223,10 +223,7 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
       isCurrentlySelected ? 'removed' : 'added'
     )
     onAssetSelect?.(asset)
-    // Update scenario pluginChain for this word
-    if (singleTargetWordId) {
-      useEditorStore.getState().refreshWordPluginChain?.(singleTargetWordId)
-    }
+    // Note: addAnimationTrackAsync and removeAnimationTrack handle refreshWordPluginChain internally
   }
 
   // Show loading state

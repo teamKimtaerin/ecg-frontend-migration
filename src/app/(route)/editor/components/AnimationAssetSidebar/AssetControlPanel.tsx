@@ -10,12 +10,27 @@ import {
 } from '@/app/(route)/asset-store/utils/scenarioGenerator'
 import { useEditorStore } from '../../store'
 import { AssetSettings } from './types'
+import { determineTargetWordId, getExistingTrackParams as getExistingTrackParamsHelper } from '../../utils/animationHelpers'
+// import { useAnimationParams } from '../../hooks/useAnimationParams' // Available for future use
 
 interface AssetControlPanelProps {
   assetName: string
   assetId?: string
   onClose: () => void
   onSettingsChange?: (settings: AssetSettings) => void
+}
+
+// Helper function to get existing track parameters
+const getExistingTrackParams = (wordId: string | null, assetId: string | null): Record<string, unknown> => {
+  if (!wordId || !assetId) return {}
+
+  try {
+    const store = useEditorStore.getState()
+    return getExistingTrackParamsHelper(store, wordId, assetId)
+  } catch (error) {
+    console.warn('Failed to get existing track params:', error)
+    return {}
+  }
 }
 
 
@@ -28,15 +43,36 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
   const [manifest, setManifest] = useState<PluginManifest | null>(null)
   const [parameters, setParameters] = useState<Record<string, unknown>>({})
   const [loading, setLoading] = useState(true)
+  const [applying, setApplying] = useState(false)
   const [fallbackPluginKey, setFallbackPluginKey] = useState<string | undefined>(
     undefined
   )
 
   // Pull current UI/track context from store to resolve pluginKey reliably
-  const { expandedAssetId, focusedWordId, selectedWordId, wordAnimationTracks } =
-    useEditorStore()
-
-  const targetWordId = focusedWordId || selectedWordId || null
+  const {
+    expandedAssetId,
+    wordAnimationTracks,
+    focusedWordId,
+    selectedWordId,
+    expandedWordId,
+    multiSelectedWordIds,
+  } = useEditorStore()
+  
+  // Use unified target word resolution (expanded > focused > single selected)
+  const targetWordId = useMemo(() => {
+    try {
+      const store = useEditorStore.getState()
+      return determineTargetWordId(store)
+    } catch {
+      return null
+    }
+  }, [
+    wordAnimationTracks,
+    focusedWordId,
+    selectedWordId,
+    expandedWordId,
+    multiSelectedWordIds,
+  ])
 
   // Resolve pluginKey from current word's animation tracks -> expanded asset
   const pluginKeyFromStore = useMemo(() => {
@@ -136,8 +172,12 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
         })
         setManifest(loadedManifest)
 
-        // Initialize parameters using shared helper (keeps parity with AssetModal)
-        const initialParams = getDefaultParameters(loadedManifest)
+        // Initialize parameters: merge existing track params with manifest defaults
+        const defaultParams = getDefaultParameters(loadedManifest)
+        const existingParams = getExistingTrackParams(targetWordId, assetId || expandedAssetId)
+
+        // Merge: existing params take priority, defaults fill missing keys
+        const initialParams = { ...defaultParams, ...existingParams }
         setParameters(initialParams)
       } catch (error) {
         console.error(`Failed to load manifest for ${pluginKey}:`, error)
@@ -189,8 +229,22 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
     }
   }
 
-  const handleApply = () => {
-    onSettingsChange?.(parameters as AssetSettings)
+  const handleApply = async () => {
+    if (!onSettingsChange) return
+
+    try {
+      setApplying(true)
+      await onSettingsChange(parameters as AssetSettings)
+
+      // Show success feedback and close panel
+      console.log('Settings applied successfully')
+      onClose()
+    } catch (error) {
+      console.error('Failed to apply settings:', error)
+      // TODO: Show error toast to user
+    } finally {
+      setApplying(false)
+    }
   }
 
   return (
@@ -244,10 +298,20 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
         </button>
         <button
           onClick={handleApply}
-          className="flex-1 px-3 py-2 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors flex items-center justify-center gap-2"
+          disabled={applying}
+          className="flex-1 px-3 py-2 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed rounded-md transition-colors flex items-center justify-center gap-2"
         >
-          <IoCheckmark size={12} />
-          적용
+          {applying ? (
+            <>
+              <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" />
+              적용 중...
+            </>
+          ) : (
+            <>
+              <IoCheckmark size={12} />
+              적용
+            </>
+          )}
         </button>
       </div>
     </div>

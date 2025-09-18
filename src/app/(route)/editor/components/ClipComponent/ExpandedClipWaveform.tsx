@@ -3,6 +3,7 @@ import WaveSurfer from 'wavesurfer.js'
 import { useEditorStore } from '../../store'
 import { IoPlay, IoPause, IoArrowUndo, IoArrowRedo } from 'react-icons/io5'
 import { Word } from './types'
+import { createParameterDebounce } from '../../utils/animationHelpers'
 
 interface ExpandedClipWaveformProps {
   words: Word[]
@@ -143,6 +144,22 @@ export default function ExpandedClipWaveform({
     updateWordBaseTime,
     refreshWordPluginChain,
   } = useEditorStore()
+
+  // Debounced update functions for high-frequency events
+  const debouncedUpdateWordTiming = useCallback(
+    createParameterDebounce(updateWordTiming, 100),
+    [updateWordTiming]
+  )
+
+  const debouncedUpdateAnimationTrackTiming = useCallback(
+    createParameterDebounce(updateAnimationTrackTiming, 100),
+    [updateAnimationTrackTiming]
+  )
+
+  const debouncedUpdateAnimationIntensity = useCallback(
+    createParameterDebounce(updateAnimationIntensity, 100),
+    [updateAnimationIntensity]
+  )
 
   // Find the focused word
   const focusedWord = words.find(
@@ -323,23 +340,19 @@ export default function ExpandedClipWaveform({
 
       if (dragType === 'timing-start') {
         const newStart = Math.min(time, currentTiming.end - 0.01)
-        updateWordTiming(draggedWordId, newStart, currentTiming.end)
-        updateWordBaseTime?.(draggedWordId, newStart, currentTiming.end)
-        refreshWordPluginChain?.(draggedWordId)
+        debouncedUpdateWordTiming(draggedWordId, newStart, currentTiming.end)
         setHasUnsavedChanges(true)
       } else if (dragType === 'timing-end') {
         const newEnd = Math.max(time, currentTiming.start + 0.01)
-        updateWordTiming(draggedWordId, currentTiming.start, newEnd)
-        updateWordBaseTime?.(draggedWordId, currentTiming.start, newEnd)
-        refreshWordPluginChain?.(draggedWordId)
+        debouncedUpdateWordTiming(draggedWordId, currentTiming.start, newEnd)
         setHasUnsavedChanges(true)
       } else if (dragType === 'animation-min') {
         const newMin = Math.min(position, currentIntensity.max - 0.05)
-        updateAnimationIntensity(draggedWordId, newMin, currentIntensity.max)
+        debouncedUpdateAnimationIntensity(draggedWordId, newMin, currentIntensity.max)
         setHasUnsavedChanges(true)
       } else if (dragType === 'animation-max') {
         const newMax = Math.max(position, currentIntensity.min + 0.05)
-        updateAnimationIntensity(draggedWordId, currentIntensity.min, newMax)
+        debouncedUpdateAnimationIntensity(draggedWordId, currentIntensity.min, newMax)
         setHasUnsavedChanges(true)
       } else if (dragType.startsWith('track-')) {
         // Handle animation track bars
@@ -350,23 +363,21 @@ export default function ExpandedClipWaveform({
         if (track) {
           if (barType === 'start') {
             const newStart = Math.min(time, track.timing.end - 0.01)
-            updateAnimationTrackTiming(
+            debouncedUpdateAnimationTrackTiming(
               draggedWordId,
               assetId,
               newStart,
               track.timing.end
             )
-            refreshWordPluginChain?.(draggedWordId)
             setHasUnsavedChanges(true)
           } else if (barType === 'end') {
             const newEnd = Math.max(time, track.timing.start + 0.01)
-            updateAnimationTrackTiming(
+            debouncedUpdateAnimationTrackTiming(
               draggedWordId,
               assetId,
               track.timing.start,
               newEnd
             )
-            refreshWordPluginChain?.(draggedWordId)
             setHasUnsavedChanges(true)
           } else if (barType === 'move') {
             // Move the entire track to follow mouse position
@@ -381,13 +392,12 @@ export default function ExpandedClipWaveform({
             )
             const constrainedEnd = constrainedStart + duration
 
-            updateAnimationTrackTiming(
+            debouncedUpdateAnimationTrackTiming(
               draggedWordId,
               assetId,
               constrainedStart,
               constrainedEnd
             )
-            refreshWordPluginChain?.(draggedWordId)
             setHasUnsavedChanges(true)
           }
         }
@@ -430,41 +440,45 @@ export default function ExpandedClipWaveform({
   const handleUndo = useCallback(() => {
     if (focusedWord) {
       undoWordTiming(focusedWord.id)
+
+      // Get the timing after undo and sync to scenario
       const timing = wordTimingAdjustments.get(focusedWord.id) || {
         start: focusedWord.start,
         end: focusedWord.end,
       }
-      updateWordBaseTime?.(focusedWord.id, timing.start, timing.end)
-      refreshWordPluginChain?.(focusedWord.id)
+
+      // Use updateWordTiming to ensure proper scenario sync
+      updateWordTiming(focusedWord.id, timing.start, timing.end)
       setHasUnsavedChanges(true)
     }
   }, [
     focusedWord,
     undoWordTiming,
-    setHasUnsavedChanges,
+    updateWordTiming,
     wordTimingAdjustments,
-    updateWordBaseTime,
-    refreshWordPluginChain,
+    setHasUnsavedChanges,
   ])
 
   const handleRedo = useCallback(() => {
     if (focusedWord) {
       redoWordTiming(focusedWord.id)
+
+      // Get the timing after redo and sync to scenario
       const timing = wordTimingAdjustments.get(focusedWord.id) || {
         start: focusedWord.start,
         end: focusedWord.end,
       }
-      updateWordBaseTime?.(focusedWord.id, timing.start, timing.end)
-      refreshWordPluginChain?.(focusedWord.id)
+
+      // Use updateWordTiming to ensure proper scenario sync
+      updateWordTiming(focusedWord.id, timing.start, timing.end)
       setHasUnsavedChanges(true)
     }
   }, [
     focusedWord,
     redoWordTiming,
-    setHasUnsavedChanges,
+    updateWordTiming,
     wordTimingAdjustments,
-    updateWordBaseTime,
-    refreshWordPluginChain,
+    setHasUnsavedChanges,
   ])
 
   // Sync playback state with video player
