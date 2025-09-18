@@ -22,15 +22,8 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
   const [position, setPosition] = useState({ top: 0, left: 0 })
   const [isMounted, setIsMounted] = useState(false)
 
-  // Get formatted progress data and expire old tasks when modal opens
-  const { exportTasks, uploadTasks, raw: { activeUploadTasks }, expireOldTasks } = useProgressTasks()
-
-  // Expire old tasks when modal opens
-  useEffect(() => {
-    if (isOpen) {
-      expireOldTasks()
-    }
-  }, [isOpen, expireOldTasks])
+  // Get formatted progress data (automatic timeout checking is now handled in useProgressTasks)
+  const { exportTasks, uploadTasks, raw: { activeUploadTasks } } = useProgressTasks()
 
   // Set mounted state
   useEffect(() => {

@@ -30,6 +30,7 @@ interface ProgressStore {
   getAllActiveTasks: () => ProgressTask[]
   getCompletedTasks: () => ProgressTask[]
   getTask: (id: number) => ProgressTask | undefined
+  expireOldTasks: () => void
 }
 
 export const useProgressStore = create<ProgressStore>()(

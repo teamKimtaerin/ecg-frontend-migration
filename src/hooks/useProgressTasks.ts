@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useProgressStore } from '@/lib/store/progressStore'
 
 // Common interfaces for components
@@ -37,6 +38,15 @@ export const useProgressTasks = () => {
     getAllActiveTasks,
     expireOldTasks
   } = useProgressStore()
+
+  // Set up automatic timeout checking every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      expireOldTasks()
+    }, 30000) // 30초마다 체크
+
+    return () => clearInterval(interval)
+  }, [expireOldTasks])
 
   // Get raw data from store
   const activeUploadTasks = getActiveUploadTasks()
