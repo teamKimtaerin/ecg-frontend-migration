@@ -73,28 +73,26 @@ export async function getPluginTimeOffset(
 }
 
 /**
- * Preload manifests for commonly used plugins
+ * Extract default parameters from a plugin's manifest schema.
  */
-export async function preloadCommonPluginManifests(): Promise<void> {
-  const commonPlugins = [
-    'elastic@2.0.0',
-    'typewriter@2.0.0',
-    'pulse@2.0.0',
-    'fadein@2.0.0',
-    'scalepop@2.0.0',
-    'slideup@2.0.0',
-    'rotation@2.0.0',
-    'glitch@2.0.0',
-    'magnetic@2.0.0',
-    'flames@2.0.0',
-    'glow@2.0.0',
-  ]
-
-  // Load manifests in parallel
-  await Promise.allSettled(
-    commonPlugins.map((pluginKey) => loadPluginManifest(pluginKey))
-  )
+export async function getPluginDefaultParams(
+  pluginKey?: string
+): Promise<Record<string, unknown>> {
+  if (!pluginKey) return {}
+  const manifest = await loadPluginManifest(pluginKey)
+  const schema = manifest?.schema
+  if (!schema) return {}
+  const params: Record<string, unknown> = {}
+  for (const [key, prop] of Object.entries(schema)) {
+    // Use defined default if present; otherwise leave undefined out
+    // to let renderer/plugin handle missing values.
+    if (Object.prototype.hasOwnProperty.call(prop, 'default')) {
+      params[key] = (prop as SchemaProperty).default
+    }
+  }
+  return params
 }
+
 
 /**
  * Get the icon URL for a specific plugin

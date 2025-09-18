@@ -144,8 +144,12 @@ export async function loadPluginManifest(
   pluginName: string,
   opts: ManifestLoadOptions = {}
 ): Promise<PluginManifest> {
+  if (!pluginName) {
+    throw new Error('Plugin name is required')
+  }
+
   try {
-    const key = pluginName.includes('@') ? pluginName : `${pluginName}@1.0.0`
+    const key = pluginName?.includes('@') ? pluginName : pluginName ? `${pluginName}@2.0.0` : ''
     const mode: ManifestLoadMode = opts.mode ?? 'auto'
     const serverBase = (opts.serverBase ?? '').replace(/\/$/, '')
     const localBase = opts.localBase ?? ''

@@ -500,18 +500,8 @@ export class TemplateProcessor {
    * Map plugin names to plugin keys used by the editor
    */
   private mapPluginNameToKey(pluginName: string): string {
-    const pluginMap: Record<string, string> = {
-      'cwi-bouncing': 'cwi-bouncing@2.0.0',
-      elastic: 'elastic@1.0.0',
-      rotation: 'rotation@2.0.0',
-      glow: 'glow@1.0.0',
-      pulse: 'pulse@1.0.0',
-      scale: 'scale@1.0.0',
-      fade: 'fade@1.0.0',
-      shake: 'shake@1.0.0',
-    }
-
-    return pluginMap[pluginName] || `${pluginName}@1.0.0`
+    if (!pluginName) return ''
+    return pluginName.includes('@') ? pluginName : `${pluginName}@2.0.0`
   }
 
   /**

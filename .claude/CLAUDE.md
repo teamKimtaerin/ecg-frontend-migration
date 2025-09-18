@@ -112,8 +112,10 @@ store/
 
 #### Plugin Structure
 
-Plugins are located in `public/plugin/legacy/[name@version]/`:
+**External Plugin Server**: Plugins are served from an external server (localhost:3300) at version 2.0.0
+**Local Fallback**: Legacy plugins in `public/plugin/legacy/[name@version]/` (for development)
 
+Each plugin contains:
 - `manifest.json` - Plugin metadata and parameter schema
 - `index.mjs` - ES module implementation
 - `assets/` - Thumbnails and resources
@@ -123,15 +125,17 @@ Plugins are located in `public/plugin/legacy/[name@version]/`:
 The project uses `motiontext-renderer` for advanced subtitle animations:
 
 - **Scenario Generation**: Dynamic scene creation from plugins and parameters
-- **Plugin Loading**: On-demand loading with preload optimization
+- **Plugin Loading**: External server-first with local fallback
 - **Preview System**: Live preview with drag/resize/rotate controls
 - **Parameter Controls**: Dynamic UI generation from plugin schemas
+- **Plugin Database**: `public/asset-store/assets-database.json` maps asset IDs to plugin keys
 
 Key integration points:
 
-- `src/app/shared/motiontext/` - Core renderer utilities
+- `src/app/shared/motiontext/` - Core renderer utilities and plugin loading
 - `src/app/(route)/asset-store/` - Plugin marketplace and preview
 - `src/app/(route)/motiontext-demo/` - Demo and testing environment
+- `src/app/(route)/editor/utils/initialScenario.ts` - Plugin chain generation with parameters and timeOffset
 
 ### Audio Analysis Integration
 
@@ -546,3 +550,12 @@ docker build --target prod -t ecg-frontend:prod .
 8. Static export configured for S3 deployment
 9. PR scripts require GitHub CLI (`gh`) authentication
 10. Plugin manifests define UI and parameter schemas
+11. **Plugin System**: Uses external server at localhost:3300 for 2.0.0 plugins, no hardcoded fallbacks
+12. **Parameter Flow**: Plugin parameters pass through AnimationTrack → initialScenario.ts → pluginChain
+13. **Error Handling**: Show error messages instead of fallbacks when plugins fail to load
+
+# important-instruction-reminders
+Do what has been asked; nothing more, nothing less.
+NEVER create files unless they're absolutely necessary for achieving your goal.
+ALWAYS prefer editing an existing file to creating a new one.
+NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.

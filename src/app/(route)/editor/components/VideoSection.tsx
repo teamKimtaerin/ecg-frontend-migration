@@ -264,8 +264,7 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
         <div className="mb-4">
           <VirtualTimelineVideoController
             virtualPlayerController={virtualPlayerControllerRef.current}
-            onVirtualTimeUpdate={(virtualTime, duration) => {
-              console.log('Virtual time update:', virtualTime, duration)
+            onVirtualTimeUpdate={() => {
               // Virtual Time은 이미 RVFC 콜백을 통해 자동으로 MotionText Renderer에 전달됨
             }}
             showSegmentVisualization={true}

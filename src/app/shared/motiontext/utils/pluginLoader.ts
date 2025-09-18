@@ -54,16 +54,6 @@ export interface PluginRuntimeModule {
 const cache = new Map<string, PluginRuntimeModule>()
 const registeredPlugins = new Set<string>()
 
-const LOCAL_PLUGINS = [
-  'fadein@1.0.0',
-  'elastic@1.0.0',
-  'glitch@1.0.0',
-  'magnetic@1.0.0',
-  'rotation@1.0.0',
-  'scalepop@1.0.0',
-  'slideup@1.0.0',
-  'typewriter@1.0.0',
-]
 
 function getPluginOrigin(): string {
   const fromEnv = process.env.NEXT_PUBLIC_MOTIONTEXT_PLUGIN_ORIGIN
@@ -83,7 +73,7 @@ export function configurePluginLoader() {
 }
 
 function resolveKey(name: string): string {
-  return name.includes('@') ? name : `${name}@1.0.0`
+  return name.includes('@') ? name : `${name}@2.0.0`
 }
 
 export async function loadLocalPlugin(
@@ -104,35 +94,28 @@ export async function loadLocalPlugin(
   if (!registeredPlugins.has(key)) {
     try {
       const manifestResponse = await fetch(`${base}/manifest.json`)
-      const manifest = manifestResponse.ok
-        ? await manifestResponse.json()
-        : { version: '1.0.0' }
+      if (!manifestResponse.ok) {
+        throw new Error(`Failed to load manifest for plugin ${key}: ${manifestResponse.status}`)
+      }
+      const manifest = await manifestResponse.json()
       const pluginNameWithoutVersion = key.split('@')[0]
       registerExternalPlugin({
         name: pluginNameWithoutVersion,
-        version: manifest.version || '1.0.0',
+        version: manifest.version,
         module: mod,
         baseUrl: `${base}/`,
         manifest: manifest,
       })
       registeredPlugins.add(key)
-    } catch {
-      // Ignore plugin registration errors
+    } catch (error) {
+      console.error(`Failed to register plugin ${key}:`, error)
+      throw error
     }
   }
 
   return mod
 }
 
-export async function preloadAllPlugins() {
-  for (const pluginName of LOCAL_PLUGINS) {
-    try {
-      await loadLocalPlugin(pluginName)
-    } catch {
-      // Ignore plugin loading errors
-    }
-  }
-}
 
 function extractPluginNames(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -164,8 +147,9 @@ export async function preloadPluginsForScenario(
   for (const pluginName of requiredPlugins) {
     try {
       await loadLocalPlugin(pluginName)
-    } catch {
-      // Ignore plugin loading errors
+    } catch (error) {
+      console.error(`Failed to load plugin ${pluginName}:`, error)
+      throw error
     }
   }
 }

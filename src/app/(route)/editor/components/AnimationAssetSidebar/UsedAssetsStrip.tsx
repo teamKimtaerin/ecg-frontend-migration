@@ -50,7 +50,7 @@ const UsedAssetsStrip: React.FC<UsedAssetsStripProps> = ({
     expandedAssetId,
     setExpandedAssetId,
     focusedWordId,
-    addAnimationTrack,
+    addAnimationTrackAsync,
     removeAnimationTrack,
     wordAnimationTracks,
   } = useEditorStore()
@@ -203,8 +203,8 @@ const UsedAssetsStrip: React.FC<UsedAssetsStripProps> = ({
             break
           }
         }
-        // Add the animation track with word timing
-        addAnimationTrack(
+        // Add the animation track with word timing (async to fetch defaults/timeOffset)
+        addAnimationTrackAsync(
           targetWordId,
           asset.id,
           asset.name,

@@ -108,7 +108,8 @@ export interface WordSlice extends WordDragState {
     assetName: string,
     wordTiming?: { start: number; end: number },
     pluginKey?: string,
-    timeOffset?: [number, number]
+    timeOffset?: [number, number],
+    params?: Record<string, unknown>
   ) => void
   addAnimationTrackAsync: (
     wordId: string,
@@ -117,6 +118,16 @@ export interface WordSlice extends WordDragState {
     wordTiming?: { start: number; end: number },
     pluginKey?: string
   ) => Promise<void>
+  setAnimationTrackPluginKey: (
+    wordId: string,
+    assetId: string,
+    pluginKey: string
+  ) => void
+  updateAnimationTrackParams: (
+    wordId: string,
+    assetId: string,
+    params: Record<string, unknown>
+  ) => void
   removeAnimationTrack: (wordId: string, assetId: string) => void
   updateAnimationTrackTiming: (
     wordId: string,
@@ -478,7 +489,8 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
     assetName,
     wordTiming,
     pluginKey,
-    timeOffset
+    timeOffset,
+    params
   ) =>
     set((state) => {
       const newTracks = new Map(state.wordAnimationTracks)
@@ -512,6 +524,7 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
         intensity: { min: 0.3, max: 0.7 },
         color,
         timeOffset,
+        params,
       }
 
       newTracks.set(wordId, [...existingTracks, newTrack])
@@ -918,8 +931,13 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
     wordTiming,
     pluginKey
   ) => {
-    // Fetch timeOffset from plugin manifest
+    // Fetch timeOffset and default params from plugin manifest
     const timeOffset = await getPluginTimeOffset(pluginKey)
+    // Lazy import to avoid cycle; use same loader file
+    const { getPluginDefaultParams } = await import(
+      '../../utils/pluginManifestLoader'
+    )
+    const defaultParams = await getPluginDefaultParams(pluginKey)
 
     // Call the regular addAnimationTrack with the fetched timeOffset
     const state = get()
@@ -929,9 +947,46 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
       assetName,
       wordTiming,
       pluginKey,
-      timeOffset
+      timeOffset,
+      defaultParams
     )
   },
+
+  setAnimationTrackPluginKey: (wordId, assetId, pluginKey) =>
+    set((state) => {
+      const newTracks = new Map(state.wordAnimationTracks)
+      const existing = newTracks.get(wordId) || []
+      let changed = false
+      const updated = existing.map((t) => {
+        if (t.assetId === assetId && t.pluginKey !== pluginKey) {
+          changed = true
+          return { ...t, pluginKey }
+        }
+        return t
+      })
+      if (!changed) return state
+      newTracks.set(wordId, updated)
+
+      // Mirror to clips and refresh scenario
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const anyGet = get() as any
+        if (anyGet.updateWordAnimationTracks && anyGet.clips) {
+          for (const clip of anyGet.clips) {
+            const hasWord = clip.words?.some((w: Word) => w.id === wordId)
+            if (hasWord) {
+              anyGet.updateWordAnimationTracks(clip.id, wordId, updated)
+              break
+            }
+          }
+        }
+        anyGet.refreshWordPluginChain?.(wordId)
+      } catch {}
+
+      return { wordAnimationTracks: newTracks }
+    }),
+
+  
 
   // Multi-selection implementations
   selectWordRange: (toClipId, toWordId) =>

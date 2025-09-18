@@ -1,69 +1,144 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { IoCheckmark, IoClose, IoRefresh, IoSettings } from 'react-icons/io5'
 import { PluginParameterControls } from '../../../asset-store/components/PluginParameterControls'
-import { loadPluginManifest } from '../../utils/pluginManifestLoader'
-import type { PluginManifest } from '../../utils/pluginManifestLoader'
+import {
+  loadPluginManifest,
+  getDefaultParameters,
+  type PluginManifest,
+} from '@/app/(route)/asset-store/utils/scenarioGenerator'
+import { useEditorStore } from '../../store'
 import { AssetSettings } from './types'
 
 interface AssetControlPanelProps {
   assetName: string
+  assetId?: string
   onClose: () => void
   onSettingsChange?: (settings: AssetSettings) => void
 }
 
-// Asset name to plugin key mapping
-const ASSET_TO_PLUGIN_KEY: Record<string, string> = {
-  'Rotation Text': 'rotation@2.0.0',
-  'TypeWriter Effect': 'typewriter@2.0.0',
-  'Elastic Bounce': 'elastic@2.0.0',
-  'Glitch Effect': 'glitch@2.0.0',
-  'Scale Pop': 'scalepop@2.0.0',
-  'Fade In Stagger': 'fadein@2.0.0',
-  'Slide Up': 'slideup@2.0.0',
-  'Magnetic Pull': 'magnetic@2.0.0',
-}
 
 const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
   assetName,
+  assetId,
   onClose,
   onSettingsChange,
 }) => {
   const [manifest, setManifest] = useState<PluginManifest | null>(null)
   const [parameters, setParameters] = useState<Record<string, unknown>>({})
   const [loading, setLoading] = useState(true)
+  const [fallbackPluginKey, setFallbackPluginKey] = useState<string | undefined>(
+    undefined
+  )
+
+  // Pull current UI/track context from store to resolve pluginKey reliably
+  const { expandedAssetId, focusedWordId, selectedWordId, wordAnimationTracks } =
+    useEditorStore()
+
+  const targetWordId = focusedWordId || selectedWordId || null
+
+  // Resolve pluginKey from current word's animation tracks -> expanded asset
+  const pluginKeyFromStore = useMemo(() => {
+    if (!targetWordId) return undefined
+    const targetAssetId = assetId || expandedAssetId
+    if (!targetAssetId) return undefined
+    const tracks = wordAnimationTracks.get(targetWordId) || []
+    const track = tracks.find((t) => t.assetId === targetAssetId)
+    return track?.pluginKey
+  }, [targetWordId, assetId, expandedAssetId, wordAnimationTracks])
+
+  // Try to resolve pluginKey from the assets database when store doesn't provide it
+  useEffect(() => {
+    const resolveFromDatabase = async () => {
+      if (pluginKeyFromStore) return
+      try {
+        const res = await fetch('/asset-store/assets-database.json', {
+          cache: 'no-cache',
+          headers: { 'Content-Type': 'application/json' },
+        })
+        if (!res.ok) return
+        const data = (await res.json()) as { assets?: Array<{ id: string; title: string; pluginKey?: string }> }
+        const idToFind = assetId || expandedAssetId || ''
+        const match = data.assets?.find(
+          (a) => a.id === idToFind || a.title === assetName
+        )
+        if (match?.pluginKey) setFallbackPluginKey(match.pluginKey)
+      } catch (e) {
+        // Silent fallback; panel will show a message if unresolved
+      }
+    }
+    resolveFromDatabase()
+  }, [pluginKeyFromStore, expandedAssetId, assetId, assetName])
 
   // Load plugin manifest and initialize parameters
   useEffect(() => {
-    const loadManifest = async () => {
-      const pluginKey = ASSET_TO_PLUGIN_KEY[assetName]
+    const doLoad = async () => {
+      setLoading(true)
+      // Prefer store-derived pluginKey; fallback to assets DB
+      let pluginKey = pluginKeyFromStore || fallbackPluginKey
       if (!pluginKey) {
-        console.warn(`No plugin key found for asset: ${assetName}`)
+        // Try resolving synchronously from the database here to avoid a two-pass failure
+        try {
+          const res = await fetch('/asset-store/assets-database.json', {
+            cache: 'no-cache',
+            headers: { 'Content-Type': 'application/json' },
+          })
+          if (res.ok) {
+            const data = (await res.json()) as {
+              assets?: Array<{ id: string; title: string; pluginKey?: string }>
+            }
+            const idToFind = assetId || expandedAssetId || ''
+            const match = data.assets?.find(
+              (a) => a.id === idToFind || a.title === assetName
+            )
+            if (match?.pluginKey) {
+              pluginKey = match.pluginKey
+              setFallbackPluginKey(match.pluginKey)
+              // Persist back into store if we have a target word + track
+              const targetAssetId = assetId || expandedAssetId
+              if (targetAssetId && targetWordId) {
+                try {
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  const store = useEditorStore.getState() as any
+                  store.setAnimationTrackPluginKey?.(
+                    targetWordId,
+                    targetAssetId,
+                    match.pluginKey
+                  )
+                } catch {}
+              }
+            }
+          }
+        } catch {
+          // ignore and fall through to message below
+        }
+      }
+      if (!pluginKey) {
+        // Still no key; keep the panel visible with a friendly message
+        console.warn(
+          `No plugin key found for asset: ${assetName} (id=${expandedAssetId || assetId || 'n/a'}).`
+        )
+        setManifest(null)
+        setParameters({})
         setLoading(false)
         return
       }
 
       try {
-        const loadedManifest = await loadPluginManifest(pluginKey)
-        if (loadedManifest) {
-          setManifest(loadedManifest)
+        const serverBase = (
+          process.env.NEXT_PUBLIC_MOTIONTEXT_PLUGIN_ORIGIN ||
+          'http://localhost:3300'
+        ).replace(/\/$/, '')
+        const loadedManifest = await loadPluginManifest(pluginKey, {
+          mode: 'server',
+          serverBase,
+        })
+        setManifest(loadedManifest)
 
-          // Initialize parameters with default values
-          const initialParams: Record<string, unknown> = {}
-          if (loadedManifest.schema) {
-            Object.entries(loadedManifest.schema).forEach(([key, property]) => {
-              if (
-                typeof property === 'object' &&
-                property !== null &&
-                'default' in property
-              ) {
-                initialParams[key] = property.default
-              }
-            })
-          }
-          setParameters(initialParams)
-        }
+        // Initialize parameters using shared helper (keeps parity with AssetModal)
+        const initialParams = getDefaultParameters(loadedManifest)
+        setParameters(initialParams)
       } catch (error) {
         console.error(`Failed to load manifest for ${pluginKey}:`, error)
       } finally {
@@ -71,8 +146,28 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
       }
     }
 
-    loadManifest()
-  }, [assetName])
+    doLoad()
+    // Re-run when asset changes or store resolves a different pluginKey
+  }, [assetName, pluginKeyFromStore, fallbackPluginKey, expandedAssetId, assetId])
+
+  // If we found a fallback key but store lacked it, persist it back to store
+  useEffect(() => {
+    const targetAssetId = assetId || expandedAssetId
+    if (!targetAssetId || !targetWordId) return
+    if (fallbackPluginKey && !pluginKeyFromStore) {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const store = useEditorStore.getState() as any
+        store.setAnimationTrackPluginKey?.(
+          targetWordId,
+          targetAssetId,
+          fallbackPluginKey
+        )
+      } catch {
+        // ignore
+      }
+    }
+  }, [fallbackPluginKey, pluginKeyFromStore, assetId, expandedAssetId, targetWordId])
 
   const handleParameterChange = (key: string, value: unknown) => {
     setParameters((prev) => ({ ...prev, [key]: value }))

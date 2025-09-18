@@ -118,6 +118,7 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
           >
             <AssetControlPanel
               assetName={expandedAssetName}
+              assetId={expandedAssetId}
               onClose={handleControlPanelClose}
               onSettingsChange={handleSettingsChange}
             />
