@@ -103,7 +103,7 @@ const MovableAnimatedText = forwardRef<
      * Update scenario with proper coordinate normalization
      */
     const updateScenario = useCallback(async () => {
-      if (!manifest || isDragging) return
+      if (!manifest || isDragging || !position) return
 
       try {
         const STAGE_W = stageSizeRef.current.width
@@ -297,7 +297,7 @@ const MovableAnimatedText = forwardRef<
       setShowSimpleText(false)
 
       // Convert top-left position back to percentage for store update (using center point for consistency)
-      if (videoContainerRef.current) {
+      if (videoContainerRef.current && position) {
         const container = videoContainerRef.current
         const rect = container.getBoundingClientRect()
         const centerX = position.x + size.width / 2
@@ -349,7 +349,7 @@ const MovableAnimatedText = forwardRef<
           const scaleY = newH / prev.height
 
           stageSizeRef.current = { width: newW, height: newH }
-          setPosition((p) => ({ x: p.x * scaleX, y: p.y * scaleY }))
+          setPosition((p) => p ? ({ x: p.x * scaleX, y: p.y * scaleY }) : null)
           setSize((s) => ({ width: s.width * scaleX, height: s.height * scaleY }))
         }
       })
