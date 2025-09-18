@@ -372,6 +372,14 @@ const MovableAnimatedText = forwardRef<
         e.preventDefault()
         e.stopPropagation()
 
+        // Pause video when text is clicked
+        const videoPlayer = (
+          window as { videoPlayer?: { pause: () => void } }
+        ).videoPlayer
+        if (videoPlayer) {
+          videoPlayer.pause()
+        }
+
         console.log('✅ Selecting text:', text.content)
         onSelect()
       },
