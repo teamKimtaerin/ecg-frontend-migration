@@ -100,6 +100,7 @@ export const getExistingTrackParams = (
 /**
  * Debounce utility for high-frequency parameter updates
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const createParameterDebounce = <T extends (...args: any[]) => any>(
   fn: T,
   delay: number = 200

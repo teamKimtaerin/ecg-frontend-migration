@@ -2,7 +2,7 @@
  * Hook for managing animation parameters with debouncing and error handling
  */
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import { useEditorStore } from '../store'
 import {
   determineTargetWordId,
@@ -59,44 +59,45 @@ export const useAnimationParams = ({
   }, [wordId, assetId, store])
 
   // Debounced update function
-  const debouncedUpdate = useCallback(
-    createParameterDebounce(
-      async (
-        targetWordId: string,
-        targetAssetId: string,
-        newParams: Record<string, unknown>
-      ) => {
-        try {
-          setIsLoading(true)
-          setError(null)
+  const debouncedUpdate = useMemo(
+    () =>
+      createParameterDebounce(
+        async (
+          targetWordId: string,
+          targetAssetId: string,
+          newParams: Record<string, unknown>
+        ) => {
+          try {
+            setIsLoading(true)
+            setError(null)
 
-          // Call store action to update parameters
-          const storeActions = useEditorStore.getState() as {
-            updateAnimationTrackParams?: (
-              wordId: string,
-              assetId: string,
-              params: Record<string, unknown>
-            ) => void
+            // Call store action to update parameters
+            const storeActions = useEditorStore.getState() as {
+              updateAnimationTrackParams?: (
+                wordId: string,
+                assetId: string,
+                params: Record<string, unknown>
+              ) => void
+            }
+            storeActions.updateAnimationTrackParams?.(
+              targetWordId,
+              targetAssetId,
+              newParams
+            )
+
+            console.log(`Updated animation params for word "${targetWordId}"`)
+          } catch (err) {
+            console.error('Failed to update animation params:', err)
+            setError(
+              err instanceof Error ? err.message : 'Failed to update parameters'
+            )
+            throw err
+          } finally {
+            setIsLoading(false)
           }
-          storeActions.updateAnimationTrackParams?.(
-            targetWordId,
-            targetAssetId,
-            newParams
-          )
-
-          console.log(`Updated animation params for word "${targetWordId}"`)
-        } catch (err) {
-          console.error('Failed to update animation params:', err)
-          setError(
-            err instanceof Error ? err.message : 'Failed to update parameters'
-          )
-          throw err
-        } finally {
-          setIsLoading(false)
-        }
-      },
-      debounceMs
-    ),
+        },
+        debounceMs
+      ),
     [debounceMs]
   )
 
