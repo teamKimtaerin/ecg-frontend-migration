@@ -76,9 +76,9 @@ export const useAnimationParams = ({
               wordId: string,
               assetId: string,
               params: Record<string, unknown>
-            ) => Promise<void>
+            ) => void
           }
-          await storeActions.updateAnimationTrackParams?.(
+          storeActions.updateAnimationTrackParams?.(
             targetWordId,
             targetAssetId,
             newParams
@@ -125,7 +125,7 @@ export const useAnimationParams = ({
       setParams(newParams)
 
       if (enableRealTimeUpdates && wordId && assetId) {
-        debouncedUpdate(wordId, assetId, newParams).catch(console.error)
+        void debouncedUpdate(wordId, assetId, newParams)
       }
     },
     [params, wordId, assetId, debouncedUpdate, enableRealTimeUpdates]
@@ -192,7 +192,14 @@ export const useAnimationTracks = (wordId?: string) => {
 
       // Apply initial parameters if provided
       if (initialParams && Object.keys(initialParams).length > 0) {
-        await storeActions.updateAnimationTrackParams?.(
+        const storeActionsWithParams = useEditorStore.getState() as {
+          updateAnimationTrackParams?: (
+            wordId: string,
+            assetId: string,
+            params: Record<string, unknown>
+          ) => void
+        }
+        storeActionsWithParams.updateAnimationTrackParams?.(
           targetWordId,
           assetId,
           initialParams

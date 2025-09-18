@@ -100,9 +100,7 @@ export const getExistingTrackParams = (
 /**
  * Debounce utility for high-frequency parameter updates
  */
-export const createParameterDebounce = <
-  T extends (...args: unknown[]) => unknown,
->(
+export const createParameterDebounce = <T extends (...args: any[]) => any>(
   fn: T,
   delay: number = 200
 ): T => {
