@@ -37,7 +37,8 @@ export async function loadPluginManifest(
   try {
     // Construct URL to plugin manifest
     const baseUrl =
-      process.env.NEXT_PUBLIC_MOTIONTEXT_PLUGIN_ORIGIN || 'http://localhost:3300'
+      process.env.NEXT_PUBLIC_MOTIONTEXT_PLUGIN_ORIGIN ||
+      'http://localhost:3300'
     const manifestUrl = `${baseUrl}/plugins/${pluginKey}/manifest.json`
 
     const response = await fetch(manifestUrl)
@@ -93,7 +94,6 @@ export async function getPluginDefaultParams(
   }
   return params
 }
-
 
 /**
  * Get the icon URL for a specific plugin

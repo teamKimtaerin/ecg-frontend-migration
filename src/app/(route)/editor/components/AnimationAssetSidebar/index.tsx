@@ -2,7 +2,10 @@
 
 import React, { useState } from 'react'
 import { useEditorStore } from '../../store'
-import { determineTargetWordId, getTargetWordDisplayName } from '../../utils/animationHelpers'
+import {
+  determineTargetWordId,
+  getTargetWordDisplayName,
+} from '../../utils/animationHelpers'
 
 // Components
 import SidebarHeader from './SidebarHeader'
@@ -100,7 +103,9 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
       await storeActions.updateAnimationTrackParams?.(wordId, assetId, settings)
 
       // Note: refreshWordPluginChain is called automatically in updateAnimationTrackParams
-      console.log(`Applied settings to word "${getTargetWordDisplayName(store)}"`)
+      console.log(
+        `Applied settings to word "${getTargetWordDisplayName(store)}"`
+      )
     } catch (error) {
       console.error('Failed to apply animation settings:', error)
       throw error // Re-throw for UI error handling

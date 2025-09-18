@@ -68,7 +68,10 @@ export const getTargetWordDisplayName = (store: EditorStore): string => {
 /**
  * Validates if a word can have animation operations performed on it
  */
-export const canApplyAnimationToWord = (store: EditorStore, wordId?: string): boolean => {
+export const canApplyAnimationToWord = (
+  store: EditorStore,
+  wordId?: string
+): boolean => {
   const targetWordId = wordId || determineTargetWordId(store)
   if (!targetWordId) return false
 
@@ -97,7 +100,9 @@ export const getExistingTrackParams = (
 /**
  * Debounce utility for high-frequency parameter updates
  */
-export const createParameterDebounce = <T extends (...args: any[]) => any>(
+export const createParameterDebounce = <
+  T extends (...args: unknown[]) => unknown,
+>(
   fn: T,
   delay: number = 200
 ): T => {
@@ -160,6 +165,6 @@ export const createBatchUpdater = <T>(
         clearTimeout(timeoutId)
         timeoutId = null
       }
-    }
+    },
   }
 }

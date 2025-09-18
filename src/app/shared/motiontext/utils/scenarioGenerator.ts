@@ -149,7 +149,11 @@ export async function loadPluginManifest(
   }
 
   try {
-    const key = pluginName?.includes('@') ? pluginName : pluginName ? `${pluginName}@2.0.0` : ''
+    const key = pluginName?.includes('@')
+      ? pluginName
+      : pluginName
+        ? `${pluginName}@2.0.0`
+        : ''
     const mode: ManifestLoadMode = opts.mode ?? 'auto'
     const serverBase = (opts.serverBase ?? '').replace(/\/$/, '')
     const localBase = opts.localBase ?? ''

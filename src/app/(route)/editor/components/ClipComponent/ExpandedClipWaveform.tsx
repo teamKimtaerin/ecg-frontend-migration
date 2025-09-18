@@ -349,11 +349,19 @@ export default function ExpandedClipWaveform({
         setHasUnsavedChanges(true)
       } else if (dragType === 'animation-min') {
         const newMin = Math.min(position, currentIntensity.max - 0.05)
-        debouncedUpdateAnimationIntensity(draggedWordId, newMin, currentIntensity.max)
+        debouncedUpdateAnimationIntensity(
+          draggedWordId,
+          newMin,
+          currentIntensity.max
+        )
         setHasUnsavedChanges(true)
       } else if (dragType === 'animation-max') {
         const newMax = Math.max(position, currentIntensity.min + 0.05)
-        debouncedUpdateAnimationIntensity(draggedWordId, currentIntensity.min, newMax)
+        debouncedUpdateAnimationIntensity(
+          draggedWordId,
+          currentIntensity.min,
+          newMax
+        )
         setHasUnsavedChanges(true)
       } else if (dragType.startsWith('track-')) {
         // Handle animation track bars - store positions locally during drag
@@ -363,7 +371,8 @@ export default function ExpandedClipWaveform({
 
         if (track) {
           const trackKey = `${draggedWordId}-${assetId}`
-          const currentLocal = localAnimationPositions.get(trackKey) || track.timing
+          const currentLocal =
+            localAnimationPositions.get(trackKey) || track.timing
 
           let newStart = currentLocal.start
           let newEnd = currentLocal.end
@@ -375,7 +384,8 @@ export default function ExpandedClipWaveform({
           } else if (barType === 'move') {
             // Move the entire track to follow mouse position
             const duration = currentLocal.end - currentLocal.start
-            const newStartPos = rangeStart + position * rangeDuration - duration / 2
+            const newStartPos =
+              rangeStart + position * rangeDuration - duration / 2
 
             // Constrain within range bounds
             newStart = Math.max(
@@ -386,7 +396,7 @@ export default function ExpandedClipWaveform({
           }
 
           // Store position locally for visual feedback
-          setLocalAnimationPositions(prev =>
+          setLocalAnimationPositions((prev) =>
             new Map(prev).set(trackKey, { start: newStart, end: newEnd })
           )
           setHasUnsavedChanges(true)

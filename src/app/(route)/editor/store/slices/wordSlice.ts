@@ -7,7 +7,7 @@ const convertTimeOffsetToSeconds = (
   timeOffset: [number, number] | [string, string],
   wordDuration: number
 ): [number, number] => {
-  return timeOffset.map(offset => {
+  return timeOffset.map((offset) => {
     if (typeof offset === 'string' && offset.endsWith('%')) {
       const percentage = parseFloat(offset) / 100
       return wordDuration * percentage
@@ -48,7 +48,7 @@ const applyTimeOffset = (
 
     return {
       start: wordCenter - animDuration / 2,
-      end: wordCenter + animDuration / 2
+      end: wordCenter + animDuration / 2,
     }
   }
 
@@ -63,7 +63,7 @@ export interface AnimationTrack {
   timing: { start: number; end: number }
   intensity: { min: number; max: number }
   color: 'blue' | 'green' | 'purple'
-  timeOffset?: [number, number] // [preOffset, postOffset] from plugin manifest
+  timeOffset?: [number, number] | [string, string] // [preOffset, postOffset] from plugin manifest
 }
 
 export interface WordDragState {
@@ -161,7 +161,7 @@ export interface WordSlice extends WordDragState {
     assetName: string,
     wordTiming?: { start: number; end: number },
     pluginKey?: string,
-    timeOffset?: [number, number],
+    timeOffset?: [number, number] | [string, string],
     params?: Record<string, unknown>
   ) => void
   addAnimationTrackAsync: (
@@ -722,7 +722,7 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
           return {
             ...track,
             timing: { start, end },
-            timeOffset
+            timeOffset,
           }
         }
         return track
@@ -789,7 +789,7 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
           return {
             ...track,
             timing: { start, end },
-            timeOffset
+            timeOffset,
           }
         }
         return track
@@ -866,11 +866,7 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
   toggleAnimationForWords: async (wordIds, asset) => {
     const state = get()
     const newTracks = new Map(state.wordAnimationTracks)
-    const colors: ('blue' | 'green' | 'purple')[] = [
-      'blue',
-      'green',
-      'purple',
-    ]
+    const colors: ('blue' | 'green' | 'purple')[] = ['blue', 'green', 'purple']
 
     // Helper to find timing fallback from clips
     const findTiming = (wordId: string): { start: number; end: number } => {
@@ -889,7 +885,7 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
     }
 
     // Load plugin manifest data for new animations
-    let timeOffset: [number, number] | undefined = undefined
+    let timeOffset: [number, number] | [string, string] | undefined = undefined
     let defaultParams: Record<string, unknown> = {}
 
     try {
@@ -993,7 +989,9 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
         // Validate that the track exists
         const trackExists = existing.some((t) => t.assetId === assetId)
         if (!trackExists) {
-          console.warn(`Animation track ${assetId} not found for word ${wordId}`)
+          console.warn(
+            `Animation track ${assetId} not found for word ${wordId}`
+          )
           return state // No change if track doesn't exist
         }
 
@@ -1035,7 +1033,9 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
 
         // If critical updates failed, rollback
         if (scenarioUpdateFailed) {
-          console.warn('Rolling back parameter update due to scenario update failure')
+          console.warn(
+            'Rolling back parameter update due to scenario update failure'
+          )
           return { wordAnimationTracks: backupTracks }
         }
 
@@ -1175,8 +1175,6 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
 
       return { wordAnimationTracks: newTracks }
     }),
-
-  
 
   // Multi-selection implementations
   selectWordRange: (toClipId, toWordId) =>

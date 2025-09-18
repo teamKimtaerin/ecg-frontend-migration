@@ -10,7 +10,10 @@ import {
 } from '@/app/(route)/asset-store/utils/scenarioGenerator'
 import { useEditorStore } from '../../store'
 import { AssetSettings } from './types'
-import { determineTargetWordId, getExistingTrackParams as getExistingTrackParamsHelper } from '../../utils/animationHelpers'
+import {
+  determineTargetWordId,
+  getExistingTrackParams as getExistingTrackParamsHelper,
+} from '../../utils/animationHelpers'
 // import { useAnimationParams } from '../../hooks/useAnimationParams' // Available for future use
 
 interface AssetControlPanelProps {
@@ -21,7 +24,10 @@ interface AssetControlPanelProps {
 }
 
 // Helper function to get existing track parameters
-const getExistingTrackParams = (wordId: string | null, assetId: string | null): Record<string, unknown> => {
+const getExistingTrackParams = (
+  wordId: string | null,
+  assetId: string | null
+): Record<string, unknown> => {
   if (!wordId || !assetId) return {}
 
   try {
@@ -33,7 +39,6 @@ const getExistingTrackParams = (wordId: string | null, assetId: string | null): 
   }
 }
 
-
 const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
   assetName,
   assetId,
@@ -44,9 +49,9 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
   const [parameters, setParameters] = useState<Record<string, unknown>>({})
   const [loading, setLoading] = useState(true)
   const [applying, setApplying] = useState(false)
-  const [fallbackPluginKey, setFallbackPluginKey] = useState<string | undefined>(
-    undefined
-  )
+  const [fallbackPluginKey, setFallbackPluginKey] = useState<
+    string | undefined
+  >(undefined)
 
   // Pull current UI/track context from store to resolve pluginKey reliably
   const {
@@ -57,7 +62,7 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
     expandedWordId,
     multiSelectedWordIds,
   } = useEditorStore()
-  
+
   // Use unified target word resolution (expanded > focused > single selected)
   const targetWordId = useMemo(() => {
     try {
@@ -94,7 +99,9 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
           headers: { 'Content-Type': 'application/json' },
         })
         if (!res.ok) return
-        const data = (await res.json()) as { assets?: Array<{ id: string; title: string; pluginKey?: string }> }
+        const data = (await res.json()) as {
+          assets?: Array<{ id: string; title: string; pluginKey?: string }>
+        }
         const idToFind = assetId || expandedAssetId || ''
         const match = data.assets?.find(
           (a) => a.id === idToFind || a.title === assetName
@@ -174,7 +181,10 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
 
         // Initialize parameters: merge existing track params with manifest defaults
         const defaultParams = getDefaultParameters(loadedManifest)
-        const existingParams = getExistingTrackParams(targetWordId, assetId || expandedAssetId)
+        const existingParams = getExistingTrackParams(
+          targetWordId,
+          assetId || expandedAssetId
+        )
 
         // Merge: existing params take priority, defaults fill missing keys
         const initialParams = { ...defaultParams, ...existingParams }
@@ -188,7 +198,13 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
 
     doLoad()
     // Re-run when asset changes or store resolves a different pluginKey
-  }, [assetName, pluginKeyFromStore, fallbackPluginKey, expandedAssetId, assetId])
+  }, [
+    assetName,
+    pluginKeyFromStore,
+    fallbackPluginKey,
+    expandedAssetId,
+    assetId,
+  ])
 
   // If we found a fallback key but store lacked it, persist it back to store
   useEffect(() => {
@@ -207,7 +223,13 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
         // ignore
       }
     }
-  }, [fallbackPluginKey, pluginKeyFromStore, assetId, expandedAssetId, targetWordId])
+  }, [
+    fallbackPluginKey,
+    pluginKeyFromStore,
+    assetId,
+    expandedAssetId,
+    targetWordId,
+  ])
 
   const handleParameterChange = (key: string, value: unknown) => {
     setParameters((prev) => ({ ...prev, [key]: value }))

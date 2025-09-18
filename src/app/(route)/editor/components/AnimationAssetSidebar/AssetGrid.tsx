@@ -245,9 +245,7 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
   if (error) {
     return (
       <div className="text-center py-8">
-        <p className="text-red-400 text-sm">
-          에셋을 불러오는데 실패했습니다.
-        </p>
+        <p className="text-red-400 text-sm">에셋을 불러오는데 실패했습니다.</p>
         <p className="text-slate-400 text-xs mt-1">{error}</p>
       </div>
     )

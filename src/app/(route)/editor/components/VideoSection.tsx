@@ -267,11 +267,11 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
               virtualPlayerController={virtualPlayerControllerRef.current}
               onVirtualTimeUpdate={() => {
                 // Virtual Time은 이미 RVFC 콜백을 통해 자동으로 MotionText Renderer에 전달됨
-            }}
-            showSegmentVisualization={true}
-            showVolumeControls={true}
-            className="rounded-lg border border-gray-200 bg-white shadow-sm"
-          />
+              }}
+              showSegmentVisualization={true}
+              showVolumeControls={true}
+              className="rounded-lg border border-gray-200 bg-white shadow-sm"
+            />
           </div>
         )}
 

@@ -22,7 +22,10 @@ export interface IndexSlice {
 }
 
 export const createIndexSlice: StateCreator<
-  IndexSlice & { clips: ClipItem[]; deletedClipIds?: Set<string> }
+  IndexSlice & { clips: ClipItem[]; deletedClipIds?: Set<string> },
+  [],
+  [],
+  IndexSlice
 > = (set, get) => ({
   wordIdToClipId: new Map<string, string>(),
   wordIdToIndex: new Map<string, number>(),
@@ -37,10 +40,13 @@ export const createIndexSlice: StateCreator<
     const clipToIndex = new Map<string, number>()
 
     // If deletedClipIds exists, exclude deleted clips
-    const deleted = (state as unknown as { deletedClipIds?: Set<string> })
-      .deletedClipIds || new Set<string>()
-    const clips = (state.clips || []).filter((c) => !deleted.has(c.id))
-    clips.forEach((clip, ci) => {
+    const deleted =
+      (state as unknown as { deletedClipIds?: Set<string> }).deletedClipIds ||
+      new Set<string>()
+    const clips = (state.clips || []).filter(
+      (c: ClipItem) => !deleted.has(c.id)
+    )
+    clips.forEach((clip: ClipItem, ci: number) => {
       clipToIndex.set(clip.id, ci)
       const ids: string[] = []
       clip.words.forEach((w: Word, idx: number) => {

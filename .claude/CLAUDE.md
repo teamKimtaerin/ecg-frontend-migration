@@ -116,6 +116,7 @@ store/
 **Local Fallback**: Legacy plugins in `public/plugin/legacy/[name@version]/` (for development)
 
 Each plugin contains:
+
 - `manifest.json` - Plugin metadata and parameter schema
 - `index.mjs` - ES module implementation
 - `assets/` - Thumbnails and resources
@@ -555,7 +556,8 @@ docker build --target prod -t ecg-frontend:prod .
 13. **Error Handling**: Show error messages instead of fallbacks when plugins fail to load
 
 # important-instruction-reminders
+
 Do what has been asked; nothing more, nothing less.
 NEVER create files unless they're absolutely necessary for achieving your goal.
 ALWAYS prefer editing an existing file to creating a new one.
-NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
+NEVER proactively create documentation files (\*.md) or README files. Only create documentation files if explicitly requested by the User.

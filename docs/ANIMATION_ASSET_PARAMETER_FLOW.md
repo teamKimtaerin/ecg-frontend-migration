@@ -41,12 +41,14 @@ EditorPage
 ### 2. 컴포넌트 간 상호작용
 
 #### 애니메이션 적용 플로우:
+
 1. **AssetGrid**에서 플러그인 선택 → 단어에 애니메이션 트랙 추가
 2. **ClipWord**에서 트랙 클릭 → **AssetControlPanel** 모달 열림
 3. **AssetControlPanel**에서 파라미터 조정 → 실시간 업데이트
 4. **ExpandedClipWaveform**에서 타이밍 조정 → 트랙 타이밍 업데이트
 
 #### 음성 파형과 애니메이션 연동:
+
 - `real.json`의 오디오 분석 데이터 사용
 - 단어별 볼륨, 피치 정보를 파형에 시각화
 - 애니메이션 트랙의 타이밍과 강도를 음성 데이터와 동기화
@@ -58,18 +60,18 @@ EditorPage
 ```typescript
 // WordSlice - 단어별 애니메이션 트랙 관리
 interface AnimationTrack {
-  assetId: string      // 플러그인 고유 ID
-  assetName: string    // 표시용 이름
-  pluginKey: string    // 실제 플러그인 키 (예: "cwi-bouncing@2.0.0")
-  params: Record<string, unknown>  // 플러그인 파라미터
-  timing: { start: number; end: number }  // 애니메이션 타이밍
-  intensity: { min: number; max: number }  // 강도 범위
-  color: 'blue' | 'green' | 'purple'      // UI 색상
-  timeOffset?: [number, number]           // [preOffset, postOffset]
+  assetId: string // 플러그인 고유 ID
+  assetName: string // 표시용 이름
+  pluginKey: string // 실제 플러그인 키 (예: "cwi-bouncing@2.0.0")
+  params: Record<string, unknown> // 플러그인 파라미터
+  timing: { start: number; end: number } // 애니메이션 타이밍
+  intensity: { min: number; max: number } // 강도 범위
+  color: 'blue' | 'green' | 'purple' // UI 색상
+  timeOffset?: [number, number] // [preOffset, postOffset]
 }
 
 // 전역 상태
-wordAnimationTracks: Map<string, AnimationTrack[]>  // 단어ID → 트랙 배열
+wordAnimationTracks: Map<string, AnimationTrack[]> // 단어ID → 트랙 배열
 ```
 
 ### 2. 파라미터 변경부터 시나리오 반영까지의 전체 플로우
@@ -99,9 +101,9 @@ if (animationTracks && animationTracks.length > 0) {
   child.pluginChain = animationTracks
     .filter((track) => track.pluginKey)
     .map((track) => ({
-      name: track.pluginKey,           // 플러그인 이름
-      params: track.params || {},      // 사용자 설정 파라미터
-      timeOffset: track.timeOffset,    // 타이밍 오프셋
+      name: track.pluginKey, // 플러그인 이름
+      params: track.params || {}, // 사용자 설정 파라미터
+      timeOffset: track.timeOffset, // 타이밍 오프셋
     }))
 }
 ```
@@ -117,7 +119,13 @@ const handleAssetClick = (asset) => {
   if (isMultipleWordsSelected()) {
     toggleAnimationForWords(Array.from(multiSelectedWordIds), asset)
   } else if (focusedWordId) {
-    addAnimationTrackAsync(focusedWordId, asset.id, asset.name, wordTiming, asset.pluginKey)
+    addAnimationTrackAsync(
+      focusedWordId,
+      asset.id,
+      asset.name,
+      wordTiming,
+      asset.pluginKey
+    )
   }
 }
 ```
@@ -172,10 +180,10 @@ updateAnimationTrackParams: (wordId, assetId, partialParams) => {
 refreshWordPluginChain: (wordId) => {
   const tracks = wordAnimationTracks?.get(wordId) || []
   const pluginChain = tracks.map((t) => ({
-    name: t.pluginKey.split('@')[0],  // 버전 제거
-    params: t.params || {},           // 업데이트된 파라미터
-    baseTime,                         // 단어 기본 타이밍
-    timeOffset,                       // 계산된 시간 오프셋
+    name: t.pluginKey.split('@')[0], // 버전 제거
+    params: t.params || {}, // 업데이트된 파라미터
+    baseTime, // 단어 기본 타이밍
+    timeOffset, // 계산된 시간 오프셋
   }))
 
   // 시나리오 노드에 플러그인 체인 적용
@@ -193,15 +201,13 @@ refreshWordPluginChain: (wordId) => {
 ```typescript
 // EditorStore = WordSlice + ScenarioSlice + ClipSlice + UISlice + ...
 const useEditorStore = create<EditorStore>()(
-  subscribeWithSelector(
-    (...args) => ({
-      ...createWordSlice(...args),      // 단어/애니메이션 관리
-      ...createScenarioSlice(...args),  // 시나리오 생성/업데이트
-      ...createClipSlice(...args),      // 클립 데이터
-      ...createUISlice(...args),        // UI 상태
-      // ... 기타 슬라이스들
-    })
-  )
+  subscribeWithSelector((...args) => ({
+    ...createWordSlice(...args), // 단어/애니메이션 관리
+    ...createScenarioSlice(...args), // 시나리오 생성/업데이트
+    ...createClipSlice(...args), // 클립 데이터
+    ...createUISlice(...args), // UI 상태
+    // ... 기타 슬라이스들
+  }))
 )
 ```
 
@@ -292,7 +298,11 @@ const NumberControl: React.FC<ControlProps> = ({ property, value, onChange }) =>
 
 ```typescript
 // ExpandedClipWaveform.tsx
-const loadRangeAudioData = async (startTime: number, endTime: number, words: Word[]) => {
+const loadRangeAudioData = async (
+  startTime: number,
+  endTime: number,
+  words: Word[]
+) => {
   const response = await fetch('/real.json')
   const audioData = await response.json()
 
@@ -302,14 +312,14 @@ const loadRangeAudioData = async (startTime: number, endTime: number, words: Wor
     const currentTime = startTime + (i / totalSamples) * duration
 
     // 현재 시간에 해당하는 단어 찾기
-    const containingWord = words.find(word =>
-      currentTime >= word.start && currentTime <= word.end
+    const containingWord = words.find(
+      (word) => currentTime >= word.start && currentTime <= word.end
     )
 
     if (containingWord) {
       // real.json에서 해당 단어의 볼륨/피치 데이터 추출
-      const wordData = audioData.segments.find(segment =>
-        segment.words?.find(w => w.word === containingWord.text)
+      const wordData = audioData.segments.find((segment) =>
+        segment.words?.find((w) => w.word === containingWord.text)
       )
       currentVolume = wordData?.volume_db || -20
     }
@@ -375,7 +385,7 @@ updateAnimationTrackParams: (wordId, assetId, params) => {
   // 3. 클립 데이터 미러링
   if (updateWordAnimationTracks && clips) {
     for (const clip of clips) {
-      const hasWord = clip.words?.some(w => w.id === wordId)
+      const hasWord = clip.words?.some((w) => w.id === wordId)
       if (hasWord) {
         updateWordAnimationTracks(clipId, wordId, updated)
         break
@@ -388,14 +398,17 @@ updateAnimationTrackParams: (wordId, assetId, params) => {
 ## 🎯 최적화 및 성능
 
 ### 1. 지연 로딩
+
 - 플러그인 매니페스트는 필요시에만 로드
 - 시나리오는 렌더러 초기화 시점에 빌드
 
 ### 2. 메모이제이션
+
 - 파라미터 변경 시에만 플러그인 체인 재생성
 - 시나리오 버전으로 불필요한 업데이트 방지
 
 ### 3. 에러 처리
+
 - 플러그인 로드 실패 시 fallback 처리
 - 매니페스트 없는 플러그인에 대한 graceful degradation
 

@@ -7,7 +7,7 @@ import { useEditorStore } from '../store'
 import {
   determineTargetWordId,
   getExistingTrackParams,
-  createParameterDebounce
+  createParameterDebounce,
 } from '../utils/animationHelpers'
 
 interface UseAnimationParamsOptions {
@@ -30,7 +30,7 @@ export const useAnimationParams = ({
   wordId: propWordId,
   assetId: propAssetId,
   debounceMs = 200,
-  enableRealTimeUpdates = true
+  enableRealTimeUpdates = true,
 }: UseAnimationParamsOptions = {}): UseAnimationParamsResult => {
   const store = useEditorStore()
   const [params, setParams] = useState<Record<string, unknown>>({})
@@ -60,49 +60,76 @@ export const useAnimationParams = ({
 
   // Debounced update function
   const debouncedUpdate = useCallback(
-    createParameterDebounce(async (targetWordId: string, targetAssetId: string, newParams: Record<string, unknown>) => {
-      try {
-        setIsLoading(true)
-        setError(null)
+    createParameterDebounce(
+      async (
+        targetWordId: string,
+        targetAssetId: string,
+        newParams: Record<string, unknown>
+      ) => {
+        try {
+          setIsLoading(true)
+          setError(null)
 
-        // Call store action to update parameters
-        const storeActions = useEditorStore.getState() as any
-        await storeActions.updateAnimationTrackParams?.(targetWordId, targetAssetId, newParams)
+          // Call store action to update parameters
+          const storeActions = useEditorStore.getState() as {
+            updateAnimationTrackParams?: (
+              wordId: string,
+              assetId: string,
+              params: Record<string, unknown>
+            ) => Promise<void>
+          }
+          await storeActions.updateAnimationTrackParams?.(
+            targetWordId,
+            targetAssetId,
+            newParams
+          )
 
-        console.log(`Updated animation params for word "${targetWordId}"`)
-      } catch (err) {
-        console.error('Failed to update animation params:', err)
-        setError(err instanceof Error ? err.message : 'Failed to update parameters')
-        throw err
-      } finally {
-        setIsLoading(false)
-      }
-    }, debounceMs),
+          console.log(`Updated animation params for word "${targetWordId}"`)
+        } catch (err) {
+          console.error('Failed to update animation params:', err)
+          setError(
+            err instanceof Error ? err.message : 'Failed to update parameters'
+          )
+          throw err
+        } finally {
+          setIsLoading(false)
+        }
+      },
+      debounceMs
+    ),
     [debounceMs]
   )
 
   // Update multiple parameters at once
-  const updateParams = useCallback(async (newParams: Record<string, unknown>) => {
-    if (!wordId || !assetId) {
-      throw new Error('No word or asset selected for animation parameter update')
-    }
+  const updateParams = useCallback(
+    async (newParams: Record<string, unknown>) => {
+      if (!wordId || !assetId) {
+        throw new Error(
+          'No word or asset selected for animation parameter update'
+        )
+      }
 
-    setParams(newParams)
+      setParams(newParams)
 
-    if (enableRealTimeUpdates) {
-      await debouncedUpdate(wordId, assetId, newParams)
-    }
-  }, [wordId, assetId, debouncedUpdate, enableRealTimeUpdates])
+      if (enableRealTimeUpdates) {
+        await debouncedUpdate(wordId, assetId, newParams)
+      }
+    },
+    [wordId, assetId, debouncedUpdate, enableRealTimeUpdates]
+  )
 
   // Update a single parameter (for real-time UI updates)
-  const updateParam = useCallback((key: string, value: unknown) => {
-    const newParams = { ...params, [key]: value }
-    setParams(newParams)
+  const updateParam = useCallback(
+    (key: string, value: unknown) => {
+      const newParams = { ...params, [key]: value }
+      setParams(newParams)
 
-    if (enableRealTimeUpdates && wordId && assetId) {
-      debouncedUpdate(wordId, assetId, newParams).catch(console.error)
-    }
-  }, [params, wordId, assetId, debouncedUpdate, enableRealTimeUpdates])
+      if (enableRealTimeUpdates && wordId && assetId) {
+        debouncedUpdate(wordId, assetId, newParams).catch(console.error)
+      }
+    },
+    [params, wordId, assetId, debouncedUpdate, enableRealTimeUpdates]
+  )
 
   // Reset parameters to existing track values
   const resetParams = useCallback(() => {
@@ -124,7 +151,7 @@ export const useAnimationParams = ({
     error,
     updateParams,
     updateParam,
-    resetParams
+    resetParams,
   }
 }
 
@@ -135,50 +162,83 @@ export const useAnimationTracks = (wordId?: string) => {
   const store = useEditorStore()
   const targetWordId = wordId || determineTargetWordId(store)
 
-  const addTrack = useCallback(async (
-    assetId: string,
-    assetName: string,
-    pluginKey?: string,
-    initialParams?: Record<string, unknown>
-  ) => {
-    if (!targetWordId) {
-      throw new Error('No word selected for animation track')
-    }
+  const addTrack = useCallback(
+    async (
+      assetId: string,
+      assetName: string,
+      pluginKey?: string,
+      initialParams?: Record<string, unknown>
+    ) => {
+      if (!targetWordId) {
+        throw new Error('No word selected for animation track')
+      }
 
-    const storeActions = useEditorStore.getState() as any
-    await storeActions.addAnimationTrackAsync?.(
-      targetWordId,
-      assetId,
-      assetName,
-      undefined, // Use word timing
-      pluginKey
-    )
+      const storeActions = useEditorStore.getState() as {
+        addAnimationTrackAsync?: (
+          wordId: string,
+          assetId: string,
+          assetName: string,
+          wordTiming?: { start: number; end: number },
+          pluginKey?: string
+        ) => Promise<void>
+      }
+      await storeActions.addAnimationTrackAsync?.(
+        targetWordId,
+        assetId,
+        assetName,
+        undefined, // Use word timing
+        pluginKey
+      )
 
-    // Apply initial parameters if provided
-    if (initialParams && Object.keys(initialParams).length > 0) {
-      await storeActions.updateAnimationTrackParams?.(targetWordId, assetId, initialParams)
-    }
-  }, [targetWordId])
+      // Apply initial parameters if provided
+      if (initialParams && Object.keys(initialParams).length > 0) {
+        await storeActions.updateAnimationTrackParams?.(
+          targetWordId,
+          assetId,
+          initialParams
+        )
+      }
+    },
+    [targetWordId]
+  )
 
-  const removeTrack = useCallback((assetId: string) => {
-    if (!targetWordId) return
+  const removeTrack = useCallback(
+    (assetId: string) => {
+      if (!targetWordId) return
 
-    const storeActions = useEditorStore.getState() as any
-    storeActions.removeAnimationTrack?.(targetWordId, assetId)
-  }, [targetWordId])
+      const storeActions = useEditorStore.getState() as {
+        removeAnimationTrack?: (wordId: string, assetId: string) => void
+      }
+      storeActions.removeAnimationTrack?.(targetWordId, assetId)
+    },
+    [targetWordId]
+  )
 
-  const updateTrackTiming = useCallback((
-    assetId: string,
-    start: number,
-    end: number
-  ) => {
-    if (!targetWordId) return
+  const updateTrackTiming = useCallback(
+    (assetId: string, start: number, end: number) => {
+      if (!targetWordId) return
 
-    const storeActions = useEditorStore.getState() as any
-    storeActions.updateAnimationTrackTiming?.(targetWordId, assetId, start, end)
-  }, [targetWordId])
+      const storeActions = useEditorStore.getState() as {
+        updateAnimationTrackTiming?: (
+          wordId: string,
+          assetId: string,
+          start: number,
+          end: number
+        ) => void
+      }
+      storeActions.updateAnimationTrackTiming?.(
+        targetWordId,
+        assetId,
+        start,
+        end
+      )
+    },
+    [targetWordId]
+  )
 
-  const tracks = targetWordId ? store.wordAnimationTracks?.get(targetWordId) || [] : []
+  const tracks = targetWordId
+    ? store.wordAnimationTracks?.get(targetWordId) || []
+    : []
 
   return {
     tracks,
@@ -186,6 +246,6 @@ export const useAnimationTracks = (wordId?: string) => {
     removeTrack,
     updateTrackTiming,
     canAddTrack: tracks.length < 3,
-    targetWordId
+    targetWordId,
   }
 }

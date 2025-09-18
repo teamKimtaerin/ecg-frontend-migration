@@ -54,7 +54,6 @@ export interface PluginRuntimeModule {
 const cache = new Map<string, PluginRuntimeModule>()
 const registeredPlugins = new Set<string>()
 
-
 function getPluginOrigin(): string {
   const fromEnv = process.env.NEXT_PUBLIC_MOTIONTEXT_PLUGIN_ORIGIN
   const fallback = 'http://localhost:3300'
@@ -95,7 +94,9 @@ export async function loadLocalPlugin(
     try {
       const manifestResponse = await fetch(`${base}/manifest.json`)
       if (!manifestResponse.ok) {
-        throw new Error(`Failed to load manifest for plugin ${key}: ${manifestResponse.status}`)
+        throw new Error(
+          `Failed to load manifest for plugin ${key}: ${manifestResponse.status}`
+        )
       }
       const manifest = await manifestResponse.json()
       const pluginNameWithoutVersion = key.split('@')[0]
@@ -115,7 +116,6 @@ export async function loadLocalPlugin(
 
   return mod
 }
-
 
 function extractPluginNames(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
