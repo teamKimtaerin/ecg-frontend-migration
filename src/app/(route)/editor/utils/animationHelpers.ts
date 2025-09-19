@@ -34,6 +34,28 @@ export const determineTargetWordId = (store: EditorStore): string | null => {
 }
 
 /**
+ * Determines the target word IDs for multi-selection operations
+ * Returns array of word IDs when multiple words are selected
+ */
+export const determineTargetWordIds = (store: EditorStore): string[] => {
+  // For multi-selection, return all selected words
+  if (store.multiSelectedWordIds.size > 1) {
+    return Array.from(store.multiSelectedWordIds)
+  }
+
+  // For single selection, return as array for consistent interface
+  const singleId = determineTargetWordId(store)
+  return singleId ? [singleId] : []
+}
+
+/**
+ * Checks if multiple words are currently selected
+ */
+export const isMultipleWordsSelected = (store: EditorStore): boolean => {
+  return store.multiSelectedWordIds.size > 1
+}
+
+/**
  * Gets the display name for the current target word
  */
 export const getTargetWordDisplayName = (store: EditorStore): string => {
@@ -111,6 +133,137 @@ export const createParameterDebounce = <T extends (...args: any[]) => any>(
     clearTimeout(timeoutId)
     timeoutId = setTimeout(() => fn(...args), delay)
   }) as T
+}
+
+/**
+ * Gets the common animations across multiple selected words (intersection)
+ */
+export const getCommonAnimations = (
+  store: EditorStore,
+  wordIds: string[]
+): string[] => {
+  if (wordIds.length === 0) return []
+  if (wordIds.length === 1) {
+    const tracks = store.wordAnimationTracks?.get(wordIds[0]) || []
+    return tracks.map((t) => t.assetId)
+  }
+
+  // Find intersection of all animation tracks
+  const firstWordTracks = store.wordAnimationTracks?.get(wordIds[0]) || []
+  const firstWordAssetIds = new Set(firstWordTracks.map((t) => t.assetId))
+
+  return Array.from(firstWordAssetIds).filter((assetId) =>
+    wordIds.slice(1).every((wordId) => {
+      const tracks = store.wordAnimationTracks?.get(wordId) || []
+      return tracks.some((t) => t.assetId === assetId)
+    })
+  )
+}
+
+/**
+ * Gets the common parameters for an animation across multiple words
+ * Returns intersection of parameters with their common values
+ */
+export const getCommonAnimationParams = (
+  store: EditorStore,
+  wordIds: string[],
+  assetId: string
+): Record<string, unknown> => {
+  if (wordIds.length === 0) return {}
+
+  const allParams = wordIds.map((wordId) => {
+    const tracks = store.wordAnimationTracks?.get(wordId) || []
+    const track = tracks.find((t) => t.assetId === assetId)
+    return track?.params || {}
+  })
+
+  if (allParams.length === 0) return {}
+  if (allParams.length === 1) return allParams[0]
+
+  // Find common parameters with same values
+  const commonParams: Record<string, unknown> = {}
+  const firstParams = allParams[0]
+
+  Object.keys(firstParams).forEach((key) => {
+    const firstValue = firstParams[key]
+    const allHaveSameValue = allParams.every(
+      (params) =>
+        params[key] !== undefined &&
+        JSON.stringify(params[key]) === JSON.stringify(firstValue)
+    )
+
+    if (allHaveSameValue) {
+      commonParams[key] = firstValue
+    }
+  })
+
+  return commonParams
+}
+
+/**
+ * Checks if all selected words can accept a new animation (under 3 limit)
+ */
+export const canAddAnimationToSelection = (
+  store: EditorStore,
+  wordIds: string[]
+): { canAdd: boolean; wordCount: number; blockedWords: string[] } => {
+  const blockedWords: string[] = []
+
+  for (const wordId of wordIds) {
+    const tracks = store.wordAnimationTracks?.get(wordId) || []
+    if (tracks.length >= 3) {
+      blockedWords.push(wordId)
+    }
+  }
+
+  return {
+    canAdd: blockedWords.length === 0,
+    wordCount: wordIds.length,
+    blockedWords,
+  }
+}
+
+/**
+ * Gets display names for multiple words
+ */
+export const getMultipleWordsDisplayText = (
+  store: EditorStore,
+  wordIds: string[]
+): string => {
+  if (wordIds.length === 0) return '선택된 단어 없음'
+  if (wordIds.length === 1) return getTargetWordDisplayName(store)
+
+  const words: string[] = []
+  for (const wordId of wordIds) {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const anyStore = store as any
+      const clipId: string | null = anyStore.getClipIdByWordId?.(wordId) || null
+      if (clipId) {
+        const clip = (store.clips || []).find((c) => c.id === clipId)
+        if (clip) {
+          const word = clip.words.find((w) => w.id === wordId)
+          if (word) {
+            words.push(word.text)
+          }
+        }
+      }
+    } catch {
+      // Fallback: linear search
+      for (const clip of store.clips || []) {
+        const word = clip.words.find((w) => w.id === wordId)
+        if (word) {
+          words.push(word.text)
+          break
+        }
+      }
+    }
+  }
+
+  if (words.length <= 3) {
+    return `"${words.join('", "')}"`
+  }
+  return `"${words.slice(0, 2).join('", "')}" 외 ${words.length - 2}개`
 }
 
 /**

@@ -222,6 +222,14 @@ export interface WordSlice extends WordDragState {
   clearPlayingWord: () => void
   isWordPlaying: (wordId: string) => boolean
 
+  // Multi-word batch operations
+  updateMultipleWordsAnimationParams: (
+    wordIds: string[],
+    assetId: string,
+    params: Record<string, unknown>
+  ) => void
+  removeAnimationFromMultipleWords: (wordIds: string[], assetId: string) => void
+
   // Template application
   applyTemplateToWords: (
     templateId: string,
@@ -1475,4 +1483,123 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
       await get().applyTemplateToWords(templateId, selectedWordIds, audioData)
     }
   },
+
+  // Multi-word batch operations
+  updateMultipleWordsAnimationParams: (wordIds, assetId, params) =>
+    set((state) => {
+      const newTracks = new Map(state.wordAnimationTracks)
+      let hasChanges = false
+
+      for (const wordId of wordIds) {
+        const existingTracks = newTracks.get(wordId) || []
+        const trackIndex = existingTracks.findIndex(
+          (t) => t.assetId === assetId
+        )
+
+        if (trackIndex >= 0) {
+          const updatedTracks = [...existingTracks]
+          updatedTracks[trackIndex] = {
+            ...updatedTracks[trackIndex],
+            params: { ...updatedTracks[trackIndex].params, ...params },
+          }
+          newTracks.set(wordId, updatedTracks)
+          hasChanges = true
+
+          // Update scenario for this word
+          try {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const anyGet = get() as any
+            anyGet.refreshWordPluginChain?.(wordId)
+          } catch {
+            // ignore
+          }
+
+          // Update clip data
+          try {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const anyGet = get() as any
+            if (anyGet.updateWordAnimationTracks && anyGet.clips) {
+              const clipId = anyGet.getClipIdByWordId?.(wordId)
+              if (clipId) {
+                anyGet.updateWordAnimationTracks(clipId, wordId, updatedTracks)
+              }
+            }
+          } catch {
+            // ignore
+          }
+        }
+      }
+
+      return hasChanges ? { wordAnimationTracks: newTracks } : state
+    }),
+
+  removeAnimationFromMultipleWords: (wordIds, assetId) =>
+    set((state) => {
+      const newTracks = new Map(state.wordAnimationTracks)
+      const colors: ('blue' | 'green' | 'purple')[] = [
+        'blue',
+        'green',
+        'purple',
+      ]
+      let hasChanges = false
+
+      for (const wordId of wordIds) {
+        const existingTracks = newTracks.get(wordId) || []
+        const filteredTracks = existingTracks.filter(
+          (t) => t.assetId !== assetId
+        )
+
+        if (filteredTracks.length !== existingTracks.length) {
+          hasChanges = true
+
+          // Reassign colors after removal
+          const recoloredTracks = filteredTracks.map((track, index) => ({
+            ...track,
+            color: colors[index],
+          }))
+
+          if (recoloredTracks.length === 0) {
+            newTracks.delete(wordId)
+          } else {
+            newTracks.set(wordId, recoloredTracks)
+          }
+
+          // Update scenario for this word
+          try {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const anyGet = get() as any
+            anyGet.refreshWordPluginChain?.(wordId)
+          } catch {
+            // ignore
+          }
+
+          // Update clip data
+          try {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const anyGet = get() as any
+            if (anyGet.updateWordAnimationTracks && anyGet.clips) {
+              const clipId = anyGet.getClipIdByWordId?.(wordId)
+              if (clipId) {
+                anyGet.updateWordAnimationTracks(
+                  clipId,
+                  wordId,
+                  recoloredTracks
+                )
+              }
+            }
+            if (anyGet.applyAssetsToWord) {
+              const clipId = anyGet.getClipIdByWordId?.(wordId)
+              if (clipId) {
+                const assetIds = recoloredTracks.map((track) => track.assetId)
+                anyGet.applyAssetsToWord(clipId, wordId, assetIds)
+              }
+            }
+          } catch {
+            // ignore
+          }
+        }
+      }
+
+      return hasChanges ? { wordAnimationTracks: newTracks } : state
+    }),
 })

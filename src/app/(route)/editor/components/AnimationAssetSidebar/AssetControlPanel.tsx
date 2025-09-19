@@ -12,6 +12,9 @@ import { useEditorStore } from '../../store'
 import { AssetSettings } from './types'
 import {
   determineTargetWordId,
+  determineTargetWordIds,
+  isMultipleWordsSelected,
+  getCommonAnimationParams,
   getExistingTrackParams as getExistingTrackParamsHelper,
 } from '../../utils/animationHelpers'
 // import { useAnimationParams } from '../../hooks/useAnimationParams' // Available for future use
@@ -78,6 +81,32 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
     expandedWordId,
     multiSelectedWordIds,
   ])
+
+  // Get all target word IDs for multi-selection
+  const targetWordIds = useMemo(() => {
+    try {
+      const store = useEditorStore.getState()
+      return determineTargetWordIds(store)
+    } catch {
+      return []
+    }
+  }, [
+    wordAnimationTracks,
+    focusedWordId,
+    selectedWordId,
+    expandedWordId,
+    multiSelectedWordIds,
+  ])
+
+  // Check if multi-selection is active
+  const isMultiSelection = useMemo(() => {
+    try {
+      const store = useEditorStore.getState()
+      return isMultipleWordsSelected(store)
+    } catch {
+      return false
+    }
+  }, [multiSelectedWordIds])
 
   // Resolve pluginKey from current word's animation tracks -> expanded asset
   const pluginKeyFromStore = useMemo(() => {
@@ -181,10 +210,23 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
 
         // Initialize parameters: merge existing track params with manifest defaults
         const defaultParams = getDefaultParameters(loadedManifest)
-        const existingParams = getExistingTrackParams(
-          targetWordId,
-          assetId || expandedAssetId
-        )
+
+        let existingParams: Record<string, unknown> = {}
+        if (isMultiSelection && targetWordIds.length > 0) {
+          // For multi-selection, get common parameters across all selected words
+          const store = useEditorStore.getState()
+          existingParams = getCommonAnimationParams(
+            store,
+            targetWordIds,
+            assetId || expandedAssetId || ''
+          )
+        } else {
+          // For single selection, get existing parameters for the target word
+          existingParams = getExistingTrackParams(
+            targetWordId,
+            assetId || expandedAssetId
+          )
+        }
 
         // Merge: existing params take priority, defaults fill missing keys
         const initialParams = { ...defaultParams, ...existingParams }
@@ -275,9 +317,16 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <IoSettings size={16} className="text-blue-600" />
-          <h3 className="text-sm font-medium text-slate-800">
-            {assetName} 세부 조정
-          </h3>
+          <div className="flex flex-col">
+            <h3 className="text-sm font-medium text-slate-800">
+              {assetName} 세부 조정
+            </h3>
+            {isMultiSelection && (
+              <div className="text-xs text-blue-600">
+                {targetWordIds.length}개 단어 일괄 편집
+              </div>
+            )}
+          </div>
         </div>
         <button
           onClick={onClose}

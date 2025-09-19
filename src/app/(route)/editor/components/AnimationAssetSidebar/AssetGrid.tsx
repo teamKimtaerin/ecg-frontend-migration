@@ -4,6 +4,11 @@ import React, { useState, useEffect } from 'react'
 import AssetCard, { AssetItem } from './AssetCard'
 import { useEditorStore } from '../../store'
 import { showToast } from '@/utils/ui/toast'
+import {
+  determineTargetWordIds,
+  isMultipleWordsSelected,
+  canAddAnimationToSelection,
+} from '../../utils/animationHelpers'
 
 interface AssetGridProps {
   onAssetSelect?: (asset: AssetItem) => void
@@ -128,8 +133,24 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
   })
 
   const handleAssetClick = async (asset: AssetItem) => {
+    const store = useEditorStore.getState()
+    const isMultiSelection = isMultipleWordsSelected(store)
+    const targetWordIds = determineTargetWordIds(store)
+
     // Check if multiple words are selected for batch operations
-    if (multiSelectedWordIds.size > 1) {
+    if (isMultiSelection && multiSelectedWordIds.size > 1) {
+      // Check animation limit before applying
+      const limitCheck = canAddAnimationToSelection(store, targetWordIds)
+
+      if (!limitCheck.canAdd) {
+        const blockedCount = limitCheck.blockedWords.length
+        showToast(
+          `${blockedCount}개 단어가 이미 3개의 애니메이션을 가지고 있어 추가할 수 없습니다.`,
+          'error'
+        )
+        return
+      }
+
       // Centralized batch toggle for scenario + UI sync (async)
       try {
         await useEditorStore
@@ -163,6 +184,19 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
         showToast('최대 3개의 애니메이션만 선택할 수 있습니다.', 'warning')
         return // Don't proceed with the click
       }
+
+      // Check single word animation limit for non-multi-selection
+      if (targetWordIds.length === 1) {
+        const limitCheck = canAddAnimationToSelection(store, targetWordIds)
+        if (!limitCheck.canAdd) {
+          showToast(
+            '선택한 단어가 이미 3개의 애니메이션을 가지고 있습니다.',
+            'error'
+          )
+          return
+        }
+      }
+
       newSelectedAssets = [...currentWordAssets, asset.id]
     }
 
