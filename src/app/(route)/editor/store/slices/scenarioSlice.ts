@@ -214,10 +214,11 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
 
         // Clear individual styles when applying global format
         const updatedRoot = { ...root }
-        if (updates.style) {
+        // Always clear individual styles when any global style update is applied
+        if (updates.style !== undefined) {
           updatedRoot.style = undefined
         }
-        if (updates.boxStyle) {
+        if (updates.boxStyle !== undefined) {
           updatedRoot.boxStyle = undefined
         }
 

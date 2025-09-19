@@ -88,7 +88,6 @@ export default function GoogleFontDropdown({
         const result = await googleFontsService.fetchFonts({
           page: requestPage,
           search: searchQuery,
-          subset: 'latin',
         })
 
         if (reset) {
