@@ -77,6 +77,17 @@ export const EDITOR_COLORS = {
     text: 'text-gray-700',
     textSecondary: 'text-gray-500',
     shadow: 'shadow-lg',
+    // 어두운 드롭다운 (Format Toolbar용)
+    dark: {
+      background: 'bg-slate-800',
+      backgroundRaw: 'rgba(30, 41, 59, 0.95)',
+      border: 'border border-slate-600',
+      hover: 'hover:bg-slate-700',
+      selected: 'bg-slate-600',
+      text: 'text-white',
+      textSecondary: 'text-slate-300',
+      shadow: 'shadow-2xl',
+    },
   },
 
   // 선택 상태 색상

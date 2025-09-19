@@ -42,6 +42,7 @@ export interface RendererConfigV2 {
     type: 'subtitle' | 'free'
     layer: number
     defaultStyle?: Record<string, unknown>
+    defaultBoxStyle?: Record<string, unknown>
     defaultConstraints?: Record<string, unknown>
   }>
   cues: Array<{
