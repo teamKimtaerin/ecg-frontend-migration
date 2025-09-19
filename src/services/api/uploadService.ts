@@ -216,7 +216,7 @@ class UploadService {
     language?: string
   ): Promise<ServiceResponse<MLProcessingResponse>> {
     const request = {
-      file_key: fileKey,
+      fileKey: fileKey,
       ...(language && { language }),
     }
 
