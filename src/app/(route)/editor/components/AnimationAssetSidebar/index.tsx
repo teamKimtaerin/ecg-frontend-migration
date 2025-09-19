@@ -4,7 +4,10 @@ import React, { useState } from 'react'
 import { useEditorStore } from '../../store'
 import {
   determineTargetWordId,
+  determineTargetWordIds,
+  isMultipleWordsSelected,
   getTargetWordDisplayName,
+  getMultipleWordsDisplayText,
 } from '../../utils/animationHelpers'
 
 // Components
@@ -27,7 +30,8 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
   onAssetSelect,
   onClose,
 }) => {
-  const { assetSidebarWidth, selectedWordId } = useEditorStore()
+  const { assetSidebarWidth, selectedWordId, multiSelectedWordIds } =
+    useEditorStore()
 
   const [expandedAssetId, setExpandedAssetId] = useState<string | null>(null)
   const [expandedAssetName, setExpandedAssetName] = useState<string | null>(
@@ -47,6 +51,20 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
     } catch {}
     return null
   }, [selectedWordId])
+
+  // Multi-selection info
+  const multiSelectionInfo = React.useMemo(() => {
+    if (multiSelectedWordIds.size <= 1) return null
+
+    const store = useEditorStore.getState()
+    const targetWordIds = determineTargetWordIds(store)
+    const displayText = getMultipleWordsDisplayText(store, targetWordIds)
+
+    return {
+      count: multiSelectedWordIds.size,
+      displayText,
+    }
+  }, [multiSelectedWordIds])
 
   const handleAssetSelect = (asset: AssetItem) => {
     console.log('Selected asset:', asset)
@@ -89,23 +107,51 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
     console.log('Settings changed:', settings)
 
     const store = useEditorStore.getState()
-    const wordId = determineTargetWordId(store)
+    const isMultiSelection = isMultipleWordsSelected(store)
     const assetId = expandedAssetId
 
-    if (!wordId || !assetId) {
-      throw new Error('애니메이션을 적용할 단어를 선택해주세요.')
+    if (!assetId) {
+      throw new Error('애니메이션을 선택해주세요.')
     }
 
-    // Apply settings to the animation track
+    // Apply settings to the animation track(s)
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const storeActions = store as any
-      await storeActions.updateAnimationTrackParams?.(wordId, assetId, settings)
 
-      // Note: refreshWordPluginChain is called automatically in updateAnimationTrackParams
-      console.log(
-        `Applied settings to word "${getTargetWordDisplayName(store)}"`
-      )
+      if (isMultiSelection) {
+        // Apply to all selected words
+        const wordIds = determineTargetWordIds(store)
+        if (wordIds.length === 0) {
+          throw new Error('애니메이션을 적용할 단어를 선택해주세요.')
+        }
+
+        storeActions.updateMultipleWordsAnimationParams?.(
+          wordIds,
+          assetId,
+          settings
+        )
+        console.log(
+          `Applied settings to ${wordIds.length} words: "${getMultipleWordsDisplayText(store, wordIds)}"`
+        )
+      } else {
+        // Apply to single word
+        const wordId = determineTargetWordId(store)
+        if (!wordId) {
+          throw new Error('애니메이션을 적용할 단어를 선택해주세요.')
+        }
+
+        await storeActions.updateAnimationTrackParams?.(
+          wordId,
+          assetId,
+          settings
+        )
+        console.log(
+          `Applied settings to word "${getTargetWordDisplayName(store)}"`
+        )
+      }
+
+      // Note: refreshWordPluginChain is called automatically in update methods
     } catch (error) {
       console.error('Failed to apply animation settings:', error)
       throw error // Re-throw for UI error handling
@@ -125,7 +171,19 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
         {/* Word Selection Indicator */}
-        {selectedWordInfo && (
+        {multiSelectionInfo ? (
+          <div className="px-4 py-2 bg-purple-50 border-b border-purple-200">
+            <div className="text-xs text-purple-600">
+              다중 선택:{' '}
+              <span className="font-medium text-purple-800">
+                {multiSelectionInfo.count}개 단어
+              </span>
+            </div>
+            <div className="text-xs text-purple-500 mt-1">
+              {multiSelectionInfo.displayText}
+            </div>
+          </div>
+        ) : selectedWordInfo ? (
           <div className="px-4 py-2 bg-blue-50 border-b border-blue-200">
             <div className="text-xs text-blue-600">
               선택된 단어:{' '}
@@ -134,7 +192,7 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
               </span>
             </div>
           </div>
-        )}
+        ) : null}
 
         {/* Filter Controls */}
         <div className="pt-4">
