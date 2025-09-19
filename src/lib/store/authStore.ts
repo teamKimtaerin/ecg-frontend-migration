@@ -21,7 +21,7 @@ interface AuthActions {
   getCurrentUser: () => Promise<void>
   clearError: () => void
   setLoading: (loading: boolean) => void
-  setAuthData: (user: User, token: string) => void
+  setAuthData: (user: User, token: string | null) => void
   refreshAccessToken: () => Promise<string | null>
 }
 
@@ -106,15 +106,11 @@ const useAuthStore = create<AuthStore>()((set, get) => ({
   getCurrentUser: async () => {
     const { token } = get()
 
-    if (!token) {
-      set({ isAuthenticated: false })
-      return
-    }
-
     try {
       set({ isLoading: true, error: null })
 
-      const user = await AuthAPI.getCurrentUser(token)
+      // 토큰이 있으면 Bearer 인증, 없으면 쿠키 인증 시도
+      const user = await AuthAPI.getCurrentUser(token || undefined)
 
       set({
         user,
@@ -139,7 +135,7 @@ const useAuthStore = create<AuthStore>()((set, get) => ({
 
   setLoading: (loading: boolean) => set({ isLoading: loading }),
 
-  setAuthData: (user: User, token: string) => {
+  setAuthData: (user: User, token: string | null) => {
     set({
       user,
       token,

@@ -21,9 +21,7 @@ function AuthCallbackContent() {
     const handleAuthCallback = async () => {
       setIsProcessed(true)
       try {
-        // URL에서 파라미터 확인
-        const success = searchParams.get('success')
-        const access_token = searchParams.get('access_token')
+        // URL에서 에러 파라미터 확인
         const error = searchParams.get('error')
 
         if (error) {
@@ -35,42 +33,21 @@ function AuthCallbackContent() {
           return
         }
 
-        // OAuth 성공 시 access_token이 있어야 함
-        if (success === 'true' && !access_token) {
-          setStatus('error')
-          setMessage('토큰이 없습니다. 다시 로그인해주세요.')
-          setTimeout(() => {
-            router.push('/auth?mode=login')
-          }, 3000)
-          return
-        }
-
-        // access_token이 null이면 return (위에서 체크했지만 타입스크립트 때문에)
-        if (!access_token) {
-          setStatus('error')
-          setMessage('유효하지 않은 토큰입니다.')
-          setTimeout(() => {
-            router.push('/auth?mode=login')
-          }, 3000)
-          return
-        }
-
-        // 사용자 정보 가져오기
+        // 성공 파라미터가 있거나 에러가 없는 경우 사용자 정보 조회
+        // HttpOnly 쿠키의 토큰으로 사용자 정보 가져오기
         const userResponse = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/me`,
           {
-            headers: {
-              Authorization: `Bearer ${access_token}`,
-            },
-            credentials: 'include', // 쿠키 포함
+            method: 'GET',
+            credentials: 'include', // HttpOnly 쿠키 포함
           }
         )
 
         if (userResponse.ok) {
           const userData = await userResponse.json()
 
-          // Zustand store에 토큰과 사용자 정보 저장 (메모리에만)
-          authStore.setAuthData(userData, access_token)
+          // Zustand store에 사용자 정보 저장 (토큰은 쿠키에 있으므로 null)
+          authStore.setAuthData(userData, null)
 
           console.log('✅ Google OAuth 로그인 성공:', userData.name)
 

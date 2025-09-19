@@ -7,9 +7,9 @@ export async function apiRequest(endpoint: string, options: RequestInit = {}) {
   const authStore = useAuthStore.getState()
 
   // 기본 헤더 설정
-  const headers = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...options.headers,
+    ...(options.headers as Record<string, string> || {}),
   }
 
   // access token이 있으면 추가
