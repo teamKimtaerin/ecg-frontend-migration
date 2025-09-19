@@ -26,11 +26,17 @@ export interface ScenarioSlice {
   ) => void
   refreshWordPluginChain: (wordId: string) => void
 
-  // Update caption default style
-  updateCaptionDefaultStyle: (styleUpdates: Record<string, unknown>) => void
+  // Update caption default style and/or boxStyle
+  updateCaptionDefaultStyle: (updates: {
+    style?: Record<string, unknown>
+    boxStyle?: Record<string, unknown>
+  }) => void
 
-  // Update group node style for specific clip
-  updateGroupNodeStyle: (clipId: string, styleUpdates: Record<string, unknown>) => void
+  // Update group node style and/or boxStyle for specific clip
+  updateGroupNodeStyle: (clipId: string, updates: {
+    style?: Record<string, unknown>
+    boxStyle?: Record<string, unknown>
+  }) => void
 
   // Set scenario from arbitrary JSON (editor apply)
   setScenarioFromJson: (config: RendererConfigV2) => void
@@ -163,7 +169,7 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
     })
   },
 
-  updateCaptionDefaultStyle: (styleUpdates) => {
+  updateCaptionDefaultStyle: (updates) => {
     let { currentScenario } = get()
 
     // Lazily build scenario if it doesn't exist
@@ -186,7 +192,7 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
 
     if (!currentScenario?.tracks) return
 
-    // Find caption track and update its defaultStyle
+    // Find caption track and update its defaultStyle and/or defaultBoxStyle
     const captionTrackIndex = currentScenario.tracks.findIndex(
       track => track.id === 'caption' || track.type === 'subtitle'
     )
@@ -195,13 +201,29 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
 
     const updatedScenario = { ...currentScenario }
     updatedScenario.tracks = [...currentScenario.tracks]
-    updatedScenario.tracks[captionTrackIndex] = {
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updatedTrack: any = {
       ...currentScenario.tracks[captionTrackIndex],
-      defaultStyle: {
-        ...(currentScenario.tracks[captionTrackIndex].defaultStyle || {}),
-        ...styleUpdates,
-      },
     }
+
+    // Update defaultStyle if provided
+    if (updates.style) {
+      updatedTrack.defaultStyle = {
+        ...(currentScenario.tracks[captionTrackIndex].defaultStyle || {}),
+        ...updates.style,
+      }
+    }
+
+    // Update defaultBoxStyle if provided
+    if (updates.boxStyle) {
+      updatedTrack.defaultBoxStyle = {
+        ...(updatedTrack.defaultBoxStyle || {}),
+        ...updates.boxStyle,
+      }
+    }
+
+    updatedScenario.tracks[captionTrackIndex] = updatedTrack
 
     set({
       currentScenario: updatedScenario,
@@ -209,8 +231,9 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
     })
   },
 
-  updateGroupNodeStyle: (clipId, styleUpdates) => {
-    let { currentScenario, nodeIndex } = get()
+  updateGroupNodeStyle: (clipId, updates) => {
+    console.log('updateGroupNodeStyle called with:', { clipId, updates })
+    let { currentScenario } = get()
 
     // Lazily build scenario if it doesn't exist
     if (!currentScenario) {
@@ -225,59 +248,111 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
         const activeClips = clipsAll.filter((c) => !deleted.has(c.id))
         anyGet.buildInitialScenario?.(activeClips)
         currentScenario = get().currentScenario
-        nodeIndex = get().nodeIndex
       } catch {
         return // Cannot proceed without scenario
       }
     }
 
-    if (!currentScenario?.cues) return
+    if (!currentScenario?.cues) {
+      console.warn('No current scenario or cues found')
+      return
+    }
 
     // Find the group node with id `clip-${clipId}`
     const groupNodeId = `clip-${clipId}`
+    console.log('Looking for group node with ID:', groupNodeId)
+
+    // Debug: Log all existing group node IDs
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const existingGroupIds = currentScenario.cues.map(cue => (cue as any).root?.id).filter(Boolean)
+    console.log('Existing group node IDs:', existingGroupIds)
+
     let found = false
-    const updatedCues = currentScenario.cues.map((cue) => {
+    const updatedCues = currentScenario.cues.map((cue, cueIndex) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const root = (cue as any).root
       if (!root || root.id !== groupNodeId) return cue
 
       found = true
-      // Convert string reference to object if needed
-      let currentStyle = root.style || {}
-      if (typeof currentStyle === 'string') {
-        // If it's a string reference like 'define.caption.boxStyle',
-        // we need to get the actual style from define
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const define = (currentScenario.define as any)
-        if (currentStyle === 'define.caption.boxStyle' && define?.caption?.boxStyle) {
-          currentStyle = { ...define.caption.boxStyle }
-        } else {
+      console.log('Found matching group node:', root.id)
+
+      // Create completely new objects to ensure deep immutability
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let newStyle: any = null
+      let newBoxStyle: any = null
+
+      // Handle style updates (text styles) - apply even if style is undefined or empty
+      if (updates.style !== undefined) {
+        // Convert string reference to object if needed
+        let currentStyle = root.style || {}
+        if (typeof currentStyle === 'string') {
+          // For now, start with empty object for string references
           currentStyle = {}
         }
+
+        newStyle = {
+          ...currentStyle,
+          ...updates.style,
+        }
+        console.log('Applied style updates:', newStyle)
+      } else {
+        // Preserve existing style if no updates
+        newStyle = root.style ? { ...root.style } : undefined
       }
 
-      // Apply style updates
+      // Handle boxStyle updates (container styles) - apply even if boxStyle is undefined or empty
+      if (updates.boxStyle !== undefined) {
+        let currentBoxStyle = root.boxStyle || {}
+        if (typeof currentBoxStyle === 'string') {
+          // For now, start with empty object for string references
+          currentBoxStyle = {}
+        }
+
+        newBoxStyle = {
+          ...currentBoxStyle,
+          ...updates.boxStyle,
+        }
+        console.log('Applied boxStyle updates:', newBoxStyle)
+      } else {
+        // Preserve existing boxStyle if no updates
+        newBoxStyle = root.boxStyle ? { ...root.boxStyle } : undefined
+      }
+
+      // Create completely new root object
       const updatedRoot = {
         ...root,
-        style: {
-          ...currentStyle,
-          ...styleUpdates,
-        },
+        ...(newStyle !== null && { style: newStyle }),
+        ...(newBoxStyle !== null && { boxStyle: newBoxStyle }),
       }
 
-      return {
+      // Create completely new cue object
+      const updatedCue = {
         ...cue,
         root: updatedRoot,
       }
+
+      console.log(`Updated cue ${cueIndex} root:`, updatedRoot)
+      return updatedCue
     })
 
     if (!found) {
-      console.warn(`Group node for clip ${clipId} not found`)
+      console.warn(`Group node for clip ${clipId} not found. Available IDs:`, existingGroupIds)
       return
     }
 
+    // Create completely new scenario object to ensure reference change
+    const newScenario = {
+      ...currentScenario,
+      cues: updatedCues,
+    }
+
+    console.log('Successfully updated group node style')
+    console.log('Original scenario reference:', currentScenario)
+    console.log('New scenario reference:', newScenario)
+    console.log('References are different:', currentScenario !== newScenario)
+
     set({
-      currentScenario: { ...currentScenario, cues: updatedCues },
+      currentScenario: newScenario,
       scenarioVersion: (get().scenarioVersion || 0) + 1,
     })
   },

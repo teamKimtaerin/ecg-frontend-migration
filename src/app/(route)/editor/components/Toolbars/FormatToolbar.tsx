@@ -59,6 +59,7 @@ export default function FormatToolbar({ clips }: FormatToolbarProps) {
   // 스타일 동기화 함수
   const syncStylesFromScenario = useCallback(() => {
     let targetStyle: Record<string, unknown> = {}
+    let targetBoxStyle: Record<string, unknown> = {}
 
     if (selectedClipId === null) {
       // 전체 스타일 - caption track에서 가져오기
@@ -68,6 +69,11 @@ export default function FormatToolbar({ clips }: FormatToolbarProps) {
         )
         if (captionTrack?.defaultStyle) {
           targetStyle = captionTrack.defaultStyle
+        }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if ((captionTrack as any)?.defaultBoxStyle) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          targetBoxStyle = (captionTrack as any).defaultBoxStyle
         }
       }
     } else {
@@ -80,50 +86,52 @@ export default function FormatToolbar({ clips }: FormatToolbarProps) {
           if (root && root.id === groupNodeId) {
             let currentStyle = root.style || {}
             if (typeof currentStyle === 'string') {
-              // String reference like 'define.caption.boxStyle'
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              const define = (currentScenario.define as any)
-              if (currentStyle === 'define.caption.boxStyle' && define?.caption?.boxStyle) {
-                currentStyle = { ...define.caption.boxStyle }
-              } else {
-                currentStyle = {}
-              }
+              currentStyle = {}
             }
             targetStyle = currentStyle
+
+            let currentBoxStyle = root.boxStyle || {}
+            if (typeof currentBoxStyle === 'string') {
+              currentBoxStyle = {}
+            }
+            targetBoxStyle = currentBoxStyle
             break
           }
         }
       }
     }
 
+    // Combine styles for UI synchronization
+    const combinedStyle = { ...targetStyle, ...targetBoxStyle }
+
     // UI 상태 업데이트
-    if (targetStyle.fontFamily) {
-      setSelectedFont(targetStyle.fontFamily as string)
+    if (combinedStyle.fontFamily) {
+      setSelectedFont(combinedStyle.fontFamily as string)
     }
 
-    if (typeof targetStyle.fontSizeRel === 'number') {
-      const sizePercent = Math.round((targetStyle.fontSizeRel / 0.07) * 100)
+    if (typeof combinedStyle.fontSizeRel === 'number') {
+      const sizePercent = Math.round((combinedStyle.fontSizeRel / 0.07) * 100)
       setFontSize(sizePercent.toString())
     }
 
-    if (targetStyle.color) {
-      setSelectedColor(targetStyle.color as string)
+    if (combinedStyle.color) {
+      setSelectedColor(combinedStyle.color as string)
     }
 
-    setIsBold(targetStyle.fontWeight === 'bold' || targetStyle.fontWeight === 700)
-    setIsItalic(targetStyle.fontStyle === 'italic')
+    setIsBold(combinedStyle.fontWeight === 'bold' || combinedStyle.fontWeight === 700)
+    setIsItalic(combinedStyle.fontStyle === 'italic')
 
-    if (targetStyle.borderColor) {
-      setBorderColor(targetStyle.borderColor as string)
+    if (combinedStyle.borderColor) {
+      setBorderColor(combinedStyle.borderColor as string)
     }
-    if (typeof targetStyle.borderWidth === 'number') {
-      setBorderThickness(targetStyle.borderWidth)
+    if (typeof combinedStyle.borderWidth === 'number') {
+      setBorderThickness(combinedStyle.borderWidth)
     }
-    if (targetStyle.backgroundColor) {
-      setBackgroundColor(targetStyle.backgroundColor as string)
+    if (combinedStyle.backgroundColor) {
+      setBackgroundColor(combinedStyle.backgroundColor as string)
     }
-    if (typeof targetStyle.backgroundOpacity === 'number') {
-      setBackgroundOpacity(targetStyle.backgroundOpacity)
+    if (typeof combinedStyle.backgroundOpacity === 'number') {
+      setBackgroundOpacity(combinedStyle.backgroundOpacity)
     }
   }, [currentScenario, selectedClipId])
 
@@ -155,14 +163,59 @@ export default function FormatToolbar({ clips }: FormatToolbarProps) {
     })),
   ]
 
+  // Helper function to separate text and box styles
+  const separateStyles = (combinedStyle: Record<string, unknown>) => {
+    const {
+      backgroundColor,
+      backgroundOpacity,
+      border,
+      borderColor,
+      borderWidth,
+      padding,
+      borderRadius,
+      opacity,
+      ...textStyle
+    } = combinedStyle
+
+    const boxStyle = (backgroundColor || backgroundOpacity !== undefined || border || borderColor || borderWidth || padding || borderRadius || opacity !== undefined) ? {
+      backgroundColor,
+      backgroundOpacity,
+      border,
+      borderColor,
+      borderWidth,
+      padding,
+      borderRadius,
+      opacity,
+    } : undefined
+
+    // Remove undefined properties
+    const cleanTextStyle = Object.fromEntries(
+      Object.entries(textStyle).filter(([, value]) => value !== undefined)
+    )
+    const cleanBoxStyle = boxStyle ? Object.fromEntries(
+      Object.entries(boxStyle).filter(([, value]) => value !== undefined)
+    ) : undefined
+
+    return {
+      style: Object.keys(cleanTextStyle).length > 0 ? cleanTextStyle : undefined,
+      boxStyle: cleanBoxStyle
+    }
+  }
+
   // Conditional style application function
   const applyStyle = (styleUpdates: Record<string, unknown>) => {
+    console.log('applyStyle called with:', { styleUpdates, selectedClipId })
+    const { style, boxStyle } = separateStyles(styleUpdates)
+    console.log('separateStyles result:', { style, boxStyle })
+
     if (selectedClipId === null) {
       // Apply to global caption track
-      updateCaptionDefaultStyle(styleUpdates)
+      console.log('Applying to global caption track')
+      updateCaptionDefaultStyle({ style, boxStyle })
     } else {
       // Apply to specific clip's group node
-      updateGroupNodeStyle(selectedClipId, styleUpdates)
+      console.log('Applying to specific clip group node:', selectedClipId)
+      updateGroupNodeStyle(selectedClipId, { style, boxStyle })
     }
   }
 
