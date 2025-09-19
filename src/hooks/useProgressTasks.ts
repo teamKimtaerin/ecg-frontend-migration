@@ -37,7 +37,7 @@ export const useProgressTasks = () => {
     getCompletedTasks,
     getAllActiveTasks,
     expireOldTasks,
-    clearCompletedTasksByType
+    clearCompletedTasksByType,
   } = useProgressStore()
 
   // Set up automatic timeout checking every 30 seconds
@@ -59,8 +59,8 @@ export const useProgressTasks = () => {
   const exportTasks: ExportTask[] = [
     // Active export tasks (currently processing)
     ...activeExportTasks
-      .filter(task => task.type === 'export')
-      .map(task => ({
+      .filter((task) => task.type === 'export')
+      .map((task) => ({
         id: task.id,
         filename: task.filename,
         progress: task.progress,
@@ -71,8 +71,12 @@ export const useProgressTasks = () => {
       })),
     // Completed export tasks
     ...completedTasks
-      .filter(task => task.type === 'export' && (task.status === 'completed' || task.status === 'failed'))
-      .map(task => ({
+      .filter(
+        (task) =>
+          task.type === 'export' &&
+          (task.status === 'completed' || task.status === 'failed')
+      )
+      .map((task) => ({
         id: task.id,
         filename: task.filename,
         progress: task.progress,
@@ -81,15 +85,15 @@ export const useProgressTasks = () => {
         currentStage: task.currentStage,
         estimatedTimeRemaining: task.estimatedTimeRemaining,
         isTimeout: task.isTimeout,
-      }))
+      })),
   ]
 
   // Transform for Upload Tasks (includes uploading, processing, completed, and failed)
   const uploadTasks: UploadTask[] = [
     // Active upload tasks (uploading or processing)
     ...activeUploadTasks
-      .filter(task => task.type === 'upload')
-      .map(task => ({
+      .filter((task) => task.type === 'upload')
+      .map((task) => ({
         id: task.id,
         filename: task.filename,
         progress: task.progress,
@@ -101,8 +105,8 @@ export const useProgressTasks = () => {
       })),
     // Completed and failed upload tasks
     ...completedTasks
-      .filter(task => task.type === 'upload')
-      .map(task => ({
+      .filter((task) => task.type === 'upload')
+      .map((task) => ({
         id: task.id,
         filename: task.filename,
         progress: task.progress,
@@ -111,33 +115,31 @@ export const useProgressTasks = () => {
         currentStage: task.currentStage,
         estimatedTimeRemaining: task.estimatedTimeRemaining,
         isTimeout: task.isTimeout,
-      }))
+      })),
   ]
 
   // Helper functions for common queries
   const getActiveExportTasksCount = () =>
-    exportTasks.filter(task => task.status === 'processing').length
+    exportTasks.filter((task) => task.status === 'processing').length
 
   const getActiveUploadTasksCount = () =>
-    uploadTasks.filter(task => task.status === 'uploading' || task.status === 'processing').length
+    uploadTasks.filter(
+      (task) => task.status === 'uploading' || task.status === 'processing'
+    ).length
 
   const getCompletedExportTasksCount = () =>
-    exportTasks.filter(task => task.status === 'completed').length
+    exportTasks.filter((task) => task.status === 'completed').length
 
   const getCompletedUploadTasksCount = () =>
-    uploadTasks.filter(task => task.status === 'completed').length
+    uploadTasks.filter((task) => task.status === 'completed').length
 
-  const getTotalActiveTasksCount = () =>
-    allActiveTasks.length
+  const getTotalActiveTasksCount = () => allActiveTasks.length
 
-  const hasAnyActiveTasks = () =>
-    allActiveTasks.length > 0
+  const hasAnyActiveTasks = () => allActiveTasks.length > 0
 
-  const hasActiveUploads = () =>
-    getActiveUploadTasksCount() > 0
+  const hasActiveUploads = () => getActiveUploadTasksCount() > 0
 
-  const hasActiveExports = () =>
-    getActiveExportTasksCount() > 0
+  const hasActiveExports = () => getActiveExportTasksCount() > 0
 
   return {
     // Formatted tasks for UI

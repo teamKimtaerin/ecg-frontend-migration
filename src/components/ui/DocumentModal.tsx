@@ -2,7 +2,11 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { useProgressTasks, ExportTask, UploadTask } from '@/hooks/useProgressTasks'
+import {
+  useProgressTasks,
+  ExportTask,
+  UploadTask,
+} from '@/hooks/useProgressTasks'
 
 export interface DocumentModalProps {
   isOpen: boolean
@@ -23,7 +27,12 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
   const [isMounted, setIsMounted] = useState(false)
 
   // Get formatted progress data (automatic timeout checking is now handled in useProgressTasks)
-  const { exportTasks, uploadTasks, raw: { activeUploadTasks }, clearCompletedTasksByType } = useProgressTasks()
+  const {
+    exportTasks,
+    uploadTasks,
+    raw: { activeUploadTasks },
+    clearCompletedTasksByType,
+  } = useProgressTasks()
 
   // Set mounted state
   useEffect(() => {
@@ -169,10 +178,15 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
                 <h3 className="text-sm font-semibold text-gray-800">
                   종료된 내보내기
                 </h3>
-                {exportTasks.filter((task) => task.status === 'completed' || task.status === 'failed').length > 0 && (
+                {exportTasks.filter(
+                  (task) =>
+                    task.status === 'completed' || task.status === 'failed'
+                ).length > 0 && (
                   <button
                     onClick={() => {
-                      if (confirm('모든 완료된 내보내기 기록을 삭제하시겠습니까?')) {
+                      if (
+                        confirm('모든 완료된 내보내기 기록을 삭제하시겠습니까?')
+                      ) {
                         clearCompletedTasksByType('export')
                       }
                     }}
@@ -183,8 +197,10 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
                   </button>
                 )}
               </div>
-              {exportTasks.filter((task) => task.status === 'completed' || task.status === 'failed')
-                .length === 0 ? (
+              {exportTasks.filter(
+                (task) =>
+                  task.status === 'completed' || task.status === 'failed'
+              ).length === 0 ? (
                 <div className="text-center py-6">
                   <div className="w-10 h-10 mx-auto mb-2 bg-gray-100 rounded-full flex items-center justify-center">
                     <svg
@@ -208,7 +224,10 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
               ) : (
                 <div className="space-y-2">
                   {exportTasks
-                    .filter((task) => task.status === 'completed' || task.status === 'failed')
+                    .filter(
+                      (task) =>
+                        task.status === 'completed' || task.status === 'failed'
+                    )
                     .map((task) => (
                       <div
                         key={task.id}
@@ -217,19 +236,29 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
                             ? 'bg-green-50 border-green-200 hover:bg-green-100 cursor-pointer'
                             : 'bg-red-50 border-red-200'
                         } transition-colors`}
-                        onClick={() => task.status === 'completed' && onDeployClick?.(task)}
+                        onClick={() =>
+                          task.status === 'completed' && onDeployClick?.(task)
+                        }
                       >
                         <div className="flex items-center justify-between mb-1">
                           <span className="text-sm font-medium text-gray-800 truncate">
                             {task.filename}
                           </span>
                           <div className="flex items-center">
-                            <div className={`w-2 h-2 rounded-full mr-2 ${
-                              task.status === 'completed' ? 'bg-green-500' : 'bg-red-500'
-                            }`}></div>
-                            <span className={`text-xs font-medium ${
-                              task.status === 'completed' ? 'text-green-600' : 'text-red-600'
-                            }`}>
+                            <div
+                              className={`w-2 h-2 rounded-full mr-2 ${
+                                task.status === 'completed'
+                                  ? 'bg-green-500'
+                                  : 'bg-red-500'
+                              }`}
+                            ></div>
+                            <span
+                              className={`text-xs font-medium ${
+                                task.status === 'completed'
+                                  ? 'text-green-600'
+                                  : 'text-red-600'
+                              }`}
+                            >
                               {task.status === 'completed' ? '완료' : '실패'}
                             </span>
                           </div>
@@ -259,8 +288,10 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
               <h3 className="text-sm font-semibold text-gray-800 mb-3">
                 현재 진행중인 업로드
               </h3>
-              {uploadTasks.filter((task) => task.status === 'uploading' || task.status === 'processing')
-                .length === 0 ? (
+              {uploadTasks.filter(
+                (task) =>
+                  task.status === 'uploading' || task.status === 'processing'
+              ).length === 0 ? (
                 <div className="text-center py-6">
                   <div className="w-10 h-10 mx-auto mb-2 bg-gray-100 rounded-full flex items-center justify-center">
                     <svg
@@ -284,7 +315,11 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
               ) : (
                 <div className="space-y-2">
                   {uploadTasks
-                    .filter((task) => task.status === 'uploading' || task.status === 'processing')
+                    .filter(
+                      (task) =>
+                        task.status === 'uploading' ||
+                        task.status === 'processing'
+                    )
                     .map((task) => (
                       <div key={task.id} className="bg-blue-50 rounded-lg p-3">
                         <div className="flex items-center justify-between mb-2">
@@ -304,7 +339,9 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
                         <div className="flex items-center mt-2">
                           <div className="w-2 h-2 bg-gray-600 rounded-full animate-pulse mr-2"></div>
                           <span className="text-xs text-gray-600">
-                            {task.status === 'processing' ? '처리 중...' : '업로드 중...'}
+                            {task.status === 'processing'
+                              ? '처리 중...'
+                              : '업로드 중...'}
                           </span>
                           {task.currentStage && (
                             <span className="text-xs text-gray-500 ml-2">
@@ -324,10 +361,15 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
                 <h3 className="text-sm font-semibold text-gray-800">
                   종료된 업로드
                 </h3>
-                {uploadTasks.filter((task) => task.status === 'completed' || task.status === 'failed').length > 0 && (
+                {uploadTasks.filter(
+                  (task) =>
+                    task.status === 'completed' || task.status === 'failed'
+                ).length > 0 && (
                   <button
                     onClick={() => {
-                      if (confirm('모든 완료된 업로드 기록을 삭제하시겠습니까?')) {
+                      if (
+                        confirm('모든 완료된 업로드 기록을 삭제하시겠습니까?')
+                      ) {
                         clearCompletedTasksByType('upload')
                       }
                     }}

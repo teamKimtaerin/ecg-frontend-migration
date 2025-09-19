@@ -89,7 +89,8 @@ export function useServerVideoExport(): UseServerVideoExportResult {
         updateTask(currentProgressTaskId, {
           progress: status.progress || 0,
           status: status.status === 'completed' ? 'completed' : 'processing',
-          currentStage: status.status === 'processing' ? 'GPU 렌더링 중' : undefined,
+          currentStage:
+            status.status === 'processing' ? 'GPU 렌더링 중' : undefined,
           estimatedTimeRemaining: timeRemaining ?? undefined,
         })
       }

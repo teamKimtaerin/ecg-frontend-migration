@@ -9,11 +9,13 @@
 ## 📋 현재 상황 분석
 
 ### 문제점
+
 - DocumentModal의 업로드/내보내기 탭에서 하드코딩된 mock 데이터 사용
 - 실제 ProcessingModal의 진행도와 문서함 표시가 불일치
 - 페이지별로 독립적인 상태로 인한 일관성 부족
 
 ### 현재 구조
+
 ```
 useUploadModal → ProcessingModal (실제 진행도)
      ❌
@@ -21,6 +23,7 @@ DocumentModal ← Mock 데이터 (하드코딩)
 ```
 
 ### 목표 구조
+
 ```
 useUploadModal → ProgressStore ← DocumentModal
        ↓               ↓              ↓
@@ -74,64 +77,64 @@ export const useProgressStore = create<ProgressStore>()(
       tasks: [],
 
       get activeTasks() {
-        return get().tasks.filter(task =>
-          task.status === 'uploading' || task.status === 'processing'
+        return get().tasks.filter(
+          (task) => task.status === 'uploading' || task.status === 'processing'
         )
       },
 
       get completedTasks() {
-        return get().tasks.filter(task =>
-          task.status === 'completed' || task.status === 'failed'
+        return get().tasks.filter(
+          (task) => task.status === 'completed' || task.status === 'failed'
         )
       },
 
       addTask: (taskData) => {
         const id = `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
         const task = { ...taskData, id }
-        set(state => ({
-          tasks: [...state.tasks, task]
+        set((state) => ({
+          tasks: [...state.tasks, task],
         }))
         return id
       },
 
       updateTask: (id, updates) => {
-        set(state => ({
-          tasks: state.tasks.map(task =>
+        set((state) => ({
+          tasks: state.tasks.map((task) =>
             task.id === id ? { ...task, ...updates } : task
-          )
+          ),
         }))
       },
 
       removeTask: (id) => {
-        set(state => ({
-          tasks: state.tasks.filter(task => task.id !== id)
+        set((state) => ({
+          tasks: state.tasks.filter((task) => task.id !== id),
         }))
       },
 
       clearCompletedTasks: () => {
-        set(state => ({
-          tasks: state.tasks.filter(task =>
-            task.status !== 'completed' && task.status !== 'failed'
-          )
+        set((state) => ({
+          tasks: state.tasks.filter(
+            (task) => task.status !== 'completed' && task.status !== 'failed'
+          ),
         }))
       },
 
       getActiveUploadTasks: () => {
-        return get().tasks.filter(task => task.status === 'uploading')
+        return get().tasks.filter((task) => task.status === 'uploading')
       },
 
       getActiveProcessingTasks: () => {
-        return get().tasks.filter(task => task.status === 'processing')
+        return get().tasks.filter((task) => task.status === 'processing')
       },
 
       findTaskByJobId: (jobId) => {
-        return get().tasks.find(task => task.jobId === jobId)
-      }
+        return get().tasks.find((task) => task.jobId === jobId)
+      },
     }),
     {
       name: 'ecg-progress-storage',
       partialize: (state) => ({
-        tasks: state.tasks.filter(task => {
+        tasks: state.tasks.filter((task) => {
           // 완료된 작업은 24시간만 보존
           if (task.status === 'uploading' || task.status === 'processing') {
             return true
@@ -139,11 +142,11 @@ export const useProgressStore = create<ProgressStore>()(
           if (task.completedAt) {
             const completedTime = new Date(task.completedAt).getTime()
             const now = new Date().getTime()
-            return (now - completedTime) < 24 * 60 * 60 * 1000 // 24시간
+            return now - completedTime < 24 * 60 * 60 * 1000 // 24시간
           }
           return false
-        })
-      })
+        }),
+      }),
     }
   )
 )
@@ -159,134 +162,141 @@ import { useProgressStore } from '@/lib/store/progressStore'
 
 export const useUploadModal = () => {
   // 기존 코드...
-  const { addTask, updateTask, removeTask, findTaskByJobId } = useProgressStore()
+  const { addTask, updateTask, removeTask, findTaskByJobId } =
+    useProgressStore()
   const [currentTaskId, setCurrentTaskId] = useState<string>()
 
   // 업로드 시작 시 태스크 추가
-  const handleStartTranscription = useCallback(async (data: UploadFormData) => {
-    try {
-      log('useUploadModal', '🚀 Starting upload and transcription process')
+  const handleStartTranscription = useCallback(
+    async (data: UploadFormData) => {
+      try {
+        log('useUploadModal', '🚀 Starting upload and transcription process')
 
-      // 진행 상태 태스크 생성
-      const taskId = addTask({
-        type: 'upload',
-        filename: data.file.name,
-        progress: 0,
-        status: 'uploading',
-        step: 'uploading'
-      })
-      setCurrentTaskId(taskId)
-
-      // 기존 초기화 로직...
-      clearMedia()
-      setClips([])
-      // ... 기존 코드
-
-      // 1. Presigned URL 요청
-      updateState({ step: 'uploading', uploadProgress: 0 })
-
-      // ... presigned URL 로직
-
-      // 2. S3 업로드 (진행률 추적)
-      const uploadResponse = await uploadService.uploadToS3(
-        data.file,
-        presigned_url,
-        (progress) => {
-          updateState({ uploadProgress: progress })
-          // ProgressStore 업데이트
-          updateTask(taskId, {
-            progress,
-            status: 'uploading',
-            step: 'uploading'
-          })
-        }
-      )
-
-      // 3. 처리 단계로 전환
-      updateState({ step: 'processing', processingProgress: 0 })
-      updateTask(taskId, {
-        type: 'processing',
-        status: 'processing',
-        progress: 0,
-        step: 'processing'
-      })
-
-      // 4. ML 처리 요청
-      const mlResponse = await uploadService.requestMLProcessing(
-        file_key,
-        data.language
-      )
-
-      const { job_id, estimated_time } = mlResponse.data
-      setCurrentJobId(job_id)
-
-      // jobId를 태스크에 저장
-      updateTask(taskId, {
-        jobId: job_id,
-        estimatedTimeRemaining: estimated_time || 180
-      })
-
-      // 5. 상태 폴링 시작
-      const stopPolling = uploadService.startPolling(
-        job_id,
-        (status: ProcessingStatus) => {
-          log('useUploadModal', `📊 Status update: ${status.status} (${status.progress}%)`)
-
-          updateState({
-            processingProgress: status.progress,
-            currentStage: status.current_stage,
-            estimatedTimeRemaining: status.estimated_time_remaining,
-          })
-
-          // ProgressStore 업데이트
-          updateTask(taskId, {
-            progress: status.progress,
-            currentStage: status.current_stage,
-            estimatedTimeRemaining: status.estimated_time_remaining,
-            status: 'processing'
-          })
-        },
-        (result: ProcessingResult) => {
-          log('useUploadModal', '🎉 Processing completed successfully')
-
-          // 완료 처리
-          updateTask(taskId, {
-            status: 'completed',
-            progress: 100,
-            completedAt: new Date().toLocaleString('ko-KR')
-          })
-
-          handleProcessingComplete(result)
-        },
-        (error) => {
-          const errorMessage = error?.message || error?.error || 'Unknown error'
-          log('useUploadModal', `❌ Processing failed: ${errorMessage}`)
-
-          // 에러 처리
-          updateTask(taskId, {
-            status: 'failed',
-            completedAt: new Date().toLocaleString('ko-KR')
-          })
-
-          // 기존 에러 핸들링...
-        }
-      )
-
-      stopPollingRef.current = stopPolling
-
-    } catch (error) {
-      log('useUploadModal', `💥 Upload process failed: ${error}`)
-
-      if (currentTaskId) {
-        updateTask(currentTaskId, {
-          status: 'failed',
-          completedAt: new Date().toLocaleString('ko-KR')
+        // 진행 상태 태스크 생성
+        const taskId = addTask({
+          type: 'upload',
+          filename: data.file.name,
+          progress: 0,
+          status: 'uploading',
+          step: 'uploading',
         })
-      }
+        setCurrentTaskId(taskId)
 
-      // 기존 에러 핸들링...
-    }
-  }, [addTask, updateTask, removeTask, currentTaskId, /* 기존 dependencies */])
+        // 기존 초기화 로직...
+        clearMedia()
+        setClips([])
+        // ... 기존 코드
+
+        // 1. Presigned URL 요청
+        updateState({ step: 'uploading', uploadProgress: 0 })
+
+        // ... presigned URL 로직
+
+        // 2. S3 업로드 (진행률 추적)
+        const uploadResponse = await uploadService.uploadToS3(
+          data.file,
+          presigned_url,
+          (progress) => {
+            updateState({ uploadProgress: progress })
+            // ProgressStore 업데이트
+            updateTask(taskId, {
+              progress,
+              status: 'uploading',
+              step: 'uploading',
+            })
+          }
+        )
+
+        // 3. 처리 단계로 전환
+        updateState({ step: 'processing', processingProgress: 0 })
+        updateTask(taskId, {
+          type: 'processing',
+          status: 'processing',
+          progress: 0,
+          step: 'processing',
+        })
+
+        // 4. ML 처리 요청
+        const mlResponse = await uploadService.requestMLProcessing(
+          file_key,
+          data.language
+        )
+
+        const { job_id, estimated_time } = mlResponse.data
+        setCurrentJobId(job_id)
+
+        // jobId를 태스크에 저장
+        updateTask(taskId, {
+          jobId: job_id,
+          estimatedTimeRemaining: estimated_time || 180,
+        })
+
+        // 5. 상태 폴링 시작
+        const stopPolling = uploadService.startPolling(
+          job_id,
+          (status: ProcessingStatus) => {
+            log(
+              'useUploadModal',
+              `📊 Status update: ${status.status} (${status.progress}%)`
+            )
+
+            updateState({
+              processingProgress: status.progress,
+              currentStage: status.current_stage,
+              estimatedTimeRemaining: status.estimated_time_remaining,
+            })
+
+            // ProgressStore 업데이트
+            updateTask(taskId, {
+              progress: status.progress,
+              currentStage: status.current_stage,
+              estimatedTimeRemaining: status.estimated_time_remaining,
+              status: 'processing',
+            })
+          },
+          (result: ProcessingResult) => {
+            log('useUploadModal', '🎉 Processing completed successfully')
+
+            // 완료 처리
+            updateTask(taskId, {
+              status: 'completed',
+              progress: 100,
+              completedAt: new Date().toLocaleString('ko-KR'),
+            })
+
+            handleProcessingComplete(result)
+          },
+          (error) => {
+            const errorMessage =
+              error?.message || error?.error || 'Unknown error'
+            log('useUploadModal', `❌ Processing failed: ${errorMessage}`)
+
+            // 에러 처리
+            updateTask(taskId, {
+              status: 'failed',
+              completedAt: new Date().toLocaleString('ko-KR'),
+            })
+
+            // 기존 에러 핸들링...
+          }
+        )
+
+        stopPollingRef.current = stopPolling
+      } catch (error) {
+        log('useUploadModal', `💥 Upload process failed: ${error}`)
+
+        if (currentTaskId) {
+          updateTask(currentTaskId, {
+            status: 'failed',
+            completedAt: new Date().toLocaleString('ko-KR'),
+          })
+        }
+
+        // 기존 에러 핸들링...
+      }
+    },
+    [addTask, updateTask, removeTask, currentTaskId /* 기존 dependencies */]
+  )
 
   // 취소 시 태스크 제거
   const cancelProcessing = useCallback(async () => {
@@ -570,39 +580,39 @@ export const useProgressTasks = () => {
   const { activeTasks, completedTasks } = useProgressStore()
 
   const exportTasks = useMemo(() => {
-    const processingTasks = activeTasks.filter(task =>
-      task.status === 'processing' || task.step === 'processing'
+    const processingTasks = activeTasks.filter(
+      (task) => task.status === 'processing' || task.step === 'processing'
     )
-    const completedProcessingTasks = completedTasks.filter(task =>
-      task.type === 'processing'
+    const completedProcessingTasks = completedTasks.filter(
+      (task) => task.type === 'processing'
     )
 
-    return [...processingTasks, ...completedProcessingTasks].map(task => ({
+    return [...processingTasks, ...completedProcessingTasks].map((task) => ({
       id: parseInt(task.id.split('-')[1]) || Math.random(),
       filename: task.filename,
       progress: task.progress,
       status: task.status as 'processing' | 'completed',
       completedAt: task.completedAt,
       currentStage: task.currentStage,
-      estimatedTimeRemaining: task.estimatedTimeRemaining
+      estimatedTimeRemaining: task.estimatedTimeRemaining,
     }))
   }, [activeTasks, completedTasks])
 
   const uploadTasks = useMemo(() => {
-    const uploadingTasks = activeTasks.filter(task =>
-      task.status === 'uploading' || task.step === 'uploading'
+    const uploadingTasks = activeTasks.filter(
+      (task) => task.status === 'uploading' || task.step === 'uploading'
     )
-    const completedUploadTasks = completedTasks.filter(task =>
-      task.type === 'upload'
+    const completedUploadTasks = completedTasks.filter(
+      (task) => task.type === 'upload'
     )
 
-    return [...uploadingTasks, ...completedUploadTasks].map(task => ({
+    return [...uploadingTasks, ...completedUploadTasks].map((task) => ({
       id: parseInt(task.id.split('-')[1]) || Math.random(),
       filename: task.filename,
       progress: task.progress,
       status: task.status as 'uploading' | 'completed' | 'failed',
       completedAt: task.completedAt,
-      currentStage: task.currentStage
+      currentStage: task.currentStage,
     }))
   }, [activeTasks, completedTasks])
 
@@ -728,6 +738,7 @@ src/
 ## 🧪 테스트 시나리오
 
 ### 1. 기본 플로우 테스트
+
 1. **에디터 페이지**에서 "새로 만들기" → "파일 선택" → "시작하기"
 2. **ProcessingModal** 확인 (진행률 표시)
 3. **다른 페이지로 이동** (메인페이지, 에셋스토어)
@@ -735,16 +746,19 @@ src/
 5. **업로드 탭과 내보내기 탭** 모두에서 올바른 진행률 표시 확인
 
 ### 2. 상태 지속성 테스트
+
 1. 업로드 중 **페이지 새로고침**
 2. 진행 중인 작업이 복구되는지 확인
 3. **24시간 후** 완료된 작업 자동 정리 확인
 
 ### 3. 다중 작업 테스트
+
 1. **여러 파일 동시 업로드** (가능한 경우)
 2. 각각의 진행률이 독립적으로 표시되는지 확인
 3. **완료 순서와 관계없이** 올바른 상태 표시 확인
 
 ### 4. 에러 상황 테스트
+
 1. **업로드 중 네트워크 에러**
 2. **처리 중 서버 에러**
 3. **사용자 취소**
