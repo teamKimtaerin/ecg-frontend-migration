@@ -1,13 +1,13 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import { buildScenarioFromClips } from '@/app/(route)/editor/utils/scenarioBuilder'
+import Button from '@/components/ui/Button'
+import Modal from '@/components/ui/Modal'
+import ProgressBar from '@/components/ui/ProgressBar'
+import { useEffect, useState } from 'react'
+import { FaDownload, FaRocket } from 'react-icons/fa'
 import { useServerVideoExport } from '../../hooks/useServerVideoExport'
 import { useEditorStore } from '../../store'
-import Modal from '@/components/ui/Modal'
-import Button from '@/components/ui/Button'
-import ProgressBar from '@/components/ui/ProgressBar'
-import { FaRocket, FaDownload } from 'react-icons/fa'
-import { buildScenarioFromClips } from '@/app/(route)/editor/utils/scenarioBuilder'
 
 interface ServerVideoExportModalProps {
   isOpen: boolean
@@ -155,32 +155,105 @@ export default function ServerVideoExportModal({
 
   return (
     <Modal
+      size="lg"
       isOpen={isOpen}
       onClose={onClose}
       closeOnBackdropClick={!isExporting}
       isblind={false}
-      aria-label="GPU 렌더링 내보내기"
+      aria-label="동영상 내보내기"
     >
       <div className="p-6">
         {/* 준비 단계 */}
         {phase === 'ready' && (
-          <div className="space-y-4">
-            <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-sm text-gray-600">
-                <span className="font-semibold">영상 정보:</span>
-                <br />
-                {videoName || '제목 없음'} ({clips?.length || 0}개 자막)
-              </p>
+          <div className="space-y-6">
+            {/* 모달 제목 */}
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-900">동영상 내보내기</h2>
             </div>
 
-            <Button
-              onClick={handleStartExport}
-              variant="primary"
-              size="large"
-              className="w-full"
-            >
-              GPU 렌더링 시작
-            </Button>
+            {/* 대상 클립 섹션 */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-medium text-gray-700">대상 클립</h3>
+              <div className="space-y-3">
+                <label className="flex items-center space-x-3 cursor-pointer">
+                  <div className="relative">
+                    <input
+                      type="radio"
+                      name="targetClip"
+                      value="all"
+                      defaultChecked
+                      className="sr-only"
+                    />
+                    <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+                      <div className="w-2 h-2 bg-white rounded-full"></div>
+                    </div>
+                  </div>
+                  <span className="text-sm text-gray-900">모든 씬, 모든 클립</span>
+                </label>
+
+                <label className="flex items-center space-x-3 cursor-pointer opacity-50">
+                  <div className="relative">
+                    <input
+                      type="radio"
+                      name="targetClip"
+                      value="current"
+                      disabled
+                      className="sr-only"
+                    />
+                    <div className="w-4 h-4 border-2 border-gray-300 rounded-full bg-white"></div>
+                  </div>
+                  <span className="text-sm text-gray-400">현재 씬, 모든 클립</span>
+                </label>
+
+                <label className="flex items-center space-x-3 cursor-pointer opacity-50">
+                  <div className="relative">
+                    <input
+                      type="radio"
+                      name="targetClip"
+                      value="selected"
+                      disabled
+                      className="sr-only"
+                    />
+                    <div className="w-4 h-4 border-2 border-gray-300 rounded-full bg-white"></div>
+                  </div>
+                  <span className="text-sm text-gray-400">선택된 클립 (없음)</span>
+                </label>
+              </div>
+            </div>
+
+            {/* 해상도 섹션 */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-medium text-gray-700">해상도</h3>
+              <div className="relative">
+                <select className="w-full px-3 py-2.5 text-sm border text-gray-900 border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none">
+                  <option value="원본 (640 x 360)" className="text-gray-900">원본 (640 x 360)</option>
+                  <option value="HD (1280 x 720)" disabled className="text-gray-400">HD (1280 x 720)</option>
+                  <option value="Full HD (1920 x 1080)" disabled className="text-gray-400">Full HD (1920 x 1080)</option>
+                  <option value="4K (3840 x 2160)" disabled className="text-gray-400">4K (3840 x 2160)</option>
+                </select>
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            {/* 버튼 섹션 */}
+            <div className="flex space-x-3 pt-4">
+              <button
+                onClick={handleStartExport}
+                className="flex-1 px-4 py-2.5 bg-cyan-500 hover:bg-cyan-600 text-white text-sm font-medium rounded-md transition-colors duration-200"
+              >
+                내보내기
+              </button>
+              <button
+                onClick={onClose}
+                className="flex-1 px-4 py-2.5 bg-gray-300 hover:bg-gray-400 text-gray-700 text-sm font-medium rounded-md transition-colors duration-200"
+              >
+                취소
+              </button>
+            </div>
           </div>
         )}
 
