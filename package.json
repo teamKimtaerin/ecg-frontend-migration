@@ -35,7 +35,7 @@
     "jsonwebtoken": "^9.0.2",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.542.0",
-    "motiontext-renderer": "^1.1.1",
+    "motiontext-renderer": "^1.2.1",
     "next": "^15.5.2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",

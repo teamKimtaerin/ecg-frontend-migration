@@ -450,7 +450,7 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
           ref={videoRef}
           src={videoUrl}
           playsInline
-          controls
+          controls={false}
           className="w-full h-full object-contain"
           onClick={(e) => togglePlayPause(e)}
           onTimeUpdate={handleTimeUpdate}

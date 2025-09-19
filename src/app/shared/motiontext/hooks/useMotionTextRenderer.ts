@@ -11,7 +11,6 @@ import type {
 } from '../utils/scenarioGenerator'
 import {
   preloadPluginsForScenario,
-  preloadAllPlugins,
   configurePluginLoader,
 } from '../utils/pluginLoader'
 
@@ -110,7 +109,6 @@ export function useMotionTextRenderer(
         ;(window as any).gsap = (gsap as any).default || gsap
       }
       configurePluginLoader()
-      await preloadAllPlugins()
       const { MotionTextRenderer } = await import('motiontext-renderer')
       rendererRef.current = new MotionTextRenderer(containerRef.current)
       if (videoRef.current) {
