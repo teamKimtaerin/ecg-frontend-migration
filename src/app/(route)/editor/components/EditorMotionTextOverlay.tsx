@@ -49,6 +49,8 @@ export default function EditorMotionTextOverlay({
     timeline,
     getSequentialClips,
     initializeTimeline: _initializeTimeline,
+    currentScenario,
+    scenarioVersion,
   } = useEditorStore()
 
   // Internal state
@@ -616,11 +618,15 @@ export default function EditorMotionTextOverlay({
   ])
 
   // Load a scenario for all visible clips (default path) - includes plugin application
+  // Only when Store doesn't have a scenario yet
   useEffect(() => {
     if (usingExternalScenario || isLoadingScenario || scenarioOverride) return
     if (!showSubtitles) return
 
-    // Always build and load scenario to ensure plugins are applied
+    // Skip if Store already has a scenario (let Store subscription handle updates)
+    if (currentScenario && scenarioVersion > 0) return
+
+    // Only build and load when no Store scenario exists
     const config = buildScenarioFromClips()
 
     // Send current scenario to parent for JSON editor
@@ -646,6 +652,8 @@ export default function EditorMotionTextOverlay({
     subtitlePosition,
     subtitleSize,
     wordAnimationTracks,
+    currentScenario,
+    scenarioVersion,
   ])
 
   // Additionally, ensure store scenario is updated when changes occur
