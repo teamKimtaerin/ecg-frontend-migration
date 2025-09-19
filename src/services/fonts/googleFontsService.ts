@@ -48,14 +48,24 @@ class GoogleFontsService {
     try {
       // If no API key, return fallback fonts
       if (!this.apiKey) {
-        console.warn('Google Fonts API key not found. Using fallback fonts only.')
+        console.warn(
+          'Google Fonts API key not found. Using fallback fonts only.'
+        )
         const fallbackFonts = this.getFallbackFonts()
-        return { fonts: fallbackFonts, hasMore: false, totalCount: fallbackFonts.length }
+        return {
+          fonts: fallbackFonts,
+          hasMore: false,
+          totalCount: fallbackFonts.length,
+        }
       }
 
       // Use cache if available and not searching
       const now = Date.now()
-      if (!search && this.fontsCache.length > 0 && (now - this.lastFetchTime) < this.cacheValidTime) {
+      if (
+        !search &&
+        this.fontsCache.length > 0 &&
+        now - this.lastFetchTime < this.cacheValidTime
+      ) {
         const fonts = this.sortFontsWithKoreanPriority(this.fontsCache)
         const startIndex = (page - 1) * this.pageSize
         const endIndex = startIndex + this.pageSize
@@ -65,7 +75,7 @@ class GoogleFontsService {
         return {
           fonts: paginatedFonts,
           hasMore,
-          totalCount: fonts.length
+          totalCount: fonts.length,
         }
       }
 
@@ -84,9 +94,11 @@ class GoogleFontsService {
           status: response.status,
           statusText: response.statusText,
           url: url.toString(),
-          errorBody: errorText
+          errorBody: errorText,
         })
-        throw new Error(`Google Fonts API error: ${response.status} - ${response.statusText}`)
+        throw new Error(
+          `Google Fonts API error: ${response.status} - ${response.statusText}`
+        )
       }
 
       const data: GoogleFontsResponse = await response.json()
@@ -101,7 +113,7 @@ class GoogleFontsService {
       // Filter by search query if provided
       if (search) {
         const searchLower = search.toLowerCase()
-        fonts = fonts.filter(font =>
+        fonts = fonts.filter((font) =>
           font.family.toLowerCase().includes(searchLower)
         )
       }
@@ -118,20 +130,27 @@ class GoogleFontsService {
       return {
         fonts: paginatedFonts,
         hasMore,
-        totalCount: fonts.length
+        totalCount: fonts.length,
       }
     } catch (error) {
       console.error('Failed to fetch Google Fonts:', error)
       // Return fallback fonts when API fails
       const fallbackFonts = this.getFallbackFonts()
-      return { fonts: fallbackFonts, hasMore: false, totalCount: fallbackFonts.length }
+      return {
+        fonts: fallbackFonts,
+        hasMore: false,
+        totalCount: fallbackFonts.length,
+      }
     }
   }
 
   /**
    * Load a font using FontFace API
    */
-  async loadFontWithFontFace(fontFamily: string, fontUrl: string): Promise<void> {
+  async loadFontWithFontFace(
+    fontFamily: string,
+    fontUrl: string
+  ): Promise<void> {
     try {
       // Skip if already loaded
       if (this.loadedFonts.has(fontFamily)) {
@@ -160,7 +179,8 @@ class GoogleFontsService {
    * Preload a font for immediate use
    */
   async preloadFont(font: GoogleFont): Promise<void> {
-    const fontUrl = font.files.regular || font.files['400'] || Object.values(font.files)[0]
+    const fontUrl =
+      font.files.regular || font.files['400'] || Object.values(font.files)[0]
     if (fontUrl) {
       await this.loadFontWithFontFace(font.family, fontUrl)
     }
@@ -170,7 +190,10 @@ class GoogleFontsService {
    * Check if a font is already loaded
    */
   isFontLoaded(fontFamily: string): boolean {
-    return this.loadedFonts.has(fontFamily) || document.fonts.check(`12px "${fontFamily}"`)
+    return (
+      this.loadedFonts.has(fontFamily) ||
+      document.fonts.check(`12px "${fontFamily}"`)
+    )
   }
 
   /**
@@ -179,25 +202,50 @@ class GoogleFontsService {
   private sortFontsWithKoreanPriority(fonts: GoogleFont[]): GoogleFont[] {
     // Common Korean font names that should be prioritized
     const koreanFontNames = [
-      'Noto Sans Korean', 'Noto Serif Korean', 'Nanum Gothic', 'Nanum Myeongjo',
-      'Nanum Brush Script', 'Nanum Pen Script', 'Nanum Gothic Coding',
-      'Black Han Sans', 'Dokdo', 'East Sea Dokdo', 'Gamja Flower',
-      'Gaegu', 'Gugi', 'Hahmlet', 'Hi Melody', 'Jua', 'Kirang Haerang',
-      'Song Myung', 'Stylish', 'Sunflower', 'Yeon Sung', 'Cute Font',
-      'Do Hyeon', 'Gowun Batang', 'Gowun Dodum', 'Gothic A1', 'IBM Plex Sans KR',
-      'Poor Story', 'Single Day', 'Bagel Fat One'
+      'Noto Sans Korean',
+      'Noto Serif Korean',
+      'Nanum Gothic',
+      'Nanum Myeongjo',
+      'Nanum Brush Script',
+      'Nanum Pen Script',
+      'Nanum Gothic Coding',
+      'Black Han Sans',
+      'Dokdo',
+      'East Sea Dokdo',
+      'Gamja Flower',
+      'Gaegu',
+      'Gugi',
+      'Hahmlet',
+      'Hi Melody',
+      'Jua',
+      'Kirang Haerang',
+      'Song Myung',
+      'Stylish',
+      'Sunflower',
+      'Yeon Sung',
+      'Cute Font',
+      'Do Hyeon',
+      'Gowun Batang',
+      'Gowun Dodum',
+      'Gothic A1',
+      'IBM Plex Sans KR',
+      'Poor Story',
+      'Single Day',
+      'Bagel Fat One',
     ]
 
     const isKoreanFont = (font: GoogleFont): boolean => {
-      return font.subsets.includes('korean') ||
-             koreanFontNames.some(kName =>
-               font.family.toLowerCase().includes(kName.toLowerCase())
-             )
+      return (
+        font.subsets.includes('korean') ||
+        koreanFontNames.some((kName) =>
+          font.family.toLowerCase().includes(kName.toLowerCase())
+        )
+      )
     }
 
     // Separate Korean and non-Korean fonts
     const koreanFonts = fonts.filter(isKoreanFont)
-    const otherFonts = fonts.filter(font => !isKoreanFont(font))
+    const otherFonts = fonts.filter((font) => !isKoreanFont(font))
 
     // Sort Korean fonts by popularity (they should already be sorted by API)
     // Then append other fonts
@@ -215,28 +263,28 @@ class GoogleFontsService {
         variants: ['regular', 'bold'],
         files: { regular: '', bold: '' },
         subsets: ['korean', 'latin'],
-        category: 'sans-serif'
+        category: 'sans-serif',
       },
       {
         family: '돋움',
         variants: ['regular', 'bold'],
         files: { regular: '', bold: '' },
         subsets: ['korean', 'latin'],
-        category: 'sans-serif'
+        category: 'sans-serif',
       },
       {
         family: '굴림',
         variants: ['regular', 'bold'],
         files: { regular: '', bold: '' },
         subsets: ['korean', 'latin'],
-        category: 'sans-serif'
+        category: 'sans-serif',
       },
       {
         family: '바탕',
         variants: ['regular', 'bold'],
         files: { regular: '', bold: '' },
         subsets: ['korean', 'latin'],
-        category: 'serif'
+        category: 'serif',
       },
       // English system fonts
       {
@@ -244,36 +292,36 @@ class GoogleFontsService {
         variants: ['regular', 'bold'],
         files: { regular: '', bold: '' },
         subsets: ['latin'],
-        category: 'sans-serif'
+        category: 'sans-serif',
       },
       {
         family: 'Helvetica',
         variants: ['regular', 'bold'],
         files: { regular: '', bold: '' },
         subsets: ['latin'],
-        category: 'sans-serif'
+        category: 'sans-serif',
       },
       {
         family: 'Times New Roman',
         variants: ['regular', 'bold'],
         files: { regular: '', bold: '' },
         subsets: ['latin'],
-        category: 'serif'
+        category: 'serif',
       },
       {
         family: 'Georgia',
         variants: ['regular', 'bold'],
         files: { regular: '', bold: '' },
         subsets: ['latin'],
-        category: 'serif'
+        category: 'serif',
       },
       {
         family: 'Courier New',
         variants: ['regular', 'bold'],
         files: { regular: '', bold: '' },
         subsets: ['latin'],
-        category: 'monospace'
-      }
+        category: 'monospace',
+      },
     ]
   }
 }

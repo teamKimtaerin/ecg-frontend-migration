@@ -615,10 +615,12 @@ export default function EditorMotionTextOverlay({
     onScenarioUpdate,
   ])
 
-  // Load a scenario for all visible clips (default path)
+  // Load a scenario for all visible clips (default path) - includes plugin application
   useEffect(() => {
     if (usingExternalScenario || isLoadingScenario || scenarioOverride) return
     if (!showSubtitles) return
+
+    // Always build and load scenario to ensure plugins are applied
     const config = buildScenarioFromClips()
 
     // Send current scenario to parent for JSON editor
@@ -626,6 +628,7 @@ export default function EditorMotionTextOverlay({
       onScenarioUpdate(config)
     }
 
+    // Load scenario with plugins
     const t = setTimeout(() => {
       void loadScenario(config).catch(() => {})
     }, 120)
@@ -634,7 +637,6 @@ export default function EditorMotionTextOverlay({
     buildScenarioFromClips,
     showSubtitles,
     loadScenario,
-    seek,
     usingExternalScenario,
     isLoadingScenario,
     onScenarioUpdate,
@@ -644,7 +646,31 @@ export default function EditorMotionTextOverlay({
     subtitlePosition,
     subtitleSize,
     wordAnimationTracks,
-  ]) // Removed videoEl from dependencies
+  ])
+
+  // Additionally, ensure store scenario is updated when changes occur
+  useEffect(() => {
+    if (usingExternalScenario || isLoadingScenario || scenarioOverride) return
+    if (!showSubtitles) return
+
+    // Build scenario and update store
+    const config = buildScenarioFromClips()
+    const store = useEditorStore.getState() as any // eslint-disable-line @typescript-eslint/no-explicit-any
+    if (store.setScenarioFromJson) {
+      store.setScenarioFromJson(config)
+    }
+  }, [
+    buildScenarioFromClips,
+    clips,
+    deletedClipIds,
+    subtitlePosition,
+    subtitleSize,
+    wordAnimationTracks,
+    showSubtitles,
+    usingExternalScenario,
+    isLoadingScenario,
+    scenarioOverride,
+  ])
 
   // When scenario slice version changes, reload scenario (debounced)
   useEffect(() => {
@@ -660,6 +686,12 @@ export default function EditorMotionTextOverlay({
       const cfg = (useEditorStore.getState() as any) // eslint-disable-line @typescript-eslint/no-explicit-any
         .currentScenario as RendererConfigV2 | null
       if (!cfg) return
+
+      // Send scenario to parent for JSON editor
+      if (onScenarioUpdate) {
+        onScenarioUpdate(cfg)
+      }
+
       if (timer) clearTimeout(timer)
       timer = setTimeout(() => {
         void loadScenario(cfg, { silent: true }).catch(() => {})
@@ -671,7 +703,7 @@ export default function EditorMotionTextOverlay({
         unsub()
       } catch {}
     }
-  }, [loadScenario])
+  }, [loadScenario, onScenarioUpdate])
 
   // Initialize MotionTextController when renderer and video are ready
   useEffect(() => {

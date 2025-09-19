@@ -33,10 +33,13 @@ export interface ScenarioSlice {
   }) => void
 
   // Update group node style and/or boxStyle for specific clip
-  updateGroupNodeStyle: (clipId: string, updates: {
-    style?: Record<string, unknown>
-    boxStyle?: Record<string, unknown>
-  }) => void
+  updateGroupNodeStyle: (
+    clipId: string,
+    updates: {
+      style?: Record<string, unknown>
+      boxStyle?: Record<string, unknown>
+    }
+  ) => void
 
   // Set scenario from arbitrary JSON (editor apply)
   setScenarioFromJson: (config: RendererConfigV2) => void
@@ -194,13 +197,36 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
 
     // Find caption track and update its defaultStyle and/or defaultBoxStyle
     const captionTrackIndex = currentScenario.tracks.findIndex(
-      track => track.id === 'caption' || track.type === 'subtitle'
+      (track) => track.id === 'caption' || track.type === 'subtitle'
     )
 
     if (captionTrackIndex === -1) return
 
     const updatedScenario = { ...currentScenario }
     updatedScenario.tracks = [...currentScenario.tracks]
+
+    // Also update cues to clear individual styles when applying global format
+    if (currentScenario.cues) {
+      updatedScenario.cues = currentScenario.cues.map((cue) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const root = (cue as any).root
+        if (!root) return cue
+
+        // Clear individual styles when applying global format
+        const updatedRoot = { ...root }
+        if (updates.style) {
+          updatedRoot.style = undefined
+        }
+        if (updates.boxStyle) {
+          updatedRoot.boxStyle = undefined
+        }
+
+        return {
+          ...cue,
+          root: updatedRoot,
+        }
+      })
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updatedTrack: any = {
@@ -258,13 +284,16 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
       return
     }
 
-    // Find the group node with id `clip-${clipId}`
+    // The group node ID is created as `clip-${clipId}` in initialScenario.ts
+    // Since clipId is already in format "clip-X", the final ID becomes "clip-clip-X"
     const groupNodeId = `clip-${clipId}`
     console.log('Looking for group node with ID:', groupNodeId)
 
     // Debug: Log all existing group node IDs
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const existingGroupIds = currentScenario.cues.map(cue => (cue as any).root?.id).filter(Boolean)
+    const existingGroupIds = currentScenario.cues
+      .map((cue) => (cue as any).root?.id)
+      .filter(Boolean)
     console.log('Existing group node IDs:', existingGroupIds)
 
     let found = false
@@ -277,9 +306,8 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
       console.log('Found matching group node:', root.id)
 
       // Create completely new objects to ensure deep immutability
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let newStyle: any = null
-      let newBoxStyle: any = null
+      let newStyle: Record<string, unknown> | null = null
+      let newBoxStyle: Record<string, unknown> | null = null
 
       // Handle style updates (text styles) - apply even if style is undefined or empty
       if (updates.style !== undefined) {
@@ -297,7 +325,7 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
         console.log('Applied style updates:', newStyle)
       } else {
         // Preserve existing style if no updates
-        newStyle = root.style ? { ...root.style } : undefined
+        newStyle = root.style ? { ...root.style } : null
       }
 
       // Handle boxStyle updates (container styles) - apply even if boxStyle is undefined or empty
@@ -315,7 +343,7 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
         console.log('Applied boxStyle updates:', newBoxStyle)
       } else {
         // Preserve existing boxStyle if no updates
-        newBoxStyle = root.boxStyle ? { ...root.boxStyle } : undefined
+        newBoxStyle = root.boxStyle ? { ...root.boxStyle } : null
       }
 
       // Create completely new root object
@@ -336,7 +364,10 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
     })
 
     if (!found) {
-      console.warn(`Group node for clip ${clipId} not found. Available IDs:`, existingGroupIds)
+      console.warn(
+        `Group node for clip ${clipId} not found. Available IDs:`,
+        existingGroupIds
+      )
       return
     }
 

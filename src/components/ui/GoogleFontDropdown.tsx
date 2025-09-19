@@ -5,7 +5,10 @@ import { cn } from '@/utils'
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { LuSearch, LuLoader } from 'react-icons/lu'
-import { googleFontsService, type GoogleFont } from '@/services/fonts/googleFontsService'
+import {
+  googleFontsService,
+  type GoogleFont,
+} from '@/services/fonts/googleFontsService'
 
 export interface GoogleFontDropdownProps {
   value?: string
@@ -71,45 +74,48 @@ export default function GoogleFontDropdown({
   }[size]
 
   // Load fonts function
-  const loadFonts = useCallback(async (reset = false) => {
-    if (loadingRef.current) return
+  const loadFonts = useCallback(
+    async (reset = false) => {
+      if (loadingRef.current) return
 
-    loadingRef.current = true
-    setLoading(true)
-    setError(null)
+      loadingRef.current = true
+      setLoading(true)
+      setError(null)
 
-    const requestPage = reset ? 1 : pageRef.current
+      const requestPage = reset ? 1 : pageRef.current
 
-    try {
-      const result = await googleFontsService.fetchFonts({
-        page: requestPage,
-        search: searchQuery,
-        subset: 'latin'
-      })
-
-      if (reset) {
-        setFonts(result.fonts)
-        setPage(2)
-        pageRef.current = 2
-      } else {
-        setFonts(prev => [...prev, ...result.fonts])
-        setPage(prev => {
-          const next = prev + 1
-          pageRef.current = next
-          return next
+      try {
+        const result = await googleFontsService.fetchFonts({
+          page: requestPage,
+          search: searchQuery,
+          subset: 'latin',
         })
-      }
 
-      setHasMore(result.hasMore)
-      hasMoreRef.current = result.hasMore
-    } catch (err) {
-      setError('Failed to load fonts')
-      console.error('Font loading error:', err)
-    } finally {
-      loadingRef.current = false
-      setLoading(false)
-    }
-  }, [searchQuery])
+        if (reset) {
+          setFonts(result.fonts)
+          setPage(2)
+          pageRef.current = 2
+        } else {
+          setFonts((prev) => [...prev, ...result.fonts])
+          setPage((prev) => {
+            const next = prev + 1
+            pageRef.current = next
+            return next
+          })
+        }
+
+        setHasMore(result.hasMore)
+        hasMoreRef.current = result.hasMore
+      } catch (err) {
+        setError('Failed to load fonts')
+        console.error('Font loading error:', err)
+      } finally {
+        loadingRef.current = false
+        setLoading(false)
+      }
+    },
+    [searchQuery]
+  )
 
   // Load initial fonts (once)
   useEffect(() => {
@@ -220,20 +226,23 @@ export default function GoogleFontDropdown({
   }, [isOpen, fonts.length, loadFonts])
 
   // Handle search with debouncing
-  const handleSearchChange = useCallback((query: string) => {
-    setSearchQuery(query)
+  const handleSearchChange = useCallback(
+    (query: string) => {
+      setSearchQuery(query)
 
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current)
-    }
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current)
+      }
 
-    searchTimeoutRef.current = setTimeout(() => {
-      setPage(1)
-      setHasMore(true)
-      hasMoreRef.current = true
-      loadFonts(true)
-    }, 300)
-  }, [loadFonts])
+      searchTimeoutRef.current = setTimeout(() => {
+        setPage(1)
+        setHasMore(true)
+        hasMoreRef.current = true
+        loadFonts(true)
+      }, 300)
+    },
+    [loadFonts]
+  )
 
   // Handle font selection
   const handleFontSelect = async (font: GoogleFont) => {
@@ -263,11 +272,12 @@ export default function GoogleFontDropdown({
   }
 
   // Find selected font in current fonts list (may not exist if not loaded yet)
-  const selectedFont = fonts.find(font => font.family === value)
+  const selectedFont = fonts.find((font) => font.family === value)
 
   // Display value directly if font not found in current list
   const displayFontFamily = selectedFont?.family || value
-  const shouldShowFontStyle = selectedFont && googleFontsService.isFontLoaded(selectedFont.family)
+  const shouldShowFontStyle =
+    selectedFont && googleFontsService.isFontLoaded(selectedFont.family)
 
   // Trigger classes
   const triggerClasses = cn(
@@ -293,97 +303,101 @@ export default function GoogleFontDropdown({
 
   const menuContainer = typeof document !== 'undefined' ? document.body : null
 
-  const menuContent = isOpen && menuContainer ? (
-    <div
-      ref={menuRef}
-      className="fixed bg-slate-800/95 backdrop-blur-sm border border-slate-600 rounded-lg shadow-2xl max-h-96 overflow-hidden"
-      style={{
-        top: menuPosition.top,
-        left: menuPosition.left,
-        width: menuPosition.width,
-        zIndex: 99999,
-      }}
-    >
-      {/* Search Bar */}
-      <div className="p-4 border-b border-slate-600">
-        <div className="relative">
-          <LuSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <input
-            ref={searchInputRef}
-            type="text"
-            value={searchQuery}
-            onChange={(e) => handleSearchChange(e.target.value)}
-            placeholder="Search fonts..."
-            className="w-full pl-10 pr-4 py-3 bg-slate-700/50 border border-slate-500/50 rounded-md text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent"
-          />
+  const menuContent =
+    isOpen && menuContainer ? (
+      <div
+        ref={menuRef}
+        className="fixed bg-slate-800/95 backdrop-blur-sm border border-slate-600 rounded-lg shadow-2xl max-h-96 overflow-hidden"
+        style={{
+          top: menuPosition.top,
+          left: menuPosition.left,
+          width: menuPosition.width,
+          zIndex: 99999,
+        }}
+      >
+        {/* Search Bar */}
+        <div className="p-4 border-b border-slate-600">
+          <div className="relative">
+            <LuSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              ref={searchInputRef}
+              type="text"
+              value={searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              placeholder="Search fonts..."
+              className="w-full pl-10 pr-4 py-3 bg-slate-700/50 border border-slate-500/50 rounded-md text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent"
+            />
+          </div>
+        </div>
+
+        {/* Font List */}
+        <div
+          ref={listRef}
+          className="max-h-80 overflow-y-auto dropdown-scrollbar"
+        >
+          {error && (
+            <div className="px-4 py-6 text-center text-red-400">
+              <p>{error}</p>
+              <button
+                onClick={() => loadFonts(true)}
+                className="mt-2 px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700 transition-colors"
+              >
+                Retry
+              </button>
+            </div>
+          )}
+
+          {fonts.length === 0 && !loading && !error && (
+            <div className="px-4 py-6 text-center text-slate-400">
+              {searchQuery ? 'No fonts found' : 'No fonts available'}
+            </div>
+          )}
+
+          {fonts.map((font) => (
+            <div
+              key={font.family}
+              className="px-4 py-3 hover:bg-slate-700/50 cursor-pointer transition-colors border-b border-slate-700/30 last:border-b-0"
+              onClick={() => handleFontSelect(font)}
+              onMouseEnter={() => handleFontHover(font)}
+            >
+              <div className="flex items-center justify-between">
+                <span
+                  className="text-white text-base truncate"
+                  style={{
+                    fontFamily: googleFontsService.isFontLoaded(font.family)
+                      ? font.family
+                      : 'inherit',
+                  }}
+                >
+                  {font.family}
+                </span>
+                <span className="text-slate-400 text-xs ml-2 flex-shrink-0">
+                  {font.category}
+                </span>
+              </div>
+            </div>
+          ))}
+
+          {/* Loading indicator */}
+          {loading && (
+            <div className="px-4 py-4 text-center">
+              <LuLoader className="w-5 h-5 animate-spin text-slate-400 mx-auto" />
+              <p className="text-slate-400 text-sm mt-2">Loading fonts...</p>
+            </div>
+          )}
+
+          {/* Sentinel for infinite scroll. Always render to keep observer stable */}
+          <div ref={sentinelRef} className="h-4" aria-hidden />
+
+          {/* End of list indicator */}
+          {!hasMore && fonts.length > 0 && !loading && (
+            <div className="px-4 py-3 text-center text-slate-500 text-sm border-t border-slate-700/30">
+              No more fonts to load
+            </div>
+          )}
         </div>
       </div>
-
-      {/* Font List */}
-      <div ref={listRef} className="max-h-80 overflow-y-auto dropdown-scrollbar">
-        {error && (
-          <div className="px-4 py-6 text-center text-red-400">
-            <p>{error}</p>
-            <button
-              onClick={() => loadFonts(true)}
-              className="mt-2 px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700 transition-colors"
-            >
-              Retry
-            </button>
-          </div>
-        )}
-
-        {fonts.length === 0 && !loading && !error && (
-          <div className="px-4 py-6 text-center text-slate-400">
-            {searchQuery ? 'No fonts found' : 'No fonts available'}
-          </div>
-        )}
-
-        {fonts.map((font) => (
-          <div
-            key={font.family}
-            className="px-4 py-3 hover:bg-slate-700/50 cursor-pointer transition-colors border-b border-slate-700/30 last:border-b-0"
-            onClick={() => handleFontSelect(font)}
-            onMouseEnter={() => handleFontHover(font)}
-          >
-            <div className="flex items-center justify-between">
-              <span
-                className="text-white text-base truncate"
-                style={{
-                  fontFamily: googleFontsService.isFontLoaded(font.family)
-                    ? font.family
-                    : 'inherit'
-                }}
-              >
-                {font.family}
-              </span>
-              <span className="text-slate-400 text-xs ml-2 flex-shrink-0">
-                {font.category}
-              </span>
-            </div>
-          </div>
-        ))}
-
-        {/* Loading indicator */}
-        {loading && (
-          <div className="px-4 py-4 text-center">
-            <LuLoader className="w-5 h-5 animate-spin text-slate-400 mx-auto" />
-            <p className="text-slate-400 text-sm mt-2">Loading fonts...</p>
-          </div>
-        )}
-
-        {/* Sentinel for infinite scroll. Always render to keep observer stable */}
-        <div ref={sentinelRef} className="h-4" aria-hidden />
-
-        {/* End of list indicator */}
-        {!hasMore && fonts.length > 0 && !loading && (
-          <div className="px-4 py-3 text-center text-slate-500 text-sm border-t border-slate-700/30">
-            No more fonts to load
-          </div>
-        )}
-      </div>
-    </div>
-  ) : null
+    ) : null
 
   return (
     <div className="relative">
@@ -397,7 +411,7 @@ export default function GoogleFontDropdown({
         <span
           className="truncate"
           style={{
-            fontFamily: shouldShowFontStyle ? displayFontFamily : 'inherit'
+            fontFamily: shouldShowFontStyle ? displayFontFamily : 'inherit',
           }}
         >
           {displayFontFamily || 'Select font'}

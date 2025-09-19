@@ -22,7 +22,8 @@ interface FormatToolbarProps {
 }
 
 export default function FormatToolbar({ clips }: FormatToolbarProps) {
-  const { updateCaptionDefaultStyle, updateGroupNodeStyle, currentScenario } = useEditorStore()
+  const { updateCaptionDefaultStyle, updateGroupNodeStyle, currentScenario } =
+    useEditorStore()
 
   const [selectedFont, setSelectedFont] = useState('Arial')
   const [fontSize, setFontSize] = useState('100')
@@ -65,7 +66,7 @@ export default function FormatToolbar({ clips }: FormatToolbarProps) {
       // 전체 스타일 - caption track에서 가져오기
       if (currentScenario?.tracks) {
         const captionTrack = currentScenario.tracks.find(
-          track => track.id === 'caption' || track.type === 'subtitle'
+          (track) => track.id === 'caption' || track.type === 'subtitle'
         )
         if (captionTrack?.defaultStyle) {
           targetStyle = captionTrack.defaultStyle
@@ -118,7 +119,9 @@ export default function FormatToolbar({ clips }: FormatToolbarProps) {
       setSelectedColor(combinedStyle.color as string)
     }
 
-    setIsBold(combinedStyle.fontWeight === 'bold' || combinedStyle.fontWeight === 700)
+    setIsBold(
+      combinedStyle.fontWeight === 'bold' || combinedStyle.fontWeight === 700
+    )
     setIsItalic(combinedStyle.fontStyle === 'italic')
 
     if (combinedStyle.borderColor) {
@@ -153,7 +156,6 @@ export default function FormatToolbar({ clips }: FormatToolbarProps) {
     }
   }, [activeDropdown, activeStylePopup])
 
-
   // Generate format options dynamically
   const savedFormats = [
     { id: 'all', name: '전체' },
@@ -177,28 +179,41 @@ export default function FormatToolbar({ clips }: FormatToolbarProps) {
       ...textStyle
     } = combinedStyle
 
-    const boxStyle = (backgroundColor || backgroundOpacity !== undefined || border || borderColor || borderWidth || padding || borderRadius || opacity !== undefined) ? {
-      backgroundColor,
-      backgroundOpacity,
-      border,
-      borderColor,
-      borderWidth,
-      padding,
-      borderRadius,
-      opacity,
-    } : undefined
+    const boxStyle =
+      backgroundColor ||
+      backgroundOpacity !== undefined ||
+      border ||
+      borderColor ||
+      borderWidth ||
+      padding ||
+      borderRadius ||
+      opacity !== undefined
+        ? {
+            backgroundColor,
+            backgroundOpacity,
+            border,
+            borderColor,
+            borderWidth,
+            padding,
+            borderRadius,
+            opacity,
+          }
+        : undefined
 
     // Remove undefined properties
     const cleanTextStyle = Object.fromEntries(
       Object.entries(textStyle).filter(([, value]) => value !== undefined)
     )
-    const cleanBoxStyle = boxStyle ? Object.fromEntries(
-      Object.entries(boxStyle).filter(([, value]) => value !== undefined)
-    ) : undefined
+    const cleanBoxStyle = boxStyle
+      ? Object.fromEntries(
+          Object.entries(boxStyle).filter(([, value]) => value !== undefined)
+        )
+      : undefined
 
     return {
-      style: Object.keys(cleanTextStyle).length > 0 ? cleanTextStyle : undefined,
-      boxStyle: cleanBoxStyle
+      style:
+        Object.keys(cleanTextStyle).length > 0 ? cleanTextStyle : undefined,
+      boxStyle: cleanBoxStyle,
     }
   }
 
@@ -313,7 +328,9 @@ export default function FormatToolbar({ clips }: FormatToolbarProps) {
                 <button
                   key={format.id}
                   className={`w-full px-3 py-2 text-sm ${EDITOR_COLORS.dropdown.dark.text} ${EDITOR_COLORS.dropdown.dark.hover} text-left transition-colors ${
-                    currentFormat === format.name ? EDITOR_COLORS.dropdown.dark.selected : ''
+                    currentFormat === format.name
+                      ? EDITOR_COLORS.dropdown.dark.selected
+                      : ''
                   } first:rounded-t-lg last:rounded-b-lg`}
                   onClick={(e) => {
                     e.stopPropagation()
@@ -339,7 +356,7 @@ export default function FormatToolbar({ clips }: FormatToolbarProps) {
           const newBold = !isBold
           setIsBold(newBold)
           applyStyle({
-            fontWeight: newBold ? 'bold' : 'normal'
+            fontWeight: newBold ? 'bold' : 'normal',
           })
         }}
       >
@@ -355,7 +372,7 @@ export default function FormatToolbar({ clips }: FormatToolbarProps) {
           const newItalic = !isItalic
           setIsItalic(newItalic)
           applyStyle({
-            fontStyle: newItalic ? 'italic' : 'normal'
+            fontStyle: newItalic ? 'italic' : 'normal',
           })
         }}
       >
@@ -368,7 +385,7 @@ export default function FormatToolbar({ clips }: FormatToolbarProps) {
         onChange={(font: string) => {
           setSelectedFont(font)
           applyStyle({
-            fontFamily: font
+            fontFamily: font,
           })
         }}
         size="small"
@@ -388,7 +405,7 @@ export default function FormatToolbar({ clips }: FormatToolbarProps) {
             const sizePercent = parseInt(newSize) || 100
             const fontSizeRel = (sizePercent / 100) * 0.07
             applyStyle({
-              fontSizeRel: fontSizeRel
+              fontSizeRel: fontSizeRel,
             })
           }}
           className="w-16 h-8 px-2 pr-6 text-sm bg-slate-700/90 border-2 border-slate-500/70 rounded-default text-white focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-slate-400 hover:border-slate-400 hover:bg-slate-600/90"
@@ -455,7 +472,7 @@ export default function FormatToolbar({ clips }: FormatToolbarProps) {
                       const sizePercent = parseInt(size) || 100
                       const fontSizeRel = (sizePercent / 100) * 0.07
                       applyStyle({
-                        fontSizeRel: fontSizeRel
+                        fontSizeRel: fontSizeRel,
                       })
                       setActiveDropdown(null)
                     }}
@@ -524,7 +541,7 @@ export default function FormatToolbar({ clips }: FormatToolbarProps) {
                       e.stopPropagation()
                       setSelectedColor(color)
                       applyStyle({
-                        color: color
+                        color: color,
                       })
                       setActiveDropdown(null)
                     }}
@@ -736,14 +753,14 @@ export default function FormatToolbar({ clips }: FormatToolbarProps) {
                 setBorderColor(color)
                 applyStyle({
                   borderColor: color,
-                  border: `${borderThickness}px solid ${color}`
+                  border: `${borderThickness}px solid ${color}`,
                 })
               }}
               onThicknessChange={(thickness) => {
                 setBorderThickness(thickness)
                 applyStyle({
                   borderWidth: thickness,
-                  border: `${thickness}px solid ${borderColor}`
+                  border: `${thickness}px solid ${borderColor}`,
                 })
               }}
               onClose={() => setActiveStylePopup(null)}
@@ -769,13 +786,13 @@ export default function FormatToolbar({ clips }: FormatToolbarProps) {
               onColorChange={(color) => {
                 setBackgroundColor(color)
                 applyStyle({
-                  backgroundColor: color
+                  backgroundColor: color,
                 })
               }}
               onOpacityChange={(opacity) => {
                 setBackgroundOpacity(opacity)
                 applyStyle({
-                  backgroundOpacity: opacity
+                  backgroundOpacity: opacity,
                 })
               }}
               onClose={() => setActiveStylePopup(null)}
@@ -827,7 +844,7 @@ export default function FormatToolbar({ clips }: FormatToolbarProps) {
               onColorChange={(color) => {
                 setShadowColor(color)
                 applyStyle({
-                  textShadow: `2px 2px 4px ${color}`
+                  textShadow: `2px 2px 4px ${color}`,
                 })
               }}
               onClose={() => setActiveStylePopup(null)}
