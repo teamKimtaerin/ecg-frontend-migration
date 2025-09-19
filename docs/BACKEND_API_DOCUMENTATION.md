@@ -30,6 +30,7 @@
 ### 핵심 처리 플로우
 
 #### 1️⃣ Upload Phase (음성 분석)
+
 ```
 1. 사용자가 비디오 파일 선택
 2. Frontend → API Server: Presigned URL 요청
@@ -42,6 +43,7 @@
 ```
 
 #### 2️⃣ Export Phase (GPU 렌더링)
+
 ```
 1. 사용자가 편집 완료 후 GPU 렌더링 요청
 2. Frontend → API Server: 렌더링 작업 생성
@@ -58,13 +60,13 @@
 
 ### 서비스 클래스별 역할
 
-| 서비스 | 파일 위치 | 역할 |
-|--------|----------|------|
-| `UploadService` | `src/services/api/uploadService.ts` | S3 업로드, ML 처리 요청/상태 관리 |
-| `RenderService` | `src/services/api/renderService.ts` | GPU 렌더링 작업 생성/관리 |
-| `VideoService` | `src/services/api/videoService.ts` | 비디오 메타데이터, 처리 상태 (Mock 포함) |
-| `TranscriptionService` | `src/services/api/transcriptionService.ts` | 전사 결과 처리, Mock 데이터 관리 |
-| `AuthAPI` | `src/lib/api/auth.ts` | 인증, 회원가입, 로그인, 사용자 정보 |
+| 서비스                 | 파일 위치                                  | 역할                                     |
+| ---------------------- | ------------------------------------------ | ---------------------------------------- |
+| `UploadService`        | `src/services/api/uploadService.ts`        | S3 업로드, ML 처리 요청/상태 관리        |
+| `RenderService`        | `src/services/api/renderService.ts`        | GPU 렌더링 작업 생성/관리                |
+| `VideoService`         | `src/services/api/videoService.ts`         | 비디오 메타데이터, 처리 상태 (Mock 포함) |
+| `TranscriptionService` | `src/services/api/transcriptionService.ts` | 전사 결과 처리, Mock 데이터 관리         |
+| `AuthAPI`              | `src/lib/api/auth.ts`                      | 인증, 회원가입, 로그인, 사용자 정보      |
 
 ### Base URL 설정
 
@@ -83,6 +85,7 @@ export const API_CONFIG = {
 ## 🔐 인증 시스템
 
 ### 파일 위치
+
 - **API 클래스**: `src/lib/api/auth.ts`
 - **Store**: `src/lib/store/authStore.ts`
 - **타입 정의**: `src/lib/api/auth.ts` (인라인)
@@ -92,6 +95,7 @@ export const API_CONFIG = {
 #### 회원가입 API
 
 **요청 구조**
+
 ```typescript
 // POST /api/auth/signup
 interface SignupRequest {
@@ -102,10 +106,11 @@ interface SignupRequest {
 ```
 
 **응답 구조**
+
 ```typescript
 interface AuthResponse {
   access_token: string
-  token_type: string  // "bearer"
+  token_type: string // "bearer"
   user: User
 }
 
@@ -121,26 +126,28 @@ interface User {
 ```
 
 **에러 처리**
+
 ```typescript
 // 422: 유효성 검사 오류
 {
   detail: [
     {
-      msg: "이메일 형식이 올바르지 않습니다",
-      message: "Invalid email format"
-    }
+      msg: '이메일 형식이 올바르지 않습니다',
+      message: 'Invalid email format',
+    },
   ]
 }
 
 // 409: 중복 사용자
 {
-  detail: "이미 존재하는 이메일입니다"
+  detail: '이미 존재하는 이메일입니다'
 }
 ```
 
 #### 로그인 API
 
 **요청 구조**
+
 ```typescript
 // POST /api/auth/login
 interface LoginRequest {
@@ -154,6 +161,7 @@ interface LoginRequest {
 #### 사용자 정보 조회
 
 **요청 구조**
+
 ```typescript
 // GET /api/auth/me
 // Headers: Authorization: Bearer {token}
@@ -164,6 +172,7 @@ interface LoginRequest {
 #### Google OAuth
 
 **엔드포인트**
+
 ```typescript
 // GET /api/auth/google/login - 구글 로그인 시작
 // GET /api/auth/google/callback - 구글 콜백 처리
@@ -190,6 +199,7 @@ interface AuthState {
 ## 📤 업로드 및 ML 처리 API
 
 ### 파일 위치
+
 - **서비스**: `src/services/api/uploadService.ts`
 - **타입 정의**: `src/services/api/types/upload.types.ts`
 
@@ -198,28 +208,31 @@ interface AuthState {
 **엔드포인트**: `POST /api/upload-video/generate-url`
 
 **요청 구조**
+
 ```typescript
 interface PresignedUrlRequest {
   filename: string
-  content_type: string  // 예: "video/mp4"
+  content_type: string // 예: "video/mp4"
 }
 ```
 
 **응답 구조**
+
 ```typescript
 interface PresignedUrlResponse {
-  presigned_url: string  // S3 업로드 URL
-  file_key: string       // S3에서의 파일 키
-  expires_in: number     // 만료 시간(초)
+  presigned_url: string // S3 업로드 URL
+  file_key: string // S3에서의 파일 키
+  expires_in: number // 만료 시간(초)
 }
 ```
 
 **백엔드 응답 매핑**
+
 ```typescript
 // 백엔드는 다양한 필드명을 사용할 수 있음
 interface BackendPresignedResponse {
   url?: string
-  upload_url?: string     // API 문서 명시
+  upload_url?: string // API 문서 명시
   presigned_url?: string
   fileKey?: string
   file_key?: string
@@ -229,7 +242,11 @@ interface BackendPresignedResponse {
 
 // 프론트엔드에서 통일된 형태로 매핑
 const mappedResponse: PresignedUrlResponse = {
-  presigned_url: response.data.upload_url || response.data.url || response.data.presigned_url || '',
+  presigned_url:
+    response.data.upload_url ||
+    response.data.url ||
+    response.data.presigned_url ||
+    '',
   file_key: response.data.fileKey || response.data.file_key || '',
   expires_in: response.data.expires_in || 3600,
 }
@@ -240,13 +257,15 @@ const mappedResponse: PresignedUrlResponse = {
 **메서드**: `uploadToS3(file: File, presignedUrl: string, onProgress?: Function)`
 
 **특징**
+
 - XMLHttpRequest 사용 (진행률 추적 가능)
 - 실시간 업로드 진행률 콜백
 - S3 직접 업로드 (API 서버 경유 없음)
 
 **응답**
+
 ```typescript
-ServiceResponse<string>  // S3 공개 URL 반환
+ServiceResponse<string> // S3 공개 URL 반환
 ```
 
 ### 3. ML 처리 요청
@@ -254,19 +273,21 @@ ServiceResponse<string>  // S3 공개 URL 반환
 **엔드포인트**: `POST /api/upload-video/request-process`
 
 **요청 구조**
+
 ```typescript
 interface MLProcessingRequest {
   fileKey: string
-  language?: string  // 'auto', 'ko', 'en', 'ja', 'zh'
+  language?: string // 'auto', 'ko', 'en', 'ja', 'zh'
 }
 ```
 
 **응답 구조**
+
 ```typescript
 interface MLProcessingResponse {
   job_id: string
-  status: string          // 'pending', 'processing', 'completed', 'failed'
-  estimated_time: number  // 예상 처리 시간(초)
+  status: string // 'pending', 'processing', 'completed', 'failed'
+  estimated_time: number // 예상 처리 시간(초)
   message?: string
 }
 ```
@@ -276,13 +297,14 @@ interface MLProcessingResponse {
 **엔드포인트**: `GET /api/upload-video/status/{jobId}`
 
 **응답 구조**
+
 ```typescript
 interface ProcessingStatus {
   job_id: string
   status: 'pending' | 'processing' | 'completed' | 'failed'
-  progress: number                    // 0-100
-  current_stage?: string              // "음성 추출 중", "화자 분리 중" 등
-  estimated_time_remaining?: number   // 남은 시간(초)
+  progress: number // 0-100
+  current_stage?: string // "음성 추출 중", "화자 분리 중" 등
+  estimated_time_remaining?: number // 남은 시간(초)
   result?: {
     segments: SegmentData[]
     metadata: {
@@ -298,25 +320,27 @@ interface ProcessingStatus {
 ### 5. 상태 폴링 시스템
 
 **자동 폴링 설정**
+
 ```typescript
 // 2초 간격으로 자동 폴링
 uploadService.startPolling(
   jobId,
-  onStatusUpdate,   // 상태 업데이트 콜백
-  onComplete,       // 완료 콜백
-  onError,          // 에러 콜백
-  2000              // 폴링 간격(ms)
+  onStatusUpdate, // 상태 업데이트 콜백
+  onComplete, // 완료 콜백
+  onError, // 에러 콜백
+  2000 // 폴링 간격(ms)
 )
 ```
 
 **처리 완료 시 데이터 구조**
+
 ```typescript
 interface SegmentData {
   id?: number
   start: number
   end: number
   text: string
-  speaker: string | { speaker_id: string }  // ML 서버 응답 형태 유연하게 처리
+  speaker: string | { speaker_id: string } // ML 서버 응답 형태 유연하게 처리
   confidence: number
   words?: WordData[]
 }
@@ -341,6 +365,7 @@ interface WordData {
 ## 🎬 GPU 렌더링 API
 
 ### 파일 위치
+
 - **서비스**: `src/services/api/renderService.ts`
 - **타입 정의**: `src/services/api/types/render.types.ts`
 
@@ -349,18 +374,19 @@ interface WordData {
 **엔드포인트**: `POST /api/render/create`
 
 **요청 구조**
+
 ```typescript
 interface RenderRequest {
-  videoUrl: string              // S3 업로드된 비디오 URL
-  scenario: RendererScenario    // MotionText 시나리오
+  videoUrl: string // S3 업로드된 비디오 URL
+  scenario: RendererScenario // MotionText 시나리오
   options?: RenderOptions
 }
 
 interface RenderOptions {
-  width?: number      // 기본값: 1920
-  height?: number     // 기본값: 1080
-  fps?: number        // 기본값: 30
-  quality?: number    // 기본값: 90
+  width?: number // 기본값: 1920
+  height?: number // 기본값: 1080
+  fps?: number // 기본값: 30
+  quality?: number // 기본값: 90
   format?: 'mp4' | 'mov' | 'webm'
 }
 
@@ -377,17 +403,18 @@ interface RendererScenario {
     id: string
     track: string
     hintTime?: { start?: number; end?: number }
-    root: Record<string, unknown>  // 플러그인 데이터
+    root: Record<string, unknown> // 플러그인 데이터
   }>
 }
 ```
 
 **응답 구조**
+
 ```typescript
 // 백엔드 직접 응답
 interface BackendCreateRenderResponse {
   jobId: string
-  estimatedTime: number  // 예상 처리 시간(초)
+  estimatedTime: number // 예상 처리 시간(초)
   createdAt: string
 }
 
@@ -410,16 +437,17 @@ interface RenderJob {
 **엔드포인트**: `GET /api/render/{jobId}/status`
 
 **응답 구조**
+
 ```typescript
 // 백엔드 직접 응답
 interface BackendStatusResponse {
   jobId: string
   status: 'queued' | 'processing' | 'completed' | 'failed'
-  progress: number                    // 0-100
-  estimatedTimeRemaining?: number     // 남은 시간(초)
+  progress: number // 0-100
+  estimatedTimeRemaining?: number // 남은 시간(초)
   startedAt?: string
   completedAt?: string
-  downloadUrl?: string               // 완료 시 다운로드 URL
+  downloadUrl?: string // 완료 시 다운로드 URL
   error?: string
 }
 
@@ -436,6 +464,7 @@ interface StatusResponse {
 **엔드포인트**: `POST /api/render/{jobId}/cancel`
 
 **응답 구조**
+
 ```typescript
 interface BackendCancelResponse {
   success: boolean
@@ -446,32 +475,37 @@ interface BackendCancelResponse {
 ### 4. 폴링 시스템
 
 **자동 폴링 설정**
+
 ```typescript
 // 5초 간격, 최대 25분
 await renderService.pollJobStatus(
   jobId,
-  onProgress,  // 진행률 콜백
-  5000,        // 폴링 간격(ms)
-  300          // 최대 시도 횟수
+  onProgress, // 진행률 콜백
+  5000, // 폴링 간격(ms)
+  300 // 최대 시도 횟수
 )
 ```
 
 ### 5. 파일 다운로드 (File System Access API)
 
 **특징**
+
 - Chrome 86+, Edge 86+, Opera 72+ 지원
 - 사용자가 저장 위치를 미리 선택
 - 렌더링 완료 시 자동 저장
 
 **구현**
+
 ```typescript
 // 저장 위치 선택
 const handle = await window.showSaveFilePicker({
   suggestedName: `ecg-rendered-${timestamp}.mp4`,
-  types: [{
-    description: 'MP4 Video File',
-    accept: { 'video/mp4': ['.mp4'] }
-  }]
+  types: [
+    {
+      description: 'MP4 Video File',
+      accept: { 'video/mp4': ['.mp4'] },
+    },
+  ],
 })
 
 // 자동 저장
@@ -499,17 +533,18 @@ enum RenderErrorCode {
 ```
 
 **세분화된 에러 메시지**
+
 ```typescript
 // 할당량 초과
 if (error.message.includes('quota:')) {
   errorCode = RenderErrorCode.RENDER_QUOTA_DAILY_EXCEEDED
-  errorMessage = "일일 렌더링 할당량을 초과했습니다. 내일 다시 시도해주세요."
+  errorMessage = '일일 렌더링 할당량을 초과했습니다. 내일 다시 시도해주세요.'
 }
 
 // 속도 제한
 if (error.message.includes('rate:')) {
   errorCode = RenderErrorCode.RENDER_RATE_LIMIT_EXCEEDED
-  errorMessage = "요청이 너무 많습니다. 잠시 후 다시 시도해주세요."
+  errorMessage = '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.'
 }
 ```
 
@@ -518,6 +553,7 @@ if (error.message.includes('rate:')) {
 ## 📹 비디오 및 전사 API
 
 ### 파일 위치
+
 - **비디오 서비스**: `src/services/api/videoService.ts`
 - **전사 서비스**: `src/services/api/transcriptionService.ts`
 - **공통 타입**: `src/services/api/types.ts`
@@ -525,11 +561,13 @@ if (error.message.includes('rate:')) {
 ### VideoService (Mock 구현)
 
 **특징**
+
 - 실제 API 구현 대기 중
 - Mock 데이터로 개발 환경 지원
 - 실제 구현 준비된 인터페이스
 
 **주요 메서드**
+
 ```typescript
 // 비디오 메타데이터 조회
 async getVideoMetadata(videoUrl: string): Promise<ServiceResponse<VideoMetadata>>
@@ -548,11 +586,13 @@ interface VideoMetadata {
 ### TranscriptionService
 
 **역할**
+
 - ML 처리 결과를 Editor 형식으로 변환
 - Mock 데이터 관리 (`/real.json`, `/friends_result.json`)
 - 세그먼트 → 클립 변환
 
 **주요 메서드**
+
 ```typescript
 // 전사 결과 조회
 async getTranscriptionResults(jobId: string): Promise<ServiceResponse<TranscriptionResult>>
@@ -565,6 +605,7 @@ async convertToClips(segments: TranscriptionSegment[]): Promise<ClipItem[]>
 ```
 
 **전사 결과 구조**
+
 ```typescript
 interface TranscriptionResult {
   jobId: string
@@ -598,21 +639,21 @@ interface TranscriptionWord {
   start: number
   end: number
   confidence: number
-  volume_db?: number          // 음성 분석
-  pitch_hz?: number           // 피치 분석
-  harmonics_ratio?: number    // 하모닉스 비율
-  spectral_centroid?: number  // 스펙트럼 중심
+  volume_db?: number // 음성 분석
+  pitch_hz?: number // 피치 분석
+  harmonics_ratio?: number // 하모닉스 비율
+  spectral_centroid?: number // 스펙트럼 중심
 }
 ```
 
 **Mock 데이터 설정**
+
 ```typescript
 // DEBUG_MODE=true일 때 /friends_result.json 사용
 // 그 외에는 /real.json 사용
-MOCK_TRANSCRIPTION_PATH:
-  process.env.NEXT_PUBLIC_DEBUG_MODE === 'true'
-    ? '/friends_result.json'
-    : '/real.json'
+MOCK_TRANSCRIPTION_PATH: process.env.NEXT_PUBLIC_DEBUG_MODE === 'true'
+  ? '/friends_result.json'
+  : '/real.json'
 ```
 
 ---
@@ -622,6 +663,7 @@ MOCK_TRANSCRIPTION_PATH:
 ### 환경 변수
 
 #### `.env` (프로덕션 기본값)
+
 ```bash
 # API 서버
 NEXT_PUBLIC_API_URL=https://ho-it.site
@@ -631,6 +673,7 @@ NEXT_PUBLIC_DEBUG_MODE=false
 ```
 
 #### `.env.local` (로컬 개발)
+
 ```bash
 # 로컬 개발 서버 (CORS 프록시 사용)
 NEXT_PUBLIC_API_URL=https://ho-it.site
@@ -667,8 +710,8 @@ GOOGLE_CLIENT_SECRET=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
 // src/lib/api/auth.ts
 const BASE_URL =
   process.env.NODE_ENV === 'development'
-    ? ''  // 개발 환경: 프록시 사용 (CORS 문제 해결)
-    : API_CONFIG.FASTAPI_BASE_URL  // 프로덕션: 직접 호출
+    ? '' // 개발 환경: 프록시 사용 (CORS 문제 해결)
+    : API_CONFIG.FASTAPI_BASE_URL // 프로덕션: 직접 호출
 ```
 
 ### 기능 플래그
@@ -699,8 +742,8 @@ interface ServiceResponse<T> {
 }
 
 interface ErrorResponse {
-  error: string    // 에러 코드
-  message: string  // 사용자 메시지
+  error: string // 에러 코드
+  message: string // 사용자 메시지
   details?: string | Record<string, unknown>
 }
 ```
@@ -708,6 +751,7 @@ interface ErrorResponse {
 ### HTTP 상태 코드별 처리
 
 #### 인증 API 에러
+
 ```typescript
 // 422: 유효성 검사 오류
 if (response.status === 422) {
@@ -715,7 +759,7 @@ if (response.status === 422) {
 
   if (Array.isArray(errorData.detail)) {
     message = errorData.detail
-      .map(err => err.msg || err.message || '유효성 검사 실패')
+      .map((err) => err.msg || err.message || '유효성 검사 실패')
       .join('\n')
   }
 }
@@ -732,6 +776,7 @@ if (response.status === 429) {
 ```
 
 #### 업로드 API 에러
+
 ```typescript
 enum UploadErrorCode {
   NETWORK_ERROR = 'NETWORK_ERROR',
@@ -742,6 +787,7 @@ enum UploadErrorCode {
 ```
 
 #### 렌더링 API 에러
+
 ```typescript
 enum RenderErrorCode {
   CREATE_JOB_ERROR = 'CREATE_JOB_ERROR',
@@ -755,16 +801,16 @@ enum RenderErrorCode {
 const errorHandling = {
   'quota:': {
     code: RenderErrorCode.QUOTA_EXCEEDED,
-    message: '일일 렌더링 할당량을 초과했습니다. 내일 다시 시도해주세요.'
+    message: '일일 렌더링 할당량을 초과했습니다. 내일 다시 시도해주세요.',
   },
   'rate:': {
     code: RenderErrorCode.RATE_LIMIT,
-    message: '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.'
+    message: '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.',
   },
   'invalid:': {
     code: RenderErrorCode.INVALID_INPUT,
-    message: '입력 데이터가 올바르지 않습니다. 비디오와 자막을 확인해주세요.'
-  }
+    message: '입력 데이터가 올바르지 않습니다. 비디오와 자막을 확인해주세요.',
+  },
 }
 ```
 
@@ -784,8 +830,8 @@ if (error instanceof Error && error.name === 'AbortError') {
     success: false,
     error: {
       code: 'ABORTED',
-      message: '작업이 취소되었습니다'
-    }
+      message: '작업이 취소되었습니다',
+    },
   }
 }
 ```
@@ -822,6 +868,7 @@ src/
 ### 타입 정의 파일
 
 #### 업로드 관련 (`src/services/api/types/upload.types.ts`)
+
 - `PresignedUrlRequest/Response`
 - `MLProcessingRequest/Response`
 - `ProcessingStatus`
@@ -829,6 +876,7 @@ src/
 - `UploadErrorResponse`, `ServiceResponse`
 
 #### 렌더링 관련 (`src/services/api/types/render.types.ts`)
+
 - `RenderRequest`, `RenderOptions`
 - `RenderJob`, `RenderStatus`
 - `RendererScenario`
@@ -836,12 +884,14 @@ src/
 - `RenderErrorCode` enum
 
 #### 인증 관련 (`src/lib/api/auth.ts`)
+
 - `SignupRequest`, `LoginRequest`
 - `User`, `AuthResponse`
 
 ### 설정 파일
 
 #### API 설정 (`src/config/api.config.ts`)
+
 ```typescript
 export const API_CONFIG = {
   // 기능 플래그
@@ -855,17 +905,18 @@ export const API_CONFIG = {
   endpoints: {
     auth: { signup, login, me, googleLogin, googleCallback },
     uploadVideo: { generateUrl, requestProcess, status },
-    render: { create, status, cancel, history }
+    render: { create, status, cancel, history },
   },
 
   // 타임아웃 설정
-  UPLOAD_TIMEOUT: 300000,    // 5분
+  UPLOAD_TIMEOUT: 300000, // 5분
   PROCESSING_TIMEOUT: 600000, // 10분
   STATUS_POLL_INTERVAL: 2000, // 2초
 }
 ```
 
 #### Next.js 설정 (`next.config.ts`)
+
 - CORS 프록시 설정 (개발 환경)
 - 이미지 최적화 비활성화
 - CloudFront 도메인 허용
@@ -881,10 +932,7 @@ export const API_CONFIG = {
 import { uploadService } from '@/services/api/uploadService'
 
 // 1. Presigned URL 요청
-const urlResponse = await uploadService.getPresignedUrl(
-  file.name,
-  file.type
-)
+const urlResponse = await uploadService.getPresignedUrl(file.name, file.type)
 
 // 2. S3 업로드
 const uploadResponse = await uploadService.uploadToS3(
@@ -917,21 +965,18 @@ import { renderService } from '@/services/api/renderService'
 const renderResponse = await renderService.createRenderJob({
   videoUrl: 's3://bucket/video.mp4',
   scenario: motionTextScenario,
-  options: { width: 1920, height: 1080, fps: 30 }
+  options: { width: 1920, height: 1080, fps: 30 },
 })
 
 // 2. 진행 상황 폴링
 const finalStatus = await renderService.pollJobStatus(
   renderResponse.data.jobId,
   (status) => updateProgress(status.progress),
-  5000  // 5초 간격
+  5000 // 5초 간격
 )
 
 // 3. 파일 다운로드
-await renderService.downloadFile(
-  finalStatus.downloadUrl,
-  'my-video.mp4'
-)
+await renderService.downloadFile(finalStatus.downloadUrl, 'my-video.mp4')
 ```
 
 ### 3. 인증
@@ -945,13 +990,13 @@ const authStore = useAuthStore()
 await authStore.signup({
   username: 'user123',
   email: 'user@example.com',
-  password: 'password123'
+  password: 'password123',
 })
 
 // 로그인
 await authStore.login({
   email: 'user@example.com',
-  password: 'password123'
+  password: 'password123',
 })
 
 // 현재 사용자 정보
@@ -965,16 +1010,19 @@ await authStore.getCurrentUser()
 ### 측정 지표
 
 #### 업로드 성능
+
 - **파일 크기별 업로드 시간**: S3 직접 업로드로 API 서버 부하 없음
 - **ML 처리 시간**: 1분 영상 기준 2-5분 (WhisperX 모델 성능)
 - **폴링 효율성**: 2초 간격, 실패 시 백오프 적용
 
 #### 렌더링 성능
+
 - **GPU 가속 처리**: 1분 영상 → 15-20초 (20-40배 속도 개선)
 - **대기열 관리**: 동시 처리 제한으로 안정성 확보
 - **자동 저장**: File System Access API로 UX 개선
 
 #### 에러율 모니터링
+
 - **네트워크 에러**: CORS, 타임아웃, 연결 실패
 - **서버 에러**: 할당량 초과, 인증 실패, 유효성 검사
 - **클라이언트 에러**: 파일 형식, 브라우저 호환성
@@ -984,17 +1032,20 @@ await authStore.getCurrentUser()
 ## 🔮 향후 계획
 
 ### API 개선 사항
+
 1. **실시간 알림**: WebSocket으로 폴링 대체
 2. **배치 처리**: 여러 파일 동시 업로드/처리
 3. **캐싱 전략**: Redis로 결과 캐싱
 4. **프로젝트 관리**: 사용자별 프로젝트 저장/불러오기
 
 ### 성능 최적화
+
 1. **청크 업로드**: 대용량 파일 분할 업로드
 2. **Progressive Web App**: 오프라인 편집 지원
 3. **CDN 활용**: 정적 리소스 최적화
 
 ### 보안 강화
+
 1. **토큰 갱신**: JWT 자동 갱신 메커니즘
 2. **RBAC**: 역할 기반 접근 제어
 3. **감사 로그**: API 호출 추적
