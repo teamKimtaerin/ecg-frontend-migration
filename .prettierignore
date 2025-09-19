@@ -24,4 +24,7 @@ Thumbs.db
 # Generated files
 coverage
 playwright-report
-test-resultssrc/services/api/uploadService.ts
+test-results
+
+# Problematic files with line ending conflicts
+src/services/api/uploadService.ts
