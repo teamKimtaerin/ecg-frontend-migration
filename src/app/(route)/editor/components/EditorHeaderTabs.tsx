@@ -6,10 +6,11 @@ import Tab from '@/components/ui/Tab'
 import TabItem from '@/components/ui/TabItem'
 import UserDropdown from '@/components/ui/UserDropdown'
 import { useDeployModal } from '@/hooks/useDeployModal'
+import { useProgressTasks } from '@/hooks/useProgressTasks'
 import { AutosaveManager } from '@/utils/managers/AutosaveManager'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { LuHouse, LuMenu, LuShoppingBag } from 'react-icons/lu'
+import { LuBell, LuHouse, LuMenu, LuShoppingBag } from 'react-icons/lu'
 import { useEditorStore } from '../store'
 import { EDITOR_TABS } from '../types'
 import { EDITOR_COLORS, getToolbarClasses } from '../constants/colors'
@@ -61,59 +62,15 @@ export default function EditorHeaderTabs({
   // Deploy modal hook
   const { openDeployModal, deployModalProps } = useDeployModal()
 
+  // Get real progress data
+  const { exportTasks, uploadTasks } = useProgressTasks()
+
   const handleDeployClick = (task: { id: number; filename: string }) => {
     openDeployModal({
       id: task.id,
       filename: task.filename,
     })
   }
-
-  // Mock data for document modal
-  const exportTasks = [
-    {
-      id: 1,
-      filename: 'video_project_1.mp4',
-      progress: 75,
-      status: 'processing' as const,
-    },
-    {
-      id: 2,
-      filename: 'video_project_2.mp4',
-      progress: 100,
-      status: 'completed' as const,
-      completedAt: '2025-01-11 14:30',
-    },
-    {
-      id: 3,
-      filename: 'video_project_3.mp4',
-      progress: 100,
-      status: 'completed' as const,
-      completedAt: '2025-01-11 12:15',
-    },
-  ]
-
-  const uploadTasks = [
-    {
-      id: 1,
-      filename: 'video_raw_1.mp4',
-      progress: 45,
-      status: 'uploading' as const,
-    },
-    {
-      id: 2,
-      filename: 'video_raw_2.mp4',
-      progress: 100,
-      status: 'completed' as const,
-      completedAt: '2025-01-11 13:45',
-    },
-    {
-      id: 3,
-      filename: 'video_raw_3.mp4',
-      progress: 0,
-      status: 'failed' as const,
-      completedAt: '2025-01-11 11:20',
-    },
-  ]
 
   // If props are provided, use them; otherwise fall back to store
   const activeTab =
@@ -340,29 +297,15 @@ export default function EditorHeaderTabs({
               ref={documentButtonRef}
               onClick={() => setIsDocumentModalOpen(!isDocumentModalOpen)}
               className={`p-2 ${getTextClasses()} ${getHoverClasses()} hover:scale-110 hover:shadow-md rounded-lg transition-all duration-200 cursor-pointer`}
-              title="문서함"
+              title="알림"
             >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2V7zm16 0V6a2 2 0 00-2-2H7a2 2 0 00-2 2v1m14 0H3"
-                />
-              </svg>
+              <LuBell className="w-5 h-5" />
             </button>
 
             <DocumentModal
               isOpen={isDocumentModalOpen}
               onClose={() => setIsDocumentModalOpen(false)}
               buttonRef={documentButtonRef}
-              exportTasks={exportTasks}
-              uploadTasks={uploadTasks}
               onDeployClick={handleDeployClick}
             />
           </div>

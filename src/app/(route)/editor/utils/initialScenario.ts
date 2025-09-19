@@ -152,7 +152,7 @@ export function buildInitialScenarioFromClips(
           safeAreaClamp: 'define.caption.layout.safeAreaClamp',
           childrenLayout: 'define.caption.childrenLayout', // Reference to define
         },
-        style: 'define.caption.boxStyle',
+        // Remove style - will inherit from track defaultStyle
         children,
       },
     }
@@ -167,11 +167,6 @@ export function buildInitialScenarioFromClips(
     define: {
       caption: {
         position: position, // Use the calculated position (default: { x: 0.5, y: 0.925 })
-        boxStyle: {
-          backgroundColor: 'rgba(0, 0, 0, 0.9)',
-          padding: '8px 16px',
-          borderRadius: '4px',
-        },
         layout: {
           anchor: anchor,
           safeAreaClamp: true,
@@ -197,6 +192,11 @@ export function buildInitialScenarioFromClips(
           fontFamily: 'Arial, sans-serif',
           color: '#ffffff',
           align: 'center',
+        },
+        defaultBoxStyle: {
+          backgroundColor: 'rgba(0, 0, 0, 0.9)',
+          padding: '8px 16px',
+          borderRadius: '4px',
           opacity: 1,
         },
       },
