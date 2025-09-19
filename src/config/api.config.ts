@@ -5,26 +5,58 @@
 
 export const API_CONFIG = {
   // Feature flags
-  USE_MOCK_DATA: true, // Toggle between mock and real API
+  // Global debug mode: when true, mock upload + transcription using local data
+  DEBUG_MODE:
+    (typeof process !== 'undefined' &&
+      process.env.NEXT_PUBLIC_DEBUG_MODE === 'true') ||
+    false,
 
-  // API Base URLs
-  FASTAPI_BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
-  MODEL_SERVER_URL:
-    process.env.NEXT_PUBLIC_MODEL_SERVER_URL || 'http://localhost:8001',
+  // Legacy flag kept for compatibility; derived from DEBUG_MODE when set
+  USE_MOCK_DATA:
+    (typeof process !== 'undefined' &&
+      process.env.NEXT_PUBLIC_DEBUG_MODE === 'true') ||
+    false, // Toggle between mock and real API
+
+  // API Base URLs (환경변수에서 가져오기)
+  FASTAPI_BASE_URL: process.env.NEXT_PUBLIC_API_URL!,
+  API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL!,
+  MODEL_SERVER_URL: process.env.NEXT_PUBLIC_MODEL_SERVER_URL!,
 
   // S3 Configuration
   S3_BUCKET: process.env.NEXT_PUBLIC_S3_BUCKET || 'ecg-videos',
 
   // API Endpoints
   endpoints: {
+    // Authentication
+    auth: {
+      signup: '/api/auth/signup',
+      login: '/api/auth/login',
+      me: '/api/auth/me',
+      googleLogin: '/api/auth/google/login',
+      googleCallback: '/api/auth/google/callback',
+    },
     // Video upload endpoints
     uploadVideo: {
       generateUrl: '/api/upload-video/generate-url',
       requestProcess: '/api/upload-video/request-process',
+      status: '/api/upload-video/status',
     },
-    // Processing status
+    // Project management
+    projects: {
+      list: '/api/projects',
+      create: '/api/projects',
+      update: '/api/projects',
+      delete: '/api/projects',
+    },
+    // GPU Rendering
+    render: {
+      create: '/api/render/create',
+      status: '/api/render',
+      cancel: '/api/render',
+      history: '/api/render/history',
+    },
+    // Legacy endpoints (deprecated)
     processingStatus: '/api/processing/status',
-    // Results
     getResults: '/api/results',
   },
 
@@ -37,7 +69,11 @@ export const API_CONFIG = {
 
   // Mock data paths
   MOCK_VIDEO_PATH: '/friends.mp4',
-  MOCK_TRANSCRIPTION_PATH: '/real.json',
+  MOCK_TRANSCRIPTION_PATH:
+    typeof process !== 'undefined' &&
+    process.env.NEXT_PUBLIC_DEBUG_MODE === 'true'
+      ? '/friends_result.json'
+      : '/real.json',
 }
 
 export default API_CONFIG

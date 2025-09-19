@@ -1,5 +1,45 @@
 @import 'tailwindcss';
 
+/* Range slider styles for plugin controls */
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+input[type='range']::-webkit-slider-track {
+  background: #4b5563;
+  height: 8px;
+  border-radius: 4px;
+}
+
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  background: #3b82f6;
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+input[type='range']::-moz-range-track {
+  background: #4b5563;
+  height: 8px;
+  border-radius: 4px;
+  border: none;
+}
+
+input[type='range']::-moz-range-thumb {
+  background: #3b82f6;
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+}
+
 /* Slide animations */
 @keyframes slide-right {
   from {
@@ -16,10 +56,20 @@
   animation: slide-right 0.2s ease-out;
 }
 
+/* Shimmer animation for processing modal */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
 /* Custom scrollbar with position indicator */
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: #4a5568 #1a202c;
+  scrollbar-color: #9ca3af #ffffff;
   position: relative;
 }
 
@@ -29,20 +79,20 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: #1a202c;
+  background: #ffffff;
   border-radius: 6px;
   position: relative;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #4a5568;
+  background: #9ca3af;
   border-radius: 6px;
-  border: 2px solid #1a202c;
+  border: 2px solid #ffffff;
   position: relative;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #718096;
+  background: #6b7280;
 }
 
 /* Scroll position indicator */
@@ -839,7 +889,6 @@ body {
 
 /* Replace expensive backdrop-blur with optimized version */
 .backdrop-blur-sm {
-  background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
 }

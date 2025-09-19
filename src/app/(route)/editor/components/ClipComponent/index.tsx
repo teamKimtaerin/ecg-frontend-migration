@@ -2,13 +2,14 @@
 
 import React, { useState } from 'react'
 import { ClipComponentProps } from './types'
-import ClipTimeline from './ClipTimeline'
 import ClipCheckbox from './ClipCheckbox'
 import ClipSpeaker from './ClipSpeaker'
 import ClipWords from './ClipWords'
 import ClipText from './ClipText'
+import ExpandedClipWaveform from './ExpandedClipWaveform'
 import { useClipDragAndDrop } from '../../hooks/useClipDragAndDrop'
 import { useClipStyles } from '../../hooks/useClipStyles'
+import { useEditorStore } from '../../store'
 
 export default function ClipComponent({
   clip,
@@ -17,8 +18,8 @@ export default function ClipComponent({
   isChecked = false,
   isMultiSelected = false,
   enableDragAndDrop = false,
-  isGroupSelecting = false,
   speakers = [],
+  speakerColors,
   onSelect,
   onCheck,
   onWordEdit,
@@ -27,53 +28,36 @@ export default function ClipComponent({
   onOpenSpeakerManagement,
   onAddSpeaker,
   onRenameSpeaker,
-  onMouseDown,
-  onMouseEnter,
 }: ClipComponentProps) {
   const [isHovered, setIsHovered] = useState(false)
+  const { expandedClipId, focusedWordId } = useEditorStore()
+  const isExpanded = expandedClipId === clip.id
+
   const { dragProps, isDragging } = useClipDragAndDrop(
     clip.id,
-    enableDragAndDrop
+    enableDragAndDrop && !isExpanded // Disable drag when expanded
   )
   const { containerClassName, sidebarClassName, contentClassName } =
     useClipStyles({
       isSelected,
       isChecked,
       isMultiSelected,
-      isHovered: isHovered || isGroupSelecting,
+      isHovered,
       isDragging,
     })
 
-  const handleClick = (e: React.MouseEvent) => {
-    // Stop propagation to prevent selection box from triggering
+  const handleSidebarClick = (e: React.MouseEvent) => {
     e.stopPropagation()
-    onSelect(clip.id)
-  }
+    // Check if the click was on the checkbox area
+    const target = e.target as HTMLElement
+    const isCheckboxClick = target.closest('.clip-checkbox') !== null
 
-  const handleLeftSideClick = (e: React.MouseEvent) => {
-    // Stop propagation to prevent parent click handlers
-    e.stopPropagation()
-
-    // If onCheck is available, toggle the checkbox
-    if (onCheck) {
+    if (isCheckboxClick && onCheck) {
+      // Handle checkbox toggle
       onCheck(clip.id, !isChecked)
-    }
-
-    // Also trigger clip selection
-    onSelect(clip.id)
-  }
-
-  const handlePointerDown = (e: React.PointerEvent) => {
-    // Start group selection for all clips (using pointer event to avoid conflict with dnd-kit)
-    if (onMouseDown) {
-      onMouseDown()
-    }
-  }
-
-  const handleMouseEnter = () => {
-    setIsHovered(true)
-    if (onMouseEnter) {
-      onMouseEnter()
+    } else {
+      // Handle clip selection (clicking on sidebar but not checkbox)
+      onSelect(clip.id)
     }
   }
 
@@ -82,58 +66,78 @@ export default function ClipComponent({
       {...dragProps}
       className={`sortable-clip ${containerClassName}`}
       data-clip-id={clip.id}
-      onClick={handleClick}
-      onPointerDownCapture={handlePointerDown}
-      onMouseEnter={handleMouseEnter}
+      onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="flex">
-        {/* Left sidebar */}
+        {/* Left sidebar - extends when expanded */}
         <div
-          className={`${sidebarClassName} cursor-pointer`}
-          onClick={handleLeftSideClick}
-          title="클릭하여 클립 선택/해제"
+          className={`${sidebarClassName} ${isExpanded ? 'self-stretch' : ''} cursor-pointer`}
+          onClick={handleSidebarClick}
         >
-          <ClipTimeline index={index} />
-          <ClipCheckbox
-            clipId={clip.id}
-            isChecked={isChecked}
-            onCheck={onCheck}
-          />
-        </div>
-
-        {/* Right content */}
-        <div className={contentClassName}>
-          {/* Upper section */}
-          <div className="p-3">
-            <div className="grid grid-cols-[180px_1fr] gap-3 items-center">
-              <div className="flex items-center gap-3 pl-4 h-8 flex-shrink-0">
-                <ClipSpeaker
-                  clipId={clip.id}
-                  speaker={clip.speaker}
-                  speakers={speakers}
-                  onSpeakerChange={onSpeakerChange}
-                  onBatchSpeakerChange={onBatchSpeakerChange}
-                  onOpenSpeakerManagement={onOpenSpeakerManagement}
-                  onAddSpeaker={onAddSpeaker}
-                  onRenameSpeaker={onRenameSpeaker}
-                />
-              </div>
-              <div className="overflow-hidden min-w-0 min-h-[32px] flex items-center">
-                <ClipWords
-                  clipId={clip.id}
-                  words={clip.words}
-                  onWordEdit={onWordEdit}
-                />
-              </div>
-            </div>
+          {/* 넘버링 표시 */}
+          <div className="flex flex-col items-center pt-1 px-1">
+            <span className="text-xs text-gray-600 font-mono font-bold mb-1">
+              #{index}
+            </span>
           </div>
 
-          {/* Divider */}
-          <div className="border-t border-[#383842]" />
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="pointer-events-auto">
+              <ClipCheckbox
+                clipId={clip.id}
+                isChecked={isChecked}
+                onCheck={onCheck}
+              />
+            </div>
+          </div>
+          {isExpanded && <div className="flex-1" />}
+        </div>
 
-          {/* Lower section */}
-          <ClipText fullText={clip.fullText} />
+        {/* Right content area */}
+        <div className="flex-1 flex flex-col">
+          {/* Main content */}
+          <div className={contentClassName}>
+            {/* Upper section */}
+            <div className="p-3">
+              <div className="grid grid-cols-[180px_1fr] gap-3 items-center">
+                <div className="flex items-center gap-3 pl-4 h-8 flex-shrink-0">
+                  <ClipSpeaker
+                    clipId={clip.id}
+                    speaker={clip.speaker}
+                    speakers={speakers}
+                    speakerColors={speakerColors}
+                    onSpeakerChange={onSpeakerChange}
+                    onBatchSpeakerChange={onBatchSpeakerChange}
+                    onOpenSpeakerManagement={onOpenSpeakerManagement}
+                    onAddSpeaker={onAddSpeaker}
+                    onRenameSpeaker={onRenameSpeaker}
+                  />
+                </div>
+                <div className="overflow-hidden min-w-0 min-h-[32px] flex items-center">
+                  <ClipWords
+                    clipId={clip.id}
+                    words={clip.words}
+                    onWordEdit={onWordEdit}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Divider */}
+            <div className="border-t border-[#383842]" />
+
+            {/* Lower section */}
+            <ClipText fullText={clip.fullText} />
+          </div>
+
+          {/* Expanded Waveform Editor - positioned beside sidebar */}
+          {isExpanded && (
+            <ExpandedClipWaveform
+              words={clip.words}
+              focusedWordId={focusedWordId}
+            />
+          )}
         </div>
       </div>
     </div>

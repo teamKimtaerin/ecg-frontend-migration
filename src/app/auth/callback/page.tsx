@@ -72,10 +72,10 @@ function AuthCallbackContent() {
           // Zustand store에 토큰과 사용자 정보 저장 (메모리에만)
           authStore.setAuthData(userData, access_token)
 
-          console.log('✅ Google OAuth 로그인 성공:', userData.username)
+          console.log('✅ Google OAuth 로그인 성공:', userData.name)
 
           setStatus('success')
-          setMessage(`환영합니다, ${userData.username}님!`)
+          setMessage(`환영합니다, ${userData.name}님!`)
 
           // 성공 시 홈페이지로 리디렉션
           setTimeout(() => {

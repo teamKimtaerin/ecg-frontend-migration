@@ -2,7 +2,7 @@
 
 import React from 'react'
 import ToolbarButton from './shared/ToolbarButton'
-import { IoLayers, IoShapes, IoPerson } from 'react-icons/io5'
+import { IoLayers, IoShapes, IoPerson, IoText } from 'react-icons/io5'
 import { useEditorStore } from '../../store'
 
 interface InsertToolbarProps {
@@ -12,16 +12,20 @@ interface InsertToolbarProps {
   onPaste?: () => void
 }
 
-const InsertToolbar: React.FC<InsertToolbarProps> = ({
-  onNewClick,
-  onCut,
-  onCopy,
-  onPaste,
-}) => {
-  const { isAssetSidebarOpen, setIsAssetSidebarOpen } = useEditorStore()
+const InsertToolbar: React.FC<InsertToolbarProps> = () => {
+  const {
+    rightSidebarType,
+    setRightSidebarType,
+    addTextAtCenter,
+    currentTime,
+  } = useEditorStore()
 
   const handleToggleAssetSidebar = () => {
-    setIsAssetSidebarOpen(!isAssetSidebarOpen)
+    setRightSidebarType(rightSidebarType === 'animation' ? null : 'animation')
+  }
+
+  const handleAddTextAtCenter = () => {
+    addTextAtCenter(currentTime)
   }
 
   const handleShapesClick = () => {
@@ -37,10 +41,18 @@ const InsertToolbar: React.FC<InsertToolbarProps> = ({
   return (
     <>
       <ToolbarButton
+        icon={<IoText />}
+        label="텍스트 삽입"
+        shortcut="Alt+T"
+        active={false}
+        onClick={handleAddTextAtCenter}
+      />
+
+      <ToolbarButton
         icon={<IoLayers />}
         label="애니메이션 에셋"
         shortcut="Alt+A"
-        active={isAssetSidebarOpen}
+        active={rightSidebarType === 'animation'}
         onClick={handleToggleAssetSidebar}
       />
 

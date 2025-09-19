@@ -25,9 +25,11 @@ export interface MediaState {
   // Playback state
   currentTime: number
   isPlaying: boolean
+  segmentStart: number | null
+  segmentEnd: number | null
+  isSegmentPlayback: boolean
 
   // Subtitle state
-  activeSubtitleIndex: number | null
   showSubtitles: boolean
   subtitleSize: 'small' | 'medium' | 'large'
   subtitlePosition: 'top' | 'bottom'
@@ -42,9 +44,10 @@ export interface MediaActions {
   // Playback actions
   setCurrentTime: (time: number) => void
   setIsPlaying: (playing: boolean) => void
+  playSegment: (start: number, end: number) => void
+  stopSegmentPlayback: () => void
 
   // Subtitle actions
-  setActiveSubtitleIndex: (index: number | null) => void
   toggleSubtitles: () => void
   setSubtitleSize: (size: 'small' | 'medium' | 'large') => void
   setSubtitlePosition: (position: 'top' | 'bottom') => void
@@ -65,9 +68,11 @@ const initialState: MediaState = {
   // Playback state
   currentTime: 0,
   isPlaying: false,
+  segmentStart: null,
+  segmentEnd: null,
+  isSegmentPlayback: false,
 
   // Subtitle state
-  activeSubtitleIndex: null,
   showSubtitles: true,
   subtitleSize: 'medium',
   subtitlePosition: 'bottom',
@@ -113,11 +118,28 @@ export const createMediaSlice: StateCreator<MediaSlice> = (set) => ({
     set({ isPlaying: playing })
   },
 
-  // Subtitle actions
-  setActiveSubtitleIndex: (index) => {
-    set({ activeSubtitleIndex: index })
+  playSegment: (start, end) => {
+    set({
+      segmentStart: start,
+      segmentEnd: end,
+      isSegmentPlayback: true,
+      isPlaying: true,
+      currentTime: start,
+    })
+    log('mediaSlice.ts', `Playing segment from ${start} to ${end}`)
   },
 
+  stopSegmentPlayback: () => {
+    set({
+      isSegmentPlayback: false,
+      isPlaying: false,
+      segmentStart: null,
+      segmentEnd: null,
+    })
+    log('mediaSlice.ts', 'Segment playback stopped')
+  },
+
+  // Subtitle actions
   toggleSubtitles: () => {
     set((state) => ({ showSubtitles: !state.showSubtitles }))
   },

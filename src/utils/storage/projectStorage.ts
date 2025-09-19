@@ -4,6 +4,7 @@ import {
   ProjectStorage,
   ProjectSettings,
 } from '@/app/(route)/editor/types/project'
+import { ClipItem } from '@/app/(route)/editor/types'
 import { indexedDBProjectStorage } from './indexedDBProjectStorage'
 import { migrationManager } from './migrationManager'
 
@@ -31,7 +32,7 @@ class LocalProjectStorage implements ProjectStorage {
       // Save to localStorage
       localStorage.setItem(STORAGE_KEY, JSON.stringify(projects))
 
-      console.log(`Project "${project.name}" saved successfully`)
+      // console.log(`Project "${project.name}" saved successfully`)
     } catch (error) {
       console.error('Failed to save project:', error)
       throw new Error('프로젝트 저장에 실패했습니다.')
@@ -300,13 +301,13 @@ class MigratedProjectStorage implements ProjectStorage {
   // 원본 클립 데이터 관리
   async saveOriginalClips(
     projectId: string,
-    originalClips: unknown[]
+    originalClips: ClipItem[]
   ): Promise<void> {
     await this.ensureInitialized()
     return indexedDBProjectStorage.saveOriginalClips(projectId, originalClips)
   }
 
-  async loadOriginalClips(projectId: string): Promise<unknown[] | null> {
+  async loadOriginalClips(projectId: string): Promise<ClipItem[] | null> {
     await this.ensureInitialized()
     return indexedDBProjectStorage.loadOriginalClips(projectId)
   }

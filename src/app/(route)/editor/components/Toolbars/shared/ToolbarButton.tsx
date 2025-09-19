@@ -2,7 +2,7 @@
 
 import React from 'react'
 import Tooltip from '@/components/ui/Tooltip'
-import { EDITOR_COLORS } from '../../../constants/colors'
+import { EDITOR_COLORS, type ToolbarVariant } from '../../../constants/colors'
 
 interface ToolbarButtonProps {
   icon: React.ReactNode
@@ -12,6 +12,7 @@ interface ToolbarButtonProps {
   active?: boolean
   shortcut?: string
   className?: string
+  variant?: ToolbarVariant
 }
 
 /**
@@ -26,29 +27,33 @@ export default function ToolbarButton({
   active = false,
   shortcut,
   className = '',
+  variant = 'base',
 }: ToolbarButtonProps) {
+  const toolbarColors = EDITOR_COLORS.toolbar[variant]
+  const iconColor =
+    'iconColor' in toolbarColors ? toolbarColors.iconColor : 'text-black'
+  const textColor = 'text' in toolbarColors ? toolbarColors.text : 'text-black'
+  const hoverColor =
+    'hover' in toolbarColors ? toolbarColors.hover : 'hover:bg-gray-200'
+
   const buttonClasses = `
     flex flex-col items-center space-y-1 px-2 py-1 rounded cursor-pointer transition-colors
     ${
       disabled
-        ? 'text-slate-500 cursor-not-allowed'
+        ? `${textColor} cursor-not-allowed opacity-50`
         : active
-          ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30'
-          : `${EDITOR_COLORS.toolbar.base.hover} text-slate-300`
+          ? `bg-black/10 ${textColor} ${hoverColor}`
+          : `${hoverColor} ${textColor}`
     }
     ${className}
   `
 
   const content = (
     <div className={buttonClasses} onClick={disabled ? undefined : onClick}>
-      <div
-        className={`w-5 h-5 ${disabled ? 'text-slate-500' : active ? 'text-blue-400' : 'text-slate-300'}`}
-      >
+      <div className={`w-5 h-5 ${disabled ? 'opacity-50' : iconColor}`}>
         {icon}
       </div>
-      <span
-        className={`text-xs ${disabled ? 'text-slate-500' : active ? 'text-blue-400' : 'text-slate-300'}`}
-      >
+      <span className={`text-xs ${disabled ? 'opacity-50' : textColor}`}>
         {label}
       </span>
     </div>
