@@ -55,12 +55,20 @@ function textAnimationToPluginChain(animation?: InsertedText['animation']) {
 /**
  * Convert InsertedText to V2 Cue format
  */
-export function insertedTextToCue(insertedText: InsertedText): RendererConfigV2['cues'][number] {
+export function insertedTextToCue(
+  insertedText: InsertedText
+): RendererConfigV2['cues'][number] {
   const adjStartTime = toAdjustedOrOriginalTime(insertedText.startTime)
   const adjEndTime = toAdjustedOrOriginalTime(insertedText.endTime)
-  
-  if (!Number.isFinite(adjStartTime) || !Number.isFinite(adjEndTime) || adjEndTime <= adjStartTime) {
-    throw new Error(`Invalid time range for InsertedText ${insertedText.id}: ${adjStartTime} - ${adjEndTime}`)
+
+  if (
+    !Number.isFinite(adjStartTime) ||
+    !Number.isFinite(adjEndTime) ||
+    adjEndTime <= adjStartTime
+  ) {
+    throw new Error(
+      `Invalid time range for InsertedText ${insertedText.id}: ${adjStartTime} - ${adjEndTime}`
+    )
   }
 
   // Convert position from percentage to relative coordinates
@@ -111,16 +119,20 @@ export function extractInsertedTextId(cueId: string): string | null {
 /**
  * Check if a cue represents an inserted text
  */
-export function isInsertedTextCue(cue: RendererConfigV2['cues'][number]): boolean {
+export function isInsertedTextCue(
+  cue: RendererConfigV2['cues'][number]
+): boolean {
   return cue.id.startsWith('text-')
 }
 
 /**
  * Convert multiple InsertedText objects to cues
  */
-export function insertedTextsToCues(insertedTexts: InsertedText[]): RendererConfigV2['cues'] {
+export function insertedTextsToCues(
+  insertedTexts: InsertedText[]
+): RendererConfigV2['cues'] {
   return insertedTexts
-    .filter(text => text.content.trim().length > 0) // Only convert non-empty texts
+    .filter((text) => text.content.trim().length > 0) // Only convert non-empty texts
     .map(insertedTextToCue)
-    .filter(cue => cue !== null) // Filter out any failed conversions
+    .filter((cue) => cue !== null) // Filter out any failed conversions
 }

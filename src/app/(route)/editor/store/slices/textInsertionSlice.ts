@@ -8,7 +8,10 @@ import {
   createInsertedText,
   isTextActiveAtTime,
 } from '../../types/textInsertion'
-import { ScenarioManager, type ScenarioUpdateListener } from '../../utils/ScenarioManager'
+import {
+  ScenarioManager,
+  type ScenarioUpdateListener,
+} from '../../utils/ScenarioManager'
 import type { RendererConfigV2 } from '@/app/shared/motiontext'
 
 export type { TextInsertionSlice }
@@ -51,12 +54,12 @@ export const createTextInsertionSlice: StateCreator<
         ...state.insertedTexts.map((text) => ({ ...text, isSelected: false })), // Deselect others
         newText, // Add new selected text
       ]
-      
+
       // Update scenario manager if initialized (always sync)
       if (scenarioManager) {
         scenarioManager.updateInsertedText(newText)
       }
-      
+
       return {
         ...state,
         insertedTexts: newInsertedTexts,
@@ -86,15 +89,15 @@ export const createTextInsertionSlice: StateCreator<
       const updatedTexts = state.insertedTexts.map((text) =>
         text.id === id ? { ...text, ...updates, updatedAt: Date.now() } : text
       )
-      
+
       // Update scenario manager if initialized (always sync)
       if (scenarioManager) {
-        const updatedText = updatedTexts.find(text => text.id === id)
+        const updatedText = updatedTexts.find((text) => text.id === id)
         if (updatedText) {
           scenarioManager.updateInsertedText(updatedText)
         }
       }
-      
+
       return {
         ...state,
         insertedTexts: updatedTexts,
@@ -108,11 +111,12 @@ export const createTextInsertionSlice: StateCreator<
       if (scenarioManager) {
         scenarioManager.removeInsertedText(id)
       }
-      
+
       return {
         ...state,
         insertedTexts: state.insertedTexts.filter((text) => text.id !== id),
-        selectedTextId: state.selectedTextId === id ? null : state.selectedTextId,
+        selectedTextId:
+          state.selectedTextId === id ? null : state.selectedTextId,
       }
     })
   },
@@ -166,7 +170,7 @@ export const createTextInsertionSlice: StateCreator<
 
       console.log('✅ selectText state updated:', {
         newSelectedId: newState.selectedTextId,
-        selectedTextObject: newState.insertedTexts.find(t => t.isSelected),
+        selectedTextObject: newState.insertedTexts.find((t) => t.isSelected),
       })
 
       return newState
@@ -297,15 +301,15 @@ export const createTextInsertionSlice: StateCreator<
             }
           : text
       )
-      
+
       // Update scenario manager if initialized (always sync)
       if (scenarioManager) {
-        const updatedText = updatedTexts.find(text => text.id === id)
+        const updatedText = updatedTexts.find((text) => text.id === id)
         if (updatedText) {
           scenarioManager.updateInsertedText(updatedText)
         }
       }
-      
+
       return {
         ...state,
         insertedTexts: updatedTexts,
@@ -316,7 +320,7 @@ export const createTextInsertionSlice: StateCreator<
   // Scenario management methods
   initializeScenario: (clips = []) => {
     const { insertedTexts } = get()
-    
+
     // Create new scenario manager if not exists
     if (!scenarioManager) {
       scenarioManager = new ScenarioManager({
@@ -324,10 +328,10 @@ export const createTextInsertionSlice: StateCreator<
         includeInsertedTexts: true,
       })
     }
-    
+
     // Initialize with current data
     const scenario = scenarioManager.initialize(clips, insertedTexts)
-    
+
     // Set up listener to update store when scenario changes
     scenarioManager.addUpdateListener((updatedScenario: RendererConfigV2) => {
       set((state) => ({
@@ -335,7 +339,7 @@ export const createTextInsertionSlice: StateCreator<
         currentScenario: updatedScenario,
       }))
     })
-    
+
     set((state) => ({
       ...state,
       currentScenario: scenario,
@@ -358,7 +362,9 @@ export const createTextInsertionSlice: StateCreator<
 
   addScenarioUpdateListener: (listener: ScenarioUpdateListener) => {
     if (!scenarioManager) {
-      throw new Error('ScenarioManager not initialized. Call initializeScenario() first.')
+      throw new Error(
+        'ScenarioManager not initialized. Call initializeScenario() first.'
+      )
     }
     return scenarioManager.addUpdateListener(listener)
   },

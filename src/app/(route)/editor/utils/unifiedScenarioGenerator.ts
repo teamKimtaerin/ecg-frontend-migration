@@ -1,8 +1,16 @@
 import type { ClipItem } from '../types'
 import type { InsertedText } from '../types/textInsertion'
 import type { RendererConfigV2 } from '@/app/shared/motiontext'
-import { buildInitialScenarioFromClips, type InitialScenarioOptions, type InitialScenarioResult } from './initialScenario'
-import { insertedTextsToCues, isInsertedTextCue, extractInsertedTextId } from './insertedTextToCue'
+import {
+  buildInitialScenarioFromClips,
+  type InitialScenarioOptions,
+  type InitialScenarioResult,
+} from './initialScenario'
+import {
+  insertedTextsToCues,
+  isInsertedTextCue,
+  extractInsertedTextId,
+} from './insertedTextToCue'
 
 export interface UnifiedScenarioOptions extends InitialScenarioOptions {
   includeInsertedTexts?: boolean
@@ -13,25 +21,6 @@ export interface UnifiedScenarioResult extends InitialScenarioResult {
   subtitleCueIds: string[] // Track which cues are from subtitles
 }
 
-/**
- * Create insertedText track definition for the scenario
- */
-function createInsertedTextTrack(): RendererConfigV2['tracks'][number] {
-  return {
-    id: 'insertedText',
-    type: 'subtitle',
-    layer: 2, // Above subtitle layer
-    defaultStyle: {
-      fontSizeRel: 0.06,
-      fontFamily: 'Arial, sans-serif',
-      color: '#ffffff',
-      backgroundColor: 'rgba(0, 0, 0, 0.7)',
-      fontWeight: 'bold',
-      textAlign: 'center',
-      opacity: 1,
-    },
-  }
-}
 
 /**
  * Build unified scenario from both clips and inserted texts
@@ -42,34 +31,36 @@ export function buildUnifiedScenario(
   opts: UnifiedScenarioOptions = {}
 ): UnifiedScenarioResult {
   const includeInsertedTexts = opts.includeInsertedTexts ?? true
-  
+
   // Generate base scenario from clips (subtitles)
   const baseScenario = buildInitialScenarioFromClips(clips, opts)
-  
+
   if (!includeInsertedTexts || insertedTexts.length === 0) {
     return {
       ...baseScenario,
       insertedTextCueIds: [],
-      subtitleCueIds: baseScenario.config.cues.map(cue => cue.id),
+      subtitleCueIds: baseScenario.config.cues.map((cue) => cue.id),
     }
   }
 
   // Generate cues from inserted texts
   const insertedTextCues = insertedTextsToCues(insertedTexts)
-  
+
   // Combine all cues and sort by start time for optimal rendering
-  const allCues = [...baseScenario.config.cues, ...insertedTextCues].sort((a, b) => {
-    const aStart = a.domLifetime?.[0] ?? 0
-    const bStart = b.domLifetime?.[0] ?? 0
-    return aStart - bStart
-  })
+  const allCues = [...baseScenario.config.cues, ...insertedTextCues].sort(
+    (a, b) => {
+      const aStart = a.domLifetime?.[0] ?? 0
+      const bStart = b.domLifetime?.[0] ?? 0
+      return aStart - bStart
+    }
+  )
 
   // Use existing tracks (no need for separate insertedText track)
   const tracks = [...baseScenario.config.tracks]
 
   // Build index for all cues (existing subtitle index + new inserted text index)
   const combinedIndex = { ...baseScenario.index }
-  
+
   // Add index entries for inserted text cues
   allCues.forEach((cue, cueIndex) => {
     if (isInsertedTextCue(cue)) {
@@ -78,7 +69,7 @@ export function buildUnifiedScenario(
         cueIndex,
         path: [], // Root level
       }
-      
+
       // Also index the text node if it has children
       if (cue.root.children && cue.root.children.length > 0) {
         cue.root.children.forEach((child, childIndex) => {
@@ -92,8 +83,8 @@ export function buildUnifiedScenario(
   })
 
   // Track cue IDs by type
-  const insertedTextCueIds = insertedTextCues.map(cue => cue.id)
-  const subtitleCueIds = baseScenario.config.cues.map(cue => cue.id)
+  const insertedTextCueIds = insertedTextCues.map((cue) => cue.id)
+  const subtitleCueIds = baseScenario.config.cues.map((cue) => cue.id)
 
   const unifiedConfig: RendererConfigV2 = {
     ...baseScenario.config,
@@ -117,8 +108,8 @@ export function updateInsertedTextCueInScenario(
   insertedText: InsertedText
 ): RendererConfigV2 {
   const cueId = `text-${insertedText.id}`
-  const cueIndex = scenario.cues.findIndex(cue => cue.id === cueId)
-  
+  const cueIndex = scenario.cues.findIndex((cue) => cue.id === cueId)
+
   if (cueIndex === -1) {
     // Cue doesn't exist, add it
     const newCue = insertedTextsToCues([insertedText])[0]
@@ -126,7 +117,7 @@ export function updateInsertedTextCueInScenario(
       const newCues = [...scenario.cues, newCue].sort((a, b) => {
         return (a.domLifetime?.[0] ?? 0) - (b.domLifetime?.[0] ?? 0)
       })
-      
+
       return {
         ...scenario,
         cues: newCues,
@@ -134,19 +125,19 @@ export function updateInsertedTextCueInScenario(
     }
     return scenario
   }
-  
+
   // Cue exists, update it
   const updatedCue = insertedTextsToCues([insertedText])[0]
   if (!updatedCue) {
     return scenario
   }
-  
+
   const newCues = [...scenario.cues]
   newCues[cueIndex] = updatedCue
-  
+
   // Re-sort cues by start time
   newCues.sort((a, b) => (a.domLifetime?.[0] ?? 0) - (b.domLifetime?.[0] ?? 0))
-  
+
   return {
     ...scenario,
     cues: newCues,
@@ -161,8 +152,8 @@ export function removeInsertedTextCueFromScenario(
   insertedTextId: string
 ): RendererConfigV2 {
   const cueId = `text-${insertedTextId}`
-  const filteredCues = scenario.cues.filter(cue => cue.id !== cueId)
-  
+  const filteredCues = scenario.cues.filter((cue) => cue.id !== cueId)
+
   return {
     ...scenario,
     cues: filteredCues,
@@ -172,10 +163,12 @@ export function removeInsertedTextCueFromScenario(
 /**
  * Extract inserted text IDs from a scenario
  */
-export function getInsertedTextIdsFromScenario(scenario: RendererConfigV2): string[] {
+export function getInsertedTextIdsFromScenario(
+  scenario: RendererConfigV2
+): string[] {
   return scenario.cues
     .filter(isInsertedTextCue)
-    .map(cue => extractInsertedTextId(cue.id))
+    .map((cue) => extractInsertedTextId(cue.id))
     .filter((id): id is string => id !== null)
 }
 

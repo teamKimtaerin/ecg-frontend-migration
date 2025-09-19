@@ -50,7 +50,9 @@ const MovableAnimatedText = forwardRef<
     const [showSimpleText, setShowSimpleText] = useState(false)
     const [, setCurrentConfig] = useState<RendererConfigV2 | null>(null)
     const [manifest, setManifest] = useState<PluginManifest | null>(null)
-    const [position, setPosition] = useState<{ x: number; y: number } | null>(null)
+    const [position, setPosition] = useState<{ x: number; y: number } | null>(
+      null
+    )
     const [size, setSize] = useState({ width: 240, height: 80 })
     const [rotationDeg, setRotationDeg] = useState(0)
 
@@ -349,8 +351,11 @@ const MovableAnimatedText = forwardRef<
           const scaleY = newH / prev.height
 
           stageSizeRef.current = { width: newW, height: newH }
-          setPosition((p) => p ? ({ x: p.x * scaleX, y: p.y * scaleY }) : null)
-          setSize((s) => ({ width: s.width * scaleX, height: s.height * scaleY }))
+          setPosition((p) => (p ? { x: p.x * scaleX, y: p.y * scaleY } : null))
+          setSize((s) => ({
+            width: s.width * scaleX,
+            height: s.height * scaleY,
+          }))
         }
       })
 
@@ -373,9 +378,8 @@ const MovableAnimatedText = forwardRef<
         e.stopPropagation()
 
         // Pause video when text is clicked
-        const videoPlayer = (
-          window as { videoPlayer?: { pause: () => void } }
-        ).videoPlayer
+        const videoPlayer = (window as { videoPlayer?: { pause: () => void } })
+          .videoPlayer
         if (videoPlayer) {
           videoPlayer.pause()
         }

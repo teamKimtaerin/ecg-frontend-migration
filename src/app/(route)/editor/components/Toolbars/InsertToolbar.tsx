@@ -26,9 +26,8 @@ const InsertToolbar: React.FC<InsertToolbarProps> = () => {
 
   const handleAddTextAtCenter = () => {
     // Pause video when adding text
-    const videoPlayer = (
-      window as { videoPlayer?: { pause: () => void } }
-    ).videoPlayer
+    const videoPlayer = (window as { videoPlayer?: { pause: () => void } })
+      .videoPlayer
     if (videoPlayer) {
       videoPlayer.pause()
     }

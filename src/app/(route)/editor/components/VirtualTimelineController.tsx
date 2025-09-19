@@ -19,8 +19,8 @@ interface VirtualTimelineControllerProps {
   virtualPlayerController?: VirtualPlayerController | null
 }
 
-const VirtualTimelineController: React.FC<VirtualTimelineControllerProps> = ({ 
-  virtualPlayerController 
+const VirtualTimelineController: React.FC<VirtualTimelineControllerProps> = ({
+  virtualPlayerController,
 }) => {
   const { clips, videoUrl, activeClipId } = useEditorStore()
   const timelineRef = useRef<HTMLDivElement>(null)
@@ -40,11 +40,12 @@ const VirtualTimelineController: React.FC<VirtualTimelineControllerProps> = ({
   const convertClipsToBlocks = useCallback((): ClipBlock[] => {
     // Virtual Timeline API가 private이므로 clips 데이터를 직접 사용
     // TODO: VirtualPlayerController에서 public API 제공되면 수정
-    
+
     // Fallback: 기존 clips 데이터 사용
     return clips.map((clip) => {
       const startTime = clip.words.length > 0 ? clip.words[0].start : 0
-      const endTime = clip.words.length > 0 ? clip.words[clip.words.length - 1].end : 0
+      const endTime =
+        clip.words.length > 0 ? clip.words[clip.words.length - 1].end : 0
       const duration = endTime - startTime
 
       return {
@@ -64,22 +65,28 @@ const VirtualTimelineController: React.FC<VirtualTimelineControllerProps> = ({
     // Virtual Timeline API가 private이므로 clips 데이터를 직접 사용
     // Fallback: 클립들의 최대 endTime 사용
     if (blocks.length === 0) return 0
-    return Math.max(...blocks.map(block => block.endTime))
+    return Math.max(...blocks.map((block) => block.endTime))
   }, [])
 
   // 시간을 픽셀 위치로 변환
-  const timeToPixel = useCallback((time: number): number => {
-    const timelineWidth = 800 // 기본 타임라인 너비
-    const pixelPerSecond = (timelineWidth * zoomLevel) / totalDuration
-    return time * pixelPerSecond
-  }, [totalDuration, zoomLevel])
+  const timeToPixel = useCallback(
+    (time: number): number => {
+      const timelineWidth = 800 // 기본 타임라인 너비
+      const pixelPerSecond = (timelineWidth * zoomLevel) / totalDuration
+      return time * pixelPerSecond
+    },
+    [totalDuration, zoomLevel]
+  )
 
   // 픽셀 위치를 시간으로 변환
-  const pixelToTime = useCallback((pixel: number): number => {
-    const timelineWidth = 800
-    const pixelPerSecond = (timelineWidth * zoomLevel) / totalDuration
-    return pixel / pixelPerSecond
-  }, [totalDuration, zoomLevel])
+  const pixelToTime = useCallback(
+    (pixel: number): number => {
+      const timelineWidth = 800
+      const pixelPerSecond = (timelineWidth * zoomLevel) / totalDuration
+      return pixel / pixelPerSecond
+    },
+    [totalDuration, zoomLevel]
+  )
 
   // 시간 포맷팅 (mm:ss.f)
   const formatTime = useCallback((seconds: number): string => {
@@ -94,10 +101,12 @@ const VirtualTimelineController: React.FC<VirtualTimelineControllerProps> = ({
   useEffect(() => {
     if (virtualPlayerController) {
       // Virtual Timeline 콜백 등록
-      const timeUpdateCleanup = virtualPlayerController.onTimeUpdate((virtualTime) => {
-        setCurrentTime(virtualTime)
-        setPlayheadPosition(timeToPixel(virtualTime))
-      })
+      const timeUpdateCleanup = virtualPlayerController.onTimeUpdate(
+        (virtualTime) => {
+          setCurrentTime(virtualTime)
+          setPlayheadPosition(timeToPixel(virtualTime))
+        }
+      )
 
       const playCleanup = virtualPlayerController.onPlay(() => {
         setIsPlaying(true)
@@ -161,7 +170,12 @@ const VirtualTimelineController: React.FC<VirtualTimelineControllerProps> = ({
         video.removeEventListener('pause', updatePlayState)
       }
     }
-  }, [virtualPlayerController, timeToPixel, convertClipsToBlocks, calculateTotalDuration])
+  }, [
+    virtualPlayerController,
+    timeToPixel,
+    convertClipsToBlocks,
+    calculateTotalDuration,
+  ])
 
   // 클립 데이터 변경시 재계산
   useEffect(() => {
@@ -170,40 +184,46 @@ const VirtualTimelineController: React.FC<VirtualTimelineControllerProps> = ({
   }, [clips, convertClipsToBlocks, calculateTotalDuration])
 
   // 타임라인 클릭으로 재생 위치 이동 (Virtual Timeline 사용)
-  const handleTimelineClick = useCallback(async (event: React.MouseEvent) => {
-    if (!timelineRef.current) return
+  const handleTimelineClick = useCallback(
+    async (event: React.MouseEvent) => {
+      if (!timelineRef.current) return
 
-    const rect = timelineRef.current.getBoundingClientRect()
-    const clickX = event.clientX - rect.left - scrollPosition
-    const clickTime = pixelToTime(clickX)
-    const seekTime = Math.max(0, Math.min(clickTime, totalDuration))
+      const rect = timelineRef.current.getBoundingClientRect()
+      const clickX = event.clientX - rect.left - scrollPosition
+      const clickTime = pixelToTime(clickX)
+      const seekTime = Math.max(0, Math.min(clickTime, totalDuration))
 
-    if (!virtualPlayerController) {
-      // Fallback to HTML5 video
-      const video = getVideoElement()
-      if (video) {
-        video.currentTime = seekTime
+      if (!virtualPlayerController) {
+        // Fallback to HTML5 video
+        const video = getVideoElement()
+        if (video) {
+          video.currentTime = seekTime
+        }
+        return
       }
-      return
-    }
 
-    try {
-      await virtualPlayerController.seek(seekTime)
-    } catch (error) {
-      console.error('Virtual Timeline seek failed:', error)
-    }
-  }, [virtualPlayerController, pixelToTime, totalDuration, scrollPosition])
+      try {
+        await virtualPlayerController.seek(seekTime)
+      } catch (error) {
+        console.error('Virtual Timeline seek failed:', error)
+      }
+    },
+    [virtualPlayerController, pixelToTime, totalDuration, scrollPosition]
+  )
 
   // 클립 블록 클릭으로 해당 클립 선택
-  const handleClipClick = useCallback((clipId: string, event: React.MouseEvent) => {
-    event.stopPropagation() // 타임라인 클릭 방지
-    
-    const { setActiveClipId, clearSelection } = useEditorStore.getState()
-    
-    // 클립 선택
-    clearSelection()
-    setActiveClipId(clipId)
-  }, [])
+  const handleClipClick = useCallback(
+    (clipId: string, event: React.MouseEvent) => {
+      event.stopPropagation() // 타임라인 클릭 방지
+
+      const { setActiveClipId, clearSelection } = useEditorStore.getState()
+
+      // 클립 선택
+      clearSelection()
+      setActiveClipId(clipId)
+    },
+    []
+  )
 
   // 재생/일시정지 컨트롤 (Virtual Timeline 사용)
   const handlePlayPause = useCallback(async () => {
@@ -254,30 +274,30 @@ const VirtualTimelineController: React.FC<VirtualTimelineControllerProps> = ({
   }, [virtualPlayerController])
 
   // 줌 컨트롤
-  const handleZoomIn = () => setZoomLevel(prev => Math.min(prev * 1.5, 5))
-  const handleZoomOut = () => setZoomLevel(prev => Math.max(prev / 1.5, 0.5))
+  const handleZoomIn = () => setZoomLevel((prev) => Math.min(prev * 1.5, 5))
+  const handleZoomOut = () => setZoomLevel((prev) => Math.max(prev / 1.5, 0.5))
 
   // 클립 블록 렌더링
   const renderClipBlocks = () => {
     const blocks = convertClipsToBlocks()
-    
+
     return blocks.map((block) => {
       const leftPosition = timeToPixel(block.startTime)
       const width = timeToPixel(block.duration)
       const isActive = activeClipId === block.id
-      
+
       return (
         <div
           key={block.id}
           className={`absolute top-0 h-full border-2 rounded cursor-pointer transition-all duration-200 ${
-            isActive 
-              ? 'border-blue-500 shadow-md scale-105' 
+            isActive
+              ? 'border-blue-500 shadow-md scale-105'
               : 'border-gray-300 hover:border-gray-400 hover:shadow-sm'
           }`}
           style={{
             left: `${leftPosition}px`,
             width: `${Math.max(width, 20)}px`, // 최소 너비 보장
-            backgroundColor: isActive 
+            backgroundColor: isActive
               ? block.color + 'A0' // 활성 클립은 더 진한 색상
               : block.color + '80', // 80% 투명도
             borderColor: isActive ? '#3b82f6' : block.color,
@@ -286,12 +306,16 @@ const VirtualTimelineController: React.FC<VirtualTimelineControllerProps> = ({
           onClick={(e) => handleClipClick(block.id, e)}
         >
           <div className="p-1 text-xs text-white truncate">
-            <div className="font-semibold drop-shadow-sm">{block.speaker || '미지정'}</div>
-            <div className="opacity-90 font-mono text-[10px] drop-shadow-sm">{formatTime(block.startTime)} - {formatTime(block.endTime)}</div>
+            <div className="font-semibold drop-shadow-sm">
+              {block.speaker || '미지정'}
+            </div>
+            <div className="opacity-90 font-mono text-[10px] drop-shadow-sm">
+              {formatTime(block.startTime)} - {formatTime(block.endTime)}
+            </div>
           </div>
-          
+
           {/* 클립 분할 마커 (가운데 점선) */}
-          <div 
+          <div
             className="absolute top-0 bottom-0 w-0.5 bg-gray-300 opacity-0 hover:opacity-100 transition-opacity cursor-col-resize"
             style={{ left: '50%', transform: 'translateX(-50%)' }}
             title="클릭하여 분할"
@@ -310,7 +334,7 @@ const VirtualTimelineController: React.FC<VirtualTimelineControllerProps> = ({
   const renderTimeRuler = () => {
     const marks = []
     const interval = totalDuration > 60 ? 10 : totalDuration > 30 ? 5 : 1 // 동적 간격
-    
+
     for (let time = 0; time <= totalDuration; time += interval) {
       const position = timeToPixel(time)
       marks.push(
@@ -325,7 +349,7 @@ const VirtualTimelineController: React.FC<VirtualTimelineControllerProps> = ({
         </div>
       )
     }
-    
+
     return marks
   }
 
@@ -341,29 +365,37 @@ const VirtualTimelineController: React.FC<VirtualTimelineControllerProps> = ({
       <div className="flex items-center justify-between px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg">
         <div className="flex items-center space-x-3">
           <span className="text-sm font-medium text-gray-700">타임라인</span>
-          
+
           {/* 재생 컨트롤 */}
           <div className="flex items-center space-x-1">
             <button
               onClick={handlePlayPause}
               className={`p-1.5 rounded-full transition-all duration-200 ${
-                isPlaying 
-                  ? 'bg-blue-500 hover:bg-blue-600 text-white shadow-sm' 
+                isPlaying
+                  ? 'bg-blue-500 hover:bg-blue-600 text-white shadow-sm'
                   : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
               }`}
-              title={isPlaying ? "일시정지" : "재생"}
+              title={isPlaying ? '일시정지' : '재생'}
             >
               {isPlaying ? (
-                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className="w-3 h-3"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
                 </svg>
               ) : (
-                <svg className="w-3 h-3 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className="w-3 h-3 ml-0.5"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path d="M8 5v14l11-7z" />
                 </svg>
               )}
             </button>
-            
+
             <button
               onClick={handleStop}
               className="p-1.5 bg-white border border-gray-300 text-gray-600 rounded-full hover:bg-gray-50 transition-colors"
@@ -374,7 +406,7 @@ const VirtualTimelineController: React.FC<VirtualTimelineControllerProps> = ({
               </svg>
             </button>
           </div>
-          
+
           {/* 줌 컨트롤 */}
           <div className="flex items-center space-x-2">
             <button
@@ -396,10 +428,12 @@ const VirtualTimelineController: React.FC<VirtualTimelineControllerProps> = ({
             </button>
           </div>
         </div>
-        
+
         <div className="flex items-center space-x-2">
           {/* 재생 상태 표시 */}
-          <div className={`w-2 h-2 rounded-full ${isPlaying ? 'bg-green-500' : 'bg-gray-400'}`} />
+          <div
+            className={`w-2 h-2 rounded-full ${isPlaying ? 'bg-green-500' : 'bg-gray-400'}`}
+          />
           <div className="text-xs text-gray-500 font-mono">
             {formatTime(currentTime)} / {formatTime(totalDuration)}
           </div>
@@ -429,10 +463,10 @@ const VirtualTimelineController: React.FC<VirtualTimelineControllerProps> = ({
             className="absolute top-0 bottom-0 w-0.5 bg-red-500 pointer-events-none z-20 drop-shadow-sm"
             style={{ left: `${playheadPosition}px` }}
           >
-            <div 
+            <div
               className="absolute top-0 w-3 h-3 bg-red-500 transform -translate-x-1/2"
               style={{
-                clipPath: 'polygon(50% 100%, 0% 0%, 100% 0%)'
+                clipPath: 'polygon(50% 100%, 0% 0%, 100% 0%)',
               }}
             ></div>
           </div>

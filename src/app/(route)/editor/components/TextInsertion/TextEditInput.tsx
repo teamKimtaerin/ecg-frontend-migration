@@ -53,7 +53,14 @@ const TextEditInput: React.FC<TextEditInputProps> = ({ className = '' }) => {
       })
     }
     setIsEditing(false)
-  }, [selectedTextId, isEditing, inputValue, selectedText?.content, updateText, isComposing])
+  }, [
+    selectedTextId,
+    isEditing,
+    inputValue,
+    selectedText?.content,
+    updateText,
+    isComposing,
+  ])
 
   // Handle composition events for IME input (Korean, etc.)
   const handleCompositionStart = useCallback(() => {

@@ -1,10 +1,10 @@
 'use client'
 
-import React, { useRef, useCallback, useEffect, useState } from 'react'
+import React, { useRef, useCallback, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useEditorStore } from '../../store'
 import MovableAnimatedText from './MovableAnimatedText'
-import { useMotionTextRenderer, type RendererConfigV2 } from '@/app/shared/motiontext'
+import { useMotionTextRenderer } from '@/app/shared/motiontext'
 import type { InsertedText } from '../../types/textInsertion'
 
 interface TextInsertionOverlayProps {
@@ -24,33 +24,31 @@ export default function TextInsertionOverlay({
   const motionTextRef = useRef<HTMLDivElement>(null)
 
   // MotionText renderer hook for unified rendering
-  const { containerRef, renderer, initializeRenderer, loadScenario, seek } = useMotionTextRenderer({
-    autoPlay: false, // We control playback manually
-    loop: false,
-    onError: (error: Error) => {
-      console.error('MotionText unified rendering error:', error)
-      // Fallback to individual rendering on error
-      if (isScenarioMode) {
-        toggleScenarioMode()
-      }
-    }
-  })
+  const { containerRef, renderer, initializeRenderer, loadScenario, seek } =
+    useMotionTextRenderer({
+      autoPlay: false, // We control playback manually
+      loop: false,
+      onError: (error: Error) => {
+        console.error('MotionText unified rendering error:', error)
+        // Fallback to individual rendering on error
+        if (isScenarioMode) {
+          toggleScenarioMode()
+        }
+      },
+    })
 
   // Get text insertion state from store
-  const { 
-    selectedTextId, 
-    selectText, 
-    updateText, 
+  const {
+    selectedTextId,
+    selectText,
+    updateText,
     getActiveTexts,
     currentScenario,
     isScenarioMode,
     initializeScenario,
     toggleScenarioMode,
-    addScenarioUpdateListener,
     // Get clips for unified scenario generation
     clips,
-    // Get all inserted texts for debugging
-    insertedTexts
   } = useEditorStore()
 
   // Get currently active texts (for individual rendering mode)
@@ -76,12 +74,11 @@ export default function TextInsertionOverlay({
     if (motionTextRef.current && !renderer) {
       // Set the containerRef to our motionTextRef
       if (containerRef.current !== motionTextRef.current) {
-        // @ts-ignore - We need to manually set the ref
         containerRef.current = motionTextRef.current
       }
       initializeRenderer()
     }
-  }, [motionTextRef.current, renderer, initializeRenderer, containerRef])
+  }, [renderer, initializeRenderer, containerRef])
 
   // Update scenario in MotionText renderer
   useEffect(() => {
@@ -125,19 +122,25 @@ export default function TextInsertionOverlay({
       console.log('📝 handleTextSelect called:', {
         textId,
         currentSelectedTextId: selectedTextId,
-        currentMode: isScenarioMode ? 'scenario' : 'individual'
+        currentMode: isScenarioMode ? 'scenario' : 'individual',
       })
-      
+
       // Switch to individual rendering mode for editing
       if (isScenarioMode) {
         console.log('🔄 Switching to individual mode for text editing')
         toggleScenarioMode()
       }
-      
+
       selectText(textId)
       onTextClick?.(textId)
     },
-    [selectText, onTextClick, selectedTextId, isScenarioMode, toggleScenarioMode]
+    [
+      selectText,
+      onTextClick,
+      selectedTextId,
+      isScenarioMode,
+      toggleScenarioMode,
+    ]
   )
 
   // Handle text double-click for editing
@@ -159,7 +162,7 @@ export default function TextInsertionOverlay({
   //       console.log('🎬 Auto-switching to scenario mode (no selection)')
   //       toggleScenarioMode()
   //     }, 500) // Small delay to avoid rapid switching
-  //     
+  //
   //     return () => clearTimeout(switchTimer)
   //   }
   // }, [selectedTextId, isScenarioMode, currentScenario, toggleScenarioMode])
@@ -188,12 +191,12 @@ export default function TextInsertionOverlay({
       {isScenarioMode && currentScenario ? (
         // Unified Scenario Rendering (fixes flickering)
         <>
-          <div 
+          <div
             ref={motionTextRef}
             className="absolute inset-0 pointer-events-none"
             style={{ zIndex: 21 }}
           />
-          
+
           {/* Invisible clickable areas for text selection in scenario mode */}
           {activeTexts.map((text) => (
             <div
@@ -241,16 +244,17 @@ export default function TextInsertionOverlay({
         <button
           onClick={() => toggleScenarioMode()}
           className={`px-3 py-1 text-xs rounded ${
-            isScenarioMode 
-              ? 'bg-green-600 text-white' 
+            isScenarioMode
+              ? 'bg-green-600 text-white'
               : 'bg-blue-600 text-white'
           }`}
-          title={isScenarioMode ? 'Switch to Edit Mode' : 'Switch to Playback Mode'}
+          title={
+            isScenarioMode ? 'Switch to Edit Mode' : 'Switch to Playback Mode'
+          }
         >
           {isScenarioMode ? '🎬 Playback' : '✏️ Edit'}
         </button>
       </div>
-
     </div>,
     videoContainerRef.current
   )

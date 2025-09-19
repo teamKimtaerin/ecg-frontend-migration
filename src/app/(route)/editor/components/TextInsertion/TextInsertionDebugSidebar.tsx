@@ -11,7 +11,7 @@ interface TextInsertionDebugSidebarProps {
   selectedTextId: string | null
   isScenarioMode: boolean
   currentScenario: RendererConfigV2 | null
-  renderer: any
+  renderer: unknown
 }
 
 export default function TextInsertionDebugSidebar({
@@ -28,16 +28,32 @@ export default function TextInsertionDebugSidebar({
       <div className="text-lg font-bold mb-4 text-blue-400">
         📊 텍스트 렌더링 디버거
       </div>
-      
+
       {/* 기본 정보 */}
       <div className="bg-gray-800 rounded-lg p-3 mb-4">
         <div className="font-semibold mb-2 text-green-400">⚙️ 시스템 상태</div>
         <div className="text-sm space-y-1">
-          <div>Mode: {isScenarioMode ? '🎬 Unified Scenario' : '✏️ Individual'}</div>
-          <div>Current Time: <span className="font-mono text-yellow-400">{currentTime.toFixed(2)}s</span></div>
-          <div>Active Texts: <span className="text-blue-300">{activeTexts.length}</span></div>
-          <div>Total Texts: <span className="text-purple-300">{insertedTexts.length}</span></div>
-          <div>Selected: <span className="text-orange-300">{selectedTextId || 'None'}</span></div>
+          <div>
+            Mode: {isScenarioMode ? '🎬 Unified Scenario' : '✏️ Individual'}
+          </div>
+          <div>
+            Current Time:{' '}
+            <span className="font-mono text-yellow-400">
+              {currentTime.toFixed(2)}s
+            </span>
+          </div>
+          <div>
+            Active Texts:{' '}
+            <span className="text-blue-300">{activeTexts.length}</span>
+          </div>
+          <div>
+            Total Texts:{' '}
+            <span className="text-purple-300">{insertedTexts.length}</span>
+          </div>
+          <div>
+            Selected:{' '}
+            <span className="text-orange-300">{selectedTextId || 'None'}</span>
+          </div>
           <div>Scenario: {currentScenario ? '✅' : '❌'}</div>
           <div>Renderer: {renderer ? '✅' : '❌'}</div>
         </div>
@@ -46,19 +62,28 @@ export default function TextInsertionDebugSidebar({
       {/* 활성 텍스트 */}
       {activeTexts.length > 0 && (
         <div className="bg-gray-800 rounded-lg p-3 mb-4">
-          <div className="font-semibold mb-2 text-green-400">🎯 활성 텍스트 ({activeTexts.length})</div>
+          <div className="font-semibold mb-2 text-green-400">
+            🎯 활성 텍스트 ({activeTexts.length})
+          </div>
           <div className="space-y-3 max-h-60 overflow-y-auto">
             {activeTexts.map((text, idx) => {
-              const isInTimeRange = currentTime >= text.startTime && currentTime <= text.endTime
+              const isInTimeRange =
+                currentTime >= text.startTime && currentTime <= text.endTime
               return (
                 <div key={text.id} className="bg-gray-700 rounded p-2 text-xs">
-                  <div className="font-mono text-blue-300">#{idx+1}</div>
+                  <div className="font-mono text-blue-300">#{idx + 1}</div>
                   <div className="font-semibold text-white mb-1">
-                    "{text.content.substring(0, 20)}{text.content.length > 20 ? '...' : ''}"
+                    &quot;{text.content.substring(0, 20)}
+                    {text.content.length > 20 ? '...' : ''}&quot;
                   </div>
                   <div className="space-y-1 text-gray-300">
-                    <div>⏰ {text.startTime.toFixed(1)}s - {text.endTime.toFixed(1)}s</div>
-                    <div>📍 ({text.position.x}%, {text.position.y}%)</div>
+                    <div>
+                      ⏰ {text.startTime.toFixed(1)}s -{' '}
+                      {text.endTime.toFixed(1)}s
+                    </div>
+                    <div>
+                      📍 ({text.position.x}%, {text.position.y}%)
+                    </div>
                     <div>
                       {text.isSelected ? (
                         <span className="text-blue-400">🔵 Selected</span>
@@ -74,7 +99,7 @@ export default function TextInsertionDebugSidebar({
                       )}
                     </div>
                     <div className="font-mono text-xs text-gray-500">
-                      ID: {text.id.substring(text.id.length-8)}
+                      ID: {text.id.substring(text.id.length - 8)}
                     </div>
                   </div>
                 </div>
@@ -87,19 +112,31 @@ export default function TextInsertionDebugSidebar({
       {/* 전체 텍스트 */}
       {insertedTexts.length > 0 && (
         <div className="bg-gray-800 rounded-lg p-3 mb-4">
-          <div className="font-semibold mb-2 text-purple-400">📝 전체 텍스트 ({insertedTexts.length})</div>
+          <div className="font-semibold mb-2 text-purple-400">
+            📝 전체 텍스트 ({insertedTexts.length})
+          </div>
           <div className="space-y-2 max-h-80 overflow-y-auto">
             {insertedTexts.map((text, idx) => {
-              const isActive = activeTexts.some(activeText => activeText.id === text.id)
-              const isInTimeRange = currentTime >= text.startTime && currentTime <= text.endTime
+              const isActive = activeTexts.some(
+                (activeText) => activeText.id === text.id
+              )
+              const isInTimeRange =
+                currentTime >= text.startTime && currentTime <= text.endTime
               return (
-                <div key={text.id} className="bg-gray-700 rounded p-2 text-xs opacity-90">
-                  <div className="font-mono text-purple-300">#{idx+1}</div>
+                <div
+                  key={text.id}
+                  className="bg-gray-700 rounded p-2 text-xs opacity-90"
+                >
+                  <div className="font-mono text-purple-300">#{idx + 1}</div>
                   <div className="text-white mb-1">
-                    "{text.content.substring(0, 15)}{text.content.length > 15 ? '...' : ''}"
+                    &quot;{text.content.substring(0, 15)}
+                    {text.content.length > 15 ? '...' : ''}&quot;
                   </div>
                   <div className="space-y-1 text-gray-300">
-                    <div>⏰ {text.startTime.toFixed(1)}s - {text.endTime.toFixed(1)}s</div>
+                    <div>
+                      ⏰ {text.startTime.toFixed(1)}s -{' '}
+                      {text.endTime.toFixed(1)}s
+                    </div>
                     <div className="flex items-center gap-2">
                       {isActive ? (
                         <span className="text-green-400">🟢 Active</span>
@@ -114,7 +151,7 @@ export default function TextInsertionDebugSidebar({
                       )}
                     </div>
                     <div className="font-mono text-xs text-gray-500">
-                      ID: {text.id.substring(text.id.length-8)}
+                      ID: {text.id.substring(text.id.length - 8)}
                     </div>
                   </div>
                 </div>
@@ -130,7 +167,8 @@ export default function TextInsertionDebugSidebar({
         <div className="text-sm space-y-1">
           {insertedTexts.length > activeTexts.length && (
             <div className="text-gray-300">
-              ⏸️ {insertedTexts.length - activeTexts.length}개 텍스트가 현재 시간에 비활성화됨
+              ⏸️ {insertedTexts.length - activeTexts.length}개 텍스트가 현재
+              시간에 비활성화됨
             </div>
           )}
           {activeTexts.length === 0 && insertedTexts.length > 0 && (
@@ -139,9 +177,7 @@ export default function TextInsertionDebugSidebar({
             </div>
           )}
           {insertedTexts.length === 0 && (
-            <div className="text-gray-400">
-              📝 삽입된 텍스트가 없습니다
-            </div>
+            <div className="text-gray-400">📝 삽입된 텍스트가 없습니다</div>
           )}
         </div>
       </div>

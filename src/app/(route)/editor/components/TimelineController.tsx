@@ -56,7 +56,7 @@ const TimelineController: React.FC = () => {
   const seekTo = (time: number) => {
     const video = getVideoElement()
     if (!video || time < 0 || time > duration) return
-    
+
     video.currentTime = time
     setCurrentTime(time)
   }
@@ -80,11 +80,19 @@ const TimelineController: React.FC = () => {
           className="flex items-center justify-center w-10 h-10 bg-blue-600 hover:bg-blue-700 rounded-full transition-colors"
         >
           {isPlaying ? (
-            <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="w-5 h-5 text-white"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
             </svg>
           ) : (
-            <svg className="w-5 h-5 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="w-5 h-5 text-white ml-0.5"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path d="M8 5v14l11-7z" />
             </svg>
           )}
@@ -105,10 +113,10 @@ const TimelineController: React.FC = () => {
             onChange={(e) => seekTo(parseFloat(e.target.value))}
             className="w-full h-3 bg-gray-700 rounded-lg appearance-none cursor-pointer timeline-slider"
             style={{
-              background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(currentTime / (duration || 1)) * 100}%, #374151 ${(currentTime / (duration || 1)) * 100}%, #374151 100%)`
+              background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(currentTime / (duration || 1)) * 100}%, #374151 ${(currentTime / (duration || 1)) * 100}%, #374151 100%)`,
             }}
           />
-          
+
           {/* Clip markers on timeline */}
           {clips.map((clip, index) => {
             if (!clip.startTime || !duration) return null
@@ -129,7 +137,11 @@ const TimelineController: React.FC = () => {
           className="flex items-center justify-center w-8 h-8 bg-gray-700 hover:bg-gray-600 rounded transition-colors"
           title="5초 뒤로"
         >
-          <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+          <svg
+            className="w-4 h-4 text-white"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" />
           </svg>
         </button>
@@ -139,7 +151,11 @@ const TimelineController: React.FC = () => {
           className="flex items-center justify-center w-8 h-8 bg-gray-700 hover:bg-gray-600 rounded transition-colors"
           title="5초 앞으로"
         >
-          <svg className="w-4 h-4 text-white scale-x-[-1]" fill="currentColor" viewBox="0 0 24 24">
+          <svg
+            className="w-4 h-4 text-white scale-x-[-1]"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" />
           </svg>
         </button>

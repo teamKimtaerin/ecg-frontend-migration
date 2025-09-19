@@ -600,7 +600,7 @@ export default function EditorPage() {
           end_time: number
           acoustic_features?: { confidence?: number }
         }
-        
+
         interface FriendsSegment {
           speaker_id: string
           text: string
@@ -608,40 +608,55 @@ export default function EditorPage() {
           end_time: number
           words: FriendsWord[]
         }
-        
+
         interface FriendsData {
           segments: FriendsSegment[]
         }
-        
+
         let transcriptionClips: ClipItem[] = []
         try {
           const response = await fetch('/friends_result.json')
-          const friendsData = await response.json() as FriendsData
-          
+          const friendsData = (await response.json()) as FriendsData
+
           // Convert friends_result.json format to transcription clips
-          transcriptionClips = friendsData.segments.map((segment: FriendsSegment, index: number) => ({
-            id: `clip_${index}`,
-            speaker: segment.speaker_id,
-            fullText: segment.text,
-            subtitle: segment.text, // Add subtitle field
-            timeline: `${Math.floor(segment.start_time / 60).toString().padStart(2, '0')}:${Math.floor(segment.start_time % 60).toString().padStart(2, '0')} → ${Math.floor(segment.end_time / 60).toString().padStart(2, '0')}:${Math.floor(segment.end_time % 60).toString().padStart(2, '0')}`,
-            duration: `${(segment.end_time - segment.start_time).toFixed(1)}s`, // Add duration field
-            thumbnail: '', // Add empty thumbnail field
-            words: segment.words.map((word: FriendsWord, wordIndex: number) => ({
-              id: `word_${index}_${wordIndex}`,
-              text: word.word,
-              start: word.start_time,
-              end: word.end_time,
-              isEditable: true, // Add isEditable field
-              confidence: word.acoustic_features?.confidence || 0.9
-            }))
-          }))
-          
-          console.log(`Loaded ${transcriptionClips.length} clips from friends_result.json`)
+          transcriptionClips = friendsData.segments.map(
+            (segment: FriendsSegment, index: number) => ({
+              id: `clip_${index}`,
+              speaker: segment.speaker_id,
+              fullText: segment.text,
+              subtitle: segment.text, // Add subtitle field
+              timeline: `${Math.floor(segment.start_time / 60)
+                .toString()
+                .padStart(2, '0')}:${Math.floor(segment.start_time % 60)
+                .toString()
+                .padStart(2, '0')} → ${Math.floor(segment.end_time / 60)
+                .toString()
+                .padStart(2, '0')}:${Math.floor(segment.end_time % 60)
+                .toString()
+                .padStart(2, '0')}`,
+              duration: `${(segment.end_time - segment.start_time).toFixed(1)}s`, // Add duration field
+              thumbnail: '', // Add empty thumbnail field
+              words: segment.words.map(
+                (word: FriendsWord, wordIndex: number) => ({
+                  id: `word_${index}_${wordIndex}`,
+                  text: word.word,
+                  start: word.start_time,
+                  end: word.end_time,
+                  isEditable: true, // Add isEditable field
+                  confidence: word.acoustic_features?.confidence || 0.9,
+                })
+              ),
+            })
+          )
+
+          console.log(
+            `Loaded ${transcriptionClips.length} clips from friends_result.json`
+          )
         } catch (error) {
           console.error('Failed to load friends_result.json:', error)
           // Fallback to original service
-          transcriptionClips = await transcriptionService.loadTranscriptionClips()
+          transcriptionClips =
+            await transcriptionService.loadTranscriptionClips()
         }
         if (transcriptionClips.length > 0) {
           log(
@@ -680,7 +695,7 @@ export default function EditorPage() {
           // Set media info for friends video
           setMediaInfo({
             videoUrl: '/friends.mp4',
-            videoName: 'friends.mp4', 
+            videoName: 'friends.mp4',
             videoType: 'video/mp4',
             videoDuration: 143.4,
           })
@@ -1035,7 +1050,6 @@ export default function EditorPage() {
   const handleToggleTemplateSidebar = () => {
     setRightSidebarType(rightSidebarType === 'template' ? null : 'template')
   }
-
 
   const handleCloseSidebar = () => {
     setRightSidebarType(null)
@@ -1901,8 +1915,8 @@ export default function EditorPage() {
                   : 'h-[calc(100vh-120px)]'
               }`}
             >
-              <VideoSection 
-                width={videoPanelWidth} 
+              <VideoSection
+                width={videoPanelWidth}
                 onCurrentTimeChange={setCurrentTime}
               />
             </div>
@@ -2088,7 +2102,6 @@ export default function EditorPage() {
                         />
                       </div>
                     )}
-
                   </>
                 )}
               </div>

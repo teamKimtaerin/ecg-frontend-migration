@@ -1,13 +1,13 @@
 import type { ClipItem } from '../types'
 import type { InsertedText } from '../types/textInsertion'
 import type { RendererConfigV2 } from '@/app/shared/motiontext'
-import { 
-  buildUnifiedScenario, 
-  updateInsertedTextCueInScenario, 
+import {
+  buildUnifiedScenario,
+  updateInsertedTextCueInScenario,
   removeInsertedTextCueFromScenario,
   getInsertedTextIdsFromScenario,
   type UnifiedScenarioOptions,
-  type UnifiedScenarioResult 
+  type UnifiedScenarioResult,
 } from './unifiedScenarioGenerator'
 
 export type ScenarioUpdateListener = (scenario: RendererConfigV2) => void
@@ -21,7 +21,7 @@ export interface ScenarioManagerOptions extends UnifiedScenarioOptions {
  */
 export class ScenarioManager {
   private currentScenario: RendererConfigV2 | null = null
-  private currentIndex: Record<string, any> = {}
+  private currentIndex: Record<string, { cueIndex: number; path: number[] }> = {}
   private clips: ClipItem[] = []
   private insertedTexts: InsertedText[] = []
   private options: ScenarioManagerOptions
@@ -38,18 +38,25 @@ export class ScenarioManager {
   /**
    * Initialize scenario with clips and inserted texts
    */
-  initialize(clips: ClipItem[], insertedTexts: InsertedText[] = []): RendererConfigV2 {
+  initialize(
+    clips: ClipItem[],
+    insertedTexts: InsertedText[] = []
+  ): RendererConfigV2 {
     this.clips = [...clips]
     this.insertedTexts = [...insertedTexts]
-    
-    const result = buildUnifiedScenario(this.clips, this.insertedTexts, this.options)
+
+    const result = buildUnifiedScenario(
+      this.clips,
+      this.insertedTexts,
+      this.options
+    )
     this.currentScenario = result.config
     this.currentIndex = result.index
-    
+
     if (this.options.autoUpdate) {
       this.notifyListeners()
     }
-    
+
     return this.currentScenario
   }
 
@@ -63,7 +70,7 @@ export class ScenarioManager {
   /**
    * Get current index (read-only)
    */
-  getIndex(): Record<string, any> {
+  getIndex(): Record<string, { cueIndex: number; path: number[] }> {
     return { ...this.currentIndex }
   }
 
@@ -72,11 +79,15 @@ export class ScenarioManager {
    */
   updateInsertedText(insertedText: InsertedText): void {
     if (!this.currentScenario) {
-      throw new Error('ScenarioManager not initialized. Call initialize() first.')
+      throw new Error(
+        'ScenarioManager not initialized. Call initialize() first.'
+      )
     }
 
     // Update local state
-    const existingIndex = this.insertedTexts.findIndex(text => text.id === insertedText.id)
+    const existingIndex = this.insertedTexts.findIndex(
+      (text) => text.id === insertedText.id
+    )
     if (existingIndex >= 0) {
       this.insertedTexts[existingIndex] = insertedText
     } else {
@@ -84,8 +95,11 @@ export class ScenarioManager {
     }
 
     // Update scenario
-    this.currentScenario = updateInsertedTextCueInScenario(this.currentScenario, insertedText)
-    
+    this.currentScenario = updateInsertedTextCueInScenario(
+      this.currentScenario,
+      insertedText
+    )
+
     this.scheduleUpdate()
   }
 
@@ -94,15 +108,22 @@ export class ScenarioManager {
    */
   removeInsertedText(insertedTextId: string): void {
     if (!this.currentScenario) {
-      throw new Error('ScenarioManager not initialized. Call initialize() first.')
+      throw new Error(
+        'ScenarioManager not initialized. Call initialize() first.'
+      )
     }
 
     // Update local state
-    this.insertedTexts = this.insertedTexts.filter(text => text.id !== insertedTextId)
+    this.insertedTexts = this.insertedTexts.filter(
+      (text) => text.id !== insertedTextId
+    )
 
     // Update scenario
-    this.currentScenario = removeInsertedTextCueFromScenario(this.currentScenario, insertedTextId)
-    
+    this.currentScenario = removeInsertedTextCueFromScenario(
+      this.currentScenario,
+      insertedTextId
+    )
+
     this.scheduleUpdate()
   }
 
@@ -111,17 +132,23 @@ export class ScenarioManager {
    */
   batchUpdateInsertedTexts(insertedTexts: InsertedText[]): void {
     if (!this.currentScenario) {
-      throw new Error('ScenarioManager not initialized. Call initialize() first.')
+      throw new Error(
+        'ScenarioManager not initialized. Call initialize() first.'
+      )
     }
 
     // Update local state
     this.insertedTexts = [...insertedTexts]
 
     // Rebuild scenario for batch operations (more efficient than individual updates)
-    const result = buildUnifiedScenario(this.clips, this.insertedTexts, this.options)
+    const result = buildUnifiedScenario(
+      this.clips,
+      this.insertedTexts,
+      this.options
+    )
     this.currentScenario = result.config
     this.currentIndex = result.index
-    
+
     this.scheduleUpdate()
   }
 
@@ -145,7 +172,7 @@ export class ScenarioManager {
    * Remove a clip
    */
   removeClip(clipId: string): void {
-    this.clips = this.clips.filter(clip => clip.id !== clipId)
+    this.clips = this.clips.filter((clip) => clip.id !== clipId)
     this.rebuildScenario()
   }
 
@@ -154,13 +181,19 @@ export class ScenarioManager {
    */
   rebuildScenario(): void {
     if (!this.currentScenario) {
-      throw new Error('ScenarioManager not initialized. Call initialize() first.')
+      throw new Error(
+        'ScenarioManager not initialized. Call initialize() first.'
+      )
     }
 
-    const result = buildUnifiedScenario(this.clips, this.insertedTexts, this.options)
+    const result = buildUnifiedScenario(
+      this.clips,
+      this.insertedTexts,
+      this.options
+    )
     this.currentScenario = result.config
     this.currentIndex = result.index
-    
+
     this.scheduleUpdate()
   }
 
@@ -182,14 +215,14 @@ export class ScenarioManager {
    * Find inserted text by ID
    */
   findInsertedText(id: string): InsertedText | undefined {
-    return this.insertedTexts.find(text => text.id === id)
+    return this.insertedTexts.find((text) => text.id === id)
   }
 
   /**
    * Find clip by ID
    */
   findClip(id: string): ClipItem | undefined {
-    return this.clips.find(clip => clip.id === id)
+    return this.clips.find((clip) => clip.id === id)
   }
 
   /**
@@ -197,13 +230,19 @@ export class ScenarioManager {
    */
   validateConsistency(): boolean {
     if (!this.currentScenario) return false
-    
-    const scenarioInsertedTextIds = getInsertedTextIdsFromScenario(this.currentScenario)
-    const localInsertedTextIds = this.insertedTexts.map(text => text.id)
-    
+
+    const scenarioInsertedTextIds = getInsertedTextIdsFromScenario(
+      this.currentScenario
+    )
+    const localInsertedTextIds = this.insertedTexts.map((text) => text.id)
+
     // Check if all local inserted texts are in scenario
-    return localInsertedTextIds.every(id => scenarioInsertedTextIds.includes(id)) &&
-           scenarioInsertedTextIds.every(id => localInsertedTextIds.includes(id))
+    return (
+      localInsertedTextIds.every((id) =>
+        scenarioInsertedTextIds.includes(id)
+      ) &&
+      scenarioInsertedTextIds.every((id) => localInsertedTextIds.includes(id))
+    )
   }
 
   /**
@@ -211,7 +250,7 @@ export class ScenarioManager {
    */
   addUpdateListener(listener: ScenarioUpdateListener): () => void {
     this.listeners.add(listener)
-    
+
     // Return unsubscribe function
     return () => {
       this.listeners.delete(listener)
@@ -261,7 +300,7 @@ export class ScenarioManager {
   private notifyListeners(): void {
     if (!this.currentScenario) return
 
-    this.listeners.forEach(listener => {
+    this.listeners.forEach((listener) => {
       try {
         listener(this.currentScenario!)
       } catch (error) {

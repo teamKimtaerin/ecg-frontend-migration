@@ -25,7 +25,10 @@ interface VideoSectionProps {
   onCurrentTimeChange?: (currentTime: number) => void
 }
 
-const VideoSection: React.FC<VideoSectionProps> = ({ width = 300, onCurrentTimeChange }) => {
+const VideoSection: React.FC<VideoSectionProps> = ({
+  width = 300,
+  onCurrentTimeChange,
+}) => {
   const videoContainerRef = useRef<HTMLDivElement>(null)
   const videoPlayerRef = useRef<HTMLVideoElement>(null)
 
@@ -290,7 +293,7 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300, onCurrentTimeC
 
         {/* Virtual Timeline Controller */}
         <div className="mb-4">
-          <VirtualTimelineController 
+          <VirtualTimelineController
             virtualPlayerController={virtualPlayerControllerRef.current}
           />
         </div>

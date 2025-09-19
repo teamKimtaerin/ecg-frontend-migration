@@ -2,6 +2,8 @@
  * Text insertion feature types
  */
 
+import type { ClipItem } from './index'
+
 export interface TextPosition {
   x: number // Percentage (0-100)
   y: number // Percentage (0-100)
@@ -80,10 +82,16 @@ export interface TextInsertionActions {
   updateTextTiming: (id: string, startTime: number, endTime: number) => void
 
   // Scenario management
-  initializeScenario: (clips?: any[]) => void
+  initializeScenario: (clips?: ClipItem[]) => void
   toggleScenarioMode: () => void
-  updateScenario: (scenario: import('@/app/shared/motiontext').RendererConfigV2) => void
-  addScenarioUpdateListener: (listener: (scenario: import('@/app/shared/motiontext').RendererConfigV2) => void) => () => void
+  updateScenario: (
+    scenario: import('@/app/shared/motiontext').RendererConfigV2
+  ) => void
+  addScenarioUpdateListener: (
+    listener: (
+      scenario: import('@/app/shared/motiontext').RendererConfigV2
+    ) => void
+  ) => () => void
 }
 
 export type TextInsertionSlice = TextInsertionState & TextInsertionActions
