@@ -24,4 +24,4 @@ Thumbs.db
 # Generated files
 coverage
 playwright-report
-test-results
+test-resultssrc/services/api/uploadService.ts
