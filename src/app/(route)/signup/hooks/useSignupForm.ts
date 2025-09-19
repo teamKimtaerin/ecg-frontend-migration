@@ -78,7 +78,7 @@ export const useSignupForm = () => {
     setIsLoading(true)
     try {
       await signup({
-        name: formData.name,
+        username: formData.name,
         email: formData.email,
         password: formData.password,
       })
