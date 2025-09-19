@@ -26,5 +26,3 @@ coverage
 playwright-report
 test-results
 
-# Problematic files with line ending conflicts
-src/services/api/uploadService.ts
