@@ -137,7 +137,9 @@ export class AuthAPI {
   static async getCurrentUser(token?: string): Promise<User> {
     const response = await fetch(`${BASE_URL}/api/auth/me`, {
       method: 'GET',
-      headers: token ? this.getHeaders(token) : { 'Content-Type': 'application/json' },
+      headers: token
+        ? this.getHeaders(token)
+        : { 'Content-Type': 'application/json' },
       credentials: 'include', // HttpOnly 쿠키 포함
     })
 

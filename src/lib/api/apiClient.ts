@@ -9,7 +9,7 @@ export async function apiRequest(endpoint: string, options: RequestInit = {}) {
   // 기본 헤더 설정
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...(options.headers as Record<string, string> || {}),
+    ...((options.headers as Record<string, string>) || {}),
   }
 
   // access token이 있으면 추가
