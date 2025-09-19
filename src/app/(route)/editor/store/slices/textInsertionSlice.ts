@@ -5,6 +5,10 @@ import {
   type TextPosition,
   type TextStyle,
   DEFAULT_TEXT_STYLE,
+  DEFAULT_TEXT_ANIMATION,
+  ROTATION_PRESETS,
+  type RotationPreset,
+  type TextAnimation,
   createInsertedText,
   isTextActiveAtTime,
 } from '../../types/textInsertion'
@@ -43,6 +47,7 @@ export const createTextInsertionSlice: StateCreator<
       startTime: currentTime,
       endTime: currentTime + 3, // Default 3 seconds duration
       style: get().defaultStyle,
+      animation: DEFAULT_TEXT_ANIMATION, // 기본 회전 애니메이션 적용
       createdAt: Date.now(),
       updatedAt: Date.now(),
       isSelected: true, // Auto-select the new text
@@ -73,6 +78,7 @@ export const createTextInsertionSlice: StateCreator<
     const newText: InsertedText = {
       ...textData,
       id: `text_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
+      animation: textData.animation || DEFAULT_TEXT_ANIMATION, // 기본 애니메이션 적용
       createdAt: Date.now(),
       updatedAt: Date.now(),
     }
@@ -367,5 +373,29 @@ export const createTextInsertionSlice: StateCreator<
       )
     }
     return scenarioManager.addUpdateListener(listener)
+  },
+
+  // Animation management methods
+  toggleRotationAnimation: (id: string) => {
+    const { updateText } = get()
+    const currentText = get().insertedTexts.find((text) => text.id === id)
+    if (!currentText) return
+
+    const isSpinActive = currentText.animation?.plugin === 'spin@2.0.0'
+    const newAnimation = isSpinActive
+      ? ROTATION_PRESETS.NONE
+      : ROTATION_PRESETS.SUBTLE
+
+    updateText(id, { animation: newAnimation })
+  },
+
+  setAnimationPreset: (id: string, preset: RotationPreset) => {
+    const { updateText } = get()
+    updateText(id, { animation: ROTATION_PRESETS[preset] })
+  },
+
+  updateTextAnimation: (id: string, animation: TextAnimation) => {
+    const { updateText } = get()
+    updateText(id, { animation })
   },
 })

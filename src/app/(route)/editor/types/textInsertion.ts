@@ -81,6 +81,11 @@ export interface TextInsertionActions {
   getActiveTexts: (currentTime: number) => InsertedText[]
   updateTextTiming: (id: string, startTime: number, endTime: number) => void
 
+  // Animation management
+  toggleRotationAnimation: (id: string) => void
+  setAnimationPreset: (id: string, preset: RotationPreset) => void
+  updateTextAnimation: (id: string, animation: TextAnimation) => void
+
   // Scenario management
   initializeScenario: (clips?: ClipItem[]) => void
   toggleScenarioMode: () => void
@@ -111,9 +116,39 @@ export const DEFAULT_TEXT_STYLE: TextStyle = {
   opacity: 1,
 }
 
+// 스핀 애니메이션 프리셋
+export const ROTATION_PRESETS = {
+  NONE: {
+    plugin: '',
+    parameters: {},
+  },
+  SUBTLE: {
+    plugin: 'spin@2.0.0',
+    parameters: {
+      fullTurns: 0.25, // 1/4 회전 (90도)
+    },
+  },
+  DYNAMIC: {
+    plugin: 'spin@2.0.0',
+    parameters: {
+      fullTurns: 1.0, // 1번 완전 회전 (360도)
+    },
+  },
+  FLIP_3D: {
+    plugin: 'spin@2.0.0',
+    parameters: {
+      fullTurns: 0.5, // 1/2 회전 (180도)
+    },
+  },
+} as const
+
+export type RotationPreset = keyof typeof ROTATION_PRESETS
+
 export const DEFAULT_TEXT_ANIMATION: TextAnimation = {
-  plugin: '', // No default animation - empty pluginChain [] works
-  parameters: {},
+  plugin: 'spin@2.0.0', // 기본으로 스핀 애니메이션 적용
+  parameters: {
+    fullTurns: 0.5, // 기본값: 1/2 회전 (180도)
+  },
 }
 
 // Helper functions

@@ -44,10 +44,19 @@ function textAnimationToPluginChain(animation?: InsertedText['animation']) {
     return []
   }
 
+  // spin 플러그인에 대한 기본 파라미터 보장
+  const defaultParams =
+    animation.plugin === 'spin@2.0.0'
+      ? {
+          fullTurns: 0.5, // 기본값: 1/2 회전
+          ...animation.parameters,
+        }
+      : animation.parameters || {}
+
   return [
     {
       name: animation.plugin,
-      params: animation.parameters || {},
+      params: defaultParams,
     },
   ]
 }
