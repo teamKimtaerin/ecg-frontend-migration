@@ -11,7 +11,7 @@ interface LoginRequest {
 
 interface User {
   id: number
-  name: string
+  username: string
   email: string
   auth_provider: string
   is_active: boolean
