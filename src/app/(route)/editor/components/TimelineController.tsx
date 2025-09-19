@@ -111,8 +111,8 @@ const TimelineController: React.FC = () => {
           
           {/* Clip markers on timeline */}
           {clips.map((clip, index) => {
-            if (!clip.start || !duration) return null
-            const position = (clip.start / duration) * 100
+            if (!clip.startTime || !duration) return null
+            const position = (clip.startTime / duration) * 100
             return (
               <div
                 key={clip.id || index}

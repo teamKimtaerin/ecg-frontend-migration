@@ -22,7 +22,7 @@ interface VirtualTimelineControllerProps {
 const VirtualTimelineController: React.FC<VirtualTimelineControllerProps> = ({ 
   virtualPlayerController 
 }) => {
-  const { clips, videoUrl, speakerColors, activeClipId } = useEditorStore()
+  const { clips, videoUrl, activeClipId } = useEditorStore()
   const timelineRef = useRef<HTMLDivElement>(null)
   const [currentTime, setCurrentTime] = useState(0)
   const [totalDuration, setTotalDuration] = useState(0)
@@ -38,29 +38,8 @@ const VirtualTimelineController: React.FC<VirtualTimelineControllerProps> = ({
 
   // 클립 데이터를 타임라인 블록으로 변환 (Virtual Timeline 우선)
   const convertClipsToBlocks = useCallback((): ClipBlock[] => {
-    if (virtualPlayerController) {
-      // Virtual Timeline의 세그먼트 사용
-      const timeline = virtualPlayerController.timelineMapper?.timelineManager?.getTimeline()
-      if (timeline) {
-        return timeline.segments.map((segment) => {
-          // 해당 세그먼트에 매핑된 클립 찾기
-          const matchedClip = clips.find(clip => 
-            clip.id === segment.id || 
-            segment.metadata?.clipId === clip.id
-          )
-          
-          return {
-            id: segment.id,
-            startTime: segment.virtualStartTime,
-            endTime: segment.virtualEndTime,
-            duration: segment.virtualEndTime - segment.virtualStartTime,
-            speaker: matchedClip?.speaker || '미지정',
-            text: matchedClip?.fullText || segment.metadata?.text || '',
-            color: getSpeakerColor(matchedClip?.speaker || '미지정', speakerColors),
-          }
-        })
-      }
-    }
+    // Virtual Timeline API가 private이므로 clips 데이터를 직접 사용
+    // TODO: VirtualPlayerController에서 public API 제공되면 수정
     
     // Fallback: 기존 clips 데이터 사용
     return clips.map((clip) => {
@@ -75,24 +54,18 @@ const VirtualTimelineController: React.FC<VirtualTimelineControllerProps> = ({
         duration,
         speaker: clip.speaker,
         text: clip.fullText,
-        color: getSpeakerColor(clip.speaker, speakerColors),
+        color: getSpeakerColor(clip.speaker),
       }
     })
-  }, [virtualPlayerController, clips, speakerColors])
+  }, [virtualPlayerController, clips])
 
   // 총 재생 시간 계산 (Virtual Timeline 우선)
   const calculateTotalDuration = useCallback((blocks: ClipBlock[]): number => {
-    if (virtualPlayerController) {
-      const timeline = virtualPlayerController.timelineMapper?.timelineManager?.getTimeline()
-      if (timeline && timeline.duration > 0) {
-        return timeline.duration
-      }
-    }
-    
-    // Fallback
+    // Virtual Timeline API가 private이므로 clips 데이터를 직접 사용
+    // Fallback: 클립들의 최대 endTime 사용
     if (blocks.length === 0) return 0
     return Math.max(...blocks.map(block => block.endTime))
-  }, [virtualPlayerController])
+  }, [])
 
   // 시간을 픽셀 위치로 변환
   const timeToPixel = useCallback((time: number): number => {
@@ -142,11 +115,8 @@ const VirtualTimelineController: React.FC<VirtualTimelineControllerProps> = ({
       setCurrentTime(virtualPlayerController.getCurrentTime())
       // isPlaying 상태는 콜백에서만 업데이트 (private 속성이므로 직접 접근 불가)
 
-      // Virtual Timeline의 총 duration 가져오기
-      const timeline = virtualPlayerController.timelineMapper?.timelineManager?.getTimeline()
-      if (timeline) {
-        setTotalDuration(timeline.duration)
-      }
+      // Virtual Timeline의 총 duration 가져오기 (private API 사용 불가)
+      // TODO: VirtualPlayerController에서 public API 제공되면 수정
 
       return () => {
         timeUpdateCleanup()
