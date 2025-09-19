@@ -30,7 +30,7 @@ export default function GoogleFontDropdown({
   const [fonts, setFonts] = useState<GoogleFont[]>([])
   const [loading, setLoading] = useState(false)
   const [hasMore, setHasMore] = useState(true)
-  const [page, setPage] = useState(1)
+  const [, setPage] = useState(1)
   const pageRef = useRef(1)
   const [error, setError] = useState<string | null>(null)
 

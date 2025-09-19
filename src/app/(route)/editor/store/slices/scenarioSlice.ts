@@ -290,9 +290,8 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
     console.log('Looking for group node with ID:', groupNodeId)
 
     // Debug: Log all existing group node IDs
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const existingGroupIds = currentScenario.cues
-      .map((cue) => (cue as any).root?.id)
+      .map((cue) => (cue as { root?: { id?: string } }).root?.id)
       .filter(Boolean)
     console.log('Existing group node IDs:', existingGroupIds)
 
