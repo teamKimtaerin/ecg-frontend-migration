@@ -81,9 +81,7 @@ const UserDropdown: React.FC = () => {
         </div>
 
         {/* Username */}
-        <span className="text-gray-700 text-sm font-medium">
-          {user.name}
-        </span>
+        <span className="text-gray-700 text-sm font-medium">{user.name}</span>
 
         {/* Dropdown Arrow */}
         <svg
