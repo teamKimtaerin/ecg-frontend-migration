@@ -1,16 +1,19 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
-import FontDropdown from '@/components/ui/FontDropdown'
+import GoogleFontDropdown from '@/components/ui/GoogleFontDropdown'
 import ToolbarButton from './shared/ToolbarButton'
 import ToolbarDivider from './shared/ToolbarDivider'
 import { EDITOR_COLORS } from '../../constants/colors'
 import BorderStylePopup from '../ColorPicker/BorderStylePopup'
 import BackgroundStylePopup from '../ColorPicker/BackgroundStylePopup'
 import SimpleColorPopup from '../ColorPicker/SimpleColorPopup'
+import { useEditorStore } from '../../store'
+import type { ClipItem } from '../../types'
 
 interface FormatToolbarProps {
+  clips: ClipItem[]
   selectedClipIds: Set<string>
   canUndo: boolean
   canRedo: boolean
@@ -18,8 +21,10 @@ interface FormatToolbarProps {
   onRedo: () => void
 }
 
-export default function FormatToolbar({}: FormatToolbarProps) {
-  const [selectedFont, setSelectedFont] = useState('굴림 손글씨 2023')
+export default function FormatToolbar({ clips }: FormatToolbarProps) {
+  const { updateCaptionDefaultStyle, updateGroupNodeStyle, currentScenario } = useEditorStore()
+
+  const [selectedFont, setSelectedFont] = useState('Arial')
   const [fontSize, setFontSize] = useState('100')
   const [selectedColor, setSelectedColor] = useState('#FFFF00')
   const [activeDropdown, setActiveDropdown] = useState<
@@ -27,7 +32,8 @@ export default function FormatToolbar({}: FormatToolbarProps) {
   >(null)
   const [isBold, setIsBold] = useState(false)
   const [isItalic, setIsItalic] = useState(false)
-  const [currentFormat, setCurrentFormat] = useState('클립 1')
+  const [currentFormat, setCurrentFormat] = useState('전체')
+  const [selectedClipId, setSelectedClipId] = useState<string | null>(null)
 
   // Style popup states
   const [activeStylePopup, setActiveStylePopup] = useState<
@@ -50,6 +56,82 @@ export default function FormatToolbar({}: FormatToolbarProps) {
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 })
   const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0 })
 
+  // 스타일 동기화 함수
+  const syncStylesFromScenario = useCallback(() => {
+    let targetStyle: Record<string, unknown> = {}
+
+    if (selectedClipId === null) {
+      // 전체 스타일 - caption track에서 가져오기
+      if (currentScenario?.tracks) {
+        const captionTrack = currentScenario.tracks.find(
+          track => track.id === 'caption' || track.type === 'subtitle'
+        )
+        if (captionTrack?.defaultStyle) {
+          targetStyle = captionTrack.defaultStyle
+        }
+      }
+    } else {
+      // 클립별 스타일 - group node에서 가져오기
+      if (currentScenario?.cues) {
+        const groupNodeId = `clip-${selectedClipId}`
+        for (const cue of currentScenario.cues) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const root = (cue as any).root
+          if (root && root.id === groupNodeId) {
+            let currentStyle = root.style || {}
+            if (typeof currentStyle === 'string') {
+              // String reference like 'define.caption.boxStyle'
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const define = (currentScenario.define as any)
+              if (currentStyle === 'define.caption.boxStyle' && define?.caption?.boxStyle) {
+                currentStyle = { ...define.caption.boxStyle }
+              } else {
+                currentStyle = {}
+              }
+            }
+            targetStyle = currentStyle
+            break
+          }
+        }
+      }
+    }
+
+    // UI 상태 업데이트
+    if (targetStyle.fontFamily) {
+      setSelectedFont(targetStyle.fontFamily as string)
+    }
+
+    if (typeof targetStyle.fontSizeRel === 'number') {
+      const sizePercent = Math.round((targetStyle.fontSizeRel / 0.07) * 100)
+      setFontSize(sizePercent.toString())
+    }
+
+    if (targetStyle.color) {
+      setSelectedColor(targetStyle.color as string)
+    }
+
+    setIsBold(targetStyle.fontWeight === 'bold' || targetStyle.fontWeight === 700)
+    setIsItalic(targetStyle.fontStyle === 'italic')
+
+    if (targetStyle.borderColor) {
+      setBorderColor(targetStyle.borderColor as string)
+    }
+    if (typeof targetStyle.borderWidth === 'number') {
+      setBorderThickness(targetStyle.borderWidth)
+    }
+    if (targetStyle.backgroundColor) {
+      setBackgroundColor(targetStyle.backgroundColor as string)
+    }
+    if (typeof targetStyle.backgroundOpacity === 'number') {
+      setBackgroundOpacity(targetStyle.backgroundOpacity)
+    }
+  }, [currentScenario, selectedClipId])
+
+  // scenario나 selectedClipId가 변경될 때 스타일 동기화
+  useEffect(() => {
+    syncStylesFromScenario()
+  }, [currentScenario, selectedClipId, syncStylesFromScenario])
+
   // 외부 클릭시 드롭다운들 닫기
   useEffect(() => {
     const handleClickOutside = () => {
@@ -63,45 +145,26 @@ export default function FormatToolbar({}: FormatToolbarProps) {
     }
   }, [activeDropdown, activeStylePopup])
 
-  const fontOptions = [
-    {
-      value: '굴림 손글씨 2023',
-      label: '굴림 손글씨 2023',
-      category: 'handwriting' as const,
-      keywords: ['굴림', '손글씨', '2023', '한국어'],
-    },
-    {
-      value: '굴림고딕 볼드',
-      label: '굴림고딕 볼드',
-      category: 'gothic' as const,
-      keywords: ['굴림', '고딕', '볼드', '한국어'],
-    },
-    {
-      value: '나눔스퀘어 네오 Bold',
-      label: '나눔스퀘어 네오 Bold',
-      category: 'rounded' as const,
-      keywords: ['나눔', '스퀘어', '네오', 'Bold', '한국어', '라운드', '둥근'],
-    },
-    {
-      value: 'Malgun Gothic',
-      label: 'Malgun Gothic',
-      category: 'gothic' as const,
-      keywords: ['Malgun', 'Gothic', '맑은고딕', '맑은', '고딕', '한국어'],
-    },
-    {
-      value: 'Noto Sans KR',
-      label: 'Noto Sans KR',
-      category: 'gothic' as const,
-      keywords: ['Noto', 'Sans', 'KR', '노토', '산스', '한국어', '고딕'],
-    },
+
+  // Generate format options dynamically
+  const savedFormats = [
+    { id: 'all', name: '전체' },
+    ...clips.map((clip, index) => ({
+      id: clip.id,
+      name: `클립 ${index + 1}`,
+    })),
   ]
 
-  const savedFormats = [
-    { id: 'clip1', name: '클립 1' },
-    { id: 'format1', name: '서식 1' },
-    { id: 'format2', name: '서식 2' },
-    { id: 'format3', name: '서식 3' },
-  ]
+  // Conditional style application function
+  const applyStyle = (styleUpdates: Record<string, unknown>) => {
+    if (selectedClipId === null) {
+      // Apply to global caption track
+      updateCaptionDefaultStyle(styleUpdates)
+    } else {
+      // Apply to specific clip's group node
+      updateGroupNodeStyle(selectedClipId, styleUpdates)
+    }
+  }
 
   return (
     <>
@@ -185,7 +248,7 @@ export default function FormatToolbar({}: FormatToolbarProps) {
           typeof document !== 'undefined' &&
           createPortal(
             <div
-              className={`fixed ${EDITOR_COLORS.dropdown.background} ${EDITOR_COLORS.dropdown.border} rounded-default shadow-lg backdrop-blur-sm min-w-[100px]`}
+              className={`fixed ${EDITOR_COLORS.dropdown.dark.background} ${EDITOR_COLORS.dropdown.dark.border} ${EDITOR_COLORS.dropdown.dark.shadow} rounded-lg backdrop-blur-sm min-w-[120px] max-w-[200px] max-h-[300px] overflow-y-auto dropdown-scrollbar`}
               style={{
                 top: dropdownPosition.top,
                 left: dropdownPosition.left,
@@ -196,12 +259,13 @@ export default function FormatToolbar({}: FormatToolbarProps) {
               {savedFormats.map((format) => (
                 <button
                   key={format.id}
-                  className={`w-full px-3 py-1.5 text-sm text-white ${EDITOR_COLORS.dropdown.hover} text-left transition-colors ${
-                    currentFormat === format.name ? 'bg-blue-500/20' : ''
-                  }`}
+                  className={`w-full px-3 py-2 text-sm ${EDITOR_COLORS.dropdown.dark.text} ${EDITOR_COLORS.dropdown.dark.hover} text-left transition-colors ${
+                    currentFormat === format.name ? EDITOR_COLORS.dropdown.dark.selected : ''
+                  } first:rounded-t-lg last:rounded-b-lg`}
                   onClick={(e) => {
                     e.stopPropagation()
                     setCurrentFormat(format.name)
+                    setSelectedClipId(format.id === 'all' ? null : format.id)
                     setActiveDropdown(null)
                   }}
                 >
@@ -218,7 +282,13 @@ export default function FormatToolbar({}: FormatToolbarProps) {
         className={`w-8 h-8 border rounded flex items-center justify-center text-sm font-bold transition-colors ${
           isBold ? EDITOR_COLORS.button.active : EDITOR_COLORS.button.inactive
         }`}
-        onClick={() => setIsBold(!isBold)}
+        onClick={() => {
+          const newBold = !isBold
+          setIsBold(newBold)
+          applyStyle({
+            fontWeight: newBold ? 'bold' : 'normal'
+          })
+        }}
       >
         B
       </button>
@@ -228,16 +298,26 @@ export default function FormatToolbar({}: FormatToolbarProps) {
         className={`w-8 h-8 border rounded flex items-center justify-center text-sm italic transition-colors ${
           isItalic ? EDITOR_COLORS.button.active : EDITOR_COLORS.button.inactive
         }`}
-        onClick={() => setIsItalic(!isItalic)}
+        onClick={() => {
+          const newItalic = !isItalic
+          setIsItalic(newItalic)
+          applyStyle({
+            fontStyle: newItalic ? 'italic' : 'normal'
+          })
+        }}
       >
         I
       </button>
 
       {/* 폰트 선택 드롭다운 */}
-      <FontDropdown
+      <GoogleFontDropdown
         value={selectedFont}
-        options={fontOptions}
-        onChange={(font: string) => setSelectedFont(font)}
+        onChange={(font: string) => {
+          setSelectedFont(font)
+          applyStyle({
+            fontFamily: font
+          })
+        }}
         size="small"
         className="min-w-[140px]"
         variant="toolbar"
@@ -248,7 +328,16 @@ export default function FormatToolbar({}: FormatToolbarProps) {
         <input
           type="text"
           value={fontSize}
-          onChange={(e) => setFontSize(e.target.value)}
+          onChange={(e) => {
+            const newSize = e.target.value
+            setFontSize(newSize)
+            // 폰트 크기를 fontSizeRel로 변환 (100% = 0.07)
+            const sizePercent = parseInt(newSize) || 100
+            const fontSizeRel = (sizePercent / 100) * 0.07
+            applyStyle({
+              fontSizeRel: fontSizeRel
+            })
+          }}
           className="w-16 h-8 px-2 pr-6 text-sm bg-slate-700/90 border-2 border-slate-500/70 rounded-default text-white focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-slate-400 hover:border-slate-400 hover:bg-slate-600/90"
           onClick={(e) => e.stopPropagation()}
         />
@@ -293,7 +382,7 @@ export default function FormatToolbar({}: FormatToolbarProps) {
           typeof document !== 'undefined' &&
           createPortal(
             <div
-              className={`fixed ${EDITOR_COLORS.dropdown.background} ${EDITOR_COLORS.dropdown.border} rounded-default shadow-lg w-20 backdrop-blur-sm`}
+              className={`fixed ${EDITOR_COLORS.dropdown.dark.background} ${EDITOR_COLORS.dropdown.dark.border} ${EDITOR_COLORS.dropdown.dark.shadow} rounded-lg w-20 backdrop-blur-sm max-h-60 overflow-y-auto dropdown-scrollbar`}
               style={{
                 top: dropdownPosition.top,
                 left: dropdownPosition.left,
@@ -305,10 +394,16 @@ export default function FormatToolbar({}: FormatToolbarProps) {
                 (size) => (
                   <button
                     key={size}
-                    className={`w-full px-3 py-1.5 text-sm text-white ${EDITOR_COLORS.dropdown.hover} text-left transition-colors`}
+                    className={`w-full px-3 py-2 text-sm ${EDITOR_COLORS.dropdown.dark.text} ${EDITOR_COLORS.dropdown.dark.hover} text-left transition-colors first:rounded-t-lg last:rounded-b-lg`}
                     onClick={(e) => {
                       e.stopPropagation()
                       setFontSize(size)
+                      // 폰트 크기를 fontSizeRel로 변환 (100% = 0.07)
+                      const sizePercent = parseInt(size) || 100
+                      const fontSizeRel = (sizePercent / 100) * 0.07
+                      applyStyle({
+                        fontSizeRel: fontSizeRel
+                      })
                       setActiveDropdown(null)
                     }}
                   >
@@ -375,6 +470,9 @@ export default function FormatToolbar({}: FormatToolbarProps) {
                     onClick={(e) => {
                       e.stopPropagation()
                       setSelectedColor(color)
+                      applyStyle({
+                        color: color
+                      })
                       setActiveDropdown(null)
                     }}
                   />
@@ -581,8 +679,20 @@ export default function FormatToolbar({}: FormatToolbarProps) {
             <BorderStylePopup
               color={borderColor}
               thickness={borderThickness}
-              onColorChange={setBorderColor}
-              onThicknessChange={setBorderThickness}
+              onColorChange={(color) => {
+                setBorderColor(color)
+                applyStyle({
+                  borderColor: color,
+                  border: `${borderThickness}px solid ${color}`
+                })
+              }}
+              onThicknessChange={(thickness) => {
+                setBorderThickness(thickness)
+                applyStyle({
+                  borderWidth: thickness,
+                  border: `${thickness}px solid ${borderColor}`
+                })
+              }}
               onClose={() => setActiveStylePopup(null)}
             />
           </div>,
@@ -603,8 +713,18 @@ export default function FormatToolbar({}: FormatToolbarProps) {
             <BackgroundStylePopup
               color={backgroundColor}
               opacity={backgroundOpacity}
-              onColorChange={setBackgroundColor}
-              onOpacityChange={setBackgroundOpacity}
+              onColorChange={(color) => {
+                setBackgroundColor(color)
+                applyStyle({
+                  backgroundColor: color
+                })
+              }}
+              onOpacityChange={(opacity) => {
+                setBackgroundOpacity(opacity)
+                applyStyle({
+                  backgroundOpacity: opacity
+                })
+              }}
               onClose={() => setActiveStylePopup(null)}
             />
           </div>,
@@ -624,7 +744,14 @@ export default function FormatToolbar({}: FormatToolbarProps) {
           >
             <SimpleColorPopup
               color={highlightColor}
-              onColorChange={setHighlightColor}
+              onColorChange={(color) => {
+                setHighlightColor(color)
+                applyStyle({
+                  textShadow: `0 0 10px ${color}`,
+                  // 또는 배경색으로 형광펜 효과
+                  // backgroundColor: `${color}88` // 50% 투명도
+                })
+              }}
               onClose={() => setActiveStylePopup(null)}
             />
           </div>,
@@ -644,7 +771,12 @@ export default function FormatToolbar({}: FormatToolbarProps) {
           >
             <SimpleColorPopup
               color={shadowColor}
-              onColorChange={setShadowColor}
+              onColorChange={(color) => {
+                setShadowColor(color)
+                applyStyle({
+                  textShadow: `2px 2px 4px ${color}`
+                })
+              }}
               onClose={() => setActiveStylePopup(null)}
             />
           </div>,

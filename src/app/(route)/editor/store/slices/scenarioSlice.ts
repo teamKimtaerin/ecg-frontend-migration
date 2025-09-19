@@ -26,6 +26,12 @@ export interface ScenarioSlice {
   ) => void
   refreshWordPluginChain: (wordId: string) => void
 
+  // Update caption default style
+  updateCaptionDefaultStyle: (styleUpdates: Record<string, unknown>) => void
+
+  // Update group node style for specific clip
+  updateGroupNodeStyle: (clipId: string, styleUpdates: Record<string, unknown>) => void
+
   // Set scenario from arbitrary JSON (editor apply)
   setScenarioFromJson: (config: RendererConfigV2) => void
 }
@@ -153,6 +159,125 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
     }
     set({
       currentScenario: { ...currentScenario },
+      scenarioVersion: (get().scenarioVersion || 0) + 1,
+    })
+  },
+
+  updateCaptionDefaultStyle: (styleUpdates) => {
+    let { currentScenario } = get()
+
+    // Lazily build scenario if it doesn't exist
+    if (!currentScenario) {
+      try {
+        const anyGet = get() as unknown as {
+          clips?: import('../../types').ClipItem[]
+          deletedClipIds?: Set<string>
+          buildInitialScenario?: ScenarioSlice['buildInitialScenario']
+        }
+        const clipsAll = anyGet.clips || []
+        const deleted = anyGet.deletedClipIds || new Set<string>()
+        const activeClips = clipsAll.filter((c) => !deleted.has(c.id))
+        anyGet.buildInitialScenario?.(activeClips)
+        currentScenario = get().currentScenario
+      } catch {
+        return // Cannot proceed without scenario
+      }
+    }
+
+    if (!currentScenario?.tracks) return
+
+    // Find caption track and update its defaultStyle
+    const captionTrackIndex = currentScenario.tracks.findIndex(
+      track => track.id === 'caption' || track.type === 'subtitle'
+    )
+
+    if (captionTrackIndex === -1) return
+
+    const updatedScenario = { ...currentScenario }
+    updatedScenario.tracks = [...currentScenario.tracks]
+    updatedScenario.tracks[captionTrackIndex] = {
+      ...currentScenario.tracks[captionTrackIndex],
+      defaultStyle: {
+        ...(currentScenario.tracks[captionTrackIndex].defaultStyle || {}),
+        ...styleUpdates,
+      },
+    }
+
+    set({
+      currentScenario: updatedScenario,
+      scenarioVersion: (get().scenarioVersion || 0) + 1,
+    })
+  },
+
+  updateGroupNodeStyle: (clipId, styleUpdates) => {
+    let { currentScenario, nodeIndex } = get()
+
+    // Lazily build scenario if it doesn't exist
+    if (!currentScenario) {
+      try {
+        const anyGet = get() as unknown as {
+          clips?: import('../../types').ClipItem[]
+          deletedClipIds?: Set<string>
+          buildInitialScenario?: ScenarioSlice['buildInitialScenario']
+        }
+        const clipsAll = anyGet.clips || []
+        const deleted = anyGet.deletedClipIds || new Set<string>()
+        const activeClips = clipsAll.filter((c) => !deleted.has(c.id))
+        anyGet.buildInitialScenario?.(activeClips)
+        currentScenario = get().currentScenario
+        nodeIndex = get().nodeIndex
+      } catch {
+        return // Cannot proceed without scenario
+      }
+    }
+
+    if (!currentScenario?.cues) return
+
+    // Find the group node with id `clip-${clipId}`
+    const groupNodeId = `clip-${clipId}`
+    let found = false
+    const updatedCues = currentScenario.cues.map((cue) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const root = (cue as any).root
+      if (!root || root.id !== groupNodeId) return cue
+
+      found = true
+      // Convert string reference to object if needed
+      let currentStyle = root.style || {}
+      if (typeof currentStyle === 'string') {
+        // If it's a string reference like 'define.caption.boxStyle',
+        // we need to get the actual style from define
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const define = (currentScenario.define as any)
+        if (currentStyle === 'define.caption.boxStyle' && define?.caption?.boxStyle) {
+          currentStyle = { ...define.caption.boxStyle }
+        } else {
+          currentStyle = {}
+        }
+      }
+
+      // Apply style updates
+      const updatedRoot = {
+        ...root,
+        style: {
+          ...currentStyle,
+          ...styleUpdates,
+        },
+      }
+
+      return {
+        ...cue,
+        root: updatedRoot,
+      }
+    })
+
+    if (!found) {
+      console.warn(`Group node for clip ${clipId} not found`)
+      return
+    }
+
+    set({
+      currentScenario: { ...currentScenario, cues: updatedCues },
       scenarioVersion: (get().scenarioVersion || 0) + 1,
     })
   },
