@@ -11,6 +11,7 @@ import { ProjectData } from '../../types/project'
 import { SaveSlice } from './saveSlice'
 import { UISlice } from './uiSlice'
 import { MediaSlice } from './mediaSlice'
+import { clipProcessor, SplitMode, MergeMode, ProcessorConfig } from '@/utils/editor/UnifiedClipProcessor'
 
 export interface ClipSlice {
   clips: ClipItem[]
@@ -83,6 +84,26 @@ export interface ClipSlice {
   loadProject: (id: string) => Promise<void>
   createNewProject: (name?: string) => void
   setCurrentProject: (project: ProjectData) => void
+
+  // 새로운 통합 메서드
+  splitClipUnified: (
+    clipId: string,
+    mode?: SplitMode,
+    config?: ProcessorConfig,
+    position?: number
+  ) => void
+
+  mergeClipsUnified: (
+    clipIds: string[],
+    mode?: MergeMode,
+    config?: ProcessorConfig
+  ) => void
+
+  applyAutoLineBreak: (config?: ProcessorConfig) => void
+
+  // 레거시 호환 메서드 (기존 UI가 사용)
+  splitClipLegacy: (clipId: string) => void
+  mergeClipsLegacy: (clipIds: string[]) => void
 }
 
 export const createClipSlice: StateCreator<
@@ -668,5 +689,119 @@ export const createClipSlice: StateCreator<
 
   setCurrentProject: (project: ProjectData) => {
     set({ currentProject: project })
+  },
+
+  // === 새로운 통합 메서드 구현 ===
+
+  splitClipUnified: (clipId, mode = SplitMode.MANUAL_HALF, config, position) => {
+    const state = get()
+    const clipIndex = state.clips.findIndex(c => c.id === clipId)
+    if (clipIndex === -1) return
+
+    const clip = state.clips[clipIndex]
+    const splitClips = clipProcessor.split(clip, mode, config, position)
+
+    const newClips = [...state.clips]
+    newClips.splice(clipIndex, 1, ...splitClips)
+
+    const reorderedClips = newClips.map((clip, index) => ({
+      ...clip,
+      timeline: (index + 1).toString(),
+    }))
+
+    set({ clips: reorderedClips })
+
+    // 시나리오 업데이트 트리거
+    const anyGet = get() as unknown as {
+      buildInitialScenario?: (clips: ClipItem[]) => void
+    }
+    anyGet.buildInitialScenario?.(reorderedClips)
+  },
+
+  mergeClipsUnified: (clipIds, mode = MergeMode.MANUAL, config) => {
+    const state = get()
+    const selectedClips = clipIds
+      .map(id => state.clips.find(c => c.id === id))
+      .filter(Boolean) as ClipItem[]
+
+    if (selectedClips.length === 0) return
+
+    const merged = clipProcessor.merge(selectedClips, mode, config)
+    const firstIndex = Math.min(
+      ...clipIds.map(id => state.clips.findIndex(c => c.id === id))
+        .filter(i => i !== -1)
+    )
+
+    const newClips = state.clips.filter(c => !clipIds.includes(c.id))
+    newClips.splice(firstIndex, 0, ...merged)
+
+    const reorderedClips = newClips.map((clip, index) => ({
+      ...clip,
+      timeline: (index + 1).toString(),
+    }))
+
+    set({ clips: reorderedClips })
+
+    // 시나리오 업데이트 트리거
+    const anyGet = get() as unknown as {
+      buildInitialScenario?: (clips: ClipItem[]) => void
+    }
+    anyGet.buildInitialScenario?.(reorderedClips)
+  },
+
+  applyAutoLineBreak: (config) => {
+    const state = get() as unknown as {
+      currentScenario?: import('@/app/shared/motiontext').RendererConfigV2
+      clips: ClipItem[]
+      buildInitialScenario?: (clips: ClipItem[]) => void
+    }
+    const currentScenario = state.currentScenario
+
+    // 현재 폰트 설정 가져오기
+    const fontFamily = (currentScenario?.tracks?.[0]?.defaultStyle?.fontFamily as string) ?? 'Arial'
+    const fontSizeRel = (currentScenario?.tracks?.[0]?.defaultStyle?.fontSizeRel as number) ?? 0.07
+
+    const mergedConfig: ProcessorConfig = {
+      fontFamily,
+      fontSizeRel,
+      videoWidth: 1920,
+      videoHeight: 1080,
+      scenario: currentScenario, // 현재 시나리오 전달
+      minClipDuration: 0.5,
+      maxClipDuration: 5,
+      mergeSameSpeaker: true,
+      ...config,
+    }
+
+    // 파이프라인 실행: 자동 줄바꿈 후 짧은 클립 병합
+    const processedClips = clipProcessor.processPipeline(state.clips, [
+      {
+        type: 'split',
+        mode: SplitMode.AUTO_LINE_BREAK,
+        config: mergedConfig,
+      },
+      {
+        type: 'merge',
+        mode: MergeMode.AUTO_SHORT,
+        config: mergedConfig,
+      },
+    ])
+
+    set({ clips: processedClips })
+
+    // 시나리오 재구성
+    state.buildInitialScenario?.(processedClips)
+  },
+
+  // === 레거시 호환 메서드 ===
+
+  splitClipLegacy: (clipId) => {
+    const state = get()
+    state.splitClipUnified(clipId, SplitMode.MANUAL_HALF)
+  },
+
+  mergeClipsLegacy: (clipIds) => {
+    const state = get()
+    state.mergeClipsUnified(clipIds, MergeMode.MANUAL)
   },
 })

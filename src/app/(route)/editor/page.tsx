@@ -489,6 +489,7 @@ export default function EditorPage() {
     isMultipleWordsSelected,
     deleteSelectedWords,
     clearMultiSelection,
+    applyAutoLineBreak,
   } = useEditorStore()
 
   // Local state
@@ -1416,6 +1417,17 @@ export default function EditorPage() {
     showToast('원본으로 복원되었습니다.', 'success')
   }, [restoreOriginalClips, clearSelection, setActiveClipId])
 
+  // 자동 줄바꿈 핸들러
+  const handleAutoLineBreak = useCallback(() => {
+    try {
+      applyAutoLineBreak()
+      showToast('자동 줄바꿈이 적용되었습니다.', 'success')
+    } catch (error) {
+      console.error('Auto line break error:', error)
+      showToast('자동 줄바꿈 적용 중 오류가 발생했습니다.', 'error')
+    }
+  }, [applyAutoLineBreak])
+
   // 프로젝트 저장 핸들러
   const handleSave = useCallback(() => {
     saveProject()
@@ -1807,6 +1819,7 @@ export default function EditorPage() {
                 onPaste={handlePasteClips}
                 onSplitClip={handleSplitClip}
                 onRestore={handleRestore}
+                onAutoLineBreak={handleAutoLineBreak}
                 onToggleAnimationSidebar={handleToggleAnimationSidebar}
                 onToggleTemplateSidebar={handleToggleTemplateSidebar}
                 onSave={handleSave}
