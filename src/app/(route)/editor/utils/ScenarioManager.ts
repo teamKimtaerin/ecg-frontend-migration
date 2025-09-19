@@ -21,7 +21,8 @@ export interface ScenarioManagerOptions extends UnifiedScenarioOptions {
  */
 export class ScenarioManager {
   private currentScenario: RendererConfigV2 | null = null
-  private currentIndex: Record<string, { cueIndex: number; path: number[] }> = {}
+  private currentIndex: Record<string, { cueIndex: number; path: number[] }> =
+    {}
   private clips: ClipItem[] = []
   private insertedTexts: InsertedText[] = []
   private options: ScenarioManagerOptions

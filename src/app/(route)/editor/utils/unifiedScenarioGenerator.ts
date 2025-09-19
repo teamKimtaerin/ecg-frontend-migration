@@ -21,7 +21,6 @@ export interface UnifiedScenarioResult extends InitialScenarioResult {
   subtitleCueIds: string[] // Track which cues are from subtitles
 }
 
-
 /**
  * Build unified scenario from both clips and inserted texts
  */
