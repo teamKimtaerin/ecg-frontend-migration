@@ -45,6 +45,9 @@ export interface TextInsertionState {
   selectedTextId: string | null
   defaultStyle: TextStyle
   clipboard: InsertedText[]
+  // Scenario management
+  currentScenario: import('@/app/shared/motiontext').RendererConfigV2 | null
+  isScenarioMode: boolean // true: unified scenario rendering, false: individual rendering
 }
 
 export interface TextInsertionActions {
@@ -75,6 +78,12 @@ export interface TextInsertionActions {
   // Time management
   getActiveTexts: (currentTime: number) => InsertedText[]
   updateTextTiming: (id: string, startTime: number, endTime: number) => void
+
+  // Scenario management
+  initializeScenario: (clips?: any[]) => void
+  toggleScenarioMode: () => void
+  updateScenario: (scenario: import('@/app/shared/motiontext').RendererConfigV2) => void
+  addScenarioUpdateListener: (listener: (scenario: import('@/app/shared/motiontext').RendererConfigV2) => void) => () => void
 }
 
 export type TextInsertionSlice = TextInsertionState & TextInsertionActions

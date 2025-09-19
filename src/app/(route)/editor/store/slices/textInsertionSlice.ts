@@ -8,8 +8,13 @@ import {
   createInsertedText,
   isTextActiveAtTime,
 } from '../../types/textInsertion'
+import { ScenarioManager, type ScenarioUpdateListener } from '../../utils/ScenarioManager'
+import type { RendererConfigV2 } from '@/app/shared/motiontext'
 
 export type { TextInsertionSlice }
+
+// Create a global ScenarioManager instance for the slice
+let scenarioManager: ScenarioManager | null = null
 
 export const createTextInsertionSlice: StateCreator<
   TextInsertionSlice,
@@ -22,6 +27,9 @@ export const createTextInsertionSlice: StateCreator<
   selectedTextId: null,
   defaultStyle: DEFAULT_TEXT_STYLE,
   clipboard: [],
+  // Scenario management state
+  currentScenario: null,
+  isScenarioMode: false, // Start in individual mode for editing
 
   // Text creation at center
   addTextAtCenter: (currentTime: number) => {
@@ -38,14 +46,23 @@ export const createTextInsertionSlice: StateCreator<
       isEditing: false,
     }
 
-    set((state) => ({
-      ...state,
-      insertedTexts: [
+    set((state) => {
+      const newInsertedTexts = [
         ...state.insertedTexts.map((text) => ({ ...text, isSelected: false })), // Deselect others
         newText, // Add new selected text
-      ],
-      selectedTextId: newText.id,
-    }))
+      ]
+      
+      // Update scenario manager if initialized (always sync)
+      if (scenarioManager) {
+        scenarioManager.updateInsertedText(newText)
+      }
+      
+      return {
+        ...state,
+        insertedTexts: newInsertedTexts,
+        selectedTextId: newText.id,
+      }
+    })
   },
 
   // Text CRUD operations
@@ -65,20 +82,39 @@ export const createTextInsertionSlice: StateCreator<
   },
 
   updateText: (id: string, updates: Partial<InsertedText>) => {
-    set((state) => ({
-      ...state,
-      insertedTexts: state.insertedTexts.map((text) =>
+    set((state) => {
+      const updatedTexts = state.insertedTexts.map((text) =>
         text.id === id ? { ...text, ...updates, updatedAt: Date.now() } : text
-      ),
-    }))
+      )
+      
+      // Update scenario manager if initialized (always sync)
+      if (scenarioManager) {
+        const updatedText = updatedTexts.find(text => text.id === id)
+        if (updatedText) {
+          scenarioManager.updateInsertedText(updatedText)
+        }
+      }
+      
+      return {
+        ...state,
+        insertedTexts: updatedTexts,
+      }
+    })
   },
 
   deleteText: (id: string) => {
-    set((state) => ({
-      ...state,
-      insertedTexts: state.insertedTexts.filter((text) => text.id !== id),
-      selectedTextId: state.selectedTextId === id ? null : state.selectedTextId,
-    }))
+    set((state) => {
+      // Update scenario manager if initialized (always sync)
+      if (scenarioManager) {
+        scenarioManager.removeInsertedText(id)
+      }
+      
+      return {
+        ...state,
+        insertedTexts: state.insertedTexts.filter((text) => text.id !== id),
+        selectedTextId: state.selectedTextId === id ? null : state.selectedTextId,
+      }
+    })
   },
 
   duplicateText: (id: string) => {
@@ -250,9 +286,8 @@ export const createTextInsertionSlice: StateCreator<
   },
 
   updateTextTiming: (id: string, startTime: number, endTime: number) => {
-    set((state) => ({
-      ...state,
-      insertedTexts: state.insertedTexts.map((text) =>
+    set((state) => {
+      const updatedTexts = state.insertedTexts.map((text) =>
         text.id === id
           ? {
               ...text,
@@ -261,7 +296,70 @@ export const createTextInsertionSlice: StateCreator<
               updatedAt: Date.now(),
             }
           : text
-      ),
+      )
+      
+      // Update scenario manager if initialized (always sync)
+      if (scenarioManager) {
+        const updatedText = updatedTexts.find(text => text.id === id)
+        if (updatedText) {
+          scenarioManager.updateInsertedText(updatedText)
+        }
+      }
+      
+      return {
+        ...state,
+        insertedTexts: updatedTexts,
+      }
+    })
+  },
+
+  // Scenario management methods
+  initializeScenario: (clips = []) => {
+    const { insertedTexts } = get()
+    
+    // Create new scenario manager if not exists
+    if (!scenarioManager) {
+      scenarioManager = new ScenarioManager({
+        autoUpdate: true,
+        includeInsertedTexts: true,
+      })
+    }
+    
+    // Initialize with current data
+    const scenario = scenarioManager.initialize(clips, insertedTexts)
+    
+    // Set up listener to update store when scenario changes
+    scenarioManager.addUpdateListener((updatedScenario: RendererConfigV2) => {
+      set((state) => ({
+        ...state,
+        currentScenario: updatedScenario,
+      }))
+    })
+    
+    set((state) => ({
+      ...state,
+      currentScenario: scenario,
     }))
+  },
+
+  toggleScenarioMode: () => {
+    set((state) => ({
+      ...state,
+      isScenarioMode: !state.isScenarioMode,
+    }))
+  },
+
+  updateScenario: (scenario: RendererConfigV2) => {
+    set((state) => ({
+      ...state,
+      currentScenario: scenario,
+    }))
+  },
+
+  addScenarioUpdateListener: (listener: ScenarioUpdateListener) => {
+    if (!scenarioManager) {
+      throw new Error('ScenarioManager not initialized. Call initializeScenario() first.')
+    }
+    return scenarioManager.addUpdateListener(listener)
   },
 })

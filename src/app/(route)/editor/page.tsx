@@ -51,6 +51,8 @@ import SimpleToolbar from './components/SimpleToolbar'
 import SpeakerManagementSidebar from './components/SpeakerManagementSidebar'
 import SubtitleEditList from './components/SubtitleEditList'
 import TemplateSidebar from './components/TemplateSidebar'
+import TimelineController from './components/TimelineController'
+import VirtualTimelineController from './components/VirtualTimelineController'
 import Toolbars from './components/Toolbars'
 import VideoSection from './components/VideoSection'
 
@@ -485,6 +487,12 @@ export default function EditorPage() {
     // isAssetSidebarOpen,
     assetSidebarWidth,
     setAssetSidebarWidth,
+    // Text insertion state for debugging
+    insertedTexts,
+    selectedTextId,
+    getActiveTexts,
+    currentScenario,
+    isScenarioMode,
     editingMode,
     isMultipleWordsSelected,
     deleteSelectedWords,
@@ -514,6 +522,7 @@ export default function EditorPage() {
   const [clipboard, setClipboard] = useState<ClipItem[]>([]) // 클립보드 상태
   const [skipAutoFocus, setSkipAutoFocus] = useState(false) // 자동 포커스 스킵 플래그
   const [showRestoreModal, setShowRestoreModal] = useState(false) // 복원 확인 모달 상태
+  const [currentTime, setCurrentTime] = useState(0) // 현재 비디오 시간 상태
   const [shouldOpenExportModal, setShouldOpenExportModal] = useState(false) // OAuth 인증 후 모달 재오픈 플래그
 
   // Get media actions from store
@@ -1026,6 +1035,7 @@ export default function EditorPage() {
   const handleToggleTemplateSidebar = () => {
     setRightSidebarType(rightSidebarType === 'template' ? null : 'template')
   }
+
 
   const handleCloseSidebar = () => {
     setRightSidebarType(null)
@@ -1891,7 +1901,10 @@ export default function EditorPage() {
                   : 'h-[calc(100vh-120px)]'
               }`}
             >
-              <VideoSection width={videoPanelWidth} />
+              <VideoSection 
+                width={videoPanelWidth} 
+                onCurrentTimeChange={setCurrentTime}
+              />
             </div>
 
             <ResizablePanelDivider
@@ -2075,6 +2088,7 @@ export default function EditorPage() {
                         />
                       </div>
                     )}
+
                   </>
                 )}
               </div>
