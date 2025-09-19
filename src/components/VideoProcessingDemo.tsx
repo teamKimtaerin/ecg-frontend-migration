@@ -2,6 +2,7 @@
 
 import React, { useState, useCallback, useRef } from 'react'
 import Button from './ui/Button'
+import { uploadService } from '@/services/api/uploadService'
 
 interface Segment {
   start_time: number
@@ -75,21 +76,21 @@ const VideoProcessingDemo: React.FC = () => {
     // 1초마다 상태 확인
     pollInterval.current = setInterval(async () => {
       try {
-        const response = await fetch(
-          `http://localhost:8000/api/upload-video/job-status/${jobId}`
-        )
+        const statusResponse = await uploadService.checkProcessingStatus(jobId)
 
-        if (!response.ok) {
-          throw new Error(`Status check failed: ${response.statusText}`)
+        if (!statusResponse.success) {
+          throw new Error(
+            `Status check failed: ${statusResponse.error?.message}`
+          )
         }
 
-        const jobStatus = await response.json()
+        const jobStatus = statusResponse.data!
 
         setProcessingStatus({
           stage: jobStatus.status === 'completed' ? 'completed' : 'processing',
-          progress: jobStatus.progress,
-          message: jobStatus.message,
-          jobId: jobStatus.jobId,
+          progress: jobStatus.progress || 80,
+          message: `Processing: ${jobStatus.status}`,
+          jobId: jobStatus.job_id,
         })
 
         // 완료되면 결과 저장하고 폴링 중단
@@ -99,8 +100,10 @@ const VideoProcessingDemo: React.FC = () => {
             pollInterval.current = null
           }
 
-          if (jobStatus.transcriptionResult) {
-            setTranscriptionResult(jobStatus.transcriptionResult)
+          if (jobStatus.result) {
+            setTranscriptionResult(
+              jobStatus.result as unknown as TranscriptionResult
+            )
           }
         }
       } catch (error) {
@@ -132,23 +135,18 @@ const VideoProcessingDemo: React.FC = () => {
         message: 'Getting upload URL...',
       })
 
-      const urlResponse = await fetch(
-        'http://localhost:8000/api/upload-video/generate-url',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            filename: selectedFile.name,
-            filetype: selectedFile.type,
-          }),
-        }
+      const urlResponse = await uploadService.getPresignedUrl(
+        selectedFile.name,
+        selectedFile.type
       )
 
-      if (!urlResponse.ok) {
-        throw new Error(`Failed to get upload URL: ${urlResponse.statusText}`)
+      if (!urlResponse.success) {
+        throw new Error(
+          `Failed to get upload URL: ${urlResponse.error?.message}`
+        )
       }
 
-      const { url, fileKey } = await urlResponse.json()
+      const { presigned_url: url, file_key: fileKey } = urlResponse.data!
 
       setProcessingStatus((prev) => ({
         ...prev,
@@ -174,20 +172,15 @@ const VideoProcessingDemo: React.FC = () => {
       }))
 
       // 3단계: 처리 시작 요청
-      const processResponse = await fetch(
-        'http://localhost:8000/api/upload-video/request-process',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fileKey }),
-        }
-      )
+      const processResponse = await uploadService.requestMLProcessing(fileKey)
 
-      if (!processResponse.ok) {
-        throw new Error(`Process request failed: ${processResponse.statusText}`)
+      if (!processResponse.success) {
+        throw new Error(
+          `Process request failed: ${processResponse.error?.message}`
+        )
       }
 
-      const { jobId } = await processResponse.json()
+      const { job_id: jobId } = processResponse.data!
 
       setProcessingStatus({
         stage: 'processing',

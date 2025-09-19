@@ -10,7 +10,7 @@ Use `yarn dev` to run the Next.js dev server at `http://localhost:3000`. Ship-re
 
 ## Coding Style & Naming Conventions
 
-Write strict TypeScript and reference modules with the `@/*` alias. Components use PascalCase (e.g., `NewUploadModal.tsx`), hooks start with `use`, and utilities prefer camelCase. Format code with Prettier (2 spaces) and enforce linting through ESLint’s `next/core-web-vitals` rules. Husky runs lint-staged before commits, so keep staged files clean.
+Write strict TypeScript and reference modules with the `@/*` alias. Components use PascalCase (e.g., `NewUploadModal.tsx`), hooks start with `use`, and utilities prefer camelCase. Format code with Prettier (2 spaces) and enforce linting through ESLint's `next/core-web-vitals` rules. Husky runs lint-staged before commits, so keep staged files clean.
 
 ## Testing Guidelines
 

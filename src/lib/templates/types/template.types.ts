@@ -6,7 +6,6 @@
  */
 
 import { ExpressionHelpers } from './rule.types'
-
 // Audio Analysis Data Types (from real.json)
 export interface AudioAnalysisData {
   metadata: {
@@ -232,7 +231,7 @@ export interface AnimationConfig {
   pluginName: string
 
   // Animation parameters
-  params?: Record<string, any>
+  params?: Record<string, unknown>
 
   // Timing configuration
   timing: {
@@ -291,7 +290,7 @@ export interface TemplateMetadata {
 // Runtime types for template processing
 export interface CompiledTemplate extends SubtitleTemplate {
   compiledRules: CompiledAnimationRule[]
-  computedVariables: Record<string, any>
+  computedVariables: Record<string, unknown>
   validationErrors: string[]
 }
 
@@ -315,7 +314,7 @@ export interface RuleEvaluationContext {
   audioData: AudioAnalysisData
 
   // Computed template variables
-  variables: Record<string, any>
+  variables: Record<string, unknown>
 
   // Index information
   wordIndex: number

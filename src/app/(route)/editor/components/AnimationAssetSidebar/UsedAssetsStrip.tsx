@@ -15,6 +15,11 @@ import {
 } from 'react-icons/io5'
 import { useEditorStore } from '../../store'
 import { AssetItem } from './AssetCard'
+import {
+  determineTargetWordIds,
+  isMultipleWordsSelected,
+  getCommonAnimations,
+} from '../../utils/animationHelpers'
 
 interface AssetDatabaseItem {
   id: string
@@ -46,12 +51,11 @@ const UsedAssetsStrip: React.FC<UsedAssetsStripProps> = ({
     setCurrentWordAssets,
     selectedWordId,
     applyAssetsToWord,
-    clips,
     expandedAssetId,
     setExpandedAssetId,
     focusedWordId,
-    addAnimationTrack,
     removeAnimationTrack,
+    removeAnimationFromMultipleWords,
     wordAnimationTracks,
   } = useEditorStore()
 
@@ -119,10 +123,26 @@ const UsedAssetsStrip: React.FC<UsedAssetsStripProps> = ({
     fetchAssets()
   }, [])
 
-  // Get used assets in selection order (left to right: 1, 2, 3...)
-  const usedAssets = currentWordAssets
-    .map((id) => allAssets.find((asset) => asset.id === id))
-    .filter((asset) => asset !== undefined) as AssetItem[]
+  // Check if multi-selection is active
+  const store = useEditorStore.getState()
+  const isMultiSelection = isMultipleWordsSelected(store)
+  const targetWordIds = determineTargetWordIds(store)
+
+  // Get used assets: for multi-selection, show only common animations
+  const usedAssets = (() => {
+    if (isMultiSelection && targetWordIds.length > 1) {
+      // Show only animations that are common to all selected words
+      const commonAssetIds = getCommonAnimations(store, targetWordIds)
+      return commonAssetIds
+        .map((id) => allAssets.find((asset) => asset.id === id))
+        .filter((asset) => asset !== undefined) as AssetItem[]
+    } else {
+      // Show all assets for the current word (single selection)
+      return currentWordAssets
+        .map((id) => allAssets.find((asset) => asset.id === id))
+        .filter((asset) => asset !== undefined) as AssetItem[]
+    }
+  })()
 
   // Get animations applied to the currently focused word
   const targetWordId =
@@ -156,70 +176,50 @@ const UsedAssetsStrip: React.FC<UsedAssetsStripProps> = ({
   }
 
   const handleRemoveAsset = (assetId: string) => {
-    const newAssets = currentWordAssets.filter((id) => id !== assetId)
-    setCurrentWordAssets(newAssets)
-
     // Close control panel if removing the expanded asset
     if (expandedAssetId === assetId) {
       setExpandedAssetId(null)
       onExpandedAssetChange?.(null, null)
     }
 
-    // Remove animation track from focused word
-    if (targetWordId) {
-      removeAnimationTrack(targetWordId, assetId)
-      // Update scenario pluginChain for this word
-      useEditorStore.getState().refreshWordPluginChain?.(targetWordId)
-    }
-
-    // If a word is selected, apply the changes to the word
-    if (selectedWordId) {
-      const targetClip = clips.find((clip) =>
-        clip.words.some((word) => word.id === selectedWordId)
+    if (isMultiSelection && targetWordIds.length > 1) {
+      // Remove animation from all selected words
+      removeAnimationFromMultipleWords(targetWordIds, assetId)
+      console.log(
+        `Removed animation ${assetId} from ${targetWordIds.length} selected words`
       )
+    } else {
+      // Single word removal (existing behavior)
+      const newAssets = currentWordAssets.filter((id) => id !== assetId)
+      setCurrentWordAssets(newAssets)
 
-      if (targetClip) {
-        applyAssetsToWord(targetClip.id, selectedWordId, newAssets)
+      // Remove animation track from focused word
+      if (targetWordId) {
+        removeAnimationTrack(targetWordId, assetId)
+        // Note: removeAnimationTrack handles refreshWordPluginChain internally
+      }
+
+      // If a word is selected, apply the changes to the word
+      if (selectedWordId) {
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const store = useEditorStore.getState() as any
+          const clipId = store.getClipIdByWordId?.(selectedWordId)
+          if (clipId) {
+            applyAssetsToWord(clipId, selectedWordId, newAssets)
+          }
+        } catch {}
       }
     }
   }
 
   const handleAssetClick = (asset: AssetItem) => {
-    // If a word is focused/selected, add this animation to it (max 3)
-    if (targetWordId) {
-      const currentTracks = wordAnimationTracks.get(targetWordId) || []
-
-      // Check if already added or reached max
-      if (currentTracks.find((t) => t.assetId === asset.id)) {
-        // If already exists, remove it
-        removeAnimationTrack(targetWordId, asset.id)
-      } else if (currentTracks.length < 3) {
-        // Find the word to get its timing
-        let wordTiming = undefined
-        for (const clip of clips) {
-          const word = clip.words?.find((w) => w.id === targetWordId)
-          if (word) {
-            wordTiming = { start: word.start, end: word.end }
-            break
-          }
-        }
-        // Add the animation track with word timing
-        addAnimationTrack(
-          targetWordId,
-          asset.id,
-          asset.name,
-          wordTiming,
-          asset.pluginKey
-        )
-      } else {
-        console.log('Maximum 3 animations per word')
-      }
-    }
-
-    // Toggle control panel expansion
+    // Only toggle control panel expansion - no add/remove logic
     const newExpandedId = expandedAssetId === asset.id ? null : asset.id
     setExpandedAssetId(newExpandedId)
     onExpandedAssetChange?.(newExpandedId, newExpandedId ? asset.name : null)
+
+    console.log('Opening parameter panel for:', asset.name)
   }
 
   if (loading) {
@@ -234,17 +234,26 @@ const UsedAssetsStrip: React.FC<UsedAssetsStripProps> = ({
   return (
     <div className="px-4 pb-3">
       <h3 className="text-sm font-medium text-white mb-2 flex items-center justify-between">
-        <span>사용중 에셋 ({usedAssets.length}개)</span>
-        {focusedWordId && (
+        <span>
+          {isMultiSelection ? '공통 애니메이션' : '사용중 에셋'} (
+          {usedAssets.length}개)
+        </span>
+        {isMultiSelection ? (
+          <span className="text-xs text-slate-400">
+            {targetWordIds.length}개 단어 선택됨
+          </span>
+        ) : focusedWordId ? (
           <span className="text-xs text-slate-400">
             선택한 단어: {focusedWordAnimations.length}/3 애니메이션
           </span>
-        )}
+        ) : null}
       </h3>
 
       {usedAssets.length === 0 ? (
         <div className="text-xs text-slate-400 py-2">
-          사용중인 에셋이 없습니다.
+          {isMultiSelection
+            ? '선택한 단어들의 공통 애니메이션이 없습니다.'
+            : '사용중인 에셋이 없습니다.'}
         </div>
       ) : (
         <div className="space-y-4">

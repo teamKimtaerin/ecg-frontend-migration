@@ -22,7 +22,7 @@ export interface TextStyle {
 }
 
 export interface TextAnimation {
-  plugin: string // Plugin name (e.g., 'fadein@1.0.0', 'elastic@1.0.0')
+  plugin: string // Plugin name (e.g., 'fadein@2.0.0', 'elastic@2.0.0', or empty string for no animation)
   parameters: Record<string, unknown> // Plugin-specific parameters
 }
 
@@ -95,12 +95,8 @@ export const DEFAULT_TEXT_STYLE: TextStyle = {
 }
 
 export const DEFAULT_TEXT_ANIMATION: TextAnimation = {
-  plugin: 'fadein@1.0.0',
-  parameters: {
-    duration: 1000,
-    easing: 'easeOutQuad',
-    fadeDirection: 'in',
-  },
+  plugin: '', // No default animation - empty pluginChain [] works
+  parameters: {},
 }
 
 // Helper functions

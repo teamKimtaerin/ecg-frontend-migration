@@ -7,6 +7,7 @@ import { SaveSlice, createSaveSlice } from './slices/saveSlice'
 import { MediaSlice, createMediaSlice } from './slices/mediaSlice'
 import { WordSlice, createWordSlice } from './slices/wordSlice'
 import { ScenarioSlice, createScenarioSlice } from './slices/scenarioSlice'
+import { IndexSlice, createIndexSlice } from './slices/indexSlice'
 import {
   TextInsertionSlice,
   createTextInsertionSlice,
@@ -21,6 +22,7 @@ export type EditorStore = ClipSlice &
   MediaSlice &
   WordSlice &
   ScenarioSlice &
+  IndexSlice &
   TextInsertionSlice &
   TimelineSlice
 
@@ -35,6 +37,7 @@ export const useEditorStore = create<EditorStore>()(
       ...createMediaSlice(...a),
       ...createWordSlice(...a),
       ...createScenarioSlice(...a),
+      ...createIndexSlice(...a),
       ...createTextInsertionSlice(...a),
       ...createTimelineSlice(...a),
     }),

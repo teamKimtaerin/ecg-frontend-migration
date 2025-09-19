@@ -89,7 +89,7 @@ export interface ExpressionContext {
   wordPositionInSegment: number
 
   // Computed values
-  variables: Record<string, any>
+  variables: Record<string, unknown>
 
   // Helper functions available in expressions
   helpers: ExpressionHelpers
@@ -126,10 +126,10 @@ export interface ExpressionHelpers {
 // Pre-compiled rule condition for fast evaluation
 export interface FastRuleCondition {
   // Direct field access path for performance
-  fieldAccessor: (context: ExpressionContext) => any
+  fieldAccessor: (context: ExpressionContext) => unknown
 
   // Compiled comparison function
-  comparator: (fieldValue: any, context: ExpressionContext) => boolean
+  comparator: (fieldValue: unknown, context: ExpressionContext) => boolean
 
   // Dependencies for caching optimization
   dependencies: Set<AudioFieldPath>
@@ -200,7 +200,7 @@ export interface RuleConflict {
   resolution: 'highest-priority' | 'merge' | 'skip' | 'error'
   result?: {
     selectedRule: string
-    mergedParams?: Record<string, any>
+    mergedParams?: Record<string, unknown>
   }
 }
 
@@ -210,7 +210,7 @@ export interface RuleOptimizationHints {
   executionOrder: string[]
 
   // Caching strategies
-  cacheableExpressions: Map<string, any>
+  cacheableExpressions: Map<string, unknown>
 
   // Short-circuit conditions
   shortCircuitConditions: string[]
@@ -227,10 +227,10 @@ export interface RuleDebugInfo {
   ruleId: string
   executionTime: number
   conditionResult: boolean
-  fieldValues: Record<string, any>
+  fieldValues: Record<string, unknown>
   expressionEvaluations: Array<{
     expression: string
-    result: any
+    result: unknown
     executionTime: number
   }>
   cacheUsage: {

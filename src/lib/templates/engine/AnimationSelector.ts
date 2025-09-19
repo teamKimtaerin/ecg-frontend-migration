@@ -13,7 +13,7 @@ import {
   AudioSegment,
   RuleEvaluationContext,
   TemplateApplicationResult,
-  AnimationConfig,
+  // AnimationConfig, // Unused import
 } from '../types/template.types'
 import { ExpressionContext, ExpressionHelpers } from '../types/rule.types'
 import { RuleEngine, RuleEvaluationResult } from './RuleEngine'
@@ -24,7 +24,7 @@ export interface AnimationSelection {
   wordId: string
   animations: Array<{
     pluginName: string
-    params: Record<string, any>
+    params: Record<string, unknown>
     timing: {
       offset: [string, string]
       duration?: string
@@ -60,7 +60,7 @@ export class AnimationSelector {
   private ruleEngine: RuleEngine
   private expressionEvaluator: ExpressionEvaluator
   private compiledTemplates: Map<string, CompiledTemplate>
-  private variableCache: Map<string, any>
+  private variableCache: Map<string, unknown>
 
   constructor(options: { debugMode?: boolean } = {}) {
     this.templateParser = new TemplateParser()
@@ -215,7 +215,7 @@ export class AnimationSelector {
       wordIndex: number
       segmentIndex: number
       wordPositionInSegment: number
-      variables: Record<string, any>
+      variables: Record<string, unknown>
     },
     options: BatchSelectionOptions = this.getDefaultOptions()
   ): Promise<{
@@ -273,8 +273,8 @@ export class AnimationSelector {
   private async computeTemplateVariables(
     template: CompiledTemplate,
     audioData: AudioAnalysisData
-  ): Promise<Record<string, any>> {
-    const variables: Record<string, any> = {}
+  ): Promise<Record<string, unknown>> {
+    const variables: Record<string, unknown> = {}
 
     if (!template.variables) {
       return variables
@@ -289,7 +289,7 @@ export class AnimationSelector {
       segmentIndex: 0,
       wordPositionInSegment: 0,
       variables: {},
-      helpers: {} as any, // Will be filled by expression evaluator
+      helpers: {} as ExpressionHelpers, // Will be filled by expression evaluator
     }
 
     // Compute each variable
@@ -363,7 +363,7 @@ export class AnimationSelector {
   getPerformanceStats(): {
     compiledTemplates: number
     cachedVariables: number
-    ruleEngineStats: any
+    ruleEngineStats: unknown
   } {
     return {
       compiledTemplates: this.compiledTemplates.size,

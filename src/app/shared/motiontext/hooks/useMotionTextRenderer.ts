@@ -11,7 +11,6 @@ import type {
 } from '../utils/scenarioGenerator'
 import {
   preloadPluginsForScenario,
-  preloadAllPlugins,
   configurePluginLoader,
 } from '../utils/pluginLoader'
 
@@ -51,6 +50,8 @@ export function useMotionTextRenderer(
   const autoPlayRef = useRef(autoPlay)
   const loopRef = useRef(loop)
   const isPlayingRef = useRef(false)
+  const onStatusChangeRef = useRef(onStatusChange)
+  const onErrorRef = useRef(onError)
 
   // State
   const [state, setState] = useState<MotionTextRendererState>({
@@ -66,7 +67,9 @@ export function useMotionTextRenderer(
   useEffect(() => {
     autoPlayRef.current = autoPlay
     loopRef.current = loop
-  }, [autoPlay, loop])
+    onStatusChangeRef.current = onStatusChange
+    onErrorRef.current = onError
+  }, [autoPlay, loop, onStatusChange, onError])
 
   // Update isPlayingRef when state changes
   useEffect(() => {
@@ -77,22 +80,23 @@ export function useMotionTextRenderer(
     (updates: Partial<MotionTextRendererState>) => {
       setState((prev) => {
         const newState = { ...prev, ...updates }
-        if (updates.status && onStatusChange) {
-          onStatusChange(updates.status)
-        }
         return newState
       })
+      // Call onStatusChange after state update using ref to avoid dependency issues
+      if (updates.status && onStatusChangeRef.current) {
+        onStatusChangeRef.current(updates.status)
+      }
     },
-    [onStatusChange]
+    []
   )
 
   const handleError = useCallback(
     (error: Error) => {
       console.error('MotionTextRenderer Error:', error)
       updateState({ error: error.message, isLoading: false, status: 'error' })
-      if (onError) onError(error)
+      if (onErrorRef.current) onErrorRef.current(error)
     },
-    [onError, updateState]
+    [updateState]
   )
 
   const initializeRenderer = useCallback(async () => {
@@ -105,7 +109,6 @@ export function useMotionTextRenderer(
         ;(window as any).gsap = (gsap as any).default || gsap
       }
       configurePluginLoader()
-      await preloadAllPlugins()
       const { MotionTextRenderer } = await import('motiontext-renderer')
       rendererRef.current = new MotionTextRenderer(containerRef.current)
       if (videoRef.current) {
