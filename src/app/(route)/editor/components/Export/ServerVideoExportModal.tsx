@@ -9,7 +9,7 @@ import { useServerVideoExport } from '../../hooks/useServerVideoExport'
 import { useEditorStore } from '../../store'
 import CustomExportModal from './CustomExportModal'
 import VideoExportProgressModal from './VideoExportProgressModal'
-import VideoExportResultModal from './VideoExportResultModal'
+import { showToast } from '@/utils/ui/toast'
 
 interface ServerVideoExportModalProps {
   isOpen: boolean
@@ -42,7 +42,6 @@ export default function ServerVideoExportModal({
     'ready' | 'exporting' | 'completed' | 'error'
   >('ready')
   const [isProgressModalOpen, setIsProgressModalOpen] = useState(false)
-  const [isResultModalOpen, setIsResultModalOpen] = useState(false)
 
   // 비디오 URL 결정 (props > store)
   const videoUrl = propVideoUrl || storeVideoUrl
@@ -51,7 +50,6 @@ export default function ServerVideoExportModal({
     if (isOpen) {
       setPhase('ready')
       setIsProgressModalOpen(false)
-      setIsResultModalOpen(false)
       reset()
     }
   }, [isOpen, reset])
@@ -60,15 +58,17 @@ export default function ServerVideoExportModal({
     if (status === 'completed' && downloadUrl) {
       setPhase('completed')
       setIsProgressModalOpen(false)
-      setIsResultModalOpen(true)
+      showToast('영상 출력이 완료되었습니다', 'success')
+      onClose() // 전체 모달 닫기
     } else if (status === 'failed' || error) {
       setPhase('error')
       setIsProgressModalOpen(false)
-      setIsResultModalOpen(true)
+      showToast('영상 출력 중 오류가 발생했습니다', 'error')
+      onClose() // 전체 모달 닫기
     } else if (isExporting) {
       setPhase('exporting')
     }
-  }, [status, downloadUrl, error, isExporting])
+  }, [status, downloadUrl, error, isExporting, onClose])
 
   const handleStartExport = async () => {
     // 🧪 [기존 업로드 상태 체크 - 주석처리] UI 개발을 위한 임시 우회
@@ -192,12 +192,8 @@ export default function ServerVideoExportModal({
 
   const handleProgressModalComplete = () => {
     setIsProgressModalOpen(false)
-    setIsResultModalOpen(true)
+    showToast('영상 출력이 완료되었습니다', 'success')
     setPhase('completed')
-  }
-
-  const handleResultModalClose = () => {
-    setIsResultModalOpen(false)
     onClose()
   }
 
@@ -212,15 +208,17 @@ export default function ServerVideoExportModal({
     setIsProgressModalOpen(true)
   }
 
-  // 🧪 테스트용: 결과 모달 직접 열기 (개발환경 전용)
+  // 🧪 테스트용: 결과 토스트 직접 표시 (개발환경 전용)
   const handleTestResultModalSuccess = () => {
     setPhase('completed')
-    setIsResultModalOpen(true)
+    showToast('영상 출력이 완료되었습니다', 'success')
+    onClose()
   }
 
   const handleTestResultModalError = () => {
     setPhase('error')
-    setIsResultModalOpen(true)
+    showToast('영상 출력 중 오류가 발생했습니다', 'error')
+    onClose()
   }
 
   const formatTime = (seconds: number | null): string => {
@@ -359,13 +357,6 @@ export default function ServerVideoExportModal({
         onComplete={handleProgressModalComplete}
       />
 
-      {/* 영상 출력 결과 모달 */}
-      <VideoExportResultModal
-        isOpen={isResultModalOpen}
-        onClose={handleResultModalClose}
-        status={phase === 'completed' ? 'success' : 'error'}
-        fileName={getFileName()}
-      />
     </CustomExportModal>
   )
 }
