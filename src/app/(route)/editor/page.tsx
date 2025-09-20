@@ -28,7 +28,7 @@ import { ClipItem } from './components/ClipComponent/types'
 import { EditorTab } from './types'
 
 // Hooks
-import ProcessingModal from '@/components/ProcessingModal'
+import UploadProgressModal from './components/Upload/UploadProgressModal'
 import { useUploadModal } from '@/hooks/useUploadModal'
 import { useDragAndDrop } from './hooks/useDragAndDrop'
 import { useGlobalWordDragAndDrop } from './hooks/useGlobalWordDragAndDrop'
@@ -1113,7 +1113,7 @@ export default function EditorPage() {
   }) => {
     if (data.files.length > 0) {
       // NewUploadModal을 닫지 않고 handleStartTranscription만 호출
-      // step이 변경되면 NewUploadModal은 자동으로 닫히고 ProcessingModal이 표시됨
+      // step이 변경되면 NewUploadModal은 자동으로 닫히고 UploadProgressModal이 표시됨
       await uploadModal.handleStartTranscription({
         file: data.files[0],
         language: data.settings.language as 'auto' | 'ko' | 'en' | 'ja' | 'zh',
@@ -2094,8 +2094,8 @@ export default function EditorPage() {
         </div>
       </DndContext>
 
-      {/* ProcessingModal을 DndContext 밖에 배치 */}
-      <ProcessingModal
+      {/* UploadProgressModal을 DndContext 밖에 배치 */}
+      <UploadProgressModal
         isOpen={
           uploadModal.step !== 'select' && uploadModal.step !== 'completed'
         }
