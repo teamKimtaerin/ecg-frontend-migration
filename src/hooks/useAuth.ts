@@ -1,5 +1,5 @@
-import { AuthAPI } from '@/lib/api/auth'
 import { useAuthStore } from '@/lib/store/authStore'
+import { AuthAPI } from '@/lib/api/auth'
 import { useEffect } from 'react'
 
 /**
@@ -10,20 +10,12 @@ export const useAuth = () => {
 
   // 앱 시작 시 인증 상태 복원 (토큰 또는 쿠키 기반)
   useEffect(() => {
-    if (!store.user && !store.isLoading) {
-      // 사용자 정보가 없고 로딩 중이 아니면 항상 인증 시도
-      // 쿠키가 있으면 자동 로그인, 없으면 실패 처리
+    if (!store.hasAuthChecked && !store.isLoading) {
+      // 아직 인증 상태를 확인하지 않았다면 최초 1회만 시도
       console.log('🔍 useAuth: Attempting to restore auth state')
-
       store.getCurrentUser()
     }
-  }, [
-    store.user,
-    store.isLoading,
-    store.isAuthenticated,
-    store.getCurrentUser,
-    store,
-  ])
+  }, [store.hasAuthChecked, store.isLoading, store.getCurrentUser])
 
   return {
     // 상태
