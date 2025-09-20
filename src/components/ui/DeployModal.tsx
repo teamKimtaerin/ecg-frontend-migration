@@ -378,7 +378,7 @@ const DeployModal: React.FC<DeployModalProps> = ({
 
                 <div className="flex space-x-2">
                   <button
-                    onClick={() => window.open(deployUrl, '_blank')}
+                    onClick={() => window.open('https://accounts.google.com/v3/signin/identifier?continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Dko%26next%3Dhttps%253A%252F%252Fstudio.youtube.com%252F%26feature%3Dredirect_login&hl=ko&ifkv=AfYwgwV60hq6GwtJHfuCQ2DsY9YA6GggwGxABs6J4GIu5YYKRW9CTj8SrwikevHGhDm6CopJihVKiQ&passive=true&service=youtube&uilel=3&flowName=GlifWebSignIn&flowEntry=ServiceLogin&dsh=S706189090%3A1758390747331598', '_blank')}
                     className="flex-1 flex items-center justify-center space-x-2 px-4 py-2.5 text-base font-bold bg-black text-white border-2 border-black rounded-full hover:bg-gray-800 hover:border-gray-800 transition-all shadow-md hover:shadow-lg cursor-pointer"
                   >
                     <LuExternalLink className="w-4 h-4" />
