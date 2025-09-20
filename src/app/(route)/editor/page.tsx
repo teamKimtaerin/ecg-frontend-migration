@@ -489,6 +489,11 @@ export default function EditorPage() {
     isMultipleWordsSelected,
     deleteSelectedWords,
     clearMultiSelection,
+    speakerColors,
+    setSpeakerColor,
+    removeSpeakerColor,
+    speakers: globalSpeakers,
+    setSpeakers: setGlobalSpeakers,
   } = useEditorStore()
 
   // Local state
@@ -508,8 +513,6 @@ export default function EditorPage() {
   )
   const [isRecovering, setIsRecovering] = useState(false) // 세션 복구 스피너 비활성화
   const [scrollProgress, setScrollProgress] = useState(0) // 스크롤 진행도
-  const [speakers, setSpeakers] = useState<string[]>([]) // Speaker 리스트 전역 관리
-  const [speakerColors, setSpeakerColors] = useState<Record<string, string>>({}) // 화자별 색상 매핑
   // Store에서 rightSidebarType 가져오기 (로컬 state 대신 store 사용)
   const [clipboard, setClipboard] = useState<ClipItem[]>([]) // 클립보드 상태
   const [skipAutoFocus, setSkipAutoFocus] = useState(false) // 자동 포커스 스킵 플래그
@@ -615,7 +618,7 @@ export default function EditorPage() {
 
           setClips(updatedClips)
           setOriginalClips(updatedClips) // 메모리에 원본 클립 데이터 저장
-          setSpeakers(numberedSpeakers)
+          setGlobalSpeakers(numberedSpeakers)
 
           // IndexedDB에도 원본 클립 저장 (세션 간 유지)
           saveOriginalClipsToStorage().catch((error) => {
@@ -828,6 +831,7 @@ export default function EditorPage() {
     setMediaInfo,
     saveOriginalClipsToStorage,
     loadOriginalClipsFromStorage,
+    setGlobalSpeakers,
   ])
 
   // Generate stable ID for DndContext to prevent hydration mismatch
@@ -925,11 +929,11 @@ export default function EditorPage() {
     // Use Command pattern for undo/redo support
     const command = new ChangeSpeakerCommand(
       clips,
-      speakers,
+      globalSpeakers,
       clipId,
       newSpeaker,
       setClips,
-      setSpeakers
+      setGlobalSpeakers
     )
     editorHistory.executeCommand(command)
   }
@@ -957,11 +961,11 @@ export default function EditorPage() {
     // Use Command pattern for batch speaker change
     const command = new BatchChangeSpeakerCommand(
       clips,
-      speakers,
+      globalSpeakers,
       targetClipIds,
       newSpeaker,
       setClips,
-      setSpeakers
+      setGlobalSpeakers
     )
     editorHistory.executeCommand(command)
   }
@@ -989,17 +993,17 @@ export default function EditorPage() {
 
   const handleAddSpeaker = (name: string) => {
     console.log('handleAddSpeaker called with:', name)
-    console.log('Current speakers before adding:', speakers)
+    console.log('Current speakers before adding:', globalSpeakers)
 
     // 최대 화자 수 제한 체크 (9명)
-    if (speakers.length >= 9) {
+    if (globalSpeakers.length >= 9) {
       console.log('Maximum speaker limit reached (9), cannot add more')
       return
     }
 
-    if (!speakers.includes(name)) {
-      const newSpeakers = [...speakers, name]
-      setSpeakers(newSpeakers)
+    if (!globalSpeakers.includes(name)) {
+      const newSpeakers = [...globalSpeakers, name]
+      setGlobalSpeakers(newSpeakers)
       console.log('Speaker added successfully. New speakers:', newSpeakers)
     } else {
       console.log('Speaker already exists, skipping addition')
@@ -1010,17 +1014,15 @@ export default function EditorPage() {
     // Use Command pattern for speaker removal
     const command = new RemoveSpeakerCommand(
       clips,
-      speakers,
+      globalSpeakers,
       name,
       setClips,
-      setSpeakers
+      setGlobalSpeakers
     )
     editorHistory.executeCommand(command)
 
     // Remove speaker color mapping
-    const updatedSpeakerColors = { ...speakerColors }
-    delete updatedSpeakerColors[name]
-    setSpeakerColors(updatedSpeakerColors)
+    removeSpeakerColor(name)
   }
 
   const handleRenameSpeaker = (oldName: string, newName: string) => {
@@ -1030,27 +1032,22 @@ export default function EditorPage() {
     )
 
     // Update speakers list
-    const updatedSpeakers = speakers.map((speaker) =>
+    const updatedSpeakers = globalSpeakers.map((speaker) =>
       speaker === oldName ? newName : speaker
     )
 
     // Update speaker colors mapping
-    const updatedSpeakerColors = { ...speakerColors }
-    if (updatedSpeakerColors[oldName]) {
-      updatedSpeakerColors[newName] = updatedSpeakerColors[oldName]
-      delete updatedSpeakerColors[oldName]
+    if (speakerColors[oldName]) {
+      setSpeakerColor(newName, speakerColors[oldName])
+      removeSpeakerColor(oldName)
     }
 
     setClips(updatedClips)
-    setSpeakers(updatedSpeakers)
-    setSpeakerColors(updatedSpeakerColors)
+    setGlobalSpeakers(updatedSpeakers)
   }
 
   const handleSpeakerColorChange = (speakerName: string, color: string) => {
-    setSpeakerColors((prev) => ({
-      ...prev,
-      [speakerName]: color,
-    }))
+    setSpeakerColor(speakerName, color)
   }
 
   const handleClipCheck = (clipId: string, checked: boolean) => {
@@ -1874,7 +1871,7 @@ export default function EditorPage() {
                   clips={clips}
                   selectedClipIds={selectedClipIds}
                   activeClipId={activeClipId}
-                  speakers={speakers}
+                  speakers={globalSpeakers}
                   speakerColors={speakerColors}
                   onClipSelect={handleClipSelect}
                   onClipCheck={handleClipCheck}
@@ -1916,7 +1913,7 @@ export default function EditorPage() {
                             isActive={isActive}
                             startTime={startTime}
                             endTime={endTime}
-                            speakers={speakers}
+                            speakers={globalSpeakers}
                             speakerColors={speakerColors}
                             onClipSelect={handleClipSelect}
                             onSpeakerChange={handleSpeakerChange}
@@ -2020,7 +2017,7 @@ export default function EditorPage() {
                         <SpeakerManagementSidebar
                           isOpen={rightSidebarType === 'speaker'}
                           onClose={handleCloseSidebar}
-                          speakers={speakers}
+                          speakers={globalSpeakers}
                           clips={clips}
                           speakerColors={speakerColors}
                           onAddSpeaker={handleAddSpeaker}
