@@ -273,12 +273,8 @@ export class UnifiedClipProcessor {
     if (clips.length === 0) return []
     if (clips.length === 1) return clips
 
-    const mergedWords = clips.flatMap((clip, clipIndex) =>
-      clip.words.map((word, wordIndex) => ({
-        ...word,
-        id: `merged_${Date.now()}_word_${clipIndex}_${wordIndex}`,
-      }))
-    )
+    // Word ID는 유지 - 애니메이션 트랙 보존을 위해
+    const mergedWords = clips.flatMap(clip => clip.words)
 
     const firstClip = clips[0]
     const mergedClip: ClipItem = {
@@ -428,10 +424,8 @@ export class UnifiedClipProcessor {
     const timestamp = Date.now()
     const clipId = `${originalClip.id}_split_${index}_${timestamp}`
 
-    const updatedWords = words.map((word, wordIndex) => ({
-      ...word,
-      id: `${clipId}_word_${wordIndex}`,
-    }))
+    // Word ID는 유지 - 애니메이션 트랙 보존을 위해
+    const updatedWords = words
 
     const duration = this.calculateDuration(words)
 

@@ -154,6 +154,17 @@ export function useMotionTextRenderer(
           // Continue execution - plugin errors shouldn't be fatal
         }
 
+        // 새 시나리오 로드 전에 명시적으로 기존 시나리오 정리
+        // clear()는 동기 메소드
+        if (rendererRef.current.clear) {
+          try {
+            rendererRef.current.clear()
+          } catch (clearError) {
+            console.warn('Failed to clear renderer:', clearError)
+            // clear 실패해도 계속 진행
+          }
+        }
+
         // Load config with renderer validation
         if (!rendererRef.current) {
           throw new Error('Renderer is not available')
@@ -163,6 +174,7 @@ export function useMotionTextRenderer(
           throw new Error('Renderer loadConfig method is not available')
         }
 
+        // 새 시나리오 로드
         await rendererRef.current.loadConfig(
           config as unknown as Record<string, unknown>
         )
