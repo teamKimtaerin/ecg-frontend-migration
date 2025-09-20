@@ -51,7 +51,17 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
   scenarioVersion: 0,
 
   buildInitialScenario: (clips, opts) => {
-    const { config, index } = buildInitialScenarioFromClips(clips, opts)
+    // Get insertedTexts from TextInsertionSlice
+    const fullState = get() as any
+    const insertedTexts = fullState.insertedTexts || []
+    
+    // Merge insertedTexts into options
+    const mergedOpts = {
+      ...opts,
+      insertedTexts,
+    }
+    
+    const { config, index } = buildInitialScenarioFromClips(clips, mergedOpts)
     set({
       currentScenario: config,
       nodeIndex: index,
@@ -69,6 +79,7 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
           clips?: import('../../types').ClipItem[]
           deletedClipIds?: Set<string>
           buildInitialScenario?: ScenarioSlice['buildInitialScenario']
+          insertedTexts?: any[]
         }
         const clipsAll = anyGet.clips || []
         const deleted = anyGet.deletedClipIds || new Set<string>()
@@ -119,6 +130,7 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
           clips?: import('../../types').ClipItem[]
           deletedClipIds?: Set<string>
           buildInitialScenario?: ScenarioSlice['buildInitialScenario']
+          insertedTexts?: any[]
         }
         const clipsAll = anyGet.clips || []
         const deleted = anyGet.deletedClipIds || new Set<string>()
@@ -182,6 +194,7 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
           clips?: import('../../types').ClipItem[]
           deletedClipIds?: Set<string>
           buildInitialScenario?: ScenarioSlice['buildInitialScenario']
+          insertedTexts?: any[]
         }
         const clipsAll = anyGet.clips || []
         const deleted = anyGet.deletedClipIds || new Set<string>()
@@ -269,6 +282,7 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
           clips?: import('../../types').ClipItem[]
           deletedClipIds?: Set<string>
           buildInitialScenario?: ScenarioSlice['buildInitialScenario']
+          insertedTexts?: any[]
         }
         const clipsAll = anyGet.clips || []
         const deleted = anyGet.deletedClipIds || new Set<string>()

@@ -35,7 +35,9 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
     selectedWordId,
     multiSelectedWordIds,
     selectedStickerId,
-    focusedStickerId,
+    // Get insertedTexts and selectedTextId from TextInsertionSlice
+    insertedTexts,
+    selectedTextId,
   } = useEditorStore()
 
   const [expandedAssetId, setExpandedAssetId] = useState<string | null>(null)
@@ -71,54 +73,85 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
     }
   }, [multiSelectedWordIds])
 
-  // Sticker selection info
-  const selectedStickerInfo = React.useMemo(() => {
+  // InsertedText corresponding to selected sticker
+  const insertedTextFromSticker = React.useMemo(() => {
     if (!selectedStickerId) return null
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const store = useEditorStore.getState() as any
       const clips = store.clips || []
       
+      // Find the sticker in clips
       for (const clip of clips) {
         const sticker = clip.stickers?.find((s: any) => s.id === selectedStickerId)
         if (sticker) {
-          return { sticker, clipId: clip.id }
+          // Find corresponding InsertedText by matching text content and time
+          const matchingInsertedText = insertedTexts?.find((text: any) => 
+            text.content === sticker.text &&
+            Math.abs(text.startTime - sticker.start) < 0.1 && // Allow small time difference
+            Math.abs(text.endTime - sticker.end) < 0.1
+          )
+          
+          if (matchingInsertedText) {
+            return { insertedText: matchingInsertedText, sticker, clipId: clip.id }
+          }
         }
       }
     } catch {}
     return null
-  }, [selectedStickerId])
+  }, [selectedStickerId, insertedTexts])
+
+  // Selected InsertedText info (either directly selected or via sticker)
+  const selectedInsertedTextInfo = React.useMemo(() => {
+    // Priority 1: Direct InsertedText selection
+    if (selectedTextId && insertedTexts) {
+      const insertedText = insertedTexts.find((text: any) => text.id === selectedTextId)
+      if (insertedText) {
+        return { insertedText, source: 'direct' }
+      }
+    }
+    
+    // Priority 2: InsertedText via sticker selection
+    if (insertedTextFromSticker) {
+      return { 
+        insertedText: insertedTextFromSticker.insertedText, 
+        source: 'sticker',
+        sticker: insertedTextFromSticker.sticker,
+        clipId: insertedTextFromSticker.clipId
+      }
+    }
+    
+    return null
+  }, [selectedTextId, insertedTexts, insertedTextFromSticker])
 
   const handleAssetSelect = (asset: AssetItem) => {
     console.log('Selected asset:', asset)
 
     const store = useEditorStore.getState()
 
-    // Handle sticker asset selection
-    if (selectedStickerId && selectedStickerInfo) {
-      const { sticker, clipId } = selectedStickerInfo
-      const currentTracks = sticker.animationTracks || []
-      const isAlreadyApplied = currentTracks.find((t: any) => t.assetId === asset.id)
+    // Handle InsertedText asset selection (either direct or via sticker)
+    if (selectedInsertedTextInfo) {
+      const { insertedText, source } = selectedInsertedTextInfo
+      const currentAnimation = insertedText.animation
+      const isAlreadyApplied = currentAnimation?.plugin === asset.pluginKey
 
       if (isAlreadyApplied) {
         // Asset is already applied, open parameter panel
         setExpandedAssetId(asset.id)
         setExpandedAssetName(asset.name)
-        console.log('Opening parameter panel for sticker asset:', asset.name)
+        console.log('Opening parameter panel for InsertedText asset:', asset.name)
         return
       }
 
-      // Apply asset to sticker
+      // Apply animation to InsertedText
       const storeActions = store as any
-      if (storeActions.applyStickerAsset) {
-        storeActions.applyStickerAsset(
-          clipId,
-          selectedStickerId,
-          asset.id,
-          asset.name,
-          asset.pluginKey
-        )
-        console.log('Applied asset to sticker:', asset.name)
+      if (storeActions.updateTextAnimation) {
+        const newAnimation = {
+          plugin: asset.pluginKey || asset.name,
+          parameters: {} // Start with empty parameters
+        }
+        storeActions.updateTextAnimation(insertedText.id, newAnimation)
+        console.log(`Applied asset to InsertedText (${source}):`, asset.name)
       }
       return
     }
@@ -170,6 +203,23 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const storeActions = store as any
+
+      // Handle InsertedText animation parameter updates
+      if (selectedInsertedTextInfo) {
+        const { insertedText } = selectedInsertedTextInfo
+        
+        if (storeActions.updateTextAnimation) {
+          const currentAnimation = insertedText.animation || { plugin: '', parameters: {} }
+          const updatedAnimation = {
+            ...currentAnimation,
+            parameters: { ...currentAnimation.parameters, ...settings }
+          }
+          
+          storeActions.updateTextAnimation(insertedText.id, updatedAnimation)
+          console.log(`Applied settings to InsertedText: "${insertedText.content}"`)
+        }
+        return
+      }
 
       if (isMultiSelection) {
         // Apply to all selected words
@@ -223,16 +273,19 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
         {/* Selection Indicator */}
-        {selectedStickerInfo ? (
+        {selectedInsertedTextInfo ? (
           <div className="px-4 py-2 bg-purple-50 border-b border-purple-200">
             <div className="text-xs text-purple-600">
-              선택된 스티커:{' '}
+              {selectedInsertedTextInfo.source === 'sticker' ? '스티커 연결 텍스트' : '선택된 삽입 텍스트'}:{' '}
               <span className="font-medium text-purple-800">
-                📝 &ldquo;{selectedStickerInfo.sticker.text}&rdquo;
+                📝 &ldquo;{selectedInsertedTextInfo.insertedText.content}&rdquo;
               </span>
             </div>
             <div className="text-xs text-purple-500 mt-1">
-              삽입 텍스트 ({selectedStickerInfo.sticker.start.toFixed(1)}s - {selectedStickerInfo.sticker.end.toFixed(1)}s)
+              삽입 텍스트 ({selectedInsertedTextInfo.insertedText.startTime.toFixed(1)}s - {selectedInsertedTextInfo.insertedText.endTime.toFixed(1)}s)
+              {selectedInsertedTextInfo.source === 'sticker' && (
+                <span className="ml-2 text-purple-400">(클립 스티커 통해 선택됨)</span>
+              )}
             </div>
           </div>
         ) : multiSelectionInfo ? (

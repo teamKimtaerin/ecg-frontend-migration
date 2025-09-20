@@ -19,8 +19,6 @@ export default function ClipSticker({
   const [lastClickTime, setLastClickTime] = useState(0)
 
   const {
-    focusedWordId, // Reuse word focus system for stickers
-    focusedClipId,
     multiSelectedWordIds,
     canDragWord,
     playingWordId,
@@ -28,6 +26,9 @@ export default function ClipSticker({
     setStickerFocus,
     selectedStickerId,
     focusedStickerId,
+    // Get textInsertion methods to select corresponding InsertedText
+    insertedTexts,
+    selectText,
   } = useEditorStore()
 
   const isFocused = focusedStickerId === sticker.id
@@ -77,6 +78,20 @@ export default function ClipSticker({
       // Single click - focus sticker, activate sidebar, and seek to sticker time
       setStickerFocus(clipId, sticker.id)
       
+      // Find and select corresponding InsertedText
+      if (insertedTexts && selectText) {
+        const matchingInsertedText = insertedTexts.find((text: any) => 
+          text.content === sticker.text &&
+          Math.abs(text.startTime - sticker.start) < 0.1 && // Allow small time difference
+          Math.abs(text.endTime - sticker.end) < 0.1
+        )
+        
+        if (matchingInsertedText) {
+          selectText(matchingInsertedText.id)
+          console.log('🎯 Selected corresponding InsertedText:', matchingInsertedText.id, matchingInsertedText.content)
+        }
+      }
+      
       const videoPlayer = (
         window as {
           videoPlayer?: {
@@ -95,7 +110,7 @@ export default function ClipSticker({
       onStickerClick(sticker.id)
       setLastClickTime(currentTime)
     },
-    [sticker.id, sticker.start, clipId, onStickerClick, lastClickTime, setStickerFocus]
+[sticker.id, sticker.start, sticker.end, sticker.text, clipId, onStickerClick, lastClickTime, setStickerFocus, insertedTexts, selectText]
   )
 
   // Determine visual state classes

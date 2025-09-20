@@ -723,32 +723,12 @@ export const createClipSlice: StateCreator<
     set({ currentProject: project })
   },
 
-  // Clip Sticker management
+  // Clip Sticker management - SIMPLIFIED to prevent infinite loops
   insertStickersIntoClips: (insertedTexts) => {
-    const { clips } = get()
-
-    // First remove all existing stickers
-    let updatedClips = clips.map(removeStickersFromClip)
-
-    // Insert stickers for each inserted text
-    insertedTexts.forEach((insertedText) => {
-      const sticker = insertedTextToSticker(insertedText)
-      const bestMatchingClip = findBestMatchingClip(updatedClips, insertedText)
-
-      if (bestMatchingClip) {
-        const clipIndex = updatedClips.findIndex(
-          (clip) => clip.id === bestMatchingClip.id
-        )
-        if (clipIndex !== -1) {
-          updatedClips[clipIndex] = insertStickerIntoClip(
-            updatedClips[clipIndex],
-            sticker
-          )
-        }
-      }
-    })
-
-    set({ clips: updatedClips })
+    console.log('🔇 insertStickersIntoClips called but skipped to prevent infinite loops')
+    // This method is disabled to prevent circular dependencies
+    // Stickers are now managed through the scenario generation process
+    return
   },
 
   removeStickersFromClips: () => {
@@ -759,40 +739,17 @@ export const createClipSlice: StateCreator<
   },
 
   updateStickerInClips: (insertedTextId, updates) => {
-    const { clips } = get()
-
-    const updatedClips = clips.map((clip) => ({
-      ...clip,
-      stickers: (clip.stickers || []).map((sticker) => {
-        if (sticker.originalInsertedTextId === insertedTextId) {
-          // Create a mock inserted text object for the update
-          const mockInsertedText = {
-            id: insertedTextId,
-            content: updates.content || sticker.text,
-            startTime: updates.startTime ?? sticker.start,
-            endTime: updates.endTime ?? sticker.end,
-            animation: updates.animation,
-          }
-          return updateStickerFromInsertedText(sticker, mockInsertedText)
-        }
-        return sticker
-      }),
-    }))
-
-    set({ clips: updatedClips })
+    console.log('🔇 updateStickerInClips called but skipped to prevent infinite loops')
+    // This method is disabled to prevent circular dependencies
+    // Stickers are now updated through the scenario generation process
+    return
   },
 
   removeSpecificSticker: (insertedTextId) => {
-    const { clips } = get()
-
-    const updatedClips = clips.map((clip) => ({
-      ...clip,
-      stickers: (clip.stickers || []).filter(
-        (sticker) => sticker.originalInsertedTextId !== insertedTextId
-      ),
-    }))
-
-    set({ clips: updatedClips })
+    console.log('🔇 removeSpecificSticker called but skipped to prevent infinite loops')
+    // This method is disabled to prevent circular dependencies
+    // Stickers are now managed through the scenario generation process
+    return
   },
 
   // Sticker animation track management methods

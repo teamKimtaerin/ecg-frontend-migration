@@ -95,7 +95,7 @@ export default function ClipWords({
 
   // Combined word click handler (merging both functionalities)
   const handleWordClick = useCallback(
-    (wordId: string, isCenter: boolean) => {
+    (wordId: string, _isCenter: boolean) => {
       const word = words.find((w) => w.id === wordId)
       if (!word) return
 
@@ -144,14 +144,15 @@ export default function ClipWords({
     ]
   )
 
-  // Combine words and stickers, then sort by start time
-  const combinedItems = [
-    ...words.map((word) => ({ type: 'word' as const, item: word, start: word.start })),
-    ...stickers.map((sticker) => ({ type: 'sticker' as const, item: sticker, start: sticker.start })),
-  ].sort((a, b) => a.start - b.start)
-
-  // Create sortable items for DnD (from dev)
-  const sortableItems = combinedItems.map((item) => `${clipId}-${item.item.id}`)
+  // Keep words and stickers separate but visually sorted by time
+  const wordItems = words.map((word) => ({ type: 'word' as const, item: word, start: word.start }))
+  const stickerItems = stickers.map((sticker) => ({ type: 'sticker' as const, item: sticker, start: sticker.start }))
+  
+  // Create sortable items for DnD (only words, stickers are not draggable in subtitle context)
+  const sortableItems = wordItems.map((item) => `${clipId}-${item.item.id}`)
+  
+  // For visual display, combine and sort by time (but keep semantic separation)
+  const allItems = [...wordItems, ...stickerItems].sort((a, b) => a.start - b.start)
 
   return (
     <SortableContext
@@ -165,7 +166,7 @@ export default function ClipWords({
         onKeyDown={handleKeyDown}
         tabIndex={0}
       >
-        {combinedItems.map((combinedItem) => {
+        {allItems.map((combinedItem) => {
           if (combinedItem.type === 'word') {
             const word = combinedItem.item as Word
             const appliedAssets = word.appliedAssets || []

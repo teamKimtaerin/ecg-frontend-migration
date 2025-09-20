@@ -23,6 +23,59 @@ export type { TextInsertionSlice }
 // Create a global ScenarioManager instance for the slice
 let scenarioManager: ScenarioManager | null = null
 
+// Track update state to prevent infinite loops
+let isUpdating = false
+
+// Infinite loop detection for development
+const updateCallTracker = new Map<string, number>()
+const lastUpdateTimes = new Map<string, number>()
+const MAX_UPDATES_PER_SECOND = 10
+const DETECTION_WINDOW = 1000 // 1 second
+
+function detectInfiniteLoop(textId: string): boolean {
+  const now = Date.now()
+  const key = textId
+  
+  // Reset counter if more than 1 second has passed
+  const lastTime = lastUpdateTimes.get(key) || 0
+  if (now - lastTime > DETECTION_WINDOW) {
+    updateCallTracker.set(key, 0)
+  }
+  
+  // Increment counter
+  const count = (updateCallTracker.get(key) || 0) + 1
+  updateCallTracker.set(key, count)
+  lastUpdateTimes.set(key, now)
+  
+  if (count > MAX_UPDATES_PER_SECOND) {
+    console.error(`🚨 INFINITE LOOP DETECTED for text ${textId}: ${count} updates in ${DETECTION_WINDOW}ms`)
+    console.trace('Update call stack:')
+    return true
+  }
+  
+  return false
+}
+
+// Deep comparison utility for InsertedText updates
+function hasActualChanges(original: InsertedText, updates: Partial<InsertedText>): boolean {
+  // Check if any of the update values are actually different
+  for (const [key, value] of Object.entries(updates)) {
+    if (key === 'updatedAt') continue // Always allow timestamp updates
+    
+    const originalValue = (original as any)[key]
+    
+    // Deep comparison for objects (like animation, style, position)
+    if (typeof value === 'object' && value !== null && typeof originalValue === 'object' && originalValue !== null) {
+      if (JSON.stringify(value) !== JSON.stringify(originalValue)) {
+        return true
+      }
+    } else if (value !== originalValue) {
+      return true
+    }
+  }
+  return false
+}
+
 export const createTextInsertionSlice: StateCreator<
   TextInsertionSlice,
   [],
@@ -72,20 +125,8 @@ export const createTextInsertionSlice: StateCreator<
       }
     })
 
-    // Sync with ClipSlice stickers
-    const allInsertedTexts = get().insertedTexts
-    const syncData = allInsertedTexts.map((text) => ({
-      id: text.id,
-      content: text.content,
-      startTime: text.startTime,
-      endTime: text.endTime,
-      animation: text.animation,
-    }))
-    // Access ClipSlice through the combined store
-    const fullState = get() as any
-    if (fullState.insertStickersIntoClips) {
-      fullState.insertStickersIntoClips(syncData)
-    }
+    // REMOVED: Sync with ClipSlice stickers to break the circular dependency
+    // The stickers will be updated through the scenario generation process instead
   },
 
   // Text CRUD operations
@@ -106,34 +147,69 @@ export const createTextInsertionSlice: StateCreator<
   },
 
   updateText: (id: string, updates: Partial<InsertedText>) => {
-    set((state) => {
-      const updatedTexts = state.insertedTexts.map((text) =>
-        text.id === id ? { ...text, ...updates, updatedAt: Date.now() } : text
-      )
+    // Detect infinite loops in development
+    if (process.env.NODE_ENV === 'development' && detectInfiniteLoop(id)) {
+      console.error('🛑 Stopping update to prevent infinite loop')
+      return
+    }
 
-      // Update scenario manager if initialized (always sync)
-      if (scenarioManager) {
-        const updatedText = updatedTexts.find((text) => text.id === id)
-        if (updatedText) {
-          scenarioManager.updateInsertedText(updatedText)
+    // Prevent infinite loops
+    if (isUpdating) {
+      console.warn('🔄 UpdateText called during update, skipping to prevent infinite loop')
+      return
+    }
+
+    const currentState = get()
+    const originalText = currentState.insertedTexts.find((text) => text.id === id)
+    
+    if (!originalText) {
+      console.warn('🚨 UpdateText: Text not found:', id)
+      return
+    }
+
+    // Check if there are actual changes to prevent unnecessary updates
+    if (!hasActualChanges(originalText, updates)) {
+      console.log('📝 No actual changes detected, skipping update for:', id)
+      return
+    }
+
+    console.log('✅ Updating InsertedText:', id, 'with changes:', updates)
+    
+    // Set update flag
+    isUpdating = true
+
+    try {
+      set((state) => {
+        const updatedTexts = state.insertedTexts.map((text) =>
+          text.id === id ? { ...text, ...updates, updatedAt: Date.now() } : text
+        )
+
+        // Update scenario manager if initialized (debounced)
+        if (scenarioManager) {
+          const updatedText = updatedTexts.find((text) => text.id === id)
+          if (updatedText) {
+            // Use setTimeout to debounce scenario updates
+            setTimeout(() => {
+              if (scenarioManager) {
+                scenarioManager.updateInsertedText(updatedText)
+              }
+            }, 0)
+          }
         }
-      }
 
-      return {
-        ...state,
-        insertedTexts: updatedTexts,
-      }
-    })
-
-    // Sync with ClipSlice stickers
-    const fullState = get() as any
-    if (fullState.updateStickerInClips) {
-      fullState.updateStickerInClips(id, {
-        content: updates.content,
-        startTime: updates.startTime,
-        endTime: updates.endTime,
-        animation: updates.animation,
+        return {
+          ...state,
+          insertedTexts: updatedTexts,
+        }
       })
+
+      // REMOVED: Sync with ClipSlice stickers to break the circular dependency
+      // The stickers will be updated through the scenario generation process instead
+    } finally {
+      // Reset update flag after a brief delay
+      setTimeout(() => {
+        isUpdating = false
+      }, 10)
     }
   },
 
@@ -152,11 +228,8 @@ export const createTextInsertionSlice: StateCreator<
       }
     })
 
-    // Sync with ClipSlice stickers
-    const fullState = get() as any
-    if (fullState.removeSpecificSticker) {
-      fullState.removeSpecificSticker(id)
-    }
+    // REMOVED: Sync with ClipSlice stickers to break the circular dependency
+    // The stickers will be updated through the scenario generation process instead
   },
 
   duplicateText: (id: string) => {
