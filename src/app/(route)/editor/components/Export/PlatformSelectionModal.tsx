@@ -105,7 +105,7 @@ export default function PlatformSelectionModal({
                 />
                 <div className={`w-5 h-5 border-2 rounded flex items-center justify-center transition-colors ${
                   isAllSelected
-                    ? 'bg-blue-500 border-blue-500'
+                    ? 'bg-black border-black'
                     : 'border-gray-300 bg-white hover:border-gray-400'
                 }`}>
                   {isAllSelected && (
@@ -138,7 +138,7 @@ export default function PlatformSelectionModal({
                     />
                     <div className={`w-5 h-5 border-2 rounded flex items-center justify-center transition-colors ${
                       isSelected
-                        ? 'bg-blue-500 border-blue-500'
+                        ? 'bg-black border-black'
                         : 'border-gray-300 bg-white hover:border-gray-400'
                     }`}>
                       {isSelected && (
@@ -176,7 +176,7 @@ export default function PlatformSelectionModal({
             disabled={selectedPlatforms.length === 0}
             className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
               selectedPlatforms.length > 0
-                ? 'bg-blue-500 hover:bg-blue-600 text-white'
+                ? 'bg-black hover:bg-gray-800 text-white'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }`}
           >
