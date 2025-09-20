@@ -30,6 +30,7 @@ import { EditorTab } from './types'
 // Hooks
 import ProcessingModal from '@/components/ProcessingModal'
 import { useUploadModal } from '@/hooks/useUploadModal'
+import { useDeployModal } from '@/hooks/useDeployModal'
 import { useDragAndDrop } from './hooks/useDragAndDrop'
 import { useGlobalWordDragAndDrop } from './hooks/useGlobalWordDragAndDrop'
 import { useSelectionBox } from './hooks/useSelectionBox'
@@ -41,6 +42,7 @@ import NewUploadModal from '@/components/NewUploadModal'
 import TutorialModal from '@/components/TutorialModal'
 import { ChevronDownIcon } from '@/components/icons'
 import AlertDialog from '@/components/ui/AlertDialog'
+import DeployModal from '@/components/ui/DeployModal'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import ResizablePanelDivider from '@/components/ui/ResizablePanelDivider'
 import { normalizeClipOrder } from '@/utils/editor/clipTimelineUtils'
@@ -525,8 +527,33 @@ export default function EditorPage() {
   const [currentTime, setCurrentTime] = useState(0) // 현재 비디오 시간 상태
   const [shouldOpenExportModal, setShouldOpenExportModal] = useState(false) // OAuth 인증 후 모달 재오픈 플래그
 
+  // Deploy modal hook
+  const { openDeployModal, deployModalProps } = useDeployModal()
+
   // Get media actions from store
   const { setMediaInfo } = useEditorStore()
+
+  // URL 파라미터에서 deploy 모달 파라미터 감지
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      const shouldDeploy = urlParams.get('deploy')
+      const taskId = urlParams.get('taskId')
+      const filename = urlParams.get('filename')
+
+      if (shouldDeploy === 'true' && taskId && filename) {
+        // 배포 모달 열기
+        openDeployModal({
+          id: parseInt(taskId),
+          filename: decodeURIComponent(filename),
+        })
+
+        // URL에서 파라미터 제거 (뒤로가기 시 모달이 다시 뜨지 않도록)
+        const newUrl = window.location.pathname
+        window.history.replaceState({}, '', newUrl)
+      }
+    }
+  }, [openDeployModal])
 
   // Cleanup blob URLs when component unmounts or videoUrl changes
   useEffect(() => {
@@ -2196,6 +2223,9 @@ export default function EditorPage() {
         canCancel={uploadModal.step !== 'failed'}
         backdrop={false}
       />
+
+      {/* Deploy Modal */}
+      <DeployModal {...deployModalProps} />
     </>
   )
 }
