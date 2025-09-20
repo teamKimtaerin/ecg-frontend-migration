@@ -51,6 +51,8 @@ import SimpleToolbar from './components/SimpleToolbar'
 import SpeakerManagementSidebar from './components/SpeakerManagementSidebar'
 import SubtitleEditList from './components/SubtitleEditList'
 import TemplateSidebar from './components/TemplateSidebar'
+import TimelineController from './components/TimelineController'
+import VirtualTimelineController from './components/VirtualTimelineController'
 import Toolbars from './components/Toolbars'
 import VideoSection from './components/VideoSection'
 
@@ -485,6 +487,12 @@ export default function EditorPage() {
     // isAssetSidebarOpen,
     assetSidebarWidth,
     setAssetSidebarWidth,
+    // Text insertion state for debugging
+    insertedTexts,
+    selectedTextId,
+    getActiveTexts,
+    currentScenario,
+    isScenarioMode,
     editingMode,
     isMultipleWordsSelected,
     deleteSelectedWords,
@@ -514,6 +522,7 @@ export default function EditorPage() {
   const [clipboard, setClipboard] = useState<ClipItem[]>([]) // 클립보드 상태
   const [skipAutoFocus, setSkipAutoFocus] = useState(false) // 자동 포커스 스킵 플래그
   const [showRestoreModal, setShowRestoreModal] = useState(false) // 복원 확인 모달 상태
+  const [currentTime, setCurrentTime] = useState(0) // 현재 비디오 시간 상태
   const [shouldOpenExportModal, setShouldOpenExportModal] = useState(false) // OAuth 인증 후 모달 재오픈 플래그
 
   // Get media actions from store
@@ -584,10 +593,72 @@ export default function EditorPage() {
         // Initialize AutosaveManager
         const autosaveManager = AutosaveManager.getInstance()
 
-        // Load transcription data using the TranscriptionService
-        // This provides an extensible interface for switching between mock and API data
-        const transcriptionClips =
-          await transcriptionService.loadTranscriptionClips()
+        // Load friends_result.json for testing
+        interface FriendsWord {
+          word: string
+          start_time: number
+          end_time: number
+          acoustic_features?: { confidence?: number }
+        }
+
+        interface FriendsSegment {
+          speaker_id: string
+          text: string
+          start_time: number
+          end_time: number
+          words: FriendsWord[]
+        }
+
+        interface FriendsData {
+          segments: FriendsSegment[]
+        }
+
+        let transcriptionClips: ClipItem[] = []
+        try {
+          const response = await fetch('/friends_result.json')
+          const friendsData = (await response.json()) as FriendsData
+
+          // Convert friends_result.json format to transcription clips
+          transcriptionClips = friendsData.segments.map(
+            (segment: FriendsSegment, index: number) => ({
+              id: `clip_${index}`,
+              speaker: segment.speaker_id,
+              fullText: segment.text,
+              subtitle: segment.text, // Add subtitle field
+              timeline: `${Math.floor(segment.start_time / 60)
+                .toString()
+                .padStart(2, '0')}:${Math.floor(segment.start_time % 60)
+                .toString()
+                .padStart(2, '0')} → ${Math.floor(segment.end_time / 60)
+                .toString()
+                .padStart(2, '0')}:${Math.floor(segment.end_time % 60)
+                .toString()
+                .padStart(2, '0')}`,
+              duration: `${(segment.end_time - segment.start_time).toFixed(1)}s`, // Add duration field
+              thumbnail: '', // Add empty thumbnail field
+              words: segment.words.map(
+                (word: FriendsWord, wordIndex: number) => ({
+                  id: `word_${index}_${wordIndex}`,
+                  text: word.word,
+                  start: word.start_time,
+                  end: word.end_time,
+                  isEditable: true, // Add isEditable field
+                  confidence: word.acoustic_features?.confidence || 0.9,
+                })
+              ),
+              stickers: [],
+            })
+          )
+
+          console.log(
+            `Loaded ${transcriptionClips.length} clips from friends_result.json`
+          )
+        } catch (error) {
+          console.error('Failed to load friends_result.json:', error)
+          // Fallback to original service
+          transcriptionClips =
+            await transcriptionService.loadTranscriptionClips()
+        }
         if (transcriptionClips.length > 0) {
           log(
             'EditorPage.tsx',
@@ -622,15 +693,13 @@ export default function EditorPage() {
             console.error('Failed to save original clips to IndexedDB:', error)
           })
 
-          // Set media info when in mock mode
-          if (API_CONFIG.USE_MOCK_DATA) {
-            setMediaInfo({
-              videoUrl: API_CONFIG.MOCK_VIDEO_PATH,
-              videoName: 'friends.mp4',
-              videoType: 'video/mp4',
-              videoDuration: 143.39,
-            })
-          }
+          // Set media info for friends video
+          setMediaInfo({
+            videoUrl: '/friends.mp4',
+            videoName: 'friends.mp4',
+            videoType: 'video/mp4',
+            videoDuration: 143.4,
+          })
         } else {
           log(
             'EditorPage.tsx',
@@ -1847,7 +1916,10 @@ export default function EditorPage() {
                   : 'h-[calc(100vh-120px)]'
               }`}
             >
-              <VideoSection width={videoPanelWidth} />
+              <VideoSection
+                width={videoPanelWidth}
+                onCurrentTimeChange={setCurrentTime}
+              />
             </div>
 
             <ResizablePanelDivider

@@ -9,6 +9,7 @@ import TextInsertionOverlay from './TextInsertion/TextInsertionOverlay'
 import TextEditInput from './TextInsertion/TextEditInput'
 import ScenarioJsonEditor from './ScenarioJsonEditor'
 import VirtualTimelineVideoController from './VirtualTimelineVideoController'
+import VirtualTimelineController from './VirtualTimelineController'
 import { playbackEngine } from '@/utils/timeline/playbackEngine'
 import { timelineEngine } from '@/utils/timeline/timelineEngine'
 import {
@@ -20,9 +21,13 @@ import { VirtualTimelineManager } from '@/utils/virtual-timeline/VirtualTimeline
 
 interface VideoSectionProps {
   width?: number
+  onCurrentTimeChange?: (currentTime: number) => void
 }
 
-const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
+const VideoSection: React.FC<VideoSectionProps> = ({
+  width = 300,
+  onCurrentTimeChange,
+}) => {
   const videoContainerRef = useRef<HTMLDivElement>(null)
   const videoPlayerRef = useRef<HTMLVideoElement>(null)
 
@@ -33,7 +38,8 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
     useState<RendererConfig | null>(null)
 
   // Text insertion state
-  const [currentTime, setCurrentTime] = useState(0)
+  const [currentTime, setCurrentTime] = useState(0) // 가상 타임라인 시간
+  const [realVideoTime, setRealVideoTime] = useState(0) // 실제 영상 시간 (텍스트 삽입용)
 
   // Virtual Timeline 시스템
   const virtualTimelineManagerRef = useRef<VirtualTimelineManager | null>(null)
@@ -185,8 +191,9 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
         virtualTime: number
       ) => {
         // EditorMotionTextOverlay의 MotionText Renderer에 Virtual Time 전달
-        // 현재는 currentTime 상태로 전달하지만, 직접 MotionText Renderer API 호출도 가능
+        // 가상 타임라인 시간은 자막 렌더링용으로만 사용
         setCurrentTime(virtualTime)
+        // 실제 영상 시간은 별도로 관리하여 텍스트 삽입에서 중복 렌더링 방지
       }
 
       const cleanup = virtualPlayerControllerRef.current.onMotionTextSeek(
@@ -200,18 +207,20 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
   // Handle time update from video player
   const handleTimeUpdate = useCallback(
     (time: number) => {
-      setCurrentTime(time)
+      // 실제 영상 시간만 업데이트 (텍스트 삽입용)
+      setRealVideoTime(time)
+      onCurrentTimeChange?.(time)
 
-      // Virtual Timeline 시스템이 활성화된 경우 Virtual Player Controller에서 자동 처리
-      // 그렇지 않으면 기존 playbackEngine 사용
+      // 가상 타임라인이 비활성화된 경우에만 currentTime도 업데이트
       if (!virtualPlayerControllerRef.current) {
+        setCurrentTime(time)
         // 타임라인 재생 위치 업데이트 (기존 시스템)
         setPlaybackPosition(time)
         playbackEngine.setCurrentTime(time)
       }
       // Virtual Player Controller가 있으면 RVFC가 자동으로 시간 업데이트 처리
     },
-    [setPlaybackPosition]
+    [onCurrentTimeChange, setPlaybackPosition]
   )
 
   // Handle text click for selection
@@ -251,10 +260,10 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
             scenarioOverride={scenarioOverride || undefined}
           />
 
-          {/* Text Insertion Overlay */}
+          {/* Text Insertion Overlay - 실제 영상 시간만 사용 */}
           <TextInsertionOverlay
             videoContainerRef={videoContainerRef}
-            currentTime={currentTime}
+            currentTime={realVideoTime}
             onTextClick={handleTextClick}
             onTextDoubleClick={handleTextDoubleClick}
           />
@@ -274,6 +283,13 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
             />
           </div>
         )}
+
+        {/* Virtual Timeline Controller */}
+        <div className="mb-4">
+          <VirtualTimelineController
+            virtualPlayerController={virtualPlayerControllerRef.current}
+          />
+        </div>
 
         {/* Text Edit Input Panel */}
         <TextEditInput />

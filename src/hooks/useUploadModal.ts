@@ -767,6 +767,7 @@ export const useUploadModal = () => {
           duration: formatDuration(segmentEnd - segmentStart),
           thumbnail: '', // 썸네일은 추후 구현
           words,
+          stickers: [],
         }
       })
     },

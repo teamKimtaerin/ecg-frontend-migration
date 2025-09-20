@@ -1,7 +1,7 @@
 import React, { useRef, useCallback, useState, useEffect } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Word } from './types'
+import { Word } from '../../types'
 import { useEditorStore } from '../../store'
 
 interface ClipWordProps {
@@ -9,6 +9,8 @@ interface ClipWordProps {
   clipId: string
   onWordClick: (wordId: string, isCenter: boolean) => void
   onWordEdit: (clipId: string, wordId: string, newText: string) => void
+  isStickerDropTarget?: boolean
+  isStickerHovered?: boolean
 }
 
 export default function ClipWord({
@@ -16,6 +18,8 @@ export default function ClipWord({
   clipId,
   onWordClick,
   onWordEdit,
+  isStickerDropTarget = false,
+  isStickerHovered = false,
 }: ClipWordProps) {
   const wordRef = useRef<HTMLDivElement>(null)
   const editableRef = useRef<HTMLSpanElement>(null)
@@ -276,6 +280,29 @@ export default function ClipWord({
       classes.push('cursor-grab')
     }
 
+    // Drop zone visual feedback for sticker attachment
+    if (isStickerDropTarget && !isEditing) {
+      classes.push('transition-all', 'duration-200')
+      if (isStickerHovered) {
+        classes.push(
+          'ring-2',
+          'ring-purple-400',
+          'ring-opacity-60',
+          'bg-purple-50',
+          'border-purple-300',
+          'shadow-md',
+          'scale-105'
+        )
+      } else {
+        classes.push(
+          'ring-1',
+          'ring-purple-200',
+          'ring-opacity-40',
+          'bg-purple-25'
+        )
+      }
+    }
+
     return classes.join(' ')
   }
 
@@ -330,7 +357,7 @@ export default function ClipWord({
           dangerouslySetInnerHTML={{ __html: editingText }}
         />
       ) : (
-        <span>{word.text}</span>
+        <span className="flex items-center gap-1">{word.text}</span>
       )}
 
       {/* Drop indicator after word */}

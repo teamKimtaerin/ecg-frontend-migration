@@ -18,6 +18,7 @@ describe('VideoSegmentManager time mapping', () => {
         fullText: 'hello',
         thumbnail: '',
         words: [],
+        stickers: [],
       },
       {
         id: 'c2',
@@ -28,6 +29,7 @@ describe('VideoSegmentManager time mapping', () => {
         fullText: 'world',
         thumbnail: '',
         words: [],
+        stickers: [],
       },
       {
         id: 'c3',
@@ -38,6 +40,7 @@ describe('VideoSegmentManager time mapping', () => {
         fullText: 'again',
         thumbnail: '',
         words: [],
+        stickers: [],
       },
     ]
 

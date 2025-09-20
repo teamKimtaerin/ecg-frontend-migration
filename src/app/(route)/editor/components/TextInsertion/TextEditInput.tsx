@@ -13,6 +13,7 @@ const TextEditInput: React.FC<TextEditInputProps> = ({ className = '' }) => {
 
   const [inputValue, setInputValue] = useState('')
   const [isEditing, setIsEditing] = useState(false)
+  const [isComposing, setIsComposing] = useState(false)
 
   // Get selected text
   const selectedText = insertedTexts.find((text) => text.id === selectedTextId)
@@ -39,6 +40,9 @@ const TextEditInput: React.FC<TextEditInputProps> = ({ className = '' }) => {
 
   // Handle input blur (save changes)
   const handleInputBlur = useCallback(() => {
+    // Don't save if IME composition is in progress
+    if (isComposing) return
+
     if (
       selectedTextId &&
       isEditing &&
@@ -49,11 +53,30 @@ const TextEditInput: React.FC<TextEditInputProps> = ({ className = '' }) => {
       })
     }
     setIsEditing(false)
-  }, [selectedTextId, isEditing, inputValue, selectedText?.content, updateText])
+  }, [
+    selectedTextId,
+    isEditing,
+    inputValue,
+    selectedText?.content,
+    updateText,
+    isComposing,
+  ])
+
+  // Handle composition events for IME input (Korean, etc.)
+  const handleCompositionStart = useCallback(() => {
+    setIsComposing(true)
+  }, [])
+
+  const handleCompositionEnd = useCallback(() => {
+    setIsComposing(false)
+  }, [])
 
   // Handle Enter key (save changes)
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
+      // Don't handle Enter during IME composition
+      if (isComposing) return
+
       if (e.key === 'Enter') {
         e.preventDefault()
         if (selectedTextId && inputValue.trim() !== selectedText?.content) {
@@ -74,7 +97,7 @@ const TextEditInput: React.FC<TextEditInputProps> = ({ className = '' }) => {
         e.currentTarget.blur()
       }
     },
-    [selectedTextId, inputValue, selectedText, updateText]
+    [selectedTextId, inputValue, selectedText, updateText, isComposing]
   )
 
   // Handle clear selection
@@ -111,6 +134,8 @@ const TextEditInput: React.FC<TextEditInputProps> = ({ className = '' }) => {
           onChange={handleInputChange}
           onBlur={handleInputBlur}
           onKeyDown={handleKeyDown}
+          onCompositionStart={handleCompositionStart}
+          onCompositionEnd={handleCompositionEnd}
           placeholder="텍스트를 입력하세요"
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
