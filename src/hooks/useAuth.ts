@@ -10,10 +10,12 @@ export const useAuth = () => {
 
   // 앱 시작 시 인증 상태 복원 (토큰 또는 쿠키 기반)
   useEffect(() => {
-    if (!store.user && !store.isLoading) {
+    if (!store.user && !store.isLoading && store.isAuthenticated !== false) {
+      // isAuthenticated가 명시적으로 false가 아닌 경우에만 인증 시도
+      // (로그아웃 직후에는 시도하지 않음)
       store.getCurrentUser()
     }
-  }, [store.user, store.isLoading, store.getCurrentUser, store])
+  }, [store.user, store.isLoading, store.isAuthenticated, store.getCurrentUser, store])
 
   return {
     // 상태

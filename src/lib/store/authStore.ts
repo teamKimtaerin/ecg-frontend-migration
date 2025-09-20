@@ -83,24 +83,29 @@ const useAuthStore = create<AuthStore>()((set, get) => ({
   logout: async () => {
     try {
       // 서버에 로그아웃 요청 (refresh token 쿠키 삭제)
-      await fetch(
+      const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/logout`,
         {
           method: 'POST',
           credentials: 'include',
         }
       )
+
+      console.log('🚪 Logout API response:', response.ok, response.status)
     } catch (error) {
       console.error('Logout API failed:', error)
     }
 
-    // 클라이언트 상태 초기화
+    // 클라이언트 상태 즉시 초기화
     set({
       user: null,
       token: null,
       isAuthenticated: false,
       error: null,
+      isLoading: false, // 로그아웃 중 로딩 상태 방지
     })
+
+    console.log('🚪 Client state reset after logout')
   },
 
   getCurrentUser: async () => {
