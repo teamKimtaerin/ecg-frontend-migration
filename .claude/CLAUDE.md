@@ -14,7 +14,7 @@ ECG (Easy Caption Generator) Frontend - A powerful subtitle editing tool built w
 - **Styling**: TailwindCSS v4 with PostCSS
 - **State Management**: Zustand 5.0.8
 - **Drag & Drop**: @dnd-kit/core & @dnd-kit/sortable
-- **Animation**: GSAP 3.13.0, motiontext-renderer 1.1.0
+- **Animation**: GSAP 3.13.0, motiontext-renderer 1.3.1
 - **Icons**: Lucide React via react-icons
 - **Utilities**: clsx, tailwind-merge, chroma-js
 
@@ -239,6 +239,7 @@ When creating animation plugins:
 4. **Real-time Preview**: Live animation preview with controls
 5. **Speaker Management**: Auto-detection and manual assignment
 6. **Undo/Redo**: Command pattern implementation
+7. **Automatic Line Splitting**: Smart line breaks based on safe area calculation and fontSizeRel
 
 ## 🚀 GPU 렌더링 시스템
 

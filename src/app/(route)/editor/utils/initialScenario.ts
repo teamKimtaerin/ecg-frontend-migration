@@ -174,8 +174,8 @@ export function buildInitialScenarioFromClips(
         childrenLayout: {
           mode: 'flow',
           direction: 'horizontal',
-          wrap: true,
-          maxWidth: '100%',
+          wrap: true, // 강제 줄바꿈 방지 - 자동 줄바꿈 로직이 미리 처리
+          maxWidth: '90%',
           gap: 0.005, // Small gap between words
           align: 'center',
           justify: 'center',
@@ -195,9 +195,17 @@ export function buildInitialScenarioFromClips(
         },
         defaultBoxStyle: {
           backgroundColor: 'rgba(0, 0, 0, 0.9)',
-          padding: '8px 16px',
+          padding: '4px 8px',
           borderRadius: '4px',
           opacity: 1,
+        },
+        defaultConstraints: {
+          safeArea: {
+            top: 0.025,
+            bottom: 0.075,
+            left: 0.05,
+            right: 0.05,
+          },
         },
       },
     ],
