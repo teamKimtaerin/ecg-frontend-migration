@@ -125,8 +125,18 @@ export const createTextInsertionSlice: StateCreator<
       }
     })
 
-    // REMOVED: Sync with ClipSlice stickers to break the circular dependency
-    // The stickers will be updated through the scenario generation process instead
+    // 스티커 생성을 위해 clipSlice의 insertStickersIntoClips 호출
+    try {
+      const currentState = get()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const clipSlice = currentState as any
+      if (clipSlice.insertStickersIntoClips) {
+        console.log('📌 Triggering sticker creation for center text:', newText.id)
+        clipSlice.insertStickersIntoClips([newText])
+      }
+    } catch (error) {
+      console.error('Failed to create stickers for center text:', error)
+    }
   },
 
   // Text CRUD operations
@@ -144,6 +154,19 @@ export const createTextInsertionSlice: StateCreator<
       insertedTexts: [...state.insertedTexts, newText],
       selectedTextId: newText.id,
     }))
+
+    // 스티커 생성을 위해 clipSlice의 insertStickersIntoClips 호출
+    try {
+      const currentState = get()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const clipSlice = currentState as any
+      if (clipSlice.insertStickersIntoClips) {
+        console.log('📌 Triggering sticker creation for new inserted text:', newText.id)
+        clipSlice.insertStickersIntoClips([newText])
+      }
+    } catch (error) {
+      console.error('Failed to create stickers for new text:', error)
+    }
   },
 
   updateText: (id: string, updates: Partial<InsertedText>) => {

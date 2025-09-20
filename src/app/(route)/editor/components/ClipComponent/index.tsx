@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import { ClipComponentProps } from './types'
 import ClipCheckbox from './ClipCheckbox'
 import ClipSpeaker from './ClipSpeaker'
+import ClipStickerButton from './ClipStickerButton'
 import ClipWords from './ClipWords'
 import ClipText from './ClipText'
 import ExpandedClipWaveform from './ExpandedClipWaveform'
@@ -100,19 +101,27 @@ export default function ClipComponent({
           <div className={contentClassName}>
             {/* Upper section */}
             <div className="p-3">
-              <div className="grid grid-cols-[180px_1fr] gap-3 items-center">
-                <div className="flex items-center gap-3 pl-4 h-8 flex-shrink-0">
-                  <ClipSpeaker
-                    clipId={clip.id}
-                    speaker={clip.speaker}
-                    speakers={speakers}
-                    speakerColors={speakerColors}
-                    onSpeakerChange={onSpeakerChange}
-                    onBatchSpeakerChange={onBatchSpeakerChange}
-                    onOpenSpeakerManagement={onOpenSpeakerManagement}
-                    onAddSpeaker={onAddSpeaker}
-                    onRenameSpeaker={onRenameSpeaker}
-                  />
+              <div className="grid grid-cols-[180px_1fr] gap-3 items-start">
+                <div className="flex flex-col gap-2 pl-4 py-1 flex-shrink-0">
+                  <div className="h-8 flex items-center">
+                    <ClipSpeaker
+                      clipId={clip.id}
+                      speaker={clip.speaker}
+                      speakers={speakers}
+                      speakerColors={speakerColors}
+                      onSpeakerChange={onSpeakerChange}
+                      onBatchSpeakerChange={onBatchSpeakerChange}
+                      onOpenSpeakerManagement={onOpenSpeakerManagement}
+                      onAddSpeaker={onAddSpeaker}
+                      onRenameSpeaker={onRenameSpeaker}
+                    />
+                  </div>
+                  <div className="flex items-center">
+                    <ClipStickerButton
+                      clipId={clip.id}
+                      stickers={clip.stickers || []}
+                    />
+                  </div>
                 </div>
                 <div className="overflow-hidden min-w-0 min-h-[32px] flex items-center">
                   <ClipWords

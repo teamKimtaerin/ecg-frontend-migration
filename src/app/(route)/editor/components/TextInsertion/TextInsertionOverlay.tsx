@@ -6,7 +6,6 @@ import { useEditorStore } from '../../store'
 import MovableAnimatedText from './MovableAnimatedText'
 import { useMotionTextRenderer } from '@/app/shared/motiontext'
 import type { InsertedText } from '../../types/textInsertion'
-import TextAnimationControls from './TextAnimationControls'
 
 interface TextInsertionOverlayProps {
   videoContainerRef: React.RefObject<HTMLDivElement | null>

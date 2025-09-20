@@ -24,6 +24,7 @@ export interface ClipSlice {
   originalClips: ClipItem[] // 원본 클립 데이터 저장 (메모리)
   deletedClipIds: Set<string>
   currentProject: ProjectData | null
+  lastStickerUpdateTime?: number // 무한루프 방지용 timestamp
   setClips: (clips: ClipItem[]) => void
   // Alias used by other slices; ensures indexes rebuild
   updateClips: (clips: ClipItem[]) => void
@@ -723,12 +724,52 @@ export const createClipSlice: StateCreator<
     set({ currentProject: project })
   },
 
-  // Clip Sticker management - SIMPLIFIED to prevent infinite loops
+  // Clip Sticker management - SAFE implementation with infinite loop prevention
   insertStickersIntoClips: (insertedTexts) => {
-    console.log('🔇 insertStickersIntoClips called but skipped to prevent infinite loops')
-    // This method is disabled to prevent circular dependencies
-    // Stickers are now managed through the scenario generation process
-    return
+    const state = get()
+    
+    // Safety check: prevent excessive calls
+    const now = Date.now()
+    const lastCallTime = state.lastStickerUpdateTime || 0
+    if (now - lastCallTime < 100) { // Debounce 100ms
+      console.log('🔇 insertStickersIntoClips debounced to prevent infinite loops')
+      return
+    }
+
+    console.log('📌 Creating stickers for inserted texts:', insertedTexts.length)
+    
+    const updatedClips = state.clips.map((clip) => {
+      const clipStartTime = Math.min(...clip.words.map(w => w.start))
+      const clipEndTime = Math.max(...clip.words.map(w => w.end))
+      
+      // Find inserted texts that overlap with this clip's timeline
+      const overlappingTexts = insertedTexts.filter(text => {
+        return text.startTime < clipEndTime && text.endTime > clipStartTime
+      })
+      
+      // Create stickers for overlapping texts (only if not already exist)
+      const newStickers = overlappingTexts
+        .filter(text => !clip.stickers?.some(sticker => sticker.originalInsertedTextId === text.id))
+        .map(text => ({
+          id: `sticker_${text.id}_${Date.now()}`,
+          text: text.content,
+          start: text.startTime,
+          end: text.endTime,
+          originalInsertedTextId: text.id,
+        }))
+      
+      const existingStickers = clip.stickers || []
+      const allStickers = [...existingStickers, ...newStickers]
+      
+      return { ...clip, stickers: allStickers }
+    })
+    
+    set({ 
+      clips: updatedClips,
+      lastStickerUpdateTime: now 
+    })
+    
+    console.log('📌 Stickers inserted successfully')
   },
 
   removeStickersFromClips: () => {
@@ -739,10 +780,40 @@ export const createClipSlice: StateCreator<
   },
 
   updateStickerInClips: (insertedTextId, updates) => {
-    console.log('🔇 updateStickerInClips called but skipped to prevent infinite loops')
-    // This method is disabled to prevent circular dependencies
-    // Stickers are now updated through the scenario generation process
-    return
+    const state = get()
+    
+    // Safety check: prevent excessive calls
+    const now = Date.now()
+    const lastCallTime = state.lastStickerUpdateTime || 0
+    if (now - lastCallTime < 50) { // Debounce 50ms for updates
+      console.log('🔇 updateStickerInClips debounced to prevent infinite loops')
+      return
+    }
+
+    console.log('🔄 Updating sticker for inserted text:', insertedTextId)
+    
+    const updatedClips = state.clips.map((clip) => {
+      const updatedStickers = (clip.stickers || []).map((sticker) => {
+        if (sticker.originalInsertedTextId === insertedTextId) {
+          return {
+            ...sticker,
+            text: updates.content || sticker.text,
+            start: updates.startTime !== undefined ? updates.startTime : sticker.start,
+            end: updates.endTime !== undefined ? updates.endTime : sticker.end,
+          }
+        }
+        return sticker
+      })
+      
+      return { ...clip, stickers: updatedStickers }
+    })
+    
+    set({ 
+      clips: updatedClips,
+      lastStickerUpdateTime: now 
+    })
+    
+    console.log('🔄 Sticker updated successfully')
   },
 
   removeSpecificSticker: (insertedTextId) => {
