@@ -1903,6 +1903,10 @@ export default function EditorPage() {
             isToolbarVisible={isToolbarVisible}
             onToolbarToggle={handleToolbarToggle}
             onShowToolbar={handleShowToolbar}
+            onPlatformSelectionOpen={(task) => {
+              setPendingDeployTask(task)
+              setIsPlatformSelectionModalOpen(true)
+            }}
           />
 
           <div
