@@ -3,6 +3,10 @@
 import { buildScenarioFromClips } from '@/app/(route)/editor/utils/scenarioBuilder'
 import { showToast } from '@/utils/ui/toast'
 import { useEffect, useState } from 'react'
+
+// 중복 토스트 방지를 위한 전역 변수
+let lastToastTime = 0
+const TOAST_DEBOUNCE_TIME = 1000 // 1초
 import { useServerVideoExport } from '../../hooks/useServerVideoExport'
 import { useEditorStore } from '../../store'
 import CustomExportModal from './CustomExportModal'
@@ -188,7 +192,14 @@ export default function ServerVideoExportModal({
 
   const handleProgressModalComplete = () => {
     setIsProgressModalOpen(false)
-    showToast('영상 출력이 완료되었습니다', 'success')
+
+    // 중복 토스트 방지: 1초 이내 중복 호출 시 무시
+    const currentTime = Date.now()
+    if (currentTime - lastToastTime > TOAST_DEBOUNCE_TIME) {
+      showToast('영상 출력이 완료되었습니다', 'success')
+      lastToastTime = currentTime
+    }
+
     setPhase('completed')
     onClose()
   }
