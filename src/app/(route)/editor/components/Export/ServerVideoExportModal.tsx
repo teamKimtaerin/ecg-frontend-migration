@@ -1,15 +1,12 @@
 'use client'
 
 import { buildScenarioFromClips } from '@/app/(route)/editor/utils/scenarioBuilder'
-import Button from '@/components/ui/Button'
-import ProgressBar from '@/components/ui/ProgressBar'
+import { showToast } from '@/utils/ui/toast'
 import { useEffect, useState } from 'react'
-import { FaDownload, FaRocket } from 'react-icons/fa'
 import { useServerVideoExport } from '../../hooks/useServerVideoExport'
 import { useEditorStore } from '../../store'
 import CustomExportModal from './CustomExportModal'
 import VideoExportProgressModal from './VideoExportProgressModal'
-import { showToast } from '@/utils/ui/toast'
 
 interface ServerVideoExportModalProps {
   isOpen: boolean
@@ -58,7 +55,6 @@ export default function ServerVideoExportModal({
     if (status === 'completed' && downloadUrl) {
       setPhase('completed')
       setIsProgressModalOpen(false)
-      showToast('영상 출력이 완료되었습니다', 'success')
       onClose() // 전체 모달 닫기
     } else if (status === 'failed' || error) {
       setPhase('error')
@@ -211,7 +207,6 @@ export default function ServerVideoExportModal({
   // 🧪 테스트용: 결과 토스트 직접 표시 (개발환경 전용)
   const handleTestResultModalSuccess = () => {
     setPhase('completed')
-    showToast('영상 출력이 완료되었습니다', 'success')
     onClose()
   }
 
