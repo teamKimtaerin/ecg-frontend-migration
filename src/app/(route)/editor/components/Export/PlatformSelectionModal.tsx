@@ -167,14 +167,14 @@ export default function PlatformSelectionModal({
         <div className="flex justify-end space-x-3 p-6 border-t border-gray-200">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+            className="px-6 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
           >
             취소
           </button>
           <button
             onClick={handleNext}
             disabled={selectedPlatforms.length === 0}
-            className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+            className={`px-6 py-2.5 text-sm font-medium rounded-full transition-colors ${
               selectedPlatforms.length > 0
                 ? 'bg-black hover:bg-gray-800 text-white'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
