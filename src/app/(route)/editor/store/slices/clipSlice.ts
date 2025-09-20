@@ -14,6 +14,7 @@ import { MediaSlice } from './mediaSlice'
 import {
   insertedTextToSticker,
   findBestMatchingClip,
+  findClipAtTime,
   insertStickerIntoClip,
   removeStickersFromClip,
   updateStickerFromInsertedText,
@@ -724,7 +725,7 @@ export const createClipSlice: StateCreator<
     set({ currentProject: project })
   },
 
-  // Clip Sticker management - SAFE implementation with infinite loop prevention
+  // Clip Sticker management - SAFE implementation with single clip selection
   insertStickersIntoClips: (insertedTexts) => {
     const state = get()
     
@@ -738,30 +739,47 @@ export const createClipSlice: StateCreator<
 
     console.log('📌 Creating stickers for inserted texts:', insertedTexts.length)
     
-    const updatedClips = state.clips.map((clip) => {
-      const clipStartTime = Math.min(...clip.words.map(w => w.start))
-      const clipEndTime = Math.max(...clip.words.map(w => w.end))
+    const updatedClips = [...state.clips]
+    
+    // Process each inserted text individually to find the single best matching clip
+    insertedTexts.forEach(text => {
+      // Find the single clip that contains the inserted text's start time
+      const targetClip = findClipAtTime(state.clips, text.startTime)
       
-      // Find inserted texts that overlap with this clip's timeline
-      const overlappingTexts = insertedTexts.filter(text => {
-        return text.startTime < clipEndTime && text.endTime > clipStartTime
-      })
+      if (!targetClip) {
+        console.log(`⚠️ No clip found for inserted text at time ${text.startTime}`)
+        return
+      }
       
-      // Create stickers for overlapping texts (only if not already exist)
-      const newStickers = overlappingTexts
-        .filter(text => !clip.stickers?.some(sticker => sticker.originalInsertedTextId === text.id))
-        .map(text => ({
+      // Check if sticker already exists for this text in this clip
+      const existingSticker = targetClip.stickers?.some(
+        sticker => sticker.originalInsertedTextId === text.id
+      )
+      
+      if (existingSticker) {
+        console.log(`📌 Sticker already exists for text ${text.id} in clip ${targetClip.id}`)
+        return
+      }
+      
+      // Find the clip in updatedClips array and add sticker
+      const clipIndex = updatedClips.findIndex(clip => clip.id === targetClip.id)
+      if (clipIndex !== -1) {
+        const newSticker = {
           id: `sticker_${text.id}_${Date.now()}`,
           text: text.content,
           start: text.startTime,
           end: text.endTime,
           originalInsertedTextId: text.id,
-        }))
-      
-      const existingStickers = clip.stickers || []
-      const allStickers = [...existingStickers, ...newStickers]
-      
-      return { ...clip, stickers: allStickers }
+        }
+        
+        const existingStickers = updatedClips[clipIndex].stickers || []
+        updatedClips[clipIndex] = {
+          ...updatedClips[clipIndex],
+          stickers: [...existingStickers, newSticker]
+        }
+        
+        console.log(`📌 Added sticker for text "${text.content}" to clip ${targetClip.id}`)
+      }
     })
     
     set({ 
@@ -769,7 +787,7 @@ export const createClipSlice: StateCreator<
       lastStickerUpdateTime: now 
     })
     
-    console.log('📌 Stickers inserted successfully')
+    console.log('📌 Stickers inserted successfully (single clip per text)')
   },
 
   removeStickersFromClips: () => {

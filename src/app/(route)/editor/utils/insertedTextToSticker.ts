@@ -95,6 +95,47 @@ export function findBestMatchingClip(
 }
 
 /**
+ * Find the single clip that contains the given timestamp
+ * Used for finding the current clip at a specific playback time
+ */
+export function findClipAtTime(clips: ClipItem[], targetTime: number): ClipItem | null {
+  // Find clips that contain the target time
+  const containingClips = clips.filter(clip => {
+    const clipStartTime = Math.min(...clip.words.map(w => w.start))
+    const clipEndTime = Math.max(...clip.words.map(w => w.end))
+    return targetTime >= clipStartTime && targetTime <= clipEndTime
+  })
+
+  // If exactly one clip contains the time, return it
+  if (containingClips.length === 1) {
+    return containingClips[0]
+  }
+
+  // If multiple clips contain the time, find the one with the closest center
+  if (containingClips.length > 1) {
+    let bestClip = containingClips[0]
+    let minDistance = Infinity
+
+    for (const clip of containingClips) {
+      const clipStartTime = Math.min(...clip.words.map(w => w.start))
+      const clipEndTime = Math.max(...clip.words.map(w => w.end))
+      const clipCenter = (clipStartTime + clipEndTime) / 2
+      const distance = Math.abs(targetTime - clipCenter)
+
+      if (distance < minDistance) {
+        minDistance = distance
+        bestClip = clip
+      }
+    }
+
+    return bestClip
+  }
+
+  // If no clip contains the time, return null (don't add sticker)
+  return null
+}
+
+/**
  * Insert sticker into clip's stickers array at the correct position
  * Stickers are ordered by start time
  */

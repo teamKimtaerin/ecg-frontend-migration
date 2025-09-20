@@ -256,15 +256,6 @@ export default function TextInsertionOverlay({
         </button>
       </div>
 
-      {/* Animation Controls for Selected Text */}
-      {selectedTextId && !isScenarioMode && (
-        <div className="absolute bottom-4 left-4 bg-black/80 backdrop-blur-sm rounded-lg p-3 pointer-events-auto z-30">
-          <div className="text-white text-sm mb-2 font-medium">
-            애니메이션 설정
-          </div>
-          <TextAnimationControls textId={selectedTextId} />
-        </div>
-      )}
     </div>,
     videoContainerRef.current
   )
