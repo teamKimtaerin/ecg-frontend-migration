@@ -4,6 +4,11 @@ import React, { useState, useEffect } from 'react'
 import AssetCard, { AssetItem } from './AssetCard'
 import { useEditorStore } from '../../store'
 import { showToast } from '@/utils/ui/toast'
+import {
+  determineTargetWordIds,
+  isMultipleWordsSelected,
+  canAddAnimationToSelection,
+} from '../../utils/animationHelpers'
 
 interface AssetGridProps {
   onAssetSelect?: (asset: AssetItem) => void
@@ -33,10 +38,8 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
     setCurrentWordAssets,
     selectedWordId,
     applyAssetsToWord,
-    clips,
     focusedWordId,
     addAnimationTrackAsync,
-    removeAnimationTrack,
     wordAnimationTracks,
     multiSelectedWordIds,
   } = useEditorStore()
@@ -130,21 +133,71 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
   })
 
   const handleAssetClick = async (asset: AssetItem) => {
+    const store = useEditorStore.getState()
+    const isMultiSelection = isMultipleWordsSelected(store)
+    const targetWordIds = determineTargetWordIds(store)
+
     // Check if multiple words are selected for batch operations
-    if (multiSelectedWordIds.size > 1) {
-      // Centralized batch toggle for scenario + UI sync
-      useEditorStore
-        .getState()
-        .toggleAnimationForWords(Array.from(multiSelectedWordIds), {
-          id: asset.id,
-          name: asset.name,
-          pluginKey: asset.pluginKey,
-        })
-      showToast(
-        `${multiSelectedWordIds.size}개 단어에 애니메이션을 적용/해제했습니다.`,
-        'success'
-      )
+    if (isMultiSelection && multiSelectedWordIds.size > 1) {
+      // Check animation limit before applying
+      const limitCheck = canAddAnimationToSelection(store, targetWordIds)
+
+      if (!limitCheck.canAdd) {
+        const blockedCount = limitCheck.blockedWords.length
+        showToast(
+          `${blockedCount}개 단어가 이미 3개의 애니메이션을 가지고 있어 추가할 수 없습니다.`,
+          'error'
+        )
+        return
+      }
+
+      // Centralized batch toggle for scenario + UI sync (async)
+      try {
+        await useEditorStore
+          .getState()
+          .toggleAnimationForWords(Array.from(multiSelectedWordIds), {
+            id: asset.id,
+            name: asset.name,
+            pluginKey: asset.pluginKey,
+          })
+        showToast(
+          `${multiSelectedWordIds.size}개 단어에 애니메이션을 적용/해제했습니다.`,
+          'success'
+        )
+      } catch (error) {
+        console.error('Failed to apply animation to multiple words:', error)
+        showToast('애니메이션 적용 중 오류가 발생했습니다.', 'error')
+      }
       return
+    }
+
+    // Also update the UI state for compatibility
+    const isCurrentlySelected = currentWordAssets.includes(asset.id)
+    let newSelectedAssets: string[]
+
+    if (isCurrentlySelected) {
+      // 제거
+      newSelectedAssets = currentWordAssets.filter((id) => id !== asset.id)
+    } else {
+      // 추가 - 최대 3개 제한 확인
+      if (currentWordAssets.length >= 3) {
+        showToast('최대 3개의 애니메이션만 선택할 수 있습니다.', 'warning')
+        return // Don't proceed with the click
+      }
+
+      // Check single word animation limit for non-multi-selection
+      if (targetWordIds.length === 1) {
+        const limitCheck = canAddAnimationToSelection(store, targetWordIds)
+        if (!limitCheck.canAdd) {
+          showToast(
+            '선택한 단어가 이미 3개의 애니메이션을 가지고 있습니다.',
+            'error'
+          )
+          return
+        }
+      }
+
+      newSelectedAssets = [...currentWordAssets, asset.id]
     }
 
     // Single word operation (original logic)
@@ -160,17 +213,19 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
       // Check if already added
       if (currentTracks.find((t) => t.assetId === asset.id)) {
         // If already exists, remove it
+        const { removeAnimationTrack } = useEditorStore.getState()
         removeAnimationTrack(singleTargetWordId, asset.id)
       } else if (currentTracks.length < 3) {
-        // Find the word to get its timing
+        // Find the word to get its timing using index cache
         let wordTiming = undefined
-        for (const clip of clips) {
-          const word = clip.words?.find((w) => w.id === singleTargetWordId)
-          if (word) {
-            wordTiming = { start: word.start, end: word.end }
-            break
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const store = useEditorStore.getState() as any
+          const entry = store.getWordEntryById?.(singleTargetWordId)
+          if (entry?.word) {
+            wordTiming = { start: entry.word.start, end: entry.word.end }
           }
-        }
+        } catch {}
         // Add the animation track with word timing - this creates the bars immediately
         await addAnimationTrackAsync(
           singleTargetWordId,
@@ -186,31 +241,20 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
       }
     }
 
-    // Also update the UI state for compatibility
-    const isCurrentlySelected = currentWordAssets.includes(asset.id)
-    let newSelectedAssets: string[]
-
-    if (isCurrentlySelected) {
-      // 제거
-      newSelectedAssets = currentWordAssets.filter((id) => id !== asset.id)
-    } else {
-      // 추가
-      newSelectedAssets = [...currentWordAssets, asset.id]
-    }
-
     // Update current word assets in UI state
     setCurrentWordAssets(newSelectedAssets)
 
     // If a word is selected, apply the asset changes to it
     if (selectedWordId) {
-      // Find the clip containing the selected word
-      const targetClip = clips.find((clip) =>
-        clip.words.some((word) => word.id === selectedWordId)
-      )
-
-      if (targetClip) {
-        applyAssetsToWord(targetClip.id, selectedWordId, newSelectedAssets)
-      }
+      // Use index to resolve clipId quickly
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const store = useEditorStore.getState() as any
+        const clipId = store.getClipIdByWordId?.(selectedWordId)
+        if (clipId) {
+          applyAssetsToWord(clipId, selectedWordId, newSelectedAssets)
+        }
+      } catch {}
     }
 
     console.log(
@@ -219,19 +263,14 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
       isCurrentlySelected ? 'removed' : 'added'
     )
     onAssetSelect?.(asset)
-    // Update scenario pluginChain for this word
-    if (singleTargetWordId) {
-      useEditorStore.getState().refreshWordPluginChain?.(singleTargetWordId)
-    }
+    // Note: addAnimationTrackAsync and removeAnimationTrack handle refreshWordPluginChain internally
   }
 
   // Show loading state
   if (loading) {
     return (
-      <div className="px-4 pb-4">
-        <div className="text-center py-8">
-          <p className="text-gray-700 text-sm">에셋을 불러오는 중...</p>
-        </div>
+      <div className="text-center py-8">
+        <p className="text-gray-700 text-sm">에셋을 불러오는 중...</p>
       </div>
     )
   }
@@ -239,19 +278,15 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
   // Show error state
   if (error) {
     return (
-      <div className="px-4 pb-4">
-        <div className="text-center py-8">
-          <p className="text-red-400 text-sm">
-            에셋을 불러오는데 실패했습니다.
-          </p>
-          <p className="text-slate-400 text-xs mt-1">{error}</p>
-        </div>
+      <div className="text-center py-8">
+        <p className="text-red-400 text-sm">에셋을 불러오는데 실패했습니다.</p>
+        <p className="text-slate-400 text-xs mt-1">{error}</p>
       </div>
     )
   }
 
   return (
-    <div className="px-4 pb-4">
+    <div>
       <div className="grid grid-cols-2 gap-3">
         {filteredAssets.map((asset) => {
           // Check if this asset is applied to the focused word

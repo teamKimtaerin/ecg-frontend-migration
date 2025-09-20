@@ -6,11 +6,14 @@ import Tab from '@/components/ui/Tab'
 import TabItem from '@/components/ui/TabItem'
 import UserDropdown from '@/components/ui/UserDropdown'
 import { useDeployModal } from '@/hooks/useDeployModal'
+import { useProgressTasks } from '@/hooks/useProgressTasks'
 import { AutosaveManager } from '@/utils/managers/AutosaveManager'
 import { useEffect, useRef, useState } from 'react'
-import { LuHouse, LuMenu, LuShoppingBag } from 'react-icons/lu'
+import { createPortal } from 'react-dom'
+import { LuBell, LuHouse, LuMenu, LuShoppingBag } from 'react-icons/lu'
 import { useEditorStore } from '../store'
 import { EDITOR_TABS } from '../types'
+import { EDITOR_COLORS, getToolbarClasses } from '../constants/colors'
 import EditingModeToggle from './EditingModeToggle'
 import ToolbarToggle from './ToolbarToggle'
 
@@ -59,59 +62,15 @@ export default function EditorHeaderTabs({
   // Deploy modal hook
   const { openDeployModal, deployModalProps } = useDeployModal()
 
+  // Get real progress data
+  const { exportTasks, uploadTasks } = useProgressTasks()
+
   const handleDeployClick = (task: { id: number; filename: string }) => {
     openDeployModal({
       id: task.id,
       filename: task.filename,
     })
   }
-
-  // Mock data for document modal
-  const exportTasks = [
-    {
-      id: 1,
-      filename: 'video_project_1.mp4',
-      progress: 75,
-      status: 'processing' as const,
-    },
-    {
-      id: 2,
-      filename: 'video_project_2.mp4',
-      progress: 100,
-      status: 'completed' as const,
-      completedAt: '2025-01-11 14:30',
-    },
-    {
-      id: 3,
-      filename: 'video_project_3.mp4',
-      progress: 100,
-      status: 'completed' as const,
-      completedAt: '2025-01-11 12:15',
-    },
-  ]
-
-  const uploadTasks = [
-    {
-      id: 1,
-      filename: 'video_raw_1.mp4',
-      progress: 45,
-      status: 'uploading' as const,
-    },
-    {
-      id: 2,
-      filename: 'video_raw_2.mp4',
-      progress: 100,
-      status: 'completed' as const,
-      completedAt: '2025-01-11 13:45',
-    },
-    {
-      id: 3,
-      filename: 'video_raw_3.mp4',
-      progress: 0,
-      status: 'failed' as const,
-      completedAt: '2025-01-11 11:20',
-    },
-  ]
 
   // If props are provided, use them; otherwise fall back to store
   const activeTab =
@@ -189,46 +148,88 @@ export default function EditorHeaderTabs({
     }
   }
 
+  // 편집 모드에 따른 테마 클래스 결정
+  const getTabBarClasses = () => {
+    if (editingMode === 'advanced') {
+      // 상세 편집 모드: 어두운 테마
+      const darkColors = EDITOR_COLORS.toolbar.dark
+      return `${darkColors.background} ${darkColors.border} shadow-sm relative`
+    } else {
+      // 쉬운 편집 모드: 밝은 테마 (툴바와 동일)
+      return `${getToolbarClasses('base')} shadow-sm relative`
+    }
+  }
+
+  const getTextClasses = () => {
+    if (editingMode === 'advanced') {
+      return EDITOR_COLORS.toolbar.dark.text
+    } else {
+      return EDITOR_COLORS.toolbar.base.text
+    }
+  }
+
+  const getHoverClasses = () => {
+    if (editingMode === 'advanced') {
+      return EDITOR_COLORS.toolbar.dark.hover
+    } else {
+      return EDITOR_COLORS.toolbar.base.hover
+    }
+  }
+
   return (
-    // <div className="bg-gray-100 border-b border-gray-300 shadow-sm relative">
-    <div className="bg-gray-800 border-b border-gray-700 shadow-sm relative">
+    <div className={getTabBarClasses()}>
       <div className="flex items-center px-6 py-1">
         {/* Left Side - Navigation Menu */}
         <div className="relative mr-4">
           <button
             ref={navButtonRef}
             onClick={() => setIsNavDropdownOpen(!isNavDropdownOpen)}
-            // className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-lg transition-all duration-200 cursor-pointer"
-            className="p-2 text-white hover:bg-gray-700 rounded-lg transition-all duration-200 cursor-pointer"
+            className={`p-2 ${getTextClasses()} ${getHoverClasses()} rounded-lg transition-all duration-200 cursor-pointer`}
             title="메뉴"
           >
             <LuMenu className="w-5 h-5" />
           </button>
 
           {/* Navigation Dropdown */}
-          {isNavDropdownOpen && (
-            <div className="nav-dropdown absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-[9999] min-w-[150px]">
-              <button
-                onClick={() => (window.location.href = '/')}
-                className="w-full flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 first:rounded-t-lg transition-colors cursor-pointer"
+          {isNavDropdownOpen &&
+            typeof window !== 'undefined' &&
+            createPortal(
+              <div
+                className="nav-dropdown fixed bg-white border border-gray-200 rounded-lg shadow-lg z-[9999] min-w-[150px]"
+                style={{
+                  top: navButtonRef.current
+                    ? navButtonRef.current.getBoundingClientRect().bottom +
+                      window.scrollY +
+                      4
+                    : 0,
+                  left: navButtonRef.current
+                    ? navButtonRef.current.getBoundingClientRect().left +
+                      window.scrollX
+                    : 0,
+                }}
               >
-                <LuHouse className="w-4 h-4 mr-3" />
-                메인 페이지
-              </button>
-              <button
-                onClick={() => (window.location.href = '/asset-store')}
-                className="w-full flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 last:rounded-b-lg transition-colors cursor-pointer"
-              >
-                <LuShoppingBag className="w-4 h-4 mr-3" />
-                에셋 스토어
-              </button>
-            </div>
-          )}
+                <button
+                  onClick={() => (window.location.href = '/')}
+                  className="w-full flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 first:rounded-t-lg transition-colors cursor-pointer"
+                >
+                  <LuHouse className="w-4 h-4 mr-3" />
+                  메인 페이지
+                </button>
+                <button
+                  onClick={() => (window.location.href = '/asset-store')}
+                  className="w-full flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 last:rounded-b-lg transition-colors cursor-pointer"
+                >
+                  <LuShoppingBag className="w-4 h-4 mr-3" />
+                  에셋 스토어
+                </button>
+              </div>,
+              document.body
+            )}
         </div>
 
         {/* User Dropdown */}
         <div className="relative">
-          <UserDropdown />
+          <UserDropdown theme={editingMode === 'advanced' ? 'dark' : 'light'} />
         </div>
 
         {/* Center - Tab Navigation */}
@@ -253,7 +254,9 @@ export default function EditorHeaderTabs({
         {/* Right Side - Actions */}
         <div className="flex items-center gap-4 mr-4">
           {/* Save Status Indicator */}
-          <div className="flex items-center gap-2 text-xs text-gray-700">
+          <div
+            className={`flex items-center gap-2 text-xs ${getTextClasses()}`}
+          >
             {saveStatus === 'saving' && (
               <span className="flex items-center gap-1">
                 <span className="text-yellow-400">●</span>
@@ -273,7 +276,11 @@ export default function EditorHeaderTabs({
               </span>
             )}
             {lastSaveTime && saveStatus === 'saved' && (
-              <span className="text-gray-600">
+              <span
+                className={
+                  editingMode === 'advanced' ? 'text-gray-400' : 'text-gray-600'
+                }
+              >
                 (
                 {new Date(lastSaveTime).toLocaleTimeString('ko-KR', {
                   hour: '2-digit',
@@ -289,30 +296,16 @@ export default function EditorHeaderTabs({
             <button
               ref={documentButtonRef}
               onClick={() => setIsDocumentModalOpen(!isDocumentModalOpen)}
-              className="p-2 text-white hover:text-white hover:bg-gray-700 hover:scale-110 hover:shadow-md rounded-lg transition-all duration-200 cursor-pointer"
-              title="문서함"
+              className={`p-2 ${getTextClasses()} ${getHoverClasses()} hover:scale-110 hover:shadow-md rounded-lg transition-all duration-200 cursor-pointer`}
+              title="알림"
             >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2V7zm16 0V6a2 2 0 00-2-2H7a2 2 0 00-2 2v1m14 0H3"
-                />
-              </svg>
+              <LuBell className="w-5 h-5" />
             </button>
 
             <DocumentModal
               isOpen={isDocumentModalOpen}
               onClose={() => setIsDocumentModalOpen(false)}
               buttonRef={documentButtonRef}
-              exportTasks={exportTasks}
-              uploadTasks={uploadTasks}
               onDeployClick={handleDeployClick}
             />
           </div>

@@ -26,6 +26,21 @@ export interface ScenarioSlice {
   ) => void
   refreshWordPluginChain: (wordId: string) => void
 
+  // Update caption default style and/or boxStyle
+  updateCaptionDefaultStyle: (updates: {
+    style?: Record<string, unknown>
+    boxStyle?: Record<string, unknown>
+  }) => void
+
+  // Update group node style and/or boxStyle for specific clip
+  updateGroupNodeStyle: (
+    clipId: string,
+    updates: {
+      style?: Record<string, unknown>
+      boxStyle?: Record<string, unknown>
+    }
+  ) => void
+
   // Set scenario from arbitrary JSON (editor apply)
   setScenarioFromJson: (config: RendererConfigV2) => void
 }
@@ -153,6 +168,222 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
     }
     set({
       currentScenario: { ...currentScenario },
+      scenarioVersion: (get().scenarioVersion || 0) + 1,
+    })
+  },
+
+  updateCaptionDefaultStyle: (updates) => {
+    let { currentScenario } = get()
+
+    // Lazily build scenario if it doesn't exist
+    if (!currentScenario) {
+      try {
+        const anyGet = get() as unknown as {
+          clips?: import('../../types').ClipItem[]
+          deletedClipIds?: Set<string>
+          buildInitialScenario?: ScenarioSlice['buildInitialScenario']
+        }
+        const clipsAll = anyGet.clips || []
+        const deleted = anyGet.deletedClipIds || new Set<string>()
+        const activeClips = clipsAll.filter((c) => !deleted.has(c.id))
+        anyGet.buildInitialScenario?.(activeClips)
+        currentScenario = get().currentScenario
+      } catch {
+        return // Cannot proceed without scenario
+      }
+    }
+
+    if (!currentScenario?.tracks) return
+
+    // Find caption track and update its defaultStyle and/or defaultBoxStyle
+    const captionTrackIndex = currentScenario.tracks.findIndex(
+      (track) => track.id === 'caption' || track.type === 'subtitle'
+    )
+
+    if (captionTrackIndex === -1) return
+
+    const updatedScenario = { ...currentScenario }
+    updatedScenario.tracks = [...currentScenario.tracks]
+
+    // Also update cues to clear individual styles when applying global format
+    if (currentScenario.cues) {
+      updatedScenario.cues = currentScenario.cues.map((cue) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const root = (cue as any).root
+        if (!root) return cue
+
+        // Clear individual styles when applying global format
+        const updatedRoot = { ...root }
+        // Always clear individual styles when any global style update is applied
+        if (updates.style !== undefined) {
+          updatedRoot.style = undefined
+        }
+        if (updates.boxStyle !== undefined) {
+          updatedRoot.boxStyle = undefined
+        }
+
+        return {
+          ...cue,
+          root: updatedRoot,
+        }
+      })
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updatedTrack: any = {
+      ...currentScenario.tracks[captionTrackIndex],
+    }
+
+    // Update defaultStyle if provided
+    if (updates.style) {
+      updatedTrack.defaultStyle = {
+        ...(currentScenario.tracks[captionTrackIndex].defaultStyle || {}),
+        ...updates.style,
+      }
+    }
+
+    // Update defaultBoxStyle if provided
+    if (updates.boxStyle) {
+      updatedTrack.defaultBoxStyle = {
+        ...(updatedTrack.defaultBoxStyle || {}),
+        ...updates.boxStyle,
+      }
+    }
+
+    updatedScenario.tracks[captionTrackIndex] = updatedTrack
+
+    set({
+      currentScenario: updatedScenario,
+      scenarioVersion: (get().scenarioVersion || 0) + 1,
+    })
+  },
+
+  updateGroupNodeStyle: (clipId, updates) => {
+    console.log('updateGroupNodeStyle called with:', { clipId, updates })
+    let { currentScenario } = get()
+
+    // Lazily build scenario if it doesn't exist
+    if (!currentScenario) {
+      try {
+        const anyGet = get() as unknown as {
+          clips?: import('../../types').ClipItem[]
+          deletedClipIds?: Set<string>
+          buildInitialScenario?: ScenarioSlice['buildInitialScenario']
+        }
+        const clipsAll = anyGet.clips || []
+        const deleted = anyGet.deletedClipIds || new Set<string>()
+        const activeClips = clipsAll.filter((c) => !deleted.has(c.id))
+        anyGet.buildInitialScenario?.(activeClips)
+        currentScenario = get().currentScenario
+      } catch {
+        return // Cannot proceed without scenario
+      }
+    }
+
+    if (!currentScenario?.cues) {
+      console.warn('No current scenario or cues found')
+      return
+    }
+
+    // The group node ID is created as `clip-${clipId}` in initialScenario.ts
+    // Since clipId is already in format "clip-X", the final ID becomes "clip-clip-X"
+    const groupNodeId = `clip-${clipId}`
+    console.log('Looking for group node with ID:', groupNodeId)
+
+    // Debug: Log all existing group node IDs
+    const existingGroupIds = currentScenario.cues
+      .map((cue) => (cue as { root?: { id?: string } }).root?.id)
+      .filter(Boolean)
+    console.log('Existing group node IDs:', existingGroupIds)
+
+    let found = false
+    const updatedCues = currentScenario.cues.map((cue, cueIndex) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const root = (cue as any).root
+      if (!root || root.id !== groupNodeId) return cue
+
+      found = true
+      console.log('Found matching group node:', root.id)
+
+      // Create completely new objects to ensure deep immutability
+      let newStyle: Record<string, unknown> | null = null
+      let newBoxStyle: Record<string, unknown> | null = null
+
+      // Handle style updates (text styles) - apply even if style is undefined or empty
+      if (updates.style !== undefined) {
+        // Convert string reference to object if needed
+        let currentStyle = root.style || {}
+        if (typeof currentStyle === 'string') {
+          // For now, start with empty object for string references
+          currentStyle = {}
+        }
+
+        newStyle = {
+          ...currentStyle,
+          ...updates.style,
+        }
+        console.log('Applied style updates:', newStyle)
+      } else {
+        // Preserve existing style if no updates
+        newStyle = root.style ? { ...root.style } : null
+      }
+
+      // Handle boxStyle updates (container styles) - apply even if boxStyle is undefined or empty
+      if (updates.boxStyle !== undefined) {
+        let currentBoxStyle = root.boxStyle || {}
+        if (typeof currentBoxStyle === 'string') {
+          // For now, start with empty object for string references
+          currentBoxStyle = {}
+        }
+
+        newBoxStyle = {
+          ...currentBoxStyle,
+          ...updates.boxStyle,
+        }
+        console.log('Applied boxStyle updates:', newBoxStyle)
+      } else {
+        // Preserve existing boxStyle if no updates
+        newBoxStyle = root.boxStyle ? { ...root.boxStyle } : null
+      }
+
+      // Create completely new root object
+      const updatedRoot = {
+        ...root,
+        ...(newStyle !== null && { style: newStyle }),
+        ...(newBoxStyle !== null && { boxStyle: newBoxStyle }),
+      }
+
+      // Create completely new cue object
+      const updatedCue = {
+        ...cue,
+        root: updatedRoot,
+      }
+
+      console.log(`Updated cue ${cueIndex} root:`, updatedRoot)
+      return updatedCue
+    })
+
+    if (!found) {
+      console.warn(
+        `Group node for clip ${clipId} not found. Available IDs:`,
+        existingGroupIds
+      )
+      return
+    }
+
+    // Create completely new scenario object to ensure reference change
+    const newScenario = {
+      ...currentScenario,
+      cues: updatedCues,
+    }
+
+    console.log('Successfully updated group node style')
+    console.log('Original scenario reference:', currentScenario)
+    console.log('New scenario reference:', newScenario)
+    console.log('References are different:', currentScenario !== newScenario)
+
+    set({
+      currentScenario: newScenario,
       scenarioVersion: (get().scenarioVersion || 0) + 1,
     })
   },

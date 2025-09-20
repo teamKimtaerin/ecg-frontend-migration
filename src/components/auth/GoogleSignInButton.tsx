@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { API_CONFIG } from '@/config/api.config'
 
 interface GoogleSignInButtonProps {
   text?: 'signin_with' | 'signup_with' | 'continue_with'
@@ -14,7 +15,7 @@ const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
   const handleGoogleAuth = () => {
     if (disabled) return
 
-    const googleAuthUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/google/login`
+    const googleAuthUrl = `${API_CONFIG.FASTAPI_BASE_URL}${API_CONFIG.endpoints.auth.googleLogin}`
     console.log('Redirecting to Google OAuth:', googleAuthUrl)
 
     // 백엔드 Google OAuth 엔드포인트로 직접 리디렉션

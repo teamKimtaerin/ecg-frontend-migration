@@ -46,12 +46,10 @@ function calculateAdjustedDomLifetime(
       const tracks = wordAnimationTracks.get(word.id) || []
 
       for (const track of tracks) {
-        if (track.timeOffset) {
-          const [preOffset, postOffset] = track.timeOffset
-          // preOffset is negative, extends start earlier
-          domStart = Math.min(domStart, word.start + preOffset)
-          // postOffset is positive, extends end later
-          domEnd = Math.max(domEnd, word.end + postOffset)
+        if (track.timing) {
+          // Use timing field which has converted absolute values (not percentage strings)
+          domStart = Math.min(domStart, track.timing.start)
+          domEnd = Math.max(domEnd, track.timing.end)
         }
       }
     }
@@ -110,19 +108,18 @@ export function buildInitialScenarioFromClips(
         // Remove layout and style from individual words - they inherit from parent
       }
 
-      // Add plugin information from animation tracks or applied assets
+      // Add plugin information from animation tracks
       const animationTracks = wordAnimationTracks?.get(w.id)
       if (animationTracks && animationTracks.length > 0) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        child.pluginChain = animationTracks.map((track: any) => ({
-          name: track.pluginKey || track.assetName || track.assetId,
-          // TODO: Add parameters from track.params if needed
-        }))
-      } else if (w.appliedAssets && w.appliedAssets.length > 0) {
-        // Fallback to appliedAssets for backwards compatibility
-        child.pluginChain = w.appliedAssets.map((assetId: string) => ({
-          name: assetId,
-        }))
+        child.pluginChain = animationTracks
+          .filter((track) => track.pluginKey) // Only include tracks with valid pluginKey
+          .map((track) => ({
+            name: track.pluginKey,
+            params: track.params || {},
+            ...(track.timeOffset && {
+              timeOffset: track.timeOffset,
+            }),
+          }))
       }
       // record index path; children will push later so we know path length
       const childIdx = children.length
@@ -155,7 +152,7 @@ export function buildInitialScenarioFromClips(
           safeAreaClamp: 'define.caption.layout.safeAreaClamp',
           childrenLayout: 'define.caption.childrenLayout', // Reference to define
         },
-        style: 'define.caption.boxStyle',
+        // Remove style - will inherit from track defaultStyle
         children,
       },
     }
@@ -170,11 +167,6 @@ export function buildInitialScenarioFromClips(
     define: {
       caption: {
         position: position, // Use the calculated position (default: { x: 0.5, y: 0.925 })
-        boxStyle: {
-          backgroundColor: 'rgba(0, 0, 0, 0.9)',
-          padding: '8px 16px',
-          borderRadius: '4px',
-        },
         layout: {
           anchor: anchor,
           safeAreaClamp: true,
@@ -200,6 +192,11 @@ export function buildInitialScenarioFromClips(
           fontFamily: 'Arial, sans-serif',
           color: '#ffffff',
           align: 'center',
+        },
+        defaultBoxStyle: {
+          backgroundColor: 'rgba(0, 0, 0, 0.9)',
+          padding: '8px 16px',
+          borderRadius: '4px',
           opacity: 1,
         },
       },

@@ -17,10 +17,8 @@ export const API_CONFIG = {
       process.env.NEXT_PUBLIC_DEBUG_MODE === 'true') ||
     false, // Toggle between mock and real API
 
-  // API Base URLs (환경변수에서 가져오기)
+  // API Base URL (환경변수에서 가져오기)
   FASTAPI_BASE_URL: process.env.NEXT_PUBLIC_API_URL!,
-  API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL!,
-  MODEL_SERVER_URL: process.env.NEXT_PUBLIC_MODEL_SERVER_URL!,
 
   // S3 Configuration
   S3_BUCKET: process.env.NEXT_PUBLIC_S3_BUCKET || 'ecg-videos',

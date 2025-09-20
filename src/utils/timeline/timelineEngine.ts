@@ -26,7 +26,7 @@ export class TimelineEngine {
     const timelineClips: TimelineClip[] = []
     let currentTime = 0
 
-    for (const [index, originalClip] of originalClips.entries()) {
+    for (const [_index, originalClip] of originalClips.entries()) {
       // 클립의 실제 시작/끝 시간 계산
       const startTime =
         originalClip.words.length > 0
@@ -260,7 +260,7 @@ export class TimelineEngine {
    * 삽입 편집 - 클립을 삽입하면 후속 클립들을 밀어냄
    */
   insertEdit(clips: TimelineClip[], insertClip: TimelineClip): TimelineClip[] {
-    const existingClips = clips.filter(
+    const _existingClips = clips.filter(
       (c) =>
         c.trackIndex === insertClip.trackIndex && c.track === insertClip.track
     )

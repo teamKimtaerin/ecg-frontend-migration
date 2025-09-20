@@ -6,7 +6,11 @@ import Link from 'next/link'
 import React, { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
-const UserDropdown: React.FC = () => {
+interface UserDropdownProps {
+  theme?: 'light' | 'dark'
+}
+
+const UserDropdown: React.FC<UserDropdownProps> = ({ theme = 'light' }) => {
   const { user, logout } = useAuthStatus()
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -52,6 +56,19 @@ const UserDropdown: React.FC = () => {
     }
   }, [isOpen])
 
+  // Theme-based color classes
+  const getTextClasses = () => {
+    return theme === 'dark' ? 'text-white' : 'text-gray-700'
+  }
+
+  const getHoverClasses = () => {
+    return theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'
+  }
+
+  const getArrowClasses = () => {
+    return theme === 'dark' ? 'text-gray-300' : 'text-gray-400'
+  }
+
   const handleLogout = () => {
     logout()
     setIsOpen(false)
@@ -60,7 +77,7 @@ const UserDropdown: React.FC = () => {
 
   if (!user) {
     return (
-      <div className="flex items-center text-white text-sm">
+      <div className={`flex items-center text-sm ${getTextClasses()}`}>
         <span>로그인이 필요합니다</span>
       </div>
     )
@@ -71,7 +88,7 @@ const UserDropdown: React.FC = () => {
       <button
         ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-200 hover:scale-105 hover:shadow-md transition-all duration-200 cursor-pointer"
+        className={`flex items-center space-x-2 px-3 py-2 rounded-lg ${getHoverClasses()} hover:scale-105 hover:shadow-md transition-all duration-200 cursor-pointer`}
       >
         {/* User Avatar */}
         <div className="w-8 h-8 bg-blue-400 rounded-full flex items-center justify-center">
@@ -81,13 +98,13 @@ const UserDropdown: React.FC = () => {
         </div>
 
         {/* Username */}
-        <span className="text-gray-700 text-sm font-medium">
+        <span className={`text-sm font-medium ${getTextClasses()}`}>
           {user.username}
         </span>
 
         {/* Dropdown Arrow */}
         <svg
-          className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          className={`w-4 h-4 ${getArrowClasses()} transition-transform ${isOpen ? 'rotate-180' : ''}`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"

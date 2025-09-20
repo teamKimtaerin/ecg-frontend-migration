@@ -128,7 +128,7 @@ export default function Toolbars({
           forceOpenExportModal={forceOpenExportModal}
           onExportModalStateChange={onExportModalStateChange}
         >
-          <FormatToolbar {...commonProps} />
+          <FormatToolbar {...commonProps} clips={clips} />
         </ToolbarWrapper>
       )
 

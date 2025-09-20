@@ -16,6 +16,7 @@ import { ProjectData } from '@/app/(route)/editor/types/project'
 import { projectStorage } from '@/utils/storage/projectStorage'
 import { log } from '@/utils/logger'
 import API_CONFIG from '@/config/api.config'
+import { useProgressStore } from '@/lib/store/progressStore'
 
 export interface UploadModalState {
   isOpen: boolean
@@ -34,6 +35,9 @@ export const useUploadModal = () => {
   const { setMediaInfo, setClips, clearMedia, setCurrentProject } =
     useEditorStore()
 
+  // Progress store integration
+  const { addTask, updateTask, removeTask } = useProgressStore()
+
   const [state, setState] = useState<UploadModalState>({
     isOpen: false,
     step: 'select',
@@ -42,6 +46,7 @@ export const useUploadModal = () => {
   })
 
   const [currentJobId, setCurrentJobId] = useState<string>()
+  const [currentProgressTaskId, setCurrentProgressTaskId] = useState<number>()
   const stopPollingRef = useRef<(() => void) | null>(null)
 
   // 상태 업데이트 헬퍼
@@ -62,6 +67,12 @@ export const useUploadModal = () => {
       stopPollingRef.current = null
     }
 
+    // Progress store task 제거 (진행 중인 경우만)
+    if (currentProgressTaskId) {
+      removeTask(currentProgressTaskId)
+      setCurrentProgressTaskId(undefined)
+    }
+
     updateState({
       isOpen: false,
       step: 'select',
@@ -73,7 +84,7 @@ export const useUploadModal = () => {
       error: undefined,
     })
     setCurrentJobId(undefined)
-  }, [updateState])
+  }, [updateState, currentProgressTaskId, removeTask])
 
   // 파일 선택 처리
   const handleFileSelect = useCallback(
@@ -138,6 +149,15 @@ export const useUploadModal = () => {
           fileName: data.file.name,
         })
 
+        // Progress store에 업로드 작업 추가
+        const progressTaskId = addTask({
+          filename: data.file.name,
+          progress: 0,
+          status: 'uploading',
+          type: 'upload',
+        })
+        setCurrentProgressTaskId(progressTaskId)
+
         // 백업용으로 sessionStorage에도 저장
         sessionStorage.setItem('currentVideoUrl', blobUrl)
         console.log('[VIDEO DEBUG] Saved videoUrl to sessionStorage:', blobUrl)
@@ -151,6 +171,15 @@ export const useUploadModal = () => {
           // 간단한 진행률 시뮬레이션 + 상태 업데이트
           updateState({ step: 'processing', processingProgress: 0 })
 
+          // Progress store 업데이트
+          if (progressTaskId) {
+            updateTask(progressTaskId, {
+              status: 'processing',
+              progress: 0,
+              currentStage: 'Mock: 시작',
+            })
+          }
+
           try {
             // 약간의 딜레이로 진행률 업데이트
             await new Promise((r) => setTimeout(r, 300))
@@ -158,16 +187,36 @@ export const useUploadModal = () => {
               processingProgress: 25,
               currentStage: 'Mock: 초기화',
             })
+            if (progressTaskId) {
+              updateTask(progressTaskId, {
+                progress: 25,
+                currentStage: 'Mock: 초기화',
+              })
+            }
+
             await new Promise((r) => setTimeout(r, 400))
             updateState({
               processingProgress: 50,
               currentStage: 'Mock: 음성 세그먼트 추출',
             })
+            if (progressTaskId) {
+              updateTask(progressTaskId, {
+                progress: 50,
+                currentStage: 'Mock: 음성 세그먼트 추출',
+              })
+            }
+
             await new Promise((r) => setTimeout(r, 500))
             updateState({
               processingProgress: 75,
               currentStage: 'Mock: 자막 생성',
             })
+            if (progressTaskId) {
+              updateTask(progressTaskId, {
+                progress: 75,
+                currentStage: 'Mock: 자막 생성',
+              })
+            }
 
             // friends_result.json 로드
             const res = await fetch(API_CONFIG.MOCK_TRANSCRIPTION_PATH)
@@ -179,9 +228,31 @@ export const useUploadModal = () => {
             const json = await res.json()
 
             // friends_result.json -> SegmentData[] 매핑
+            interface MockSegment {
+              id?: number
+              start_time?: number
+              start?: number
+              end_time?: number
+              end?: number
+              text?: string
+              speaker_id?: string
+              speaker?: string | { speaker_id: string }
+              confidence?: number
+              words?: MockWord[]
+            }
+
+            interface MockWord {
+              word?: string
+              start_time?: number
+              start?: number
+              end_time?: number
+              end?: number
+              confidence?: number
+            }
+
             const segments = (json.segments || []).map(
-              (seg: any, idx: number) => {
-                const words = (seg.words || []).map((w: any) => ({
+              (seg: MockSegment, idx: number) => {
+                const words = (seg.words || []).map((w: MockWord) => ({
                   word: String(w.word ?? ''),
                   start: Number(w.start_time ?? w.start ?? 0),
                   end: Number(w.end_time ?? w.end ?? 0),
@@ -221,10 +292,22 @@ export const useUploadModal = () => {
             }
 
             updateState({ processingProgress: 100, currentStage: '완료' })
+            if (progressTaskId) {
+              updateTask(progressTaskId, {
+                progress: 100,
+                currentStage: '완료',
+                status: 'completed',
+              })
+            }
             handleProcessingComplete(mockResult)
             return // ⛔️ 실제 업로드/ML 처리로 진행하지 않음
           } catch (e) {
             log('useUploadModal', `💥 DEBUG mock flow failed: ${e}`)
+            if (progressTaskId) {
+              updateTask(progressTaskId, {
+                status: 'failed',
+              })
+            }
             updateState({
               step: 'failed',
               error:
@@ -256,7 +339,12 @@ export const useUploadModal = () => {
         const uploadResponse = await uploadService.uploadToS3(
           data.file,
           presigned_url,
-          (progress) => updateState({ uploadProgress: progress })
+          (progress) => {
+            updateState({ uploadProgress: progress })
+            if (progressTaskId) {
+              updateTask(progressTaskId, { progress })
+            }
+          }
         )
 
         if (!uploadResponse.success || !uploadResponse.data) {
@@ -275,9 +363,19 @@ export const useUploadModal = () => {
 
         // 4. ML 처리 요청
         updateState({ step: 'processing', processingProgress: 0 })
+        if (progressTaskId) {
+          updateTask(progressTaskId, {
+            status: 'processing',
+            progress: 0,
+            currentStage: 'ML 처리 시작',
+          })
+        }
         log('useUploadModal', '🤖 Requesting ML processing')
 
-        const mlResponse = await uploadService.requestMLProcessing(file_key)
+        const mlResponse = await uploadService.requestMLProcessing(
+          file_key,
+          data.language
+        )
 
         if (!mlResponse.success || !mlResponse.data) {
           throw new Error(mlResponse.error?.message || 'ML 처리 요청 실패')
@@ -303,9 +401,23 @@ export const useUploadModal = () => {
               currentStage: status.current_stage,
               estimatedTimeRemaining: status.estimated_time_remaining,
             })
+            // Progress store 업데이트
+            if (progressTaskId) {
+              updateTask(progressTaskId, {
+                progress: status.progress,
+                currentStage: status.current_stage,
+                estimatedTimeRemaining: status.estimated_time_remaining,
+              })
+            }
           },
           (result: ProcessingResult) => {
             log('useUploadModal', '🎉 Processing completed successfully')
+            if (progressTaskId) {
+              updateTask(progressTaskId, {
+                status: 'completed',
+                progress: 100,
+              })
+            }
             handleProcessingComplete(result)
           },
           (error) => {
@@ -322,6 +434,12 @@ export const useUploadModal = () => {
                 'useUploadModal',
                 '⚠️ Ignoring 422 error after completion - proceeding to editor'
               )
+              if (progressTaskId) {
+                updateTask(progressTaskId, {
+                  status: 'completed',
+                  progress: 100,
+                })
+              }
               updateState({ step: 'completed' })
               setTimeout(() => {
                 goToEditor()
@@ -329,6 +447,11 @@ export const useUploadModal = () => {
               return
             }
 
+            if (progressTaskId) {
+              updateTask(progressTaskId, {
+                status: 'failed',
+              })
+            }
             updateState({
               step: 'failed',
               error: errorMessage,
@@ -343,6 +466,11 @@ export const useUploadModal = () => {
         stopPollingRef.current = stopPolling
       } catch (error) {
         log('useUploadModal', `💥 Upload process failed: ${error}`)
+        if (currentProgressTaskId) {
+          updateTask(currentProgressTaskId, {
+            status: 'failed',
+          })
+        }
         updateState({
           step: 'failed',
           error:
@@ -352,6 +480,7 @@ export const useUploadModal = () => {
         })
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [updateState, setMediaInfo, clearMedia, setClips, state]
   )
 
@@ -552,11 +681,6 @@ export const useUploadModal = () => {
   // 세그먼트 → 클립 변환 함수
   const convertSegmentsToClips = useCallback(
     (segments: SegmentData[]): ClipItem[] => {
-      // 모든 세그먼트의 타이밍이 0인지 확인
-      const allTimingsZero = segments.every(
-        (seg) => (!seg.start || seg.start === 0) && (!seg.end || seg.end === 0)
-      )
-
       return segments.map((segment, index) => {
         // segment.id가 없으면 index 사용
         const segmentId = segment.id || index
@@ -682,8 +806,14 @@ export const useUploadModal = () => {
       stopPollingRef.current = null
     }
 
+    // Progress store에서 작업 제거
+    if (currentProgressTaskId) {
+      removeTask(currentProgressTaskId)
+      setCurrentProgressTaskId(undefined)
+    }
+
     closeModal()
-  }, [currentJobId, closeModal])
+  }, [currentJobId, currentProgressTaskId, removeTask, closeModal])
 
   // 재시도
   const retryUpload = useCallback(() => {
