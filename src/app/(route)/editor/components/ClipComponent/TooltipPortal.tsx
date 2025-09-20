@@ -6,7 +6,10 @@ interface TooltipPortalProps {
   isVisible: boolean
 }
 
-export default function TooltipPortal({ children, isVisible }: TooltipPortalProps) {
+export default function TooltipPortal({
+  children,
+  isVisible,
+}: TooltipPortalProps) {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {

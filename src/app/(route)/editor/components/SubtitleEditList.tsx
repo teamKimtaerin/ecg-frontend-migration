@@ -40,27 +40,27 @@ export default function SubtitleEditList({
   onEmptySpaceClick,
 }: SubtitleEditListProps) {
   const { overId, activeId, deleteText, setClips } = useEditorStore()
-  
+
   // Sticker deletion modal state
-  const [stickerToDelete, setStickerToDelete] = useState<{ 
-    id: string; 
-    text: string; 
-    clipId: string;
+  const [stickerToDelete, setStickerToDelete] = useState<{
+    id: string
+    text: string
+    clipId: string
   } | null>(null)
 
   // Handle sticker deletion request
   const handleStickerDeleteRequest = useCallback(
     (stickerId: string, stickerText: string) => {
       // Find which clip contains this sticker
-      const clipWithSticker = clips.find(clip => 
-        clip.stickers?.some(s => s.id === stickerId)
+      const clipWithSticker = clips.find((clip) =>
+        clip.stickers?.some((s) => s.id === stickerId)
       )
-      
+
       if (clipWithSticker) {
-        setStickerToDelete({ 
-          id: stickerId, 
-          text: stickerText, 
-          clipId: clipWithSticker.id 
+        setStickerToDelete({
+          id: stickerId,
+          text: stickerText,
+          clipId: clipWithSticker.id,
         })
       }
     },
@@ -72,9 +72,9 @@ export default function SubtitleEditList({
     if (!stickerToDelete) return
 
     // Find the sticker to delete
-    const clip = clips.find(c => c.id === stickerToDelete.clipId)
-    const sticker = clip?.stickers?.find(s => s.id === stickerToDelete.id)
-    
+    const clip = clips.find((c) => c.id === stickerToDelete.clipId)
+    const sticker = clip?.stickers?.find((s) => s.id === stickerToDelete.id)
+
     if (!sticker) return
 
     // Find corresponding inserted text using originalInsertedTextId
@@ -84,11 +84,13 @@ export default function SubtitleEditList({
     }
 
     // Remove sticker from clip
-    const updatedClips = clips.map(clip => {
+    const updatedClips = clips.map((clip) => {
       if (clip.id === stickerToDelete.clipId) {
         return {
           ...clip,
-          stickers: (clip.stickers || []).filter(s => s.id !== stickerToDelete.id)
+          stickers: (clip.stickers || []).filter(
+            (s) => s.id !== stickerToDelete.id
+          ),
         }
       }
       return clip
@@ -96,7 +98,7 @@ export default function SubtitleEditList({
 
     setClips(updatedClips)
     console.log(`🗑️ Deleted sticker: ${stickerToDelete.text}`)
-    
+
     // Close dialog
     setStickerToDelete(null)
   }, [stickerToDelete, clips, deleteText, setClips])
@@ -184,7 +186,11 @@ export default function SubtitleEditList({
               삽입 텍스트 삭제
             </h3>
             <p className="text-gray-500 mb-4">
-              "<span className="font-medium text-purple-700">{stickerToDelete.text}</span>" 를 삭제하시겠습니까?
+              &ldquo;
+              <span className="font-medium text-purple-700">
+                {stickerToDelete.text}
+              </span>
+              &rdquo; 를 삭제하시겠습니까?
             </p>
             <p className="text-sm text-gray-500 mb-6">
               이 작업은 되돌릴 수 없습니다.

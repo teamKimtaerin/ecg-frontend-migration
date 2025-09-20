@@ -9,14 +9,18 @@ interface ClipStickerButtonProps {
 
 interface StickerButtonItemProps {
   sticker: Sticker
-  correspondingText: { content: string; startTime: number; endTime: number; id: string }
+  correspondingText: {
+    content: string
+    startTime: number
+    endTime: number
+    id: string
+  }
 }
 
 function StickerButtonItem({
   sticker,
   correspondingText,
 }: StickerButtonItemProps) {
-
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation()
 
@@ -47,8 +51,9 @@ function StickerButtonItem({
   }
 
   // Calculate duration for display
-  const duration = correspondingText ? 
-    (correspondingText.endTime - correspondingText.startTime) : 0
+  const duration = correspondingText
+    ? correspondingText.endTime - correspondingText.startTime
+    : 0
 
   return (
     <div className="relative">
@@ -76,11 +81,24 @@ export default function ClipStickerButton({
     return stickers
       .map((sticker) => {
         const correspondingText = insertedTexts.find(
-          (text: { id: string; content: string; startTime: number; endTime: number }) => text.id === sticker.originalInsertedTextId
+          (text: {
+            id: string
+            content: string
+            startTime: number
+            endTime: number
+          }) => text.id === sticker.originalInsertedTextId
         )
         return correspondingText ? { sticker, correspondingText } : null
       })
-      .filter(Boolean) as Array<{ sticker: Sticker; correspondingText: { content: string; startTime: number; endTime: number; id: string } }>
+      .filter(Boolean) as Array<{
+      sticker: Sticker
+      correspondingText: {
+        content: string
+        startTime: number
+        endTime: number
+        id: string
+      }
+    }>
   }, [stickers, insertedTexts])
 
   // Don't render if no valid stickers

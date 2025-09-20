@@ -4,7 +4,12 @@ import {
   SortableContext,
   horizontalListSortingStrategy,
 } from '@dnd-kit/sortable'
-import { DragEndEvent, DragStartEvent, DragOverEvent, DndContext } from '@dnd-kit/core'
+import {
+  DragEndEvent,
+  DragStartEvent,
+  DragOverEvent,
+  DndContext,
+} from '@dnd-kit/core'
 import { Word, Sticker } from '../../types'
 import ClipWord from './ClipWord'
 import ClipSticker from './ClipSticker'
@@ -36,7 +41,7 @@ export default function ClipWords({
 }: ClipWordsProps) {
   // Add ref for debouncing clicks
   const lastClickTimeRef = useRef(0)
-  
+
   // Drag state for visual feedback
   const [draggedStickerId, setDraggedStickerId] = useState<string | null>(null)
   const [hoveredWordId, setHoveredWordId] = useState<string | null>(null)
@@ -119,7 +124,9 @@ export default function ClipWords({
   }))
 
   // Create sortable items for DnD (include both words and stickers)
-  const sortableItems = [...wordItems, ...stickerItems].map((item) => `${clipId}-${item.item.id}`)
+  const sortableItems = [...wordItems, ...stickerItems].map(
+    (item) => `${clipId}-${item.item.id}`
+  )
 
   // For visual display, combine and sort by time (but keep semantic separation)
   const allItems = [...wordItems, ...stickerItems].sort(
@@ -128,29 +135,34 @@ export default function ClipWords({
 
   // Word-Sticker relationship management functions
   const getStickersForWord = (wordId: string) => {
-    return stickers.filter(sticker => sticker.attachedWordId === wordId)
+    return stickers.filter((sticker) => sticker.attachedWordId === wordId)
   }
 
   const getUnattachedStickers = () => {
-    return stickers.filter(sticker => !sticker.attachedWordId)
+    return stickers.filter((sticker) => !sticker.attachedWordId)
   }
 
   const attachStickerToWord = (stickerId: string, wordId: string) => {
-    const targetWord = words.find(w => w.id === wordId)
-    const targetSticker = stickers.find(s => s.id === stickerId)
-    
+    const targetWord = words.find((w) => w.id === wordId)
+    const targetSticker = stickers.find((s) => s.id === stickerId)
+
     if (!targetWord || !targetSticker) return
 
     // Update sticker data with attachedWordId
-    const updatedClips = clips.map(clip => {
+    const updatedClips = clips.map((clip) => {
       if (clip.id === clipId) {
         return {
           ...clip,
-          stickers: (clip.stickers || []).map(sticker => 
-            sticker.id === stickerId 
-              ? { ...sticker, attachedWordId: wordId, start: targetWord.start, end: targetWord.start + 3 }
+          stickers: (clip.stickers || []).map((sticker) =>
+            sticker.id === stickerId
+              ? {
+                  ...sticker,
+                  attachedWordId: wordId,
+                  start: targetWord.start,
+                  end: targetWord.start + 3,
+                }
               : sticker
-          )
+          ),
         }
       }
       return clip
@@ -164,32 +176,35 @@ export default function ClipWords({
 
     if (correspondingText && updateText) {
       // Sync start time with target word
-      const currentDuration = correspondingText.endTime - correspondingText.startTime
+      const currentDuration =
+        correspondingText.endTime - correspondingText.startTime
       const duration = currentDuration > 0 ? currentDuration : 3
       const newStartTime = targetWord.start
       const newEndTime = newStartTime + duration
 
       updateText(correspondingText.id, {
         startTime: newStartTime,
-        endTime: newEndTime
+        endTime: newEndTime,
       })
 
-      console.log(`🔗 Attached sticker "${targetSticker.text}" to word "${targetWord.text}" at ${newStartTime.toFixed(2)}s`)
+      console.log(
+        `🔗 Attached sticker "${targetSticker.text}" to word "${targetWord.text}" at ${newStartTime.toFixed(2)}s`
+      )
     }
   }
 
   // Find target word for sticker drop
   const findTargetWordForDrop = (overId: string) => {
     // Check if dropping directly on a word
-    const targetWord = words.find(w => w.id === overId)
+    const targetWord = words.find((w) => w.id === overId)
     if (targetWord) {
       return targetWord
     }
 
     // If dropping on another sticker, find its attached word or nearest word
-    const targetSticker = stickers.find(s => s.id === overId)
+    const targetSticker = stickers.find((s) => s.id === overId)
     if (targetSticker?.attachedWordId) {
-      return words.find(w => w.id === targetSticker.attachedWordId)
+      return words.find((w) => w.id === targetSticker.attachedWordId)
     }
 
     // Fallback: use first word in clip
@@ -197,50 +212,56 @@ export default function ClipWords({
   }
 
   // Handle drag start
-  const handleDragStart = useCallback((event: DragStartEvent) => {
-    const activeId = event.active.id.toString().replace(`${clipId}-`, '')
-    const draggedSticker = stickers.find(s => s.id === activeId)
-    
-    console.log('🚀 Drag start in ClipWords:', {
-      activeId,
-      draggedSticker: draggedSticker?.id,
-      eventActiveId: event.active.id,
-    })
-    
-    if (draggedSticker) {
-      setDraggedStickerId(draggedSticker.id)
-    }
-  }, [clipId, stickers])
+  const handleDragStart = useCallback(
+    (event: DragStartEvent) => {
+      const activeId = event.active.id.toString().replace(`${clipId}-`, '')
+      const draggedSticker = stickers.find((s) => s.id === activeId)
+
+      console.log('🚀 Drag start in ClipWords:', {
+        activeId,
+        draggedSticker: draggedSticker?.id,
+        eventActiveId: event.active.id,
+      })
+
+      if (draggedSticker) {
+        setDraggedStickerId(draggedSticker.id)
+      }
+    },
+    [clipId, stickers]
+  )
 
   // Handle drag over for hover feedback
-  const handleDragOver = useCallback((event: DragOverEvent) => {
-    if (!draggedStickerId || !event.over) {
-      setHoveredWordId(null)
-      return
-    }
+  const handleDragOver = useCallback(
+    (event: DragOverEvent) => {
+      if (!draggedStickerId || !event.over) {
+        setHoveredWordId(null)
+        return
+      }
 
-    const overId = event.over.id.toString().replace(`${clipId}-`, '')
-    const targetWord = findTargetWordForDrop(overId)
-    
-    setHoveredWordId(targetWord?.id || null)
-  }, [clipId, draggedStickerId, findTargetWordForDrop])
+      const overId = event.over.id.toString().replace(`${clipId}-`, '')
+      const targetWord = findTargetWordForDrop(overId)
+
+      setHoveredWordId(targetWord?.id || null)
+    },
+    [clipId, draggedStickerId, findTargetWordForDrop]
+  )
 
   // Handle drag end for sticker-to-word attachment
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       const { active, over } = event
-      
+
       console.log('🏁 Drag end in ClipWords:', {
         activeId: active?.id,
         overId: over?.id,
         hasActive: !!active,
         hasOver: !!over,
       })
-      
+
       // Reset drag state
       setDraggedStickerId(null)
       setHoveredWordId(null)
-      
+
       if (!over || !active) return
 
       // Extract item ID from the sortable ID format
@@ -254,23 +275,28 @@ export default function ClipWords({
       })
 
       // Ensure both items belong to the same clip (boundary check)
-      if (!active.id.toString().startsWith(clipId) || !over.id.toString().startsWith(clipId)) {
-        console.warn('🚫 Sticker drag blocked: attempting to move outside clip boundary')
+      if (
+        !active.id.toString().startsWith(clipId) ||
+        !over.id.toString().startsWith(clipId)
+      ) {
+        console.warn(
+          '🚫 Sticker drag blocked: attempting to move outside clip boundary'
+        )
         return
       }
 
       // Find if the dragged item is a sticker
-      const draggedSticker = stickers.find(s => s.id === activeId)
-      
+      const draggedSticker = stickers.find((s) => s.id === activeId)
+
       console.log('📌 Dragged sticker found:', draggedSticker?.id)
-      
+
       if (!draggedSticker) return // Only handle sticker drags
 
       // Find target word for attachment
       const targetWord = findTargetWordForDrop(overId)
-      
+
       console.log('🎯 Target word found:', targetWord?.id, targetWord?.text)
-      
+
       if (!targetWord) {
         console.warn('🚫 No valid target word found for sticker attachment')
         return
@@ -283,7 +309,12 @@ export default function ClipWords({
       }
 
       // Attach sticker to target word
-      console.log('🔗 Attaching sticker to word:', draggedSticker.id, '→', targetWord.id)
+      console.log(
+        '🔗 Attaching sticker to word:',
+        draggedSticker.id,
+        '→',
+        targetWord.id
+      )
       attachStickerToWord(draggedSticker.id, targetWord.id)
     },
     [clipId, stickers, words, findTargetWordForDrop, attachStickerToWord]
@@ -292,7 +323,7 @@ export default function ClipWords({
   // Handle sticker deletion request (delegate to parent)
   const handleStickerDeleteRequest = useCallback(
     (stickerId: string) => {
-      const sticker = stickers.find(s => s.id === stickerId)
+      const sticker = stickers.find((s) => s.id === stickerId)
       if (!sticker || !onStickerDeleteRequest) return
 
       onStickerDeleteRequest(stickerId, sticker.text)
@@ -352,7 +383,7 @@ export default function ClipWords({
   )
 
   return (
-    <DndContext 
+    <DndContext
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
@@ -368,86 +399,92 @@ export default function ClipWords({
           onKeyDown={handleKeyDown}
           tabIndex={0}
         >
-        {allItems.map((combinedItem) => {
-          if (combinedItem.type === 'word') {
-            const word = combinedItem.item as Word
-            const appliedAssets = word.appliedAssets || []
+          {allItems.map((combinedItem) => {
+            if (combinedItem.type === 'word') {
+              const word = combinedItem.item as Word
+              const appliedAssets = word.appliedAssets || []
 
-            return (
-              <React.Fragment key={word.id}>
-                <ClipWord
-                  word={word}
-                  clipId={clipId}
-                  onWordClick={handleWordClick}
-                  onWordEdit={onWordEdit}
-                  isStickerDropTarget={draggedStickerId !== null}
-                  isStickerHovered={hoveredWordId === word.id}
-                />
+              return (
+                <React.Fragment key={word.id}>
+                  <ClipWord
+                    word={word}
+                    clipId={clipId}
+                    onWordClick={handleWordClick}
+                    onWordEdit={onWordEdit}
+                    isStickerDropTarget={draggedStickerId !== null}
+                    isStickerHovered={hoveredWordId === word.id}
+                  />
 
-                {/* Render asset icons after each word */}
-                {appliedAssets.length > 0 && (
-                  <div className="flex gap-1 items-center">
-                    {appliedAssets.map((assetId: string) => {
-                      const IconComponent = getAssetIcon(assetId, allAssets)
-                      const assetName = getAssetNameById(assetId)
-                      return IconComponent ? (
-                        <div
-                          key={assetId}
-                          className="w-3 h-3 bg-slate-600/50 rounded-sm flex items-center justify-center"
-                          title={assetName}
-                        >
-                          <IconComponent size={10} className="text-slate-300" />
-                        </div>
-                      ) : null
-                    })}
-                  </div>
-                )}
-              </React.Fragment>
-            )
-          } else {
-            // Render sticker
-            const sticker = combinedItem.item as Sticker
-            const appliedAssets = sticker.appliedAssets || []
+                  {/* Render asset icons after each word */}
+                  {appliedAssets.length > 0 && (
+                    <div className="flex gap-1 items-center">
+                      {appliedAssets.map((assetId: string) => {
+                        const IconComponent = getAssetIcon(assetId, allAssets)
+                        const assetName = getAssetNameById(assetId)
+                        return IconComponent ? (
+                          <div
+                            key={assetId}
+                            className="w-3 h-3 bg-slate-600/50 rounded-sm flex items-center justify-center"
+                            title={assetName}
+                          >
+                            <IconComponent
+                              size={10}
+                              className="text-slate-300"
+                            />
+                          </div>
+                        ) : null
+                      })}
+                    </div>
+                  )}
+                </React.Fragment>
+              )
+            } else {
+              // Render sticker
+              const sticker = combinedItem.item as Sticker
+              const appliedAssets = sticker.appliedAssets || []
 
-            return (
-              <React.Fragment key={sticker.id}>
-                <ClipSticker
-                  sticker={sticker}
-                  clipId={clipId}
-                  clipWords={words}
-                  onStickerClick={(stickerId) =>
-                    handleWordClick(stickerId, false)
-                  } // Reuse word click handler
-                  onStickerDelete={handleStickerDeleteRequest}
-                />
+              return (
+                <React.Fragment key={sticker.id}>
+                  <ClipSticker
+                    sticker={sticker}
+                    clipId={clipId}
+                    clipWords={words}
+                    onStickerClick={(stickerId) =>
+                      handleWordClick(stickerId, false)
+                    } // Reuse word click handler
+                    onStickerDelete={handleStickerDeleteRequest}
+                  />
 
-                {/* Render asset icons after each sticker */}
-                {appliedAssets.length > 0 && (
-                  <div className="flex gap-1 items-center">
-                    {appliedAssets.map((assetId: string) => {
-                      const IconComponent = getAssetIcon(assetId, allAssets)
-                      const assetName = getAssetNameById(assetId)
-                      return IconComponent ? (
-                        <div
-                          key={assetId}
-                          className="w-3 h-3 bg-slate-600/50 rounded-sm flex items-center justify-center"
-                          title={assetName}
-                        >
-                          <IconComponent size={10} className="text-slate-300" />
-                        </div>
-                      ) : null
-                    })}
-                  </div>
-                )}
-              </React.Fragment>
-            )
-          }
-        })}
+                  {/* Render asset icons after each sticker */}
+                  {appliedAssets.length > 0 && (
+                    <div className="flex gap-1 items-center">
+                      {appliedAssets.map((assetId: string) => {
+                        const IconComponent = getAssetIcon(assetId, allAssets)
+                        const assetName = getAssetNameById(assetId)
+                        return IconComponent ? (
+                          <div
+                            key={assetId}
+                            className="w-3 h-3 bg-slate-600/50 rounded-sm flex items-center justify-center"
+                            title={assetName}
+                          >
+                            <IconComponent
+                              size={10}
+                              className="text-slate-300"
+                            />
+                          </div>
+                        ) : null
+                      })}
+                    </div>
+                  )}
+                </React.Fragment>
+              )
+            }
+          })}
 
-        {/* Visual feedback for group selection (from dev) */}
-        {isGroupDragging && (
-          <div className="absolute inset-0 bg-blue-500/10 pointer-events-none rounded" />
-        )}
+          {/* Visual feedback for group selection (from dev) */}
+          {isGroupDragging && (
+            <div className="absolute inset-0 bg-blue-500/10 pointer-events-none rounded" />
+          )}
         </div>
       </SortableContext>
     </DndContext>
