@@ -8,6 +8,7 @@ import {
 } from '@dnd-kit/core'
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useRouter } from 'next/navigation'
 
 // Store
 import { useEditorStore } from './store'
@@ -43,6 +44,7 @@ import TutorialModal from '@/components/TutorialModal'
 import { ChevronDownIcon } from '@/components/icons'
 import AlertDialog from '@/components/ui/AlertDialog'
 import DeployModal from '@/components/ui/DeployModal'
+import PlatformSelectionModal from './components/Export/PlatformSelectionModal'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import ResizablePanelDivider from '@/components/ui/ResizablePanelDivider'
 import { normalizeClipOrder } from '@/utils/editor/clipTimelineUtils'
@@ -527,6 +529,11 @@ export default function EditorPage() {
   const [currentTime, setCurrentTime] = useState(0) // 현재 비디오 시간 상태
   const [shouldOpenExportModal, setShouldOpenExportModal] = useState(false) // OAuth 인증 후 모달 재오픈 플래그
 
+  // Platform selection and deploy modal states
+  const [isPlatformSelectionModalOpen, setIsPlatformSelectionModalOpen] = useState(false)
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([])
+  const [pendingDeployTask, setPendingDeployTask] = useState<{ id: number; filename: string } | null>(null)
+
   // Deploy modal hook
   const { openDeployModal, deployModalProps } = useDeployModal()
 
@@ -542,18 +549,36 @@ export default function EditorPage() {
       const filename = urlParams.get('filename')
 
       if (shouldDeploy === 'true' && taskId && filename) {
-        // 배포 모달 열기
-        openDeployModal({
+        // 배포 작업 정보 저장하고 플랫폼 선택 모달 먼저 열기
+        setPendingDeployTask({
           id: parseInt(taskId),
           filename: decodeURIComponent(filename),
         })
+        setIsPlatformSelectionModalOpen(true)
 
         // URL에서 파라미터 제거 (뒤로가기 시 모달이 다시 뜨지 않도록)
         const newUrl = window.location.pathname
         window.history.replaceState({}, '', newUrl)
       }
     }
-  }, [openDeployModal])
+  }, [])
+
+  // Platform selection modal handlers
+  const handlePlatformSelectionClose = () => {
+    setIsPlatformSelectionModalOpen(false)
+    setPendingDeployTask(null)
+    setSelectedPlatforms([])
+  }
+
+  const handlePlatformSelectionNext = (platforms: string[]) => {
+    setSelectedPlatforms(platforms)
+    setIsPlatformSelectionModalOpen(false)
+
+    // 플랫폼 선택 완료 후 배포 모달 열기
+    if (pendingDeployTask) {
+      openDeployModal(pendingDeployTask)
+    }
+  }
 
   // Cleanup blob URLs when component unmounts or videoUrl changes
   useEffect(() => {
@@ -2222,6 +2247,13 @@ export default function EditorPage() {
         fileName={uploadModal.fileName}
         canCancel={uploadModal.step !== 'failed'}
         backdrop={false}
+      />
+
+      {/* Platform Selection Modal */}
+      <PlatformSelectionModal
+        isOpen={isPlatformSelectionModalOpen}
+        onClose={handlePlatformSelectionClose}
+        onNext={handlePlatformSelectionNext}
       />
 
       {/* Deploy Modal */}
