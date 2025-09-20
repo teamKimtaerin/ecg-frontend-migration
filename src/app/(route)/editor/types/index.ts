@@ -25,6 +25,7 @@ export interface Sticker {
   start: number
   end: number
   originalInsertedTextId: string // Reference to original inserted text
+  attachedWordId?: string // Reference to the word this sticker is attached to
   appliedAssets?: string[]
   // Animation tracks for stickers (same as words)
   animationTracks?: Array<{

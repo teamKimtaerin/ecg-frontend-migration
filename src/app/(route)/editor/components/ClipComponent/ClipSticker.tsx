@@ -28,7 +28,7 @@ export default function ClipSticker({
 
   const {
     multiSelectedWordIds,
-    canDragWord,
+    canDragSticker,
     playingWordId,
     playingClipId,
     setStickerFocus,
@@ -59,7 +59,7 @@ export default function ClipSticker({
   const isFocused = focusedStickerId === sticker.id
   const isSelected = selectedStickerId === sticker.id
   const isMultiSelected = multiSelectedWordIds.has(sticker.id) // Keep for compatibility
-  const isDraggable = canDragWord(sticker.id) // Keep for compatibility
+  const isDraggable = canDragSticker(sticker.id)
   const isPlaying = playingWordId === sticker.id
   const isInPlayingClip = playingClipId === clipId
   const isOtherClipPlaying = playingClipId !== null && playingClipId !== clipId
@@ -90,6 +90,11 @@ export default function ClipSticker({
   const handleClick = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation()
+
+      console.log('👆 Sticker click:', {
+        stickerId: sticker.id,
+        target: (e.target as HTMLElement).tagName,
+      })
 
       const currentTime = Date.now()
       const timeDiff = currentTime - lastClickTime
@@ -154,46 +159,8 @@ export default function ClipSticker({
     ]
   )
 
-  // Unified mouse down handler (resize, click, or position drag)
-  const handleUnifiedMouseDown = useCallback(
-    (e: React.MouseEvent) => {
-      const rect = e.currentTarget.getBoundingClientRect()
-      const clickX = e.clientX - rect.left
-      const isRightEdge = clickX > rect.width - 5 // Right 5px area for resize
 
-      if (isRightEdge && correspondingText) {
-        // Right edge - start resize drag
-        e.stopPropagation()
-        handleResizeStart(e)
-      } else {
-        // Check if this is a position drag or click
-        const timeSinceLastClick = Date.now() - lastClickTime
-        const isDragIntent = e.type === 'mousedown' && !isResizing
-        
-        if (isDragIntent && isDraggable && listeners?.onMouseDown) {
-          // Position drag - use sortable drag
-          listeners.onMouseDown(e as React.MouseEvent<HTMLElement>)
-        } else {
-          // Regular click
-          handleClick(e)
-        }
-      }
-    },
-    [correspondingText, handleResizeStart, handleClick, lastClickTime, isResizing, isDraggable, listeners]
-  )
 
-  // Handle delete button click
-  const handleDeleteClick = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation()
-      e.preventDefault()
-      
-      if (onStickerDelete) {
-        onStickerDelete(sticker.id)
-      }
-    },
-    [onStickerDelete, sticker.id]
-  )
 
   // Handle keyboard shortcuts for deletion
   useEffect(() => {
@@ -350,11 +317,47 @@ export default function ClipSticker({
     return classes.join(' ')
   }
 
-  // Clean attributes without mouse events (we handle them manually)
+  // Custom onMouseDown that handles both resize and drag
+  const customOnMouseDown = useCallback((e: React.MouseEvent) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    const clickX = e.clientX - rect.left
+    const resizeZoneWidth = 8 // Increased resize zone for better UX
+    const isRightEdge = clickX > rect.width - resizeZoneWidth
+
+    console.log('🎯 Sticker mouseDown:', {
+      stickerId: sticker.id,
+      isRightEdge,
+      clickX,
+      rectWidth: rect.width,
+      correspondingText: !!correspondingText,
+      isDraggable,
+      hasListeners: !!listeners?.onMouseDown,
+      isResizing,
+    })
+
+    if (isRightEdge && correspondingText) {
+      // Right edge - start resize drag
+      console.log('📏 Starting resize for sticker:', sticker.id)
+      e.stopPropagation()
+      e.preventDefault()
+      handleResizeStart(e)
+    } else if (isDraggable && listeners?.onMouseDown && !isResizing) {
+      // Position drag - let @dnd-kit handle it (only if not resizing)
+      console.log('🚀 Starting position drag for sticker:', sticker.id)
+      listeners.onMouseDown(e as React.MouseEvent<HTMLElement>)
+    } else {
+      // Regular click
+      console.log('👆 Regular click on sticker:', sticker.id)
+      handleClick(e)
+    }
+  }, [correspondingText, handleResizeStart, isDraggable, listeners, handleClick, isResizing, sticker.id])
+
+  // Clean attributes - exclude onMouseDown since we handle it custom
   const cleanAttributes = isDraggable
     ? {
         ...attributes,
-        // Remove onMouseDown from listeners to prevent conflicts
+        // Include all listeners except onMouseDown which we handle in customOnMouseDown
+        ...(listeners ? Object.fromEntries(Object.entries(listeners).filter(([key]) => key !== 'onMouseDown')) : {}),
       }
     : attributes
 
@@ -370,14 +373,15 @@ export default function ClipSticker({
       data-clip-id={clipId}
       title={`📝 삽입 텍스트: ${sticker.text} (${getDuration().toFixed(1)}s)`}
       {...cleanAttributes}
-      onMouseDown={handleUnifiedMouseDown}
+      onMouseDown={customOnMouseDown}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onMouseMove={(e) => {
         const rect = e.currentTarget.getBoundingClientRect()
         const mouseX = e.clientX - rect.left
-        const isRightEdge = mouseX > rect.width - 5
-        e.currentTarget.style.cursor = isRightEdge && correspondingText ? 'ew-resize' : 'pointer'
+        const resizeZoneWidth = 8
+        const isRightEdge = mouseX > rect.width - resizeZoneWidth
+        e.currentTarget.style.cursor = isRightEdge && correspondingText ? 'ew-resize' : isDraggable ? 'grab' : 'pointer'
       }}
     >
       {/* Display 'T' icon for text stickers */}
@@ -386,9 +390,9 @@ export default function ClipSticker({
       {/* Right edge resize handle (visible only on hover) */}
       {correspondingText && (
         <div 
-          className={`absolute right-0 top-0 w-1 h-full transition-all duration-200 ${
+          className={`absolute right-0 top-0 w-2 h-full transition-all duration-200 ${
             isResizing 
-              ? 'bg-purple-400 opacity-100 w-2' 
+              ? 'bg-purple-400 opacity-100 w-3' 
               : 'hover:bg-purple-300 opacity-0 hover:opacity-50'
           }`}
           style={{ cursor: 'ew-resize' }}
@@ -425,7 +429,22 @@ export default function ClipSticker({
       {/* Delete button (visible on hover) */}
       {isHovered && onStickerDelete && (
         <button
-          onClick={handleDeleteClick}
+          onMouseDown={(e) => {
+            e.stopPropagation()
+            e.preventDefault()
+            console.log('🗑️ Delete button mouseDown - executing delete for sticker:', sticker.id)
+            
+            // Execute delete immediately on mouseDown to prevent sticker events
+            if (onStickerDelete) {
+              onStickerDelete(sticker.id)
+            }
+          }}
+          onClick={(e) => {
+            // Backup onClick in case mouseDown doesn't work on some browsers
+            e.stopPropagation()
+            e.preventDefault()
+            console.log('🗑️ Delete button click backup for sticker:', sticker.id)
+          }}
           className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold transition-all duration-200 shadow-lg hover:scale-110 z-10"
           title="삭제"
         >

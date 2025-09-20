@@ -33,6 +33,7 @@ export interface ClipItem {
     start: number
     end: number
     originalInsertedTextId: string
+    attachedWordId?: string
     appliedAssets?: string[]
     animationTracks?: Array<{
       assetId: string

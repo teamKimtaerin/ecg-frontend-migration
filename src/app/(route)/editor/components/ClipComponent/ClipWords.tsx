@@ -1,10 +1,10 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import React, { useCallback } from 'react'
 import {
   SortableContext,
   horizontalListSortingStrategy,
 } from '@dnd-kit/sortable'
-import { DragEndEvent, DndContext } from '@dnd-kit/core'
+import { DragEndEvent, DragStartEvent, DragOverEvent, DndContext } from '@dnd-kit/core'
 import { Word, Sticker } from '../../types'
 import ClipWord from './ClipWord'
 import ClipSticker from './ClipSticker'
@@ -36,6 +36,10 @@ export default function ClipWords({
 }: ClipWordsProps) {
   // Add ref for debouncing clicks
   const lastClickTimeRef = useRef(0)
+  
+  // Drag state for visual feedback
+  const [draggedStickerId, setDraggedStickerId] = useState<string | null>(null)
+  const [hoveredWordId, setHoveredWordId] = useState<string | null>(null)
 
   const {
     // From dev branch
@@ -51,6 +55,9 @@ export default function ClipWords({
     // For sticker position updates
     insertedTexts,
     updateText,
+    // For updating clip data
+    setClips,
+    clips,
   } = useEditorStore()
 
   // Asset related state with icon support
@@ -119,38 +126,120 @@ export default function ClipWords({
     (a, b) => a.start - b.start
   )
 
-  // Calculate new start time based on sticker position in word list
-  const calculateStickerStartTime = (newIndex: number) => {
-    if (newIndex === 0) {
-      // First position: use clip start time (first word's start time)
-      return words.length > 0 ? words[0].start : 0
-    } else if (newIndex >= allItems.length - 1) {
-      // Last position: use last word's start time
-      const lastWord = words[words.length - 1]
-      return lastWord ? lastWord.start : 0
-    } else {
-      // Middle position: use the start time of the word at the same index
-      const itemAtIndex = allItems[newIndex - 1]
-      if (itemAtIndex && itemAtIndex.type === 'word') {
-        return itemAtIndex.start
-      } else {
-        // If previous item is also a sticker, find the nearest word before it
-        for (let i = newIndex - 1; i >= 0; i--) {
-          const item = allItems[i]
-          if (item.type === 'word') {
-            return item.start
-          }
+  // Word-Sticker relationship management functions
+  const getStickersForWord = (wordId: string) => {
+    return stickers.filter(sticker => sticker.attachedWordId === wordId)
+  }
+
+  const getUnattachedStickers = () => {
+    return stickers.filter(sticker => !sticker.attachedWordId)
+  }
+
+  const attachStickerToWord = (stickerId: string, wordId: string) => {
+    const targetWord = words.find(w => w.id === wordId)
+    const targetSticker = stickers.find(s => s.id === stickerId)
+    
+    if (!targetWord || !targetSticker) return
+
+    // Update sticker data with attachedWordId
+    const updatedClips = clips.map(clip => {
+      if (clip.id === clipId) {
+        return {
+          ...clip,
+          stickers: (clip.stickers || []).map(sticker => 
+            sticker.id === stickerId 
+              ? { ...sticker, attachedWordId: wordId, start: targetWord.start, end: targetWord.start + 3 }
+              : sticker
+          )
         }
-        // Fallback to clip start time
-        return words.length > 0 ? words[0].start : 0
       }
+      return clip
+    })
+    setClips(updatedClips)
+
+    // Find corresponding inserted text
+    const correspondingText = insertedTexts?.find(
+      (text: { id: string }) => text.id === targetSticker.originalInsertedTextId
+    )
+
+    if (correspondingText && updateText) {
+      // Sync start time with target word
+      const currentDuration = correspondingText.endTime - correspondingText.startTime
+      const duration = currentDuration > 0 ? currentDuration : 3
+      const newStartTime = targetWord.start
+      const newEndTime = newStartTime + duration
+
+      updateText(correspondingText.id, {
+        startTime: newStartTime,
+        endTime: newEndTime
+      })
+
+      console.log(`🔗 Attached sticker "${targetSticker.text}" to word "${targetWord.text}" at ${newStartTime.toFixed(2)}s`)
     }
   }
 
-  // Handle drag end for stickers
+  // Find target word for sticker drop
+  const findTargetWordForDrop = (overId: string) => {
+    // Check if dropping directly on a word
+    const targetWord = words.find(w => w.id === overId)
+    if (targetWord) {
+      return targetWord
+    }
+
+    // If dropping on another sticker, find its attached word or nearest word
+    const targetSticker = stickers.find(s => s.id === overId)
+    if (targetSticker?.attachedWordId) {
+      return words.find(w => w.id === targetSticker.attachedWordId)
+    }
+
+    // Fallback: use first word in clip
+    return words.length > 0 ? words[0] : null
+  }
+
+  // Handle drag start
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    const activeId = event.active.id.toString().replace(`${clipId}-`, '')
+    const draggedSticker = stickers.find(s => s.id === activeId)
+    
+    console.log('🚀 Drag start in ClipWords:', {
+      activeId,
+      draggedSticker: draggedSticker?.id,
+      eventActiveId: event.active.id,
+    })
+    
+    if (draggedSticker) {
+      setDraggedStickerId(draggedSticker.id)
+    }
+  }, [clipId, stickers])
+
+  // Handle drag over for hover feedback
+  const handleDragOver = useCallback((event: DragOverEvent) => {
+    if (!draggedStickerId || !event.over) {
+      setHoveredWordId(null)
+      return
+    }
+
+    const overId = event.over.id.toString().replace(`${clipId}-`, '')
+    const targetWord = findTargetWordForDrop(overId)
+    
+    setHoveredWordId(targetWord?.id || null)
+  }, [clipId, draggedStickerId, findTargetWordForDrop])
+
+  // Handle drag end for sticker-to-word attachment
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       const { active, over } = event
+      
+      console.log('🏁 Drag end in ClipWords:', {
+        activeId: active?.id,
+        overId: over?.id,
+        hasActive: !!active,
+        hasOver: !!over,
+      })
+      
+      // Reset drag state
+      setDraggedStickerId(null)
+      setHoveredWordId(null)
       
       if (!over || !active) return
 
@@ -158,40 +247,46 @@ export default function ClipWords({
       const activeId = active.id.toString().replace(`${clipId}-`, '')
       const overId = over.id.toString().replace(`${clipId}-`, '')
 
+      console.log('🎯 Processing drag end:', {
+        activeId,
+        overId,
+        clipId,
+      })
+
+      // Ensure both items belong to the same clip (boundary check)
+      if (!active.id.toString().startsWith(clipId) || !over.id.toString().startsWith(clipId)) {
+        console.warn('🚫 Sticker drag blocked: attempting to move outside clip boundary')
+        return
+      }
+
       // Find if the dragged item is a sticker
       const draggedSticker = stickers.find(s => s.id === activeId)
       
+      console.log('📌 Dragged sticker found:', draggedSticker?.id)
+      
       if (!draggedSticker) return // Only handle sticker drags
 
-      // Find the new index in the sorted allItems array
-      const oldIndex = allItems.findIndex(item => item.item.id === activeId)
-      const newIndex = allItems.findIndex(item => item.item.id === overId)
-
-      if (oldIndex === newIndex) return // No position change
-
-      // Calculate new start time based on position
-      const newStartTime = calculateStickerStartTime(newIndex)
+      // Find target word for attachment
+      const targetWord = findTargetWordForDrop(overId)
       
-      // Find corresponding inserted text
-      const correspondingText = insertedTexts?.find(
-        (text: { id: string }) => text.id === draggedSticker.originalInsertedTextId
-      )
-
-      if (correspondingText && updateText) {
-        // Maintain current duration or default to 3 seconds
-        const currentDuration = correspondingText.endTime - correspondingText.startTime
-        const duration = currentDuration > 0 ? currentDuration : 3
-        const newEndTime = newStartTime + duration
-
-        updateText(correspondingText.id, {
-          startTime: newStartTime,
-          endTime: newEndTime
-        })
-
-        console.log(`🎯 Updated sticker position: ${draggedSticker.text} -> ${newStartTime.toFixed(2)}s (duration: ${duration.toFixed(1)}s)`)
+      console.log('🎯 Target word found:', targetWord?.id, targetWord?.text)
+      
+      if (!targetWord) {
+        console.warn('🚫 No valid target word found for sticker attachment')
+        return
       }
+
+      // Skip if already attached to the same word
+      if (draggedSticker.attachedWordId === targetWord.id) {
+        console.log('📌 Sticker already attached to this word')
+        return
+      }
+
+      // Attach sticker to target word
+      console.log('🔗 Attaching sticker to word:', draggedSticker.id, '→', targetWord.id)
+      attachStickerToWord(draggedSticker.id, targetWord.id)
     },
-    [clipId, stickers, allItems, words, insertedTexts, updateText]
+    [clipId, stickers, words, findTargetWordForDrop, attachStickerToWord]
   )
 
   // Handle sticker deletion request (delegate to parent)
@@ -257,7 +352,11 @@ export default function ClipWords({
   )
 
   return (
-    <DndContext onDragEnd={handleDragEnd}>
+    <DndContext 
+      onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
+      onDragEnd={handleDragEnd}
+    >
       <SortableContext
         items={sortableItems}
         strategy={horizontalListSortingStrategy}
@@ -281,6 +380,8 @@ export default function ClipWords({
                   clipId={clipId}
                   onWordClick={handleWordClick}
                   onWordEdit={onWordEdit}
+                  isStickerDropTarget={draggedStickerId !== null}
+                  isStickerHovered={hoveredWordId === word.id}
                 />
 
                 {/* Render asset icons after each word */}
