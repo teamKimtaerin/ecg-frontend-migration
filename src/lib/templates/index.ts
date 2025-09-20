@@ -47,6 +47,8 @@ import { TemplateRegistry } from './registry/TemplateRegistry'
 import { TemplateProcessor } from './processor/TemplateProcessor'
 import { SubtitleTemplate } from './types/template.types'
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// Template system will be rewritten - temporarily disable any types
 // Main template system facade
 export class TemplateSystem {
   private registry: TemplateRegistry

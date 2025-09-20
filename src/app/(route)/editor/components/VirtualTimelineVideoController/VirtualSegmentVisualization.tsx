@@ -37,7 +37,7 @@ export const VirtualSegmentVisualization: React.FC<
 
   // Calculate segment visual properties
   const getSegmentProps = useCallback(
-    (segment: VirtualSegment, isDeleted = false) => {
+    (segment: VirtualSegment, _isDeleted = false) => {
       if (duration === 0) return { left: 0, width: 0, percentage: 0 }
 
       const startPercentage = (segment.virtualStartTime / duration) * 100
@@ -115,8 +115,8 @@ export const VirtualSegmentVisualization: React.FC<
     [duration, onSeek]
   )
 
-  // Format time for tooltips
-  const formatTime = useCallback((seconds: number): string => {
+  // Format time for tooltips - TODO: Use this for tooltips
+  const _formatTime = useCallback((seconds: number): string => {
     const minutes = Math.floor(seconds / 60)
     const secs = Math.floor(seconds % 60)
     return `${minutes}:${secs.toString().padStart(2, '0')}`

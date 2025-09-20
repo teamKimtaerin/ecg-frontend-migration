@@ -18,6 +18,8 @@ export interface ClipSlice {
   deletedClipIds: Set<string>
   currentProject: ProjectData | null
   setClips: (clips: ClipItem[]) => void
+  // Alias used by other slices; ensures indexes rebuild
+  updateClips: (clips: ClipItem[]) => void
   setOriginalClips: (clips: ClipItem[]) => void // 원본 클립 설정
   restoreOriginalClips: () => void // 원본으로 복원
   saveOriginalClipsToStorage: () => Promise<void> // IndexedDB에 원본 클립 영구 저장
@@ -94,7 +96,29 @@ export const createClipSlice: StateCreator<
   deletedClipIds: new Set<string>(),
   currentProject: null,
 
-  setClips: (clips) => set({ clips }),
+  setClips: (clips) => {
+    set({ clips })
+    // Rebuild indexes after any clip replacement
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const anyGet = get() as any
+      anyGet.rebuildIndexesFromClips?.()
+    } catch {}
+  },
+
+  updateClips: (clips) => {
+    // Keep behavior consistent with setClips
+    try {
+      const stateBefore = get()
+      if (stateBefore.clips === clips) return
+    } catch {}
+    set({ clips })
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const anyGet = get() as any
+      anyGet.rebuildIndexesFromClips?.()
+    } catch {}
+  },
 
   setOriginalClips: (clips) => set({ originalClips: clips }),
 
@@ -102,6 +126,11 @@ export const createClipSlice: StateCreator<
     const { originalClips } = get()
     if (originalClips.length > 0) {
       set({ clips: [...originalClips] })
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const anyGet = get() as any
+        anyGet.rebuildIndexesFromClips?.()
+      } catch {}
     }
   },
 
@@ -182,6 +211,11 @@ export const createClipSlice: StateCreator<
           : clip
       ),
     }))
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const anyGet = get() as any
+      anyGet.rebuildIndexesFromClips?.()
+    } catch {}
   },
 
   applyAssetsToWord: (clipId, wordId, assetIds) => {
@@ -209,6 +243,11 @@ export const createClipSlice: StateCreator<
 
       return updatedState
     })
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const anyGet = get() as any
+      anyGet.rebuildIndexesFromClips?.()
+    } catch {}
   },
 
   updateWordAnimationTracks: (clipId, wordId, tracks) => {
@@ -224,6 +263,11 @@ export const createClipSlice: StateCreator<
           : clip
       ),
     }))
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const anyGet = get() as any
+      anyGet.rebuildIndexesFromClips?.()
+    } catch {}
   },
 
   reorderWordsInClip: (clipId, sourceWordId, targetWordId) => {
@@ -257,6 +301,11 @@ export const createClipSlice: StateCreator<
         }
       }),
     }))
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const anyGet = get() as any
+      anyGet.rebuildIndexesFromClips?.()
+    } catch {}
   },
 
   moveWordBetweenClips: (
@@ -312,10 +361,15 @@ export const createClipSlice: StateCreator<
 
       return { clips: updatedClips }
     })
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const anyGet = get() as any
+      anyGet.rebuildIndexesFromClips?.()
+    } catch {}
   },
 
   reorderClips: (activeId, overId, selectedIds) => {
-    const fullState = get()
+    const _fullState = get()
 
     set((state) => {
       const { clips } = state
@@ -352,7 +406,7 @@ export const createClipSlice: StateCreator<
           // If dropping on a selected item, find its position in the original array
           // and maintain relative position
           const overIndex = clips.findIndex((item) => item.id === overId)
-          const selectedIndexes = clips
+          const _selectedIndexes = clips
             .map((item, index) => ({ item, index }))
             .filter(({ item }) => selectedIds.has(item.id))
             .map(({ index }) => index)

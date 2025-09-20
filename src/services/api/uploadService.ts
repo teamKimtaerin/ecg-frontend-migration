@@ -13,11 +13,7 @@ import {
 import { useAuthStore } from '@/lib/store/authStore'
 import { API_CONFIG } from '@/config/api.config'
 
-// API Base URL - 개발 환경에서는 프록시 사용 (CORS 우회)
-const API_BASE_URL =
-  process.env.NODE_ENV === 'development'
-    ? '/api' // Next.js 프록시 경로
-    : API_CONFIG.FASTAPI_BASE_URL
+const API_BASE_URL = API_CONFIG.FASTAPI_BASE_URL
 
 class UploadService {
   private abortControllers = new Map<string, AbortController>()
@@ -100,21 +96,23 @@ class UploadService {
   ): Promise<ServiceResponse<PresignedUrlResponse>> {
     // 백엔드 API 스펙에 맞게 필드명 조정
     const request = {
-      file_name: filename,
-      file_type: contentType, // backend expects 'file_type'
+      filename: filename, // 백엔드는 'filename' 기대 (언더스코어 없음)
+      content_type: contentType, // 백엔드는 'content_type' 기대
     }
 
     // Backend response might have different field names
     interface BackendPresignedResponse {
       url?: string
+      upload_url?: string // API doc specifies this field
       presigned_url?: string
       fileKey?: string
       file_key?: string
       expires_in?: number
+      expires_at?: string // API doc specifies this field
     }
 
     const response = await this.makeRequest<BackendPresignedResponse>(
-      '/upload-video/generate-url', // /api 제거 (프록시가 추가함)
+      '/api/upload-video/generate-url',
       {
         method: 'POST',
         body: JSON.stringify(request),
@@ -124,7 +122,11 @@ class UploadService {
     // 응답 매핑: 백엔드 응답을 프론트엔드 형식으로 변환
     if (response.success && response.data) {
       const mappedResponse: PresignedUrlResponse = {
-        presigned_url: response.data.url || response.data.presigned_url || '',
+        presigned_url:
+          response.data.upload_url ||
+          response.data.url ||
+          response.data.presigned_url ||
+          '',
         file_key: response.data.fileKey || response.data.file_key || '',
         expires_in: response.data.expires_in || 3600,
       }
@@ -210,14 +212,16 @@ class UploadService {
    * ML 처리 요청
    */
   async requestMLProcessing(
-    fileKey: string
+    fileKey: string,
+    language?: string
   ): Promise<ServiceResponse<MLProcessingResponse>> {
     const request = {
-      file_key: fileKey,
+      fileKey: fileKey,
+      ...(language && { language }),
     }
 
     return this.makeRequest<MLProcessingResponse>(
-      '/upload-video/request-process', // /api 제거 (프록시가 추가함)
+      '/api/upload-video/request-process',
       {
         method: 'POST',
         body: JSON.stringify(request),
@@ -231,9 +235,12 @@ class UploadService {
   async checkProcessingStatus(
     jobId: string
   ): Promise<ServiceResponse<ProcessingStatus>> {
-    return this.makeRequest<ProcessingStatus>(`/upload-video/status/${jobId}`, {
-      method: 'GET',
-    })
+    return this.makeRequest<ProcessingStatus>(
+      `/api/upload-video/status/${jobId}`,
+      {
+        method: 'GET',
+      }
+    )
   }
 
   /**
@@ -245,7 +252,7 @@ class UploadService {
       this.abortControllers.delete(jobId)
     }
 
-    return this.makeRequest<void>(`/upload-video/cancel/${jobId}`, {
+    return this.makeRequest<void>(`/api/upload-video/cancel/${jobId}`, {
       method: 'POST',
     })
   }

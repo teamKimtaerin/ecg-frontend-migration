@@ -11,7 +11,7 @@ export interface PluginManifest {
   capabilities?: string[]
   peer?: Record<string, string>
   preload?: string[]
-  timeOffset?: [number, number] // [preOffset, postOffset]
+  timeOffset?: [number, number] | [string, string] // [preOffset, postOffset] - can be seconds or percentages like "50%"
   schema?: Record<string, SchemaProperty>
   icon?: string // Optional icon path relative to plugin directory
 }
@@ -37,7 +37,8 @@ export async function loadPluginManifest(
   try {
     // Construct URL to plugin manifest
     const baseUrl =
-      process.env.NEXT_PUBLIC_PLUGIN_SERVER_URL || 'http://localhost:8080'
+      process.env.NEXT_PUBLIC_MOTIONTEXT_PLUGIN_ORIGIN ||
+      'http://localhost:3300'
     const manifestUrl = `${baseUrl}/plugins/${pluginKey}/manifest.json`
 
     const response = await fetch(manifestUrl)
@@ -64,36 +65,34 @@ export async function loadPluginManifest(
  * Get the timeOffset for a specific plugin
  * @param pluginKey - Plugin identifier
  * @returns timeOffset tuple [preOffset, postOffset] or [0, 0] if not found
+ * @note Returns the raw timeOffset from manifest - may be numbers or percentage strings
  */
 export async function getPluginTimeOffset(
   pluginKey?: string
-): Promise<[number, number]> {
+): Promise<[number, number] | [string, string]> {
   const manifest = await loadPluginManifest(pluginKey)
   return manifest?.timeOffset || [0, 0]
 }
 
 /**
- * Preload manifests for commonly used plugins
+ * Extract default parameters from a plugin's manifest schema.
  */
-export async function preloadCommonPluginManifests(): Promise<void> {
-  const commonPlugins = [
-    'elastic@2.0.0',
-    'typewriter@2.0.0',
-    'pulse@2.0.0',
-    'fadein@2.0.0',
-    'scalepop@2.0.0',
-    'slideup@2.0.0',
-    'rotation@2.0.0',
-    'glitch@2.0.0',
-    'magnetic@2.0.0',
-    'flames@2.0.0',
-    'glow@2.0.0',
-  ]
-
-  // Load manifests in parallel
-  await Promise.allSettled(
-    commonPlugins.map((pluginKey) => loadPluginManifest(pluginKey))
-  )
+export async function getPluginDefaultParams(
+  pluginKey?: string
+): Promise<Record<string, unknown>> {
+  if (!pluginKey) return {}
+  const manifest = await loadPluginManifest(pluginKey)
+  const schema = manifest?.schema
+  if (!schema) return {}
+  const params: Record<string, unknown> = {}
+  for (const [key, prop] of Object.entries(schema)) {
+    // Use defined default if present; otherwise leave undefined out
+    // to let renderer/plugin handle missing values.
+    if (Object.prototype.hasOwnProperty.call(prop, 'default')) {
+      params[key] = (prop as SchemaProperty).default
+    }
+  }
+  return params
 }
 
 /**
@@ -110,7 +109,7 @@ export async function getPluginIconUrl(
   if (!manifest?.icon) return null
 
   const baseUrl =
-    process.env.NEXT_PUBLIC_PLUGIN_SERVER_URL || 'http://localhost:8080'
+    process.env.NEXT_PUBLIC_MOTIONTEXT_PLUGIN_ORIGIN || 'http://localhost:3300'
   return `${baseUrl}/plugins/${pluginKey}/${manifest.icon}`
 }
 

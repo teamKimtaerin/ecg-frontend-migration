@@ -3,6 +3,7 @@ import WaveSurfer from 'wavesurfer.js'
 import { useEditorStore } from '../../store'
 import { IoPlay, IoPause, IoArrowUndo, IoArrowRedo } from 'react-icons/io5'
 import { Word } from './types'
+import { createParameterDebounce } from '../../utils/animationHelpers'
 
 interface ExpandedClipWaveformProps {
   words: Word[]
@@ -134,6 +135,7 @@ export default function ExpandedClipWaveform({
     updateWordTiming,
     updateAnimationIntensity,
     updateAnimationTrackTiming,
+    updateAnimationTrackTimingImmediate,
     undoWordTiming,
     redoWordTiming,
     setHasUnsavedChanges,
@@ -144,6 +146,17 @@ export default function ExpandedClipWaveform({
     refreshWordPluginChain,
   } = useEditorStore()
 
+  // Debounced update functions for high-frequency events (except animation track timing)
+  const debouncedUpdateWordTiming = useCallback(
+    createParameterDebounce(updateWordTiming, 100),
+    [updateWordTiming]
+  )
+
+  const debouncedUpdateAnimationIntensity = useCallback(
+    createParameterDebounce(updateAnimationIntensity, 100),
+    [updateAnimationIntensity]
+  )
+
   // Find the focused word
   const focusedWord = words.find(
     (w) => w.id === (focusedWordId || expandedWordId)
@@ -152,6 +165,11 @@ export default function ExpandedClipWaveform({
   // Local state for dragging - track for each word
   const [draggedWordId, setDraggedWordId] = useState<string | null>(null)
   const [dragType, setDragType] = useState<string | null>(null)
+
+  // Local state for animation track visual positions during drag
+  const [localAnimationPositions, setLocalAnimationPositions] = useState<
+    Map<string, { start: number; end: number }>
+  >(new Map())
 
   // Calculate focused word range (3 words: previous + current + next)
   const { displayWords, rangeStart, rangeEnd, rangeDuration } =
@@ -323,81 +341,92 @@ export default function ExpandedClipWaveform({
 
       if (dragType === 'timing-start') {
         const newStart = Math.min(time, currentTiming.end - 0.01)
-        updateWordTiming(draggedWordId, newStart, currentTiming.end)
-        updateWordBaseTime?.(draggedWordId, newStart, currentTiming.end)
-        refreshWordPluginChain?.(draggedWordId)
+        debouncedUpdateWordTiming(draggedWordId, newStart, currentTiming.end)
         setHasUnsavedChanges(true)
       } else if (dragType === 'timing-end') {
         const newEnd = Math.max(time, currentTiming.start + 0.01)
-        updateWordTiming(draggedWordId, currentTiming.start, newEnd)
-        updateWordBaseTime?.(draggedWordId, currentTiming.start, newEnd)
-        refreshWordPluginChain?.(draggedWordId)
+        debouncedUpdateWordTiming(draggedWordId, currentTiming.start, newEnd)
         setHasUnsavedChanges(true)
       } else if (dragType === 'animation-min') {
         const newMin = Math.min(position, currentIntensity.max - 0.05)
-        updateAnimationIntensity(draggedWordId, newMin, currentIntensity.max)
+        debouncedUpdateAnimationIntensity(
+          draggedWordId,
+          newMin,
+          currentIntensity.max
+        )
         setHasUnsavedChanges(true)
       } else if (dragType === 'animation-max') {
         const newMax = Math.max(position, currentIntensity.min + 0.05)
-        updateAnimationIntensity(draggedWordId, currentIntensity.min, newMax)
+        debouncedUpdateAnimationIntensity(
+          draggedWordId,
+          currentIntensity.min,
+          newMax
+        )
         setHasUnsavedChanges(true)
       } else if (dragType.startsWith('track-')) {
-        // Handle animation track bars
+        // Handle animation track bars - store positions locally during drag
         const [, assetId, barType] = dragType.split('-')
         const tracks = wordAnimationTracks.get(draggedWordId) || []
         const track = tracks.find((t) => t.assetId === assetId)
 
         if (track) {
+          const trackKey = `${draggedWordId}-${assetId}`
+          const currentLocal =
+            localAnimationPositions.get(trackKey) || track.timing
+
+          let newStart = currentLocal.start
+          let newEnd = currentLocal.end
+
           if (barType === 'start') {
-            const newStart = Math.min(time, track.timing.end - 0.01)
-            updateAnimationTrackTiming(
-              draggedWordId,
-              assetId,
-              newStart,
-              track.timing.end
-            )
-            refreshWordPluginChain?.(draggedWordId)
-            setHasUnsavedChanges(true)
+            newStart = Math.min(time, currentLocal.end - 0.01)
           } else if (barType === 'end') {
-            const newEnd = Math.max(time, track.timing.start + 0.01)
-            updateAnimationTrackTiming(
-              draggedWordId,
-              assetId,
-              track.timing.start,
-              newEnd
-            )
-            refreshWordPluginChain?.(draggedWordId)
-            setHasUnsavedChanges(true)
+            newEnd = Math.max(time, currentLocal.start + 0.01)
           } else if (barType === 'move') {
             // Move the entire track to follow mouse position
-            const duration = track.timing.end - track.timing.start
-            const newStart =
+            const duration = currentLocal.end - currentLocal.start
+            const newStartPos =
               rangeStart + position * rangeDuration - duration / 2
 
             // Constrain within range bounds
-            const constrainedStart = Math.max(
+            newStart = Math.max(
               rangeStart,
-              Math.min(newStart, rangeEnd - duration)
+              Math.min(newStartPos, rangeEnd - duration)
             )
-            const constrainedEnd = constrainedStart + duration
-
-            updateAnimationTrackTiming(
-              draggedWordId,
-              assetId,
-              constrainedStart,
-              constrainedEnd
-            )
-            refreshWordPluginChain?.(draggedWordId)
-            setHasUnsavedChanges(true)
+            newEnd = newStart + duration
           }
+
+          // Store position locally for visual feedback
+          setLocalAnimationPositions((prev) =>
+            new Map(prev).set(trackKey, { start: newStart, end: newEnd })
+          )
+          setHasUnsavedChanges(true)
         }
       }
     }
 
     const handleMouseUp = () => {
+      // Apply animation track position changes to store if we were dragging a track
+      if (draggedWordId && dragType && dragType.startsWith('track-')) {
+        const [, assetId] = dragType.split('-')
+        const trackKey = `${draggedWordId}-${assetId}`
+        const localPosition = localAnimationPositions.get(trackKey)
+
+        if (localPosition) {
+          // Apply the final position to the store immediately (no debounce)
+          updateAnimationTrackTimingImmediate(
+            draggedWordId,
+            assetId,
+            localPosition.start,
+            localPosition.end
+          )
+        }
+      }
+
+      // Clear drag state and local positions
       setIsDragging(false)
       setDraggedWordId(null)
       setDragType(null)
+      setLocalAnimationPositions(new Map())
     }
 
     document.addEventListener('mousemove', handleMouseMove)
@@ -418,9 +447,10 @@ export default function ExpandedClipWaveform({
     wordTimingAdjustments,
     wordAnimationIntensity,
     wordAnimationTracks,
+    localAnimationPositions,
     updateWordTiming,
     updateAnimationIntensity,
-    updateAnimationTrackTiming,
+    updateAnimationTrackTimingImmediate,
     setHasUnsavedChanges,
     refreshWordPluginChain,
     updateWordBaseTime,
@@ -430,41 +460,45 @@ export default function ExpandedClipWaveform({
   const handleUndo = useCallback(() => {
     if (focusedWord) {
       undoWordTiming(focusedWord.id)
+
+      // Get the timing after undo and sync to scenario
       const timing = wordTimingAdjustments.get(focusedWord.id) || {
         start: focusedWord.start,
         end: focusedWord.end,
       }
-      updateWordBaseTime?.(focusedWord.id, timing.start, timing.end)
-      refreshWordPluginChain?.(focusedWord.id)
+
+      // Use updateWordTiming to ensure proper scenario sync
+      updateWordTiming(focusedWord.id, timing.start, timing.end)
       setHasUnsavedChanges(true)
     }
   }, [
     focusedWord,
     undoWordTiming,
-    setHasUnsavedChanges,
+    updateWordTiming,
     wordTimingAdjustments,
-    updateWordBaseTime,
-    refreshWordPluginChain,
+    setHasUnsavedChanges,
   ])
 
   const handleRedo = useCallback(() => {
     if (focusedWord) {
       redoWordTiming(focusedWord.id)
+
+      // Get the timing after redo and sync to scenario
       const timing = wordTimingAdjustments.get(focusedWord.id) || {
         start: focusedWord.start,
         end: focusedWord.end,
       }
-      updateWordBaseTime?.(focusedWord.id, timing.start, timing.end)
-      refreshWordPluginChain?.(focusedWord.id)
+
+      // Use updateWordTiming to ensure proper scenario sync
+      updateWordTiming(focusedWord.id, timing.start, timing.end)
       setHasUnsavedChanges(true)
     }
   }, [
     focusedWord,
     redoWordTiming,
-    setHasUnsavedChanges,
+    updateWordTiming,
     wordTimingAdjustments,
-    updateWordBaseTime,
-    refreshWordPluginChain,
+    setHasUnsavedChanges,
   ])
 
   // Sync playback state with video player
@@ -615,8 +649,14 @@ export default function ExpandedClipWaveform({
                   return tracks.map((track, trackIndex) => {
                     const colors = trackColors[track.color]
                     const topOffset = 50 + trackIndex * 15 // Position below red line with more space
-                    const startPos = getBarPosition(track.timing.start)
-                    const endPos = getBarPosition(track.timing.end)
+
+                    // Use local positions during drag for visual feedback
+                    const trackKey = `${focusedWord.id}-${track.assetId}`
+                    const localPosition = localAnimationPositions.get(trackKey)
+                    const effectiveTiming = localPosition || track.timing
+
+                    const startPos = getBarPosition(effectiveTiming.start)
+                    const endPos = getBarPosition(effectiveTiming.end)
                     const width = (endPos - startPos) * 100
 
                     return (
@@ -643,7 +683,7 @@ export default function ExpandedClipWaveform({
                                 e
                               )
                             }
-                            title={`${track.assetName} 시작: ${track.timing.start.toFixed(2)}s`}
+                            title={`${track.assetName} 시작: ${effectiveTiming.start.toFixed(2)}s`}
                           />
 
                           {/* Right border handle (end) */}
@@ -656,7 +696,7 @@ export default function ExpandedClipWaveform({
                                 e
                               )
                             }
-                            title={`${track.assetName} 종료: ${track.timing.end.toFixed(2)}s`}
+                            title={`${track.assetName} 종료: ${effectiveTiming.end.toFixed(2)}s`}
                           />
 
                           {/* Center area for moving entire track */}
@@ -669,7 +709,7 @@ export default function ExpandedClipWaveform({
                                 e
                               )
                             }
-                            title={`${track.assetName} 이동: ${track.timing.start.toFixed(2)}s - ${track.timing.end.toFixed(2)}s`}
+                            title={`${track.assetName} 이동: ${effectiveTiming.start.toFixed(2)}s - ${effectiveTiming.end.toFixed(2)}s`}
                           />
 
                           {/* Animation name inside rectangle */}

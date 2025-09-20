@@ -45,8 +45,8 @@ export interface MetadataConfig {
   emotion_model: string
 }
 
-// 초를 MM:SS 형식으로 변환
-function formatTime(seconds: number): string {
+// 초를 MM:SS 형식으로 변환 - TODO: Use this in UI
+function _formatTime(seconds: number): string {
   const minutes = Math.floor(seconds / 60)
   const secs = Math.floor(seconds % 60)
   return `${minutes}:${secs.toString().padStart(2, '0')}`

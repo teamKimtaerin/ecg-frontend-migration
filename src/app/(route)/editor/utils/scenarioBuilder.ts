@@ -45,7 +45,7 @@ export function buildScenarioFromClips(
   const centerX = Math.round(stageW / 2)
   const centerY = Math.max(0, Math.min(stageH, stageH - marginY - boxH / 2))
   const fontSizeRel = options?.fontSizeRel ?? 0.07
-  const pluginName = options?.pluginName ?? 'elastic@1.0.0'
+  const pluginName = options?.pluginName ?? ''
   const fontFamily = options?.fontFamily ?? 'Arial, sans-serif'
 
   // 유효한 클립만 필터링 (삭제되지 않고, 텍스트가 있는 클립)
@@ -184,7 +184,7 @@ function getPluginChain(
   relEndPct: number
 }> {
   // 클립에 설정된 애니메이션이 있으면 사용
-  if (clip.animation) {
+  if (clip.animation && clip.animation.name) {
     return [
       {
         name: clip.animation.name,
@@ -195,15 +195,20 @@ function getPluginChain(
     ]
   }
 
-  // 기본 애니메이션 적용
-  return [
-    {
-      name: defaultPlugin,
-      params: {},
-      relStartPct: 0,
-      relEndPct: 1,
-    },
-  ]
+  // 기본 플러그인이 있으면 적용, 없으면 빈 배열 반환
+  if (defaultPlugin) {
+    return [
+      {
+        name: defaultPlugin,
+        params: {},
+        relStartPct: 0,
+        relEndPct: 1,
+      },
+    ]
+  }
+
+  // 플러그인 없이 빈 배열 반환 (애니메이션 없음)
+  return []
 }
 
 /**

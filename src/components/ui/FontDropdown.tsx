@@ -246,7 +246,7 @@ export default function FontDropdown({
     isOpen && menuContainer ? (
       <div
         ref={menuRef}
-        className="fixed bg-slate-800/95 backdrop-blur-sm border border-slate-600/50 rounded-lg shadow-xl max-h-96 overflow-hidden"
+        className="fixed bg-slate-800/95 backdrop-blur-sm border border-slate-600 rounded-lg shadow-2xl max-h-96 overflow-hidden"
         style={{
           top: menuPosition.top,
           left: menuPosition.left,
@@ -338,7 +338,7 @@ export default function FontDropdown({
         )}
 
         {/* 폰트 목록 */}
-        <div className="max-h-80 overflow-y-auto">
+        <div className="max-h-80 overflow-y-auto dropdown-scrollbar">
           {activeTab === 'free' ? (
             <>
               {/* 최근 사용한 폰트 */}

@@ -194,8 +194,6 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
       segmentStart,
       segmentEnd,
       stopSegmentPlayback,
-      isPlaying,
-      clips,
       videoRef, // Added to satisfy ESLint dependency check
       // setFocusedWord, setActiveClipId, setPlayingWord, clearPlayingWord - unused in current implementation
     ])
@@ -450,7 +448,7 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
           ref={videoRef}
           src={videoUrl}
           playsInline
-          controls
+          controls={false}
           className="w-full h-full object-contain"
           onClick={(e) => togglePlayPause(e)}
           onTimeUpdate={handleTimeUpdate}

@@ -25,16 +25,19 @@ const TemplateGrid: React.FC<TemplateGridProps> = ({
         const data = await response.json()
 
         const templateItems: TemplateItem[] = data.templates.map(
-          (template: any) => ({
-            id: template.id,
-            name: template.title,
-            category: template.category,
-            type: template.isPro ? 'premium' : 'free',
-            preview: template.preview,
-            description: template.description,
-            manifestFile: template.manifestFile,
-            thumbnail: template.thumbnail,
-          })
+          (template: unknown) => {
+            const t = template as Record<string, unknown>
+            return {
+              id: t.id as string,
+              name: t.title as string,
+              category: t.category as string,
+              type: t.isPro ? 'premium' : 'free',
+              preview: t.preview as string,
+              description: t.description as string,
+              manifestFile: t.manifestFile as string,
+              thumbnail: t.thumbnail as string,
+            }
+          }
         )
 
         setTemplates(templateItems)
