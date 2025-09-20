@@ -14,9 +14,10 @@ export const useAuth = () => {
       // 사용자 정보가 없고 로딩 중이 아니면 항상 인증 시도
       // 쿠키가 있으면 자동 로그인, 없으면 실패 처리
       console.log('🔍 useAuth: Attempting to restore auth state')
+
       store.getCurrentUser()
     }
-  }, [store.user, store.isLoading, store.getCurrentUser, store])
+  }, [store.user, store.isLoading, store.isAuthenticated, store.getCurrentUser, store])
 
   return {
     // 상태
