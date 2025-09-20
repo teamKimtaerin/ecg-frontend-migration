@@ -9,6 +9,7 @@ import { FaDownload, FaRocket } from 'react-icons/fa'
 import { useServerVideoExport } from '../../hooks/useServerVideoExport'
 import { useEditorStore } from '../../store'
 import VideoExportProgressModal from './VideoExportProgressModal'
+import VideoExportResultModal from './VideoExportResultModal'
 
 interface ServerVideoExportModalProps {
   isOpen: boolean
@@ -41,6 +42,7 @@ export default function ServerVideoExportModal({
     'ready' | 'exporting' | 'completed' | 'error'
   >('ready')
   const [isProgressModalOpen, setIsProgressModalOpen] = useState(false)
+  const [isResultModalOpen, setIsResultModalOpen] = useState(false)
 
   // 비디오 URL 결정 (props > store)
   const videoUrl = propVideoUrl || storeVideoUrl
@@ -49,6 +51,7 @@ export default function ServerVideoExportModal({
     if (isOpen) {
       setPhase('ready')
       setIsProgressModalOpen(false)
+      setIsResultModalOpen(false)
       reset()
     }
   }, [isOpen, reset])
@@ -56,8 +59,12 @@ export default function ServerVideoExportModal({
   useEffect(() => {
     if (status === 'completed' && downloadUrl) {
       setPhase('completed')
+      setIsProgressModalOpen(false)
+      setIsResultModalOpen(true)
     } else if (status === 'failed' || error) {
       setPhase('error')
+      setIsProgressModalOpen(false)
+      setIsResultModalOpen(true)
     } else if (isExporting) {
       setPhase('exporting')
     }
@@ -145,12 +152,35 @@ export default function ServerVideoExportModal({
 
   const handleProgressModalComplete = () => {
     setIsProgressModalOpen(false)
+    setIsResultModalOpen(true)
     setPhase('completed')
+  }
+
+  const handleResultModalClose = () => {
+    setIsResultModalOpen(false)
+    onClose()
+  }
+
+  // 파일명 생성 함수
+  const getFileName = (): string => {
+    const baseName = videoName?.replace(/\.[^/.]+$/, '') || '파일 영상'
+    return `${baseName}.mp4`
   }
 
   // 🧪 테스트용: 진행률 모달 직접 열기 (개발환경 전용)
   const handleTestProgressModal = () => {
     setIsProgressModalOpen(true)
+  }
+
+  // 🧪 테스트용: 결과 모달 직접 열기 (개발환경 전용)
+  const handleTestResultModalSuccess = () => {
+    setPhase('completed')
+    setIsResultModalOpen(true)
+  }
+
+  const handleTestResultModalError = () => {
+    setPhase('error')
+    setIsResultModalOpen(true)
   }
 
   const formatTime = (seconds: number | null): string => {
@@ -265,12 +295,28 @@ export default function ServerVideoExportModal({
             <div className="space-y-3 pt-4">
               {/* 개발환경 전용 테스트 버튼 */}
               {process.env.NODE_ENV === 'development' && (
-                <button
-                  onClick={handleTestProgressModal}
-                  className="w-full px-4 py-2.5 bg-purple-500 hover:bg-purple-600 text-white text-sm font-medium rounded-md transition-colors duration-200 border-2 border-purple-300"
-                >
-                  🧪 진행률 모달 테스트
-                </button>
+                <div className="space-y-2">
+                  <button
+                    onClick={handleTestProgressModal}
+                    className="w-full px-4 py-2.5 bg-purple-500 hover:bg-purple-600 text-white text-sm font-medium rounded-md transition-colors duration-200 border-2 border-purple-300"
+                  >
+                    🧪 진행률 모달 테스트
+                  </button>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={handleTestResultModalSuccess}
+                      className="flex-1 px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-xs font-medium rounded-md transition-colors"
+                    >
+                      ✅ 성공 모달
+                    </button>
+                    <button
+                      onClick={handleTestResultModalError}
+                      className="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-xs font-medium rounded-md transition-colors"
+                    >
+                      ❌ 실패 모달
+                    </button>
+                  </div>
+                </div>
               )}
 
               <div className="flex space-x-3">
@@ -343,143 +389,6 @@ export default function ServerVideoExportModal({
           </div>
         )}
 
-        {/* 완료 */}
-        {phase === 'completed' && downloadUrl && (
-          <div className="space-y-4">
-            <div className="text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-                <svg
-                  className="w-8 h-8 text-green-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                렌더링 완료! 🎉
-              </h3>
-              <p className="text-sm text-gray-600">
-                {selectedFileHandle
-                  ? '선택한 위치에 자동으로 저장되었습니다'
-                  : '고품질 영상이 준비되었습니다'}
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              {!selectedFileHandle && (
-                <Button
-                  onClick={handleDownload}
-                  variant="primary"
-                  size="large"
-                  className="w-full"
-                >
-                  <FaDownload className="mr-2" />
-                  다운로드
-                </Button>
-              )}
-
-              {selectedFileHandle && (
-                <Button
-                  onClick={handleDownload}
-                  variant="secondary"
-                  size="medium"
-                  className="w-full"
-                >
-                  <FaDownload className="mr-2" />
-                  다른 위치에 저장
-                </Button>
-              )}
-
-              <Button
-                onClick={onClose}
-                variant="secondary"
-                size="medium"
-                className="w-full"
-              >
-                닫기
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* 오류 */}
-        {phase === 'error' && (
-          <div className="space-y-4">
-            <div className="text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
-                <svg
-                  className="w-8 h-8 text-red-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                렌더링 실패
-              </h3>
-              {error && (
-                <div className="text-left bg-red-50 rounded-lg p-3 mb-4">
-                  <p className="text-sm text-red-800 font-medium mb-2">
-                    오류 메시지:
-                  </p>
-                  <p className="text-sm text-red-700 whitespace-pre-wrap">
-                    {error}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* 디버깅 정보 표시 */}
-            <div className="bg-gray-50 rounded-lg p-3 text-xs text-gray-600">
-              <p className="font-medium mb-1">📊 디버깅 정보:</p>
-              <p>• 비디오 URL: {videoUrl ? '✅ 있음' : '❌ 없음'}</p>
-              <p>• 자막 개수: {clips?.length || 0}개</p>
-              <p>
-                • 유효한 자막:{' '}
-                {clips?.filter((c) => c.fullText?.trim() || c.subtitle?.trim())
-                  .length || 0}
-                개
-              </p>
-              <p>• 환경: {process.env.NODE_ENV}</p>
-              <p className="text-xs text-gray-500 mt-2">
-                💡 개발자 도구 Console 탭에서 자세한 오류 정보를 확인하세요.
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Button
-                onClick={handleStartExport}
-                variant="primary"
-                size="medium"
-                className="w-full"
-              >
-                다시 시도
-              </Button>
-              <Button
-                onClick={onClose}
-                variant="secondary"
-                size="medium"
-                className="w-full"
-              >
-                닫기
-              </Button>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* 영상 출력 진행률 모달 */}
@@ -487,6 +396,14 @@ export default function ServerVideoExportModal({
         isOpen={isProgressModalOpen}
         onClose={handleProgressModalClose}
         onComplete={handleProgressModalComplete}
+      />
+
+      {/* 영상 출력 결과 모달 */}
+      <VideoExportResultModal
+        isOpen={isResultModalOpen}
+        onClose={handleResultModalClose}
+        status={phase === 'completed' ? 'success' : 'error'}
+        fileName={getFileName()}
       />
     </Modal>
   )
