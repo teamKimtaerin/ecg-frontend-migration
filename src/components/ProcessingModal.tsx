@@ -2,6 +2,7 @@
 
 import { FaTimes } from 'react-icons/fa'
 import { FaSpinner } from 'react-icons/fa'
+import { LuLightbulb, LuChevronDown } from 'react-icons/lu'
 import React, { useState, useRef } from 'react'
 
 export interface ProcessingModalProps {
@@ -74,12 +75,22 @@ export default function ProcessingModal({
     }
   }
 
+  const getDynamicTimeText = () => {
+    if (!estimatedTimeRemaining) return '음성을 분석하고 있습니다';
+
+    const minutes = Math.ceil(estimatedTimeRemaining / 60);
+    if (minutes > 0) {
+      return `${minutes}분의 음성을 분석하고 있습니다`;
+    }
+    return '음성을 분석하고 있습니다';
+  }
+
   const getStatusText = () => {
     switch (status) {
       case 'uploading':
         return '파일을 업로드하고 있습니다'
       case 'processing':
-        return '음성을 분석하고 있습니다'
+        return getDynamicTimeText()
       case 'completed':
         return '분석이 완료되었습니다'
       case 'failed':
@@ -161,6 +172,22 @@ export default function ProcessingModal({
             </div>
           </div>
 
+          {/* Tip Section */}
+          <div className="mb-6 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+            <div className="flex items-start gap-3">
+              <LuLightbulb className="text-blue-500 text-lg mt-0.5 flex-shrink-0" />
+              <div>
+                <h4 className="font-medium text-gray-900 mb-2">알고 계셨나요?</h4>
+                <p className="text-sm text-gray-700 mb-1">
+                  편집 중인 영상을 다른 사람에게 보여주고 싶다면,
+                </p>
+                <p className="text-sm text-gray-700">
+                  <span className="font-medium">[만일] &gt; [프리뷰 공유]</span>를 사용하여 간편하게 영상을 공유해 보세요.
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Progress Bar */}
           <div className="mb-4">
             <div className="flex justify-between items-center mb-2">
@@ -185,6 +212,13 @@ export default function ProcessingModal({
               </p>
             </div>
           )}
+
+          {/* Collapse Arrow */}
+          <div className="flex justify-center mt-4">
+            <button className="text-gray-400 hover:text-gray-600 transition-colors">
+              <LuChevronDown className="w-5 h-5" />
+            </button>
+          </div>
 
           {/* Action Buttons for Completed/Failed States */}
           {status === 'completed' && (

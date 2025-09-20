@@ -39,7 +39,7 @@ import { useUnsavedChanges } from './hooks/useUnsavedChanges'
 
 // Components
 import SelectionBox from '@/components/DragDrop/SelectionBox'
-import NewUploadModal from '@/components/NewUploadModal'
+import EnhancedUploadModal from './components/Upload/EnhancedUploadModal'
 import TutorialModal from '@/components/TutorialModal'
 import { ChevronDownIcon } from '@/components/icons'
 import AlertDialog from '@/components/ui/AlertDialog'
@@ -2165,7 +2165,7 @@ export default function EditorPage() {
             </div>
           </div>
 
-          <NewUploadModal
+          <EnhancedUploadModal
             isOpen={uploadModal.isOpen && uploadModal.step === 'select'}
             onClose={() =>
               !uploadModal.isTranscriptionLoading && uploadModal.closeModal()
