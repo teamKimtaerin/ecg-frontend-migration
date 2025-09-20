@@ -8,12 +8,12 @@ import { useEffect } from 'react'
 export const useAuth = () => {
   const store = useAuthStore()
 
-  // 앱 시작 시 토큰이 있으면 사용자 정보를 가져옴
+  // 앱 시작 시 인증 상태 복원 (토큰 또는 쿠키 기반)
   useEffect(() => {
-    if (store.token && !store.user && !store.isLoading) {
+    if (!store.user && !store.isLoading) {
       store.getCurrentUser()
     }
-  }, [store.token, store.user, store.isLoading, store.getCurrentUser, store])
+  }, [store.user, store.isLoading, store.getCurrentUser, store])
 
   return {
     // 상태
