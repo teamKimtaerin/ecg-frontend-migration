@@ -71,15 +71,41 @@ export default function ServerVideoExportModal({
   }, [status, downloadUrl, error, isExporting])
 
   const handleStartExport = async () => {
-    if (!videoUrl) {
-      console.error('🚨 비디오 URL이 없습니다')
-      return
-    }
+    // 🧪 [기존 업로드 상태 체크 - 주석처리] UI 개발을 위한 임시 우회
+    // if (!videoUrl) {
+    //   console.error('🚨 비디오 URL이 없습니다')
+    //   return
+    // }
+    // if (!clips || clips.length === 0) {
+    //   console.error('🚨 자막 데이터가 없습니다')
+    //   return
+    // }
 
-    if (!clips || clips.length === 0) {
-      console.error('🚨 자막 데이터가 없습니다')
-      return
-    }
+    // 🧪 UI 개발용: 샘플 데이터로 항상 진행 가능하도록 설정
+    const sampleVideoUrl = videoUrl || '/friends.mp4'
+    const sampleClips = clips && clips.length > 0 ? clips : [
+      {
+        id: 'sample-1',
+        text: '샘플 자막 텍스트입니다',
+        startTime: 0,
+        endTime: 5,
+        speaker: 'Speaker 1'
+      },
+      {
+        id: 'sample-2',
+        text: '두 번째 샘플 자막입니다',
+        startTime: 5,
+        endTime: 10,
+        speaker: 'Speaker 2'
+      }
+    ]
+
+    console.log('🧪 개발 모드: 업로드 상태 체크 우회됨', {
+      originalVideoUrl: videoUrl,
+      sampleVideoUrl,
+      originalClips: clips?.length || 0,
+      sampleClips: sampleClips.length
+    })
 
     // 진행률 모달 열기
     setIsProgressModalOpen(true)
@@ -87,41 +113,55 @@ export default function ServerVideoExportModal({
     try {
       setPhase('exporting')
 
-      // 🔍 시나리오 생성 및 검증
-      const scenario = buildScenarioFromClips(clips)
-      console.log('🔍 Generated scenario debug:', {
-        version: scenario.version,
-        tracks: scenario.tracks.length,
-        cues: scenario.cues.length,
-        validCues: scenario.cues.filter((c) => c.hintTime?.start !== undefined)
-          .length,
-        firstCue: scenario.cues[0],
-      })
+      // 🧪 [기존 시나리오 생성 및 GPU 렌더링 - 주석처리] UI 개발을 위한 임시 우회
+      // const scenario = buildScenarioFromClips(clips)
+      // console.log('🔍 Generated scenario debug:', {
+      //   version: scenario.version,
+      //   tracks: scenario.tracks.length,
+      //   cues: scenario.cues.length,
+      //   validCues: scenario.cues.filter((c) => c.hintTime?.start !== undefined)
+      //     .length,
+      //   firstCue: scenario.cues[0],
+      // })
+      // if (scenario.cues.length === 0) {
+      //   throw new Error(
+      //     '유효한 자막이 없습니다. 자막을 추가한 후 다시 시도해주세요.'
+      //   )
+      // }
+      // await startExport(
+      //   videoUrl,
+      //   scenario,
+      //   {
+      //     width: 1920,
+      //     height: 1080,
+      //     fps: 30,
+      //     quality: 90,
+      //     format: 'mp4',
+      //   },
+      //   fileName
+      // )
 
-      if (scenario.cues.length === 0) {
-        throw new Error(
-          '유효한 자막이 없습니다. 자막을 추가한 후 다시 시도해주세요.'
-        )
+      // 🧪 UI 개발용: 가상 시나리오 생성 시뮬레이션
+      try {
+        const mockScenario = buildScenarioFromClips(sampleClips)
+        console.log('🧪 가상 시나리오 생성 성공:', {
+          clips: sampleClips.length,
+          cues: mockScenario.cues.length
+        })
+      } catch (scenarioError) {
+        console.log('🧪 시나리오 생성 우회: 가상 시나리오 사용')
       }
 
-      // 파일명 생성
-      const baseName = videoName?.replace(/\.[^/.]+$/, '') || 'video'
+      // 파일명 생성 (UI 표시용)
+      const baseName = videoName?.replace(/\.[^/.]+$/, '') || 'friends'
       const timestamp = new Date().toISOString().split('T')[0] // YYYY-MM-DD
       const fileName = `${baseName}_GPU_${timestamp}.mp4`
 
-      // GPU 렌더링 시작 (저장 위치 선택 포함)
-      await startExport(
-        videoUrl,
-        scenario,
-        {
-          width: 1920,
-          height: 1080,
-          fps: 30,
-          quality: 90,
-          format: 'mp4',
-        },
-        fileName
-      )
+      console.log('🧪 UI 개발 모드: 실제 GPU 렌더링 없이 진행률 모달만 표시', {
+        sampleVideoUrl,
+        fileName,
+        clipCount: sampleClips.length
+      })
     } catch (error) {
       console.error('🚨 Export failed:', error)
       setIsProgressModalOpen(false)
