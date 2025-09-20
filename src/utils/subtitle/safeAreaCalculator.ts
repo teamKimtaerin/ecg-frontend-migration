@@ -24,9 +24,9 @@ export function calculateMaxSubtitleWidth(config: SafeAreaConfig): number {
     return videoWidth
   }
 
-  // 렌더러의 기본 safe area: 비디오 너비의 90% (좌우 5%씩 여백)
-  // 이는 대부분의 브로드캐스트 표준에 따름
-  const RENDERER_SAFE_AREA_RATIO = 0.9
+  // 자동 줄바꿈을 위한 safe area: 비디오 너비의 85% (좌우 7.5%씩 여백)
+  // 실제 렌더러보다 보수적으로 계산하여 텍스트가 가장자리에 너무 가깝지 않도록 함
+  const RENDERER_SAFE_AREA_RATIO = 0.85
   return Math.floor(videoWidth * RENDERER_SAFE_AREA_RATIO)
 }
 

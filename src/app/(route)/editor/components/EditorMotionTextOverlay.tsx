@@ -617,8 +617,8 @@ export default function EditorMotionTextOverlay({
     onScenarioUpdate,
   ])
 
-  // Load a scenario for all visible clips (default path) - includes plugin application
-  // Only when Store doesn't have a scenario yet
+  // Load initial scenario only when Store doesn't have one
+  // All scenario updates are handled by Store subscription below
   useEffect(() => {
     if (usingExternalScenario || isLoadingScenario || scenarioOverride) return
     if (!showSubtitles) return
@@ -626,7 +626,7 @@ export default function EditorMotionTextOverlay({
     // Skip if Store already has a scenario (let Store subscription handle updates)
     if (currentScenario && scenarioVersion > 0) return
 
-    // Only build and load when no Store scenario exists
+    // Only build and load when no Store scenario exists (initial load)
     const config = buildScenarioFromClips()
 
     // Send current scenario to parent for JSON editor
@@ -647,38 +647,13 @@ export default function EditorMotionTextOverlay({
     isLoadingScenario,
     onScenarioUpdate,
     scenarioOverride,
-    clips,
-    deletedClipIds,
-    subtitlePosition,
-    subtitleSize,
-    wordAnimationTracks,
+    // Removed clips, deletedClipIds, subtitlePosition, subtitleSize, wordAnimationTracks
+    // These should not trigger scenario rebuilding - only Store updates should
     currentScenario,
     scenarioVersion,
   ])
 
-  // Additionally, ensure store scenario is updated when changes occur
-  useEffect(() => {
-    if (usingExternalScenario || isLoadingScenario || scenarioOverride) return
-    if (!showSubtitles) return
-
-    // Build scenario and update store
-    const config = buildScenarioFromClips()
-    const store = useEditorStore.getState() as any // eslint-disable-line @typescript-eslint/no-explicit-any
-    if (store.setScenarioFromJson) {
-      store.setScenarioFromJson(config)
-    }
-  }, [
-    buildScenarioFromClips,
-    clips,
-    deletedClipIds,
-    subtitlePosition,
-    subtitleSize,
-    wordAnimationTracks,
-    showSubtitles,
-    usingExternalScenario,
-    isLoadingScenario,
-    scenarioOverride,
-  ])
+  // Store scenario is managed centrally - no additional updates needed here
 
   // When scenario slice version changes, reload scenario (debounced)
   useEffect(() => {

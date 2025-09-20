@@ -711,11 +711,7 @@ export const createClipSlice: StateCreator<
 
     set({ clips: reorderedClips })
 
-    // 시나리오 업데이트 트리거
-    const anyGet = get() as unknown as {
-      buildInitialScenario?: (clips: ClipItem[]) => void
-    }
-    anyGet.buildInitialScenario?.(reorderedClips)
+    // 시나리오는 기존 store 메커니즘을 통해 자동 업데이트됨
   },
 
   mergeClipsUnified: (clipIds, mode = MergeMode.MANUAL, config) => {
@@ -742,11 +738,7 @@ export const createClipSlice: StateCreator<
 
     set({ clips: reorderedClips })
 
-    // 시나리오 업데이트 트리거
-    const anyGet = get() as unknown as {
-      buildInitialScenario?: (clips: ClipItem[]) => void
-    }
-    anyGet.buildInitialScenario?.(reorderedClips)
+    // 시나리오는 기존 store 메커니즘을 통해 자동 업데이트됨
   },
 
   applyAutoLineBreak: (config) => {
@@ -789,8 +781,11 @@ export const createClipSlice: StateCreator<
 
     set({ clips: processedClips })
 
-    // 시나리오 재구성
-    state.buildInitialScenario?.(processedClips)
+    // 시나리오 업데이트 - clips와 시나리오 동기화
+    const anyGet = get() as unknown as {
+      buildInitialScenario?: (clips: ClipItem[]) => void
+    }
+    anyGet.buildInitialScenario?.(processedClips)
   },
 
   // === 레거시 호환 메서드 ===
