@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react'
 import { FaDownload, FaRocket } from 'react-icons/fa'
 import { useServerVideoExport } from '../../hooks/useServerVideoExport'
 import { useEditorStore } from '../../store'
+import VideoExportProgressModal from './VideoExportProgressModal'
 
 interface ServerVideoExportModalProps {
   isOpen: boolean
@@ -39,6 +40,7 @@ export default function ServerVideoExportModal({
   const [phase, setPhase] = useState<
     'ready' | 'exporting' | 'completed' | 'error'
   >('ready')
+  const [isProgressModalOpen, setIsProgressModalOpen] = useState(false)
 
   // 비디오 URL 결정 (props > store)
   const videoUrl = propVideoUrl || storeVideoUrl
@@ -46,6 +48,7 @@ export default function ServerVideoExportModal({
   useEffect(() => {
     if (isOpen) {
       setPhase('ready')
+      setIsProgressModalOpen(false)
       reset()
     }
   }, [isOpen, reset])
@@ -70,6 +73,9 @@ export default function ServerVideoExportModal({
       console.error('🚨 자막 데이터가 없습니다')
       return
     }
+
+    // 진행률 모달 열기
+    setIsProgressModalOpen(true)
 
     try {
       setPhase('exporting')
@@ -111,6 +117,7 @@ export default function ServerVideoExportModal({
       )
     } catch (error) {
       console.error('🚨 Export failed:', error)
+      setIsProgressModalOpen(false)
       // 저장 위치 선택 취소인 경우 원래 상태로 돌아감
       if (error instanceof Error && error.message.includes('취소')) {
         setPhase('ready')
@@ -129,6 +136,21 @@ export default function ServerVideoExportModal({
 
       await downloadFile(downloadUrl, filename)
     }
+  }
+
+  const handleProgressModalClose = () => {
+    setIsProgressModalOpen(false)
+    setPhase('ready')
+  }
+
+  const handleProgressModalComplete = () => {
+    setIsProgressModalOpen(false)
+    setPhase('completed')
+  }
+
+  // 🧪 테스트용: 진행률 모달 직접 열기 (개발환경 전용)
+  const handleTestProgressModal = () => {
+    setIsProgressModalOpen(true)
   }
 
   const formatTime = (seconds: number | null): string => {
@@ -240,19 +262,31 @@ export default function ServerVideoExportModal({
             </div>
 
             {/* 버튼 섹션 */}
-            <div className="flex space-x-3 pt-4">
-              <button
-                onClick={handleStartExport}
-                className="flex-1 px-4 py-2.5 bg-cyan-500 hover:bg-cyan-600 text-white text-sm font-medium rounded-md transition-colors duration-200"
-              >
-                내보내기
-              </button>
-              <button
-                onClick={onClose}
-                className="flex-1 px-4 py-2.5 bg-gray-300 hover:bg-gray-400 text-gray-700 text-sm font-medium rounded-md transition-colors duration-200"
-              >
-                취소
-              </button>
+            <div className="space-y-3 pt-4">
+              {/* 개발환경 전용 테스트 버튼 */}
+              {process.env.NODE_ENV === 'development' && (
+                <button
+                  onClick={handleTestProgressModal}
+                  className="w-full px-4 py-2.5 bg-purple-500 hover:bg-purple-600 text-white text-sm font-medium rounded-md transition-colors duration-200 border-2 border-purple-300"
+                >
+                  🧪 진행률 모달 테스트
+                </button>
+              )}
+
+              <div className="flex space-x-3">
+                <button
+                  onClick={handleStartExport}
+                  className="flex-1 px-4 py-2.5 bg-cyan-500 hover:bg-cyan-600 text-white text-sm font-medium rounded-md transition-colors duration-200"
+                >
+                  내보내기
+                </button>
+                <button
+                  onClick={onClose}
+                  className="flex-1 px-4 py-2.5 bg-gray-300 hover:bg-gray-400 text-gray-700 text-sm font-medium rounded-md transition-colors duration-200"
+                >
+                  취소
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -447,6 +481,13 @@ export default function ServerVideoExportModal({
           </div>
         )}
       </div>
+
+      {/* 영상 출력 진행률 모달 */}
+      <VideoExportProgressModal
+        isOpen={isProgressModalOpen}
+        onClose={handleProgressModalClose}
+        onComplete={handleProgressModalComplete}
+      />
     </Modal>
   )
 }
