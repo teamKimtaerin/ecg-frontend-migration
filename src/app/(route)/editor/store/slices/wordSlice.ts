@@ -245,6 +245,7 @@ export interface WordSlice extends WordDragState {
   isWordFocused: (wordId: string) => boolean
   isWordInGroup: (wordId: string) => boolean
   canDragWord: (wordId: string) => boolean
+  canDragSticker: (stickerId: string) => boolean
   isEditingWord: (wordId: string) => boolean
 }
 
@@ -1098,6 +1099,12 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
   canDragWord: (wordId) => {
     const state = get()
     return state.focusedWordId === wordId || state.groupedWordIds.has(wordId)
+  },
+
+  canDragSticker: (stickerId) => {
+    // For now, all stickers are draggable
+    // This can be extended later to include specific conditions
+    return true
   },
 
   isEditingWord: (wordId) => {
