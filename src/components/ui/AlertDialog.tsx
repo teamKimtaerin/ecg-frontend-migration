@@ -164,7 +164,7 @@ const AlertDialog: React.FC<AlertDialogProps> = ({
   // Modal overlay classes
   const overlayClasses = cn(
     'fixed inset-0 z-50',
-    'bg-black bg-opacity-50',
+    'bg-black/60 backdrop-blur-sm',
     'flex items-center justify-center p-4',
     TRANSITIONS.colors,
     isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
@@ -172,7 +172,7 @@ const AlertDialog: React.FC<AlertDialogProps> = ({
 
   // Modal container classes
   const modalClasses = cn(
-    'bg-surface',
+    variant === 'warning' ? 'bg-gray-50' : 'bg-surface',
     'rounded-small',
     'shadow-lg',
     'w-full',
@@ -199,9 +199,10 @@ const AlertDialog: React.FC<AlertDialogProps> = ({
   // Description classes
   const descriptionClasses = cn(
     sizeClasses.description,
-    'text-text-secondary',
+    variant === 'warning' ? 'text-gray-600' : 'text-text-secondary',
     'leading-relaxed',
-    'mt-2'
+    'mt-2',
+    'whitespace-pre-line'
   )
 
   // Actions container classes
@@ -248,6 +249,7 @@ const AlertDialog: React.FC<AlertDialogProps> = ({
                 style="outline"
                 size={size}
                 onClick={handleCancel}
+                className="rounded-[5px] hover:scale-105 hover:shadow-md hover:border-gray-400 transition-all duration-200"
               />
             )}
 
@@ -259,6 +261,7 @@ const AlertDialog: React.FC<AlertDialogProps> = ({
                 style="fill"
                 size={size}
                 onClick={handleSecondaryAction}
+                className="rounded-[5px] hover:scale-105 hover:shadow-md transition-all duration-200"
               />
             )}
 
@@ -269,6 +272,7 @@ const AlertDialog: React.FC<AlertDialogProps> = ({
               style="fill"
               size={size}
               onClick={handlePrimaryAction}
+              className="rounded-[10px] hover:scale-105 hover:shadow-md transition-all duration-200"
             />
           </div>
         </div>
