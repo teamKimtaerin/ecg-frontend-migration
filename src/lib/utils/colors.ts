@@ -190,9 +190,9 @@ export const ALERT_DIALOG_COLORS = {
     primaryButton: 'primary',
   },
   warning: {
-    iconColor: 'text-status-notice',
-    titleColor: 'text-black',
-    primaryButton: 'primary',
+    iconColor: 'text-red-600',
+    titleColor: 'text-gray-900',
+    primaryButton: 'secondary',
   },
   destructive: {
     iconColor: 'text-status-negative',

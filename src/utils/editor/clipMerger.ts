@@ -101,6 +101,7 @@ export const mergeClips = (
     duration: formatDuration(totalDuration),
     thumbnail: firstClip.thumbnail, // 첫 번째 클립의 thumbnail 사용
     words: mergedWords,
+    stickers: [],
   }
 
   return mergedClip

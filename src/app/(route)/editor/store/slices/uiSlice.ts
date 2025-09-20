@@ -55,6 +55,14 @@ export interface UISlice {
   selectedWordId: string | null
   setSelectedWordId: (wordId: string | null) => void
 
+  // Sticker selection state
+  selectedStickerId: string | null
+  setSelectedStickerId: (stickerId: string | null) => void
+  focusedStickerId: string | null
+  setFocusedStickerId: (stickerId: string | null) => void
+  setStickerFocus: (clipId: string, stickerId: string) => void
+  clearStickerFocus: () => void
+
   // Rendering mode state (for Playwright capture)
   isRenderingMode: boolean
   setIsRenderingMode: (mode: boolean) => void
@@ -130,6 +138,23 @@ export const createUISlice: StateCreator<UISlice> = (set) => ({
   // Word selection state
   selectedWordId: null,
   setSelectedWordId: (wordId) => set({ selectedWordId: wordId }),
+
+  // Sticker selection state
+  selectedStickerId: null,
+  setSelectedStickerId: (stickerId) => set({ selectedStickerId: stickerId }),
+  focusedStickerId: null,
+  setFocusedStickerId: (stickerId) => set({ focusedStickerId: stickerId }),
+  setStickerFocus: (clipId, stickerId) =>
+    set({
+      selectedStickerId: stickerId,
+      focusedStickerId: stickerId,
+      isAssetSidebarOpen: true, // Auto-open sidebar when sticker is focused
+    }),
+  clearStickerFocus: () =>
+    set({
+      selectedStickerId: null,
+      focusedStickerId: null,
+    }),
 
   // Rendering mode state (for Playwright capture)
   isRenderingMode: false,

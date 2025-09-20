@@ -5,11 +5,86 @@ import {
   type TextPosition,
   type TextStyle,
   DEFAULT_TEXT_STYLE,
+  DEFAULT_TEXT_ANIMATION,
+  ROTATION_PRESETS,
+  type RotationPreset,
+  type TextAnimation,
   createInsertedText,
   isTextActiveAtTime,
 } from '../../types/textInsertion'
+import {
+  ScenarioManager,
+  type ScenarioUpdateListener,
+} from '../../utils/ScenarioManager'
+import type { RendererConfigV2 } from '@/app/shared/motiontext'
 
 export type { TextInsertionSlice }
+
+// Create a global ScenarioManager instance for the slice
+let scenarioManager: ScenarioManager | null = null
+
+// Track update state to prevent infinite loops
+let isUpdating = false
+
+// Infinite loop detection for development
+const updateCallTracker = new Map<string, number>()
+const lastUpdateTimes = new Map<string, number>()
+const MAX_UPDATES_PER_SECOND = 10
+const DETECTION_WINDOW = 1000 // 1 second
+
+function detectInfiniteLoop(textId: string): boolean {
+  const now = Date.now()
+  const key = textId
+
+  // Reset counter if more than 1 second has passed
+  const lastTime = lastUpdateTimes.get(key) || 0
+  if (now - lastTime > DETECTION_WINDOW) {
+    updateCallTracker.set(key, 0)
+  }
+
+  // Increment counter
+  const count = (updateCallTracker.get(key) || 0) + 1
+  updateCallTracker.set(key, count)
+  lastUpdateTimes.set(key, now)
+
+  if (count > MAX_UPDATES_PER_SECOND) {
+    console.error(
+      `🚨 INFINITE LOOP DETECTED for text ${textId}: ${count} updates in ${DETECTION_WINDOW}ms`
+    )
+    console.trace('Update call stack:')
+    return true
+  }
+
+  return false
+}
+
+// Deep comparison utility for InsertedText updates
+function hasActualChanges(
+  original: InsertedText,
+  updates: Partial<InsertedText>
+): boolean {
+  // Check if any of the update values are actually different
+  for (const [key, value] of Object.entries(updates)) {
+    if (key === 'updatedAt') continue // Always allow timestamp updates
+
+    const originalValue = (original as any)[key]
+
+    // Deep comparison for objects (like animation, style, position)
+    if (
+      typeof value === 'object' &&
+      value !== null &&
+      typeof originalValue === 'object' &&
+      originalValue !== null
+    ) {
+      if (JSON.stringify(value) !== JSON.stringify(originalValue)) {
+        return true
+      }
+    } else if (value !== originalValue) {
+      return true
+    }
+  }
+  return false
+}
 
 export const createTextInsertionSlice: StateCreator<
   TextInsertionSlice,
@@ -22,6 +97,9 @@ export const createTextInsertionSlice: StateCreator<
   selectedTextId: null,
   defaultStyle: DEFAULT_TEXT_STYLE,
   clipboard: [],
+  // Scenario management state
+  currentScenario: null,
+  isScenarioMode: false, // Start in individual mode for editing
 
   // Text creation at center
   addTextAtCenter: (currentTime: number) => {
@@ -32,20 +110,46 @@ export const createTextInsertionSlice: StateCreator<
       startTime: currentTime,
       endTime: currentTime + 3, // Default 3 seconds duration
       style: get().defaultStyle,
+      animation: DEFAULT_TEXT_ANIMATION, // 기본 회전 애니메이션 적용
       createdAt: Date.now(),
       updatedAt: Date.now(),
       isSelected: true, // Auto-select the new text
       isEditing: false,
     }
 
-    set((state) => ({
-      ...state,
-      insertedTexts: [
+    set((state) => {
+      const newInsertedTexts = [
         ...state.insertedTexts.map((text) => ({ ...text, isSelected: false })), // Deselect others
         newText, // Add new selected text
-      ],
-      selectedTextId: newText.id,
-    }))
+      ]
+
+      // Update scenario manager if initialized (always sync)
+      if (scenarioManager) {
+        scenarioManager.updateInsertedText(newText)
+      }
+
+      return {
+        ...state,
+        insertedTexts: newInsertedTexts,
+        selectedTextId: newText.id,
+      }
+    })
+
+    // 스티커 생성을 위해 clipSlice의 insertStickersIntoClips 호출
+    try {
+      const currentState = get()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const clipSlice = currentState as any
+      if (clipSlice.insertStickersIntoClips) {
+        console.log(
+          '📌 Triggering sticker creation for center text:',
+          newText.id
+        )
+        clipSlice.insertStickersIntoClips([newText])
+      }
+    } catch (error) {
+      console.error('Failed to create stickers for center text:', error)
+    }
   },
 
   // Text CRUD operations
@@ -53,6 +157,7 @@ export const createTextInsertionSlice: StateCreator<
     const newText: InsertedText = {
       ...textData,
       id: `text_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
+      animation: textData.animation || DEFAULT_TEXT_ANIMATION, // 기본 애니메이션 적용
       createdAt: Date.now(),
       updatedAt: Date.now(),
     }
@@ -62,23 +167,112 @@ export const createTextInsertionSlice: StateCreator<
       insertedTexts: [...state.insertedTexts, newText],
       selectedTextId: newText.id,
     }))
+
+    // 스티커 생성을 위해 clipSlice의 insertStickersIntoClips 호출
+    try {
+      const currentState = get()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const clipSlice = currentState as any
+      if (clipSlice.insertStickersIntoClips) {
+        console.log(
+          '📌 Triggering sticker creation for new inserted text:',
+          newText.id
+        )
+        clipSlice.insertStickersIntoClips([newText])
+      }
+    } catch (error) {
+      console.error('Failed to create stickers for new text:', error)
+    }
   },
 
   updateText: (id: string, updates: Partial<InsertedText>) => {
-    set((state) => ({
-      ...state,
-      insertedTexts: state.insertedTexts.map((text) =>
-        text.id === id ? { ...text, ...updates, updatedAt: Date.now() } : text
-      ),
-    }))
+    // Detect infinite loops in development
+    if (process.env.NODE_ENV === 'development' && detectInfiniteLoop(id)) {
+      console.error('🛑 Stopping update to prevent infinite loop')
+      return
+    }
+
+    // Prevent infinite loops
+    if (isUpdating) {
+      console.warn(
+        '🔄 UpdateText called during update, skipping to prevent infinite loop'
+      )
+      return
+    }
+
+    const currentState = get()
+    const originalText = currentState.insertedTexts.find(
+      (text) => text.id === id
+    )
+
+    if (!originalText) {
+      console.warn('🚨 UpdateText: Text not found:', id)
+      return
+    }
+
+    // Check if there are actual changes to prevent unnecessary updates
+    if (!hasActualChanges(originalText, updates)) {
+      console.log('📝 No actual changes detected, skipping update for:', id)
+      return
+    }
+
+    console.log('✅ Updating InsertedText:', id, 'with changes:', updates)
+
+    // Set update flag
+    isUpdating = true
+
+    try {
+      set((state) => {
+        const updatedTexts = state.insertedTexts.map((text) =>
+          text.id === id ? { ...text, ...updates, updatedAt: Date.now() } : text
+        )
+
+        // Update scenario manager if initialized (debounced)
+        if (scenarioManager) {
+          const updatedText = updatedTexts.find((text) => text.id === id)
+          if (updatedText) {
+            // Use setTimeout to debounce scenario updates
+            setTimeout(() => {
+              if (scenarioManager) {
+                scenarioManager.updateInsertedText(updatedText)
+              }
+            }, 0)
+          }
+        }
+
+        return {
+          ...state,
+          insertedTexts: updatedTexts,
+        }
+      })
+
+      // REMOVED: Sync with ClipSlice stickers to break the circular dependency
+      // The stickers will be updated through the scenario generation process instead
+    } finally {
+      // Reset update flag after a brief delay
+      setTimeout(() => {
+        isUpdating = false
+      }, 10)
+    }
   },
 
   deleteText: (id: string) => {
-    set((state) => ({
-      ...state,
-      insertedTexts: state.insertedTexts.filter((text) => text.id !== id),
-      selectedTextId: state.selectedTextId === id ? null : state.selectedTextId,
-    }))
+    set((state) => {
+      // Update scenario manager if initialized (always sync)
+      if (scenarioManager) {
+        scenarioManager.removeInsertedText(id)
+      }
+
+      return {
+        ...state,
+        insertedTexts: state.insertedTexts.filter((text) => text.id !== id),
+        selectedTextId:
+          state.selectedTextId === id ? null : state.selectedTextId,
+      }
+    })
+
+    // REMOVED: Sync with ClipSlice stickers to break the circular dependency
+    // The stickers will be updated through the scenario generation process instead
   },
 
   duplicateText: (id: string) => {
@@ -111,15 +305,30 @@ export const createTextInsertionSlice: StateCreator<
 
   // Selection management
   selectText: (id: string | null) => {
-    set((state) => ({
-      ...state,
-      selectedTextId: id,
-      // Don't auto-open panel when text is selected
-      insertedTexts: state.insertedTexts.map((text) => ({
-        ...text,
-        isSelected: text.id === id,
-      })),
-    }))
+    console.log('🔧 selectText called:', {
+      id,
+      currentSelectedId: get().selectedTextId,
+      textsCount: get().insertedTexts.length,
+    })
+
+    set((state) => {
+      const newState = {
+        ...state,
+        selectedTextId: id,
+        // Don't auto-open panel when text is selected
+        insertedTexts: state.insertedTexts.map((text) => ({
+          ...text,
+          isSelected: text.id === id,
+        })),
+      }
+
+      console.log('✅ selectText state updated:', {
+        newSelectedId: newState.selectedTextId,
+        selectedTextObject: newState.insertedTexts.find((t) => t.isSelected),
+      })
+
+      return newState
+    })
   },
 
   clearSelection: () => {
@@ -235,9 +444,8 @@ export const createTextInsertionSlice: StateCreator<
   },
 
   updateTextTiming: (id: string, startTime: number, endTime: number) => {
-    set((state) => ({
-      ...state,
-      insertedTexts: state.insertedTexts.map((text) =>
+    set((state) => {
+      const updatedTexts = state.insertedTexts.map((text) =>
         text.id === id
           ? {
               ...text,
@@ -246,7 +454,96 @@ export const createTextInsertionSlice: StateCreator<
               updatedAt: Date.now(),
             }
           : text
-      ),
+      )
+
+      // Update scenario manager if initialized (always sync)
+      if (scenarioManager) {
+        const updatedText = updatedTexts.find((text) => text.id === id)
+        if (updatedText) {
+          scenarioManager.updateInsertedText(updatedText)
+        }
+      }
+
+      return {
+        ...state,
+        insertedTexts: updatedTexts,
+      }
+    })
+  },
+
+  // Scenario management methods
+  initializeScenario: (clips = []) => {
+    const { insertedTexts } = get()
+
+    // Create new scenario manager if not exists
+    if (!scenarioManager) {
+      scenarioManager = new ScenarioManager({
+        autoUpdate: true,
+        includeInsertedTexts: true,
+      })
+    }
+
+    // Initialize with current data
+    const scenario = scenarioManager.initialize(clips, insertedTexts)
+
+    // Set up listener to update store when scenario changes
+    scenarioManager.addUpdateListener((updatedScenario: RendererConfigV2) => {
+      set((state) => ({
+        ...state,
+        currentScenario: updatedScenario,
+      }))
+    })
+
+    set((state) => ({
+      ...state,
+      currentScenario: scenario,
     }))
+  },
+
+  toggleScenarioMode: () => {
+    set((state) => ({
+      ...state,
+      isScenarioMode: !state.isScenarioMode,
+    }))
+  },
+
+  updateScenario: (scenario: RendererConfigV2) => {
+    set((state) => ({
+      ...state,
+      currentScenario: scenario,
+    }))
+  },
+
+  addScenarioUpdateListener: (listener: ScenarioUpdateListener) => {
+    if (!scenarioManager) {
+      throw new Error(
+        'ScenarioManager not initialized. Call initializeScenario() first.'
+      )
+    }
+    return scenarioManager.addUpdateListener(listener)
+  },
+
+  // Animation management methods
+  toggleRotationAnimation: (id: string) => {
+    const { updateText } = get()
+    const currentText = get().insertedTexts.find((text) => text.id === id)
+    if (!currentText) return
+
+    const isSpinActive = currentText.animation?.plugin === 'spin@2.0.0'
+    const newAnimation = isSpinActive
+      ? ROTATION_PRESETS.NONE
+      : ROTATION_PRESETS.SUBTLE
+
+    updateText(id, { animation: newAnimation })
+  },
+
+  setAnimationPreset: (id: string, preset: RotationPreset) => {
+    const { updateText } = get()
+    updateText(id, { animation: ROTATION_PRESETS[preset] })
+  },
+
+  updateTextAnimation: (id: string, animation: TextAnimation) => {
+    const { updateText } = get()
+    updateText(id, { animation })
   },
 })

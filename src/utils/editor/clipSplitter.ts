@@ -94,6 +94,7 @@ export const splitClip = (clip: ClipItem): [ClipItem, ClipItem] => {
     duration: formatDuration(firstClipData.duration),
     thumbnail: clip.thumbnail,
     words: updatedFirstWords,
+    stickers: [],
   }
 
   // 두 번째 클립 생성 (다음 넘버링)
@@ -106,6 +107,7 @@ export const splitClip = (clip: ClipItem): [ClipItem, ClipItem] => {
     duration: formatDuration(secondClipData.duration),
     thumbnail: clip.thumbnail,
     words: updatedSecondWords,
+    stickers: [],
   }
 
   return [firstClip, secondClip]

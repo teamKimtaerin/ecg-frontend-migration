@@ -69,10 +69,36 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
     selectedWordId,
     expandedWordId,
     multiSelectedWordIds,
+    selectedStickerId,
+    focusedStickerId,
   } = useEditorStore()
+
+  // Determine if we're working with a sticker or word
+  const isSticker = selectedStickerId || focusedStickerId
+
+  // Get selected sticker info
+  const selectedStickerInfo = useMemo(() => {
+    if (!selectedStickerId) return null
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const store = useEditorStore.getState() as any
+      const clips = store.clips || []
+
+      for (const clip of clips) {
+        const sticker = clip.stickers?.find(
+          (s: any) => s.id === selectedStickerId
+        )
+        if (sticker) {
+          return { sticker, clipId: clip.id }
+        }
+      }
+    } catch {}
+    return null
+  }, [selectedStickerId])
 
   // Use unified target word resolution (expanded > focused > single selected)
   const targetWordId = useMemo(() => {
+    if (isSticker) return null // Don't resolve word ID for stickers
     try {
       const store = useEditorStore.getState()
       return determineTargetWordId(store)
@@ -80,6 +106,7 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
       return null
     }
   }, [
+    isSticker,
     wordAnimationTracks,
     focusedWordId,
     selectedWordId,
@@ -113,15 +140,32 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
     }
   }, [multiSelectedWordIds])
 
-  // Resolve pluginKey from current word's animation tracks -> expanded asset
+  // Resolve pluginKey from current target (word or sticker) animation tracks
   const pluginKeyFromStore = useMemo(() => {
-    if (!targetWordId) return undefined
     const targetAssetId = assetId || expandedAssetId
     if (!targetAssetId) return undefined
-    const tracks = wordAnimationTracks.get(targetWordId) || []
-    const track = tracks.find((t) => t.assetId === targetAssetId)
-    return track?.pluginKey
-  }, [targetWordId, assetId, expandedAssetId, wordAnimationTracks])
+
+    if (isSticker && selectedStickerInfo) {
+      // Get pluginKey from sticker animation tracks
+      const tracks = selectedStickerInfo.sticker.animationTracks || []
+      const track = tracks.find((t: any) => t.assetId === targetAssetId)
+      return track?.pluginKey
+    } else if (targetWordId) {
+      // Get pluginKey from word animation tracks
+      const tracks = wordAnimationTracks.get(targetWordId) || []
+      const track = tracks.find((t) => t.assetId === targetAssetId)
+      return track?.pluginKey
+    }
+
+    return undefined
+  }, [
+    isSticker,
+    selectedStickerInfo,
+    targetWordId,
+    assetId,
+    expandedAssetId,
+    wordAnimationTracks,
+  ])
 
   // Try to resolve pluginKey from the assets database when store doesn't provide it
   useEffect(() => {
@@ -217,7 +261,14 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
         const defaultParams = getDefaultParameters(loadedManifest)
 
         let existingParams: Record<string, unknown> = {}
-        if (isMultiSelection && targetWordIds.length > 0) {
+        if (isSticker && selectedStickerInfo) {
+          // For sticker, get existing parameters from sticker animation tracks
+          const tracks = selectedStickerInfo.sticker.animationTracks || []
+          const track = tracks.find(
+            (t: any) => t.assetId === (assetId || expandedAssetId)
+          )
+          existingParams = track?.params || {}
+        } else if (isMultiSelection && targetWordIds.length > 0) {
           // For multi-selection, get common parameters across all selected words
           const store = useEditorStore.getState()
           existingParams = getCommonAnimationParams(
@@ -322,7 +373,10 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
   // If we found a fallback key but store lacked it, persist it back to store
   useEffect(() => {
     const targetAssetId = assetId || expandedAssetId
-    if (!targetAssetId || !targetWordId) return
+    if (!targetAssetId) return
+
+    // Skip if working with stickers (different persistence logic)
+    if (isSticker || !targetWordId) return
     if (fallbackPluginKey && !pluginKeyFromStore) {
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
