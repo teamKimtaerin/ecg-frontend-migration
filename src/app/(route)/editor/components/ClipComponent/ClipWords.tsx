@@ -4,6 +4,7 @@ import {
   SortableContext,
   horizontalListSortingStrategy,
 } from '@dnd-kit/sortable'
+import { DragEndEvent, DndContext } from '@dnd-kit/core'
 import { Word, Sticker } from '../../types'
 import ClipWord from './ClipWord'
 import ClipSticker from './ClipSticker'
@@ -16,6 +17,7 @@ interface ClipWordsProps {
   words: Word[]
   stickers: Sticker[]
   onWordEdit: (clipId: string, wordId: string, newText: string) => void
+  onStickerDeleteRequest?: (stickerId: string, stickerText: string) => void
 }
 
 // Asset database interface
@@ -30,6 +32,7 @@ export default function ClipWords({
   words,
   stickers,
   onWordEdit,
+  onStickerDeleteRequest,
 }: ClipWordsProps) {
   // Add ref for debouncing clicks
   const lastClickTimeRef = useRef(0)
@@ -45,6 +48,9 @@ export default function ClipWords({
     setCurrentWordAssets,
     selectedWordAssets,
     expandClip,
+    // For sticker position updates
+    insertedTexts,
+    updateText,
   } = useEditorStore()
 
   // Asset related state with icon support
@@ -92,6 +98,112 @@ export default function ClipWords({
     const asset = allAssets.find((a) => a.id === id)
     return asset?.title || ''
   }
+
+  // Keep words and stickers separate but visually sorted by time
+  const wordItems = words.map((word) => ({
+    type: 'word' as const,
+    item: word,
+    start: word.start,
+  }))
+  const stickerItems = stickers.map((sticker) => ({
+    type: 'sticker' as const,
+    item: sticker,
+    start: sticker.start,
+  }))
+
+  // Create sortable items for DnD (include both words and stickers)
+  const sortableItems = [...wordItems, ...stickerItems].map((item) => `${clipId}-${item.item.id}`)
+
+  // For visual display, combine and sort by time (but keep semantic separation)
+  const allItems = [...wordItems, ...stickerItems].sort(
+    (a, b) => a.start - b.start
+  )
+
+  // Calculate new start time based on sticker position in word list
+  const calculateStickerStartTime = (newIndex: number) => {
+    if (newIndex === 0) {
+      // First position: use clip start time (first word's start time)
+      return words.length > 0 ? words[0].start : 0
+    } else if (newIndex >= allItems.length - 1) {
+      // Last position: use last word's start time
+      const lastWord = words[words.length - 1]
+      return lastWord ? lastWord.start : 0
+    } else {
+      // Middle position: use the start time of the word at the same index
+      const itemAtIndex = allItems[newIndex - 1]
+      if (itemAtIndex && itemAtIndex.type === 'word') {
+        return itemAtIndex.start
+      } else {
+        // If previous item is also a sticker, find the nearest word before it
+        for (let i = newIndex - 1; i >= 0; i--) {
+          const item = allItems[i]
+          if (item.type === 'word') {
+            return item.start
+          }
+        }
+        // Fallback to clip start time
+        return words.length > 0 ? words[0].start : 0
+      }
+    }
+  }
+
+  // Handle drag end for stickers
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event
+      
+      if (!over || !active) return
+
+      // Extract item ID from the sortable ID format
+      const activeId = active.id.toString().replace(`${clipId}-`, '')
+      const overId = over.id.toString().replace(`${clipId}-`, '')
+
+      // Find if the dragged item is a sticker
+      const draggedSticker = stickers.find(s => s.id === activeId)
+      
+      if (!draggedSticker) return // Only handle sticker drags
+
+      // Find the new index in the sorted allItems array
+      const oldIndex = allItems.findIndex(item => item.item.id === activeId)
+      const newIndex = allItems.findIndex(item => item.item.id === overId)
+
+      if (oldIndex === newIndex) return // No position change
+
+      // Calculate new start time based on position
+      const newStartTime = calculateStickerStartTime(newIndex)
+      
+      // Find corresponding inserted text
+      const correspondingText = insertedTexts?.find(
+        (text: { id: string }) => text.id === draggedSticker.originalInsertedTextId
+      )
+
+      if (correspondingText && updateText) {
+        // Maintain current duration or default to 3 seconds
+        const currentDuration = correspondingText.endTime - correspondingText.startTime
+        const duration = currentDuration > 0 ? currentDuration : 3
+        const newEndTime = newStartTime + duration
+
+        updateText(correspondingText.id, {
+          startTime: newStartTime,
+          endTime: newEndTime
+        })
+
+        console.log(`🎯 Updated sticker position: ${draggedSticker.text} -> ${newStartTime.toFixed(2)}s (duration: ${duration.toFixed(1)}s)`)
+      }
+    },
+    [clipId, stickers, allItems, words, insertedTexts, updateText]
+  )
+
+  // Handle sticker deletion request (delegate to parent)
+  const handleStickerDeleteRequest = useCallback(
+    (stickerId: string) => {
+      const sticker = stickers.find(s => s.id === stickerId)
+      if (!sticker || !onStickerDeleteRequest) return
+
+      onStickerDeleteRequest(stickerId, sticker.text)
+    },
+    [stickers, onStickerDeleteRequest]
+  )
 
   // Combined word click handler (merging both functionalities)
   const handleWordClick = useCallback(
@@ -144,38 +256,19 @@ export default function ClipWords({
     ]
   )
 
-  // Keep words and stickers separate but visually sorted by time
-  const wordItems = words.map((word) => ({
-    type: 'word' as const,
-    item: word,
-    start: word.start,
-  }))
-  const stickerItems = stickers.map((sticker) => ({
-    type: 'sticker' as const,
-    item: sticker,
-    start: sticker.start,
-  }))
-
-  // Create sortable items for DnD (only words, stickers are not draggable in subtitle context)
-  const sortableItems = wordItems.map((item) => `${clipId}-${item.item.id}`)
-
-  // For visual display, combine and sort by time (but keep semantic separation)
-  const allItems = [...wordItems, ...stickerItems].sort(
-    (a, b) => a.start - b.start
-  )
-
   return (
-    <SortableContext
-      items={sortableItems}
-      strategy={horizontalListSortingStrategy}
-    >
-      <div
-        ref={containerRef}
-        className="flex flex-wrap gap-1 relative cursor-pointer"
-        onMouseDown={handleMouseDown}
-        onKeyDown={handleKeyDown}
-        tabIndex={0}
+    <DndContext onDragEnd={handleDragEnd}>
+      <SortableContext
+        items={sortableItems}
+        strategy={horizontalListSortingStrategy}
       >
+        <div
+          ref={containerRef}
+          className="flex flex-wrap gap-1 relative cursor-pointer items-start"
+          onMouseDown={handleMouseDown}
+          onKeyDown={handleKeyDown}
+          tabIndex={0}
+        >
         {allItems.map((combinedItem) => {
           if (combinedItem.type === 'word') {
             const word = combinedItem.item as Word
@@ -220,9 +313,11 @@ export default function ClipWords({
                 <ClipSticker
                   sticker={sticker}
                   clipId={clipId}
+                  clipWords={words}
                   onStickerClick={(stickerId) =>
                     handleWordClick(stickerId, false)
                   } // Reuse word click handler
+                  onStickerDelete={handleStickerDeleteRequest}
                 />
 
                 {/* Render asset icons after each sticker */}
@@ -252,7 +347,8 @@ export default function ClipWords({
         {isGroupDragging && (
           <div className="absolute inset-0 bg-blue-500/10 pointer-events-none rounded" />
         )}
-      </div>
-    </SortableContext>
+        </div>
+      </SortableContext>
+    </DndContext>
   )
 }

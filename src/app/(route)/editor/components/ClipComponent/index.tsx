@@ -29,6 +29,7 @@ export default function ClipComponent({
   onOpenSpeakerManagement,
   onAddSpeaker,
   onRenameSpeaker,
+  onStickerDeleteRequest,
 }: ClipComponentProps) {
   const [isHovered, setIsHovered] = useState(false)
   const { expandedClipId, focusedWordId } = useEditorStore()
@@ -116,19 +117,20 @@ export default function ClipComponent({
                       onRenameSpeaker={onRenameSpeaker}
                     />
                   </div>
-                  <div className="flex items-center">
+                  <div className="flex items-start">
                     <ClipStickerButton
                       clipId={clip.id}
                       stickers={clip.stickers || []}
                     />
                   </div>
                 </div>
-                <div className="overflow-hidden min-w-0 min-h-[32px] flex items-center">
+                <div className="overflow-visible min-w-0 flex items-start">
                   <ClipWords
                     clipId={clip.id}
                     words={clip.words}
                     stickers={clip.stickers || []}
                     onWordEdit={onWordEdit}
+                    onStickerDeleteRequest={onStickerDeleteRequest}
                   />
                 </div>
               </div>

@@ -66,6 +66,7 @@ export interface ClipComponentProps {
   speakerColors?: Record<string, string> // 화자별 색상 매핑
   onMouseDown?: () => void
   onMouseEnter?: () => void
+  onStickerDeleteRequest?: (stickerId: string, stickerText: string) => void
 }
 
 export interface ClipStyleState {

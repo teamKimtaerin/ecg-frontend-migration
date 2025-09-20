@@ -9,13 +9,14 @@ interface ClipStickerButtonProps {
 
 interface StickerButtonItemProps {
   sticker: Sticker
-  correspondingText: any
+  correspondingText: { content: string; startTime: number; endTime: number; id: string }
 }
 
 function StickerButtonItem({
   sticker,
   correspondingText,
 }: StickerButtonItemProps) {
+
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation()
 
@@ -45,20 +46,25 @@ function StickerButtonItem({
     }
   }
 
+  // Calculate duration for display
+  const duration = correspondingText ? 
+    (correspondingText.endTime - correspondingText.startTime) : 0
+
   return (
-    <button
-      type="button"
-      onClick={handleClick}
-      className="w-5 h-5 bg-purple-600 hover:bg-purple-700 text-white rounded-sm flex items-center justify-center transition-colors duration-150 text-xs font-bold"
-      title={`Jump to inserted text: "${correspondingText?.content || sticker.text}"`}
-    >
-      T
-    </button>
+    <div className="relative">
+      <button
+        type="button"
+        onClick={handleClick}
+        className="w-5 h-5 bg-purple-600 hover:bg-purple-700 text-white rounded-sm flex items-center justify-center transition-all duration-150 text-xs font-bold cursor-pointer"
+        title={`Jump to inserted text: "${correspondingText?.content || sticker.text}" (Duration: ${duration.toFixed(1)}s)`}
+      >
+        T
+      </button>
+    </div>
   )
 }
 
 export default function ClipStickerButton({
-  clipId,
   stickers,
 }: ClipStickerButtonProps) {
   const { insertedTexts } = useEditorStore()
@@ -70,11 +76,11 @@ export default function ClipStickerButton({
     return stickers
       .map((sticker) => {
         const correspondingText = insertedTexts.find(
-          (text: any) => text.id === sticker.originalInsertedTextId
+          (text: { id: string; content: string; startTime: number; endTime: number }) => text.id === sticker.originalInsertedTextId
         )
         return correspondingText ? { sticker, correspondingText } : null
       })
-      .filter(Boolean) as Array<{ sticker: Sticker; correspondingText: any }>
+      .filter(Boolean) as Array<{ sticker: Sticker; correspondingText: { content: string; startTime: number; endTime: number; id: string } }>
   }, [stickers, insertedTexts])
 
   // Don't render if no valid stickers
