@@ -70,7 +70,7 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
 
   // Determine if we're working with a sticker or word
   const isSticker = selectedStickerId || focusedStickerId
-  
+
   // Get selected sticker info
   const selectedStickerInfo = useMemo(() => {
     if (!selectedStickerId) return null
@@ -78,9 +78,11 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const store = useEditorStore.getState() as any
       const clips = store.clips || []
-      
+
       for (const clip of clips) {
-        const sticker = clip.stickers?.find((s: any) => s.id === selectedStickerId)
+        const sticker = clip.stickers?.find(
+          (s: any) => s.id === selectedStickerId
+        )
         if (sticker) {
           return { sticker, clipId: clip.id }
         }
@@ -151,7 +153,14 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
     }
 
     return undefined
-  }, [isSticker, selectedStickerInfo, targetWordId, assetId, expandedAssetId, wordAnimationTracks])
+  }, [
+    isSticker,
+    selectedStickerInfo,
+    targetWordId,
+    assetId,
+    expandedAssetId,
+    wordAnimationTracks,
+  ])
 
   // Try to resolve pluginKey from the assets database when store doesn't provide it
   useEffect(() => {
@@ -250,7 +259,9 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
         if (isSticker && selectedStickerInfo) {
           // For sticker, get existing parameters from sticker animation tracks
           const tracks = selectedStickerInfo.sticker.animationTracks || []
-          const track = tracks.find((t: any) => t.assetId === (assetId || expandedAssetId))
+          const track = tracks.find(
+            (t: any) => t.assetId === (assetId || expandedAssetId)
+          )
           existingParams = track?.params || {}
         } else if (isMultiSelection && targetWordIds.length > 0) {
           // For multi-selection, get common parameters across all selected words
@@ -292,7 +303,7 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
   useEffect(() => {
     const targetAssetId = assetId || expandedAssetId
     if (!targetAssetId) return
-    
+
     // Skip if working with stickers (different persistence logic)
     if (isSticker || !targetWordId) return
     if (fallbackPluginKey && !pluginKeyFromStore) {

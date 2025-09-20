@@ -98,11 +98,14 @@ export function findBestMatchingClip(
  * Find the single clip that contains the given timestamp
  * Used for finding the current clip at a specific playback time
  */
-export function findClipAtTime(clips: ClipItem[], targetTime: number): ClipItem | null {
+export function findClipAtTime(
+  clips: ClipItem[],
+  targetTime: number
+): ClipItem | null {
   // Find clips that contain the target time
-  const containingClips = clips.filter(clip => {
-    const clipStartTime = Math.min(...clip.words.map(w => w.start))
-    const clipEndTime = Math.max(...clip.words.map(w => w.end))
+  const containingClips = clips.filter((clip) => {
+    const clipStartTime = Math.min(...clip.words.map((w) => w.start))
+    const clipEndTime = Math.max(...clip.words.map((w) => w.end))
     return targetTime >= clipStartTime && targetTime <= clipEndTime
   })
 
@@ -117,8 +120,8 @@ export function findClipAtTime(clips: ClipItem[], targetTime: number): ClipItem 
     let minDistance = Infinity
 
     for (const clip of containingClips) {
-      const clipStartTime = Math.min(...clip.words.map(w => w.start))
-      const clipEndTime = Math.max(...clip.words.map(w => w.end))
+      const clipStartTime = Math.min(...clip.words.map((w) => w.start))
+      const clipEndTime = Math.max(...clip.words.map((w) => w.end))
       const clipCenter = (clipStartTime + clipEndTime) / 2
       const distance = Math.abs(targetTime - clipCenter)
 

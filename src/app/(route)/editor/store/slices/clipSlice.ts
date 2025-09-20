@@ -137,7 +137,11 @@ export interface ClipSlice {
     pluginKey?: string,
     params?: Record<string, unknown>
   ) => void
-  removeStickerAsset: (clipId: string, stickerId: string, assetId: string) => void
+  removeStickerAsset: (
+    clipId: string,
+    stickerId: string,
+    assetId: string
+  ) => void
 }
 
 export const createClipSlice: StateCreator<
@@ -728,41 +732,53 @@ export const createClipSlice: StateCreator<
   // Clip Sticker management - SAFE implementation with single clip selection
   insertStickersIntoClips: (insertedTexts) => {
     const state = get()
-    
+
     // Safety check: prevent excessive calls
     const now = Date.now()
     const lastCallTime = state.lastStickerUpdateTime || 0
-    if (now - lastCallTime < 100) { // Debounce 100ms
-      console.log('🔇 insertStickersIntoClips debounced to prevent infinite loops')
+    if (now - lastCallTime < 100) {
+      // Debounce 100ms
+      console.log(
+        '🔇 insertStickersIntoClips debounced to prevent infinite loops'
+      )
       return
     }
 
-    console.log('📌 Creating stickers for inserted texts:', insertedTexts.length)
-    
+    console.log(
+      '📌 Creating stickers for inserted texts:',
+      insertedTexts.length
+    )
+
     const updatedClips = [...state.clips]
-    
+
     // Process each inserted text individually to find the single best matching clip
-    insertedTexts.forEach(text => {
+    insertedTexts.forEach((text) => {
       // Find the single clip that contains the inserted text's start time
       const targetClip = findClipAtTime(state.clips, text.startTime)
-      
+
       if (!targetClip) {
-        console.log(`⚠️ No clip found for inserted text at time ${text.startTime}`)
+        console.log(
+          `⚠️ No clip found for inserted text at time ${text.startTime}`
+        )
         return
       }
-      
+
       // Check if sticker already exists for this text in this clip
       const existingSticker = targetClip.stickers?.some(
-        sticker => sticker.originalInsertedTextId === text.id
+        (sticker) => sticker.originalInsertedTextId === text.id
       )
-      
+
       if (existingSticker) {
-        console.log(`📌 Sticker already exists for text ${text.id} in clip ${targetClip.id}`)
+        console.log(
+          `📌 Sticker already exists for text ${text.id} in clip ${targetClip.id}`
+        )
         return
       }
-      
+
       // Find the clip in updatedClips array and add sticker
-      const clipIndex = updatedClips.findIndex(clip => clip.id === targetClip.id)
+      const clipIndex = updatedClips.findIndex(
+        (clip) => clip.id === targetClip.id
+      )
       if (clipIndex !== -1) {
         const newSticker = {
           id: `sticker_${text.id}_${Date.now()}`,
@@ -771,22 +787,24 @@ export const createClipSlice: StateCreator<
           end: text.endTime,
           originalInsertedTextId: text.id,
         }
-        
+
         const existingStickers = updatedClips[clipIndex].stickers || []
         updatedClips[clipIndex] = {
           ...updatedClips[clipIndex],
-          stickers: [...existingStickers, newSticker]
+          stickers: [...existingStickers, newSticker],
         }
-        
-        console.log(`📌 Added sticker for text "${text.content}" to clip ${targetClip.id}`)
+
+        console.log(
+          `📌 Added sticker for text "${text.content}" to clip ${targetClip.id}`
+        )
       }
     })
-    
-    set({ 
+
+    set({
       clips: updatedClips,
-      lastStickerUpdateTime: now 
+      lastStickerUpdateTime: now,
     })
-    
+
     console.log('📌 Stickers inserted successfully (single clip per text)')
   },
 
@@ -799,43 +817,49 @@ export const createClipSlice: StateCreator<
 
   updateStickerInClips: (insertedTextId, updates) => {
     const state = get()
-    
+
     // Safety check: prevent excessive calls
     const now = Date.now()
     const lastCallTime = state.lastStickerUpdateTime || 0
-    if (now - lastCallTime < 50) { // Debounce 50ms for updates
+    if (now - lastCallTime < 50) {
+      // Debounce 50ms for updates
       console.log('🔇 updateStickerInClips debounced to prevent infinite loops')
       return
     }
 
     console.log('🔄 Updating sticker for inserted text:', insertedTextId)
-    
+
     const updatedClips = state.clips.map((clip) => {
       const updatedStickers = (clip.stickers || []).map((sticker) => {
         if (sticker.originalInsertedTextId === insertedTextId) {
           return {
             ...sticker,
             text: updates.content || sticker.text,
-            start: updates.startTime !== undefined ? updates.startTime : sticker.start,
+            start:
+              updates.startTime !== undefined
+                ? updates.startTime
+                : sticker.start,
             end: updates.endTime !== undefined ? updates.endTime : sticker.end,
           }
         }
         return sticker
       })
-      
+
       return { ...clip, stickers: updatedStickers }
     })
-    
-    set({ 
+
+    set({
       clips: updatedClips,
-      lastStickerUpdateTime: now 
+      lastStickerUpdateTime: now,
     })
-    
+
     console.log('🔄 Sticker updated successfully')
   },
 
   removeSpecificSticker: (insertedTextId) => {
-    console.log('🔇 removeSpecificSticker called but skipped to prevent infinite loops')
+    console.log(
+      '🔇 removeSpecificSticker called but skipped to prevent infinite loops'
+    )
     // This method is disabled to prevent circular dependencies
     // Stickers are now managed through the scenario generation process
     return
@@ -859,7 +883,14 @@ export const createClipSlice: StateCreator<
     }))
   },
 
-  applyStickerAsset: (clipId, stickerId, assetId, assetName, pluginKey, params) => {
+  applyStickerAsset: (
+    clipId,
+    stickerId,
+    assetId,
+    assetName,
+    pluginKey,
+    params
+  ) => {
     const { clips } = get()
     const clip = clips.find((c) => c.id === clipId)
     if (!clip) return

@@ -27,27 +27,39 @@ export interface InitialScenarioResult {
 const scenarioCache = new Map<string, InitialScenarioResult>()
 
 // Generate cache key for scenario memoization
-function generateScenarioKey(clips: ClipItem[], opts: InitialScenarioOptions): string {
-  const clipsHash = JSON.stringify(clips.map(clip => ({
-    id: clip.id,
-    words: clip.words.map(w => ({ id: w.id, text: w.text, start: w.start, end: w.end }))
-  })))
-  
-  const insertedTextsHash = JSON.stringify((opts.insertedTexts || []).map(text => ({
-    id: text.id,
-    content: text.content,
-    startTime: text.startTime,
-    endTime: text.endTime,
-    animation: text.animation
-  })))
-  
+function generateScenarioKey(
+  clips: ClipItem[],
+  opts: InitialScenarioOptions
+): string {
+  const clipsHash = JSON.stringify(
+    clips.map((clip) => ({
+      id: clip.id,
+      words: clip.words.map((w) => ({
+        id: w.id,
+        text: w.text,
+        start: w.start,
+        end: w.end,
+      })),
+    }))
+  )
+
+  const insertedTextsHash = JSON.stringify(
+    (opts.insertedTexts || []).map((text) => ({
+      id: text.id,
+      content: text.content,
+      startTime: text.startTime,
+      endTime: text.endTime,
+      animation: text.animation,
+    }))
+  )
+
   const optsHash = JSON.stringify({
     position: opts.position,
     anchor: opts.anchor,
     fontSizeRel: opts.fontSizeRel,
-    baseAspect: opts.baseAspect
+    baseAspect: opts.baseAspect,
   })
-  
+
   return `${clipsHash}|${insertedTextsHash}|${optsHash}`
 }
 
@@ -65,7 +77,7 @@ function calculateAdjustedDomLifetime(
   insertedTexts?: InsertedText[]
 ): [number, number] {
   const words = Array.isArray(clip.words) ? clip.words : []
-  
+
   if (words.length === 0) return [0, 0]
 
   // Start with word-based timing (clips are for subtitles only)
@@ -91,11 +103,11 @@ function calculateAdjustedDomLifetime(
   if (insertedTexts && insertedTexts.length > 0) {
     const clipStart = Math.min(...words.map((w) => w.start))
     const clipEnd = Math.max(...words.map((w) => w.end))
-    
-    const overlappingTexts = insertedTexts.filter(text => 
-      text.startTime < clipEnd && text.endTime > clipStart
+
+    const overlappingTexts = insertedTexts.filter(
+      (text) => text.startTime < clipEnd && text.endTime > clipStart
     )
-    
+
     for (const text of overlappingTexts) {
       domStart = Math.min(domStart, text.startTime)
       domEnd = Math.max(domEnd, text.endTime)
@@ -117,11 +129,17 @@ export function buildInitialScenarioFromClips(
   const cacheKey = generateScenarioKey(clips, opts)
   const cached = scenarioCache.get(cacheKey)
   if (cached) {
-    console.log('📦 Using cached scenario for key:', cacheKey.substring(0, 50) + '...')
+    console.log(
+      '📦 Using cached scenario for key:',
+      cacheKey.substring(0, 50) + '...'
+    )
     return cached
   }
-  
-  console.log('🔨 Building new scenario for key:', cacheKey.substring(0, 50) + '...')
+
+  console.log(
+    '🔨 Building new scenario for key:',
+    cacheKey.substring(0, 50) + '...'
+  )
   const position = opts.position ?? { x: 0.5, y: 0.925 } // 7.5% from bottom
   const anchor = opts.anchor ?? 'bc'
   const wordAnimationTracks = opts.wordAnimationTracks
@@ -247,10 +265,12 @@ export function buildInitialScenarioFromClips(
 
     // Add animation plugin information from insertedText
     if (insertedText.animation && insertedText.animation.plugin) {
-      child.pluginChain = [{
-        name: insertedText.animation.plugin,
-        params: insertedText.animation.parameters || {},
-      }]
+      child.pluginChain = [
+        {
+          name: insertedText.animation.plugin,
+          params: insertedText.animation.parameters || {},
+        },
+      ]
     }
 
     // Create separate cue for each insertedText (overlay track)
@@ -329,10 +349,10 @@ export function buildInitialScenarioFromClips(
   }
 
   const result = { config, index }
-  
+
   // Cache the result
   scenarioCache.set(cacheKey, result)
-  
+
   // Limit cache size to prevent memory leaks
   if (scenarioCache.size > 50) {
     const firstKey = scenarioCache.keys().next().value

@@ -330,9 +330,7 @@ export default function ClipWord({
           dangerouslySetInnerHTML={{ __html: editingText }}
         />
       ) : (
-        <span className="flex items-center gap-1">
-          {word.text}
-        </span>
+        <span className="flex items-center gap-1">{word.text}</span>
       )}
 
       {/* Drop indicator after word */}

@@ -54,13 +54,13 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
     // Get insertedTexts from TextInsertionSlice
     const fullState = get() as any
     const insertedTexts = fullState.insertedTexts || []
-    
+
     // Merge insertedTexts into options
     const mergedOpts = {
       ...opts,
       insertedTexts,
     }
-    
+
     const { config, index } = buildInitialScenarioFromClips(clips, mergedOpts)
     set({
       currentScenario: config,

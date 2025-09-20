@@ -145,14 +145,24 @@ export default function ClipWords({
   )
 
   // Keep words and stickers separate but visually sorted by time
-  const wordItems = words.map((word) => ({ type: 'word' as const, item: word, start: word.start }))
-  const stickerItems = stickers.map((sticker) => ({ type: 'sticker' as const, item: sticker, start: sticker.start }))
-  
+  const wordItems = words.map((word) => ({
+    type: 'word' as const,
+    item: word,
+    start: word.start,
+  }))
+  const stickerItems = stickers.map((sticker) => ({
+    type: 'sticker' as const,
+    item: sticker,
+    start: sticker.start,
+  }))
+
   // Create sortable items for DnD (only words, stickers are not draggable in subtitle context)
   const sortableItems = wordItems.map((item) => `${clipId}-${item.item.id}`)
-  
+
   // For visual display, combine and sort by time (but keep semantic separation)
-  const allItems = [...wordItems, ...stickerItems].sort((a, b) => a.start - b.start)
+  const allItems = [...wordItems, ...stickerItems].sort(
+    (a, b) => a.start - b.start
+  )
 
   return (
     <SortableContext
@@ -210,7 +220,9 @@ export default function ClipWords({
                 <ClipSticker
                   sticker={sticker}
                   clipId={clipId}
-                  onStickerClick={(stickerId) => handleWordClick(stickerId, false)} // Reuse word click handler
+                  onStickerClick={(stickerId) =>
+                    handleWordClick(stickerId, false)
+                  } // Reuse word click handler
                 />
 
                 {/* Render asset icons after each sticker */}

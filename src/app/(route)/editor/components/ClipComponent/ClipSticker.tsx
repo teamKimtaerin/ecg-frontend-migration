@@ -77,21 +77,26 @@ export default function ClipSticker({
 
       // Single click - focus sticker, activate sidebar, and seek to sticker time
       setStickerFocus(clipId, sticker.id)
-      
+
       // Find and select corresponding InsertedText
       if (insertedTexts && selectText) {
-        const matchingInsertedText = insertedTexts.find((text: any) => 
-          text.content === sticker.text &&
-          Math.abs(text.startTime - sticker.start) < 0.1 && // Allow small time difference
-          Math.abs(text.endTime - sticker.end) < 0.1
+        const matchingInsertedText = insertedTexts.find(
+          (text: any) =>
+            text.content === sticker.text &&
+            Math.abs(text.startTime - sticker.start) < 0.1 && // Allow small time difference
+            Math.abs(text.endTime - sticker.end) < 0.1
         )
-        
+
         if (matchingInsertedText) {
           selectText(matchingInsertedText.id)
-          console.log('🎯 Selected corresponding InsertedText:', matchingInsertedText.id, matchingInsertedText.content)
+          console.log(
+            '🎯 Selected corresponding InsertedText:',
+            matchingInsertedText.id,
+            matchingInsertedText.content
+          )
         }
       }
-      
+
       const videoPlayer = (
         window as {
           videoPlayer?: {
@@ -110,7 +115,18 @@ export default function ClipSticker({
       onStickerClick(sticker.id)
       setLastClickTime(currentTime)
     },
-[sticker.id, sticker.start, sticker.end, sticker.text, clipId, onStickerClick, lastClickTime, setStickerFocus, insertedTexts, selectText]
+    [
+      sticker.id,
+      sticker.start,
+      sticker.end,
+      sticker.text,
+      clipId,
+      onStickerClick,
+      lastClickTime,
+      setStickerFocus,
+      insertedTexts,
+      selectText,
+    ]
   )
 
   // Determine visual state classes
@@ -150,7 +166,13 @@ export default function ClipSticker({
         'animate-pulse'
       )
     } else if (isFocused || isSelected) {
-      classes.push('bg-purple-700', 'text-white', 'ring-2', 'ring-purple-300', 'shadow-lg')
+      classes.push(
+        'bg-purple-700',
+        'text-white',
+        'ring-2',
+        'ring-purple-300',
+        'shadow-lg'
+      )
     } else if (isMultiSelected) {
       classes.push('bg-purple-500', 'text-white', 'shadow-md')
     } else {

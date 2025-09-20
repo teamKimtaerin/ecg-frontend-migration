@@ -35,37 +35,47 @@ const DETECTION_WINDOW = 1000 // 1 second
 function detectInfiniteLoop(textId: string): boolean {
   const now = Date.now()
   const key = textId
-  
+
   // Reset counter if more than 1 second has passed
   const lastTime = lastUpdateTimes.get(key) || 0
   if (now - lastTime > DETECTION_WINDOW) {
     updateCallTracker.set(key, 0)
   }
-  
+
   // Increment counter
   const count = (updateCallTracker.get(key) || 0) + 1
   updateCallTracker.set(key, count)
   lastUpdateTimes.set(key, now)
-  
+
   if (count > MAX_UPDATES_PER_SECOND) {
-    console.error(`🚨 INFINITE LOOP DETECTED for text ${textId}: ${count} updates in ${DETECTION_WINDOW}ms`)
+    console.error(
+      `🚨 INFINITE LOOP DETECTED for text ${textId}: ${count} updates in ${DETECTION_WINDOW}ms`
+    )
     console.trace('Update call stack:')
     return true
   }
-  
+
   return false
 }
 
 // Deep comparison utility for InsertedText updates
-function hasActualChanges(original: InsertedText, updates: Partial<InsertedText>): boolean {
+function hasActualChanges(
+  original: InsertedText,
+  updates: Partial<InsertedText>
+): boolean {
   // Check if any of the update values are actually different
   for (const [key, value] of Object.entries(updates)) {
     if (key === 'updatedAt') continue // Always allow timestamp updates
-    
+
     const originalValue = (original as any)[key]
-    
+
     // Deep comparison for objects (like animation, style, position)
-    if (typeof value === 'object' && value !== null && typeof originalValue === 'object' && originalValue !== null) {
+    if (
+      typeof value === 'object' &&
+      value !== null &&
+      typeof originalValue === 'object' &&
+      originalValue !== null
+    ) {
       if (JSON.stringify(value) !== JSON.stringify(originalValue)) {
         return true
       }
@@ -131,7 +141,10 @@ export const createTextInsertionSlice: StateCreator<
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const clipSlice = currentState as any
       if (clipSlice.insertStickersIntoClips) {
-        console.log('📌 Triggering sticker creation for center text:', newText.id)
+        console.log(
+          '📌 Triggering sticker creation for center text:',
+          newText.id
+        )
         clipSlice.insertStickersIntoClips([newText])
       }
     } catch (error) {
@@ -161,7 +174,10 @@ export const createTextInsertionSlice: StateCreator<
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const clipSlice = currentState as any
       if (clipSlice.insertStickersIntoClips) {
-        console.log('📌 Triggering sticker creation for new inserted text:', newText.id)
+        console.log(
+          '📌 Triggering sticker creation for new inserted text:',
+          newText.id
+        )
         clipSlice.insertStickersIntoClips([newText])
       }
     } catch (error) {
@@ -178,13 +194,17 @@ export const createTextInsertionSlice: StateCreator<
 
     // Prevent infinite loops
     if (isUpdating) {
-      console.warn('🔄 UpdateText called during update, skipping to prevent infinite loop')
+      console.warn(
+        '🔄 UpdateText called during update, skipping to prevent infinite loop'
+      )
       return
     }
 
     const currentState = get()
-    const originalText = currentState.insertedTexts.find((text) => text.id === id)
-    
+    const originalText = currentState.insertedTexts.find(
+      (text) => text.id === id
+    )
+
     if (!originalText) {
       console.warn('🚨 UpdateText: Text not found:', id)
       return
@@ -197,7 +217,7 @@ export const createTextInsertionSlice: StateCreator<
     }
 
     console.log('✅ Updating InsertedText:', id, 'with changes:', updates)
-    
+
     // Set update flag
     isUpdating = true
 

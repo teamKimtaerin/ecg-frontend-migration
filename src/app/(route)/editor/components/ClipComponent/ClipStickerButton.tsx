@@ -12,7 +12,10 @@ interface StickerButtonItemProps {
   correspondingText: any
 }
 
-function StickerButtonItem({ sticker, correspondingText }: StickerButtonItemProps) {
+function StickerButtonItem({
+  sticker,
+  correspondingText,
+}: StickerButtonItemProps) {
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation()
 

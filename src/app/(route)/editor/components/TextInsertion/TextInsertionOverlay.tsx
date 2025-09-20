@@ -255,7 +255,6 @@ export default function TextInsertionOverlay({
           {isScenarioMode ? '🎬 Playback' : '✏️ Edit'}
         </button>
       </div>
-
     </div>,
     videoContainerRef.current
   )
