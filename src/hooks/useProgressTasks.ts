@@ -56,36 +56,72 @@ export const useProgressTasks = () => {
   const allActiveTasks = getAllActiveTasks()
 
   // Transform for Export Tasks (includes both processing exports and completed exports)
+  // 🚨 [기존 실제 데이터 연동 코드 - 주석 처리]
+  // const exportTasks: ExportTask[] = [
+  //   // Active export tasks (currently processing)
+  //   ...activeExportTasks
+  //     .filter((task) => task.type === 'export')
+  //     .map((task) => ({
+  //       id: task.id,
+  //       filename: task.filename,
+  //       progress: task.progress,
+  //       status: 'processing' as const,
+  //       completedAt: task.completedAt,
+  //       currentStage: task.currentStage,
+  //       estimatedTimeRemaining: task.estimatedTimeRemaining,
+  //     })),
+  //   // Completed export tasks
+  //   ...completedTasks
+  //     .filter(
+  //       (task) =>
+  //         task.type === 'export' &&
+  //         (task.status === 'completed' || task.status === 'failed')
+  //     )
+  //     .map((task) => ({
+  //       id: task.id,
+  //       filename: task.filename,
+  //       progress: task.progress,
+  //       status: task.status as 'completed' | 'failed',
+  //       completedAt: task.completedAt,
+  //       currentStage: task.currentStage,
+  //       estimatedTimeRemaining: task.estimatedTimeRemaining,
+  //       isTimeout: task.isTimeout,
+  //     })),
+  // ]
+
+  // 🧪 [하드코딩된 테스트 데이터] - 배포 기능 테스트용
   const exportTasks: ExportTask[] = [
-    // Active export tasks (currently processing)
-    ...activeExportTasks
-      .filter((task) => task.type === 'export')
-      .map((task) => ({
-        id: task.id,
-        filename: task.filename,
-        progress: task.progress,
-        status: 'processing' as const,
-        completedAt: task.completedAt,
-        currentStage: task.currentStage,
-        estimatedTimeRemaining: task.estimatedTimeRemaining,
-      })),
-    // Completed export tasks
-    ...completedTasks
-      .filter(
-        (task) =>
-          task.type === 'export' &&
-          (task.status === 'completed' || task.status === 'failed')
-      )
-      .map((task) => ({
-        id: task.id,
-        filename: task.filename,
-        progress: task.progress,
-        status: task.status as 'completed' | 'failed',
-        completedAt: task.completedAt,
-        currentStage: task.currentStage,
-        estimatedTimeRemaining: task.estimatedTimeRemaining,
-        isTimeout: task.isTimeout,
-      })),
+    // 현재 진행중인 내보내기
+    {
+      id: 1,
+      filename: 'video_project_1.mp4',
+      progress: 75,
+      status: 'processing',
+      currentStage: '처리 중...',
+    },
+    // 종료된 내보내기들
+    {
+      id: 2,
+      filename: 'video_project_2.mp4',
+      progress: 100,
+      status: 'completed',
+      completedAt: '2025-01-11 14:30',
+    },
+    {
+      id: 3,
+      filename: 'video_project_3.mp4',
+      progress: 100,
+      status: 'completed',
+      completedAt: '2025-01-11 12:15',
+    },
+    // 🆕 새로 추가된 완료 항목
+    {
+      id: 4,
+      filename: 'video_project_4.mp4',
+      progress: 100,
+      status: 'completed',
+      completedAt: '2025-01-11 16:20',
+    },
   ]
 
   // Transform for Upload Tasks (includes uploading, processing, completed, and failed)
