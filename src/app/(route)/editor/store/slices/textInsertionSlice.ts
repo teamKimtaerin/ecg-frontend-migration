@@ -71,6 +71,21 @@ export const createTextInsertionSlice: StateCreator<
         selectedTextId: newText.id,
       }
     })
+
+    // Sync with ClipSlice stickers
+    const allInsertedTexts = get().insertedTexts
+    const syncData = allInsertedTexts.map((text) => ({
+      id: text.id,
+      content: text.content,
+      startTime: text.startTime,
+      endTime: text.endTime,
+      animation: text.animation,
+    }))
+    // Access ClipSlice through the combined store
+    const fullState = get() as any
+    if (fullState.insertStickersIntoClips) {
+      fullState.insertStickersIntoClips(syncData)
+    }
   },
 
   // Text CRUD operations
@@ -109,6 +124,17 @@ export const createTextInsertionSlice: StateCreator<
         insertedTexts: updatedTexts,
       }
     })
+
+    // Sync with ClipSlice stickers
+    const fullState = get() as any
+    if (fullState.updateStickerInClips) {
+      fullState.updateStickerInClips(id, {
+        content: updates.content,
+        startTime: updates.startTime,
+        endTime: updates.endTime,
+        animation: updates.animation,
+      })
+    }
   },
 
   deleteText: (id: string) => {
@@ -125,6 +151,12 @@ export const createTextInsertionSlice: StateCreator<
           state.selectedTextId === id ? null : state.selectedTextId,
       }
     })
+
+    // Sync with ClipSlice stickers
+    const fullState = get() as any
+    if (fullState.removeSpecificSticker) {
+      fullState.removeSpecificSticker(id)
+    }
   },
 
   duplicateText: (id: string) => {

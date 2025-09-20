@@ -118,6 +118,7 @@ export default function ClipComponent({
                   <ClipWords
                     clipId={clip.id}
                     words={clip.words}
+                    stickers={clip.stickers || []}
                     onWordEdit={onWordEdit}
                   />
                 </div>

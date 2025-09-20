@@ -646,6 +646,7 @@ export default function EditorPage() {
                   confidence: word.acoustic_features?.confidence || 0.9,
                 })
               ),
+              stickers: [],
             })
           )
 

@@ -19,6 +19,25 @@ export interface Word {
   }>
 }
 
+export interface Sticker {
+  id: string
+  text: string // Original text content for reference
+  start: number
+  end: number
+  originalInsertedTextId: string // Reference to original inserted text
+  appliedAssets?: string[]
+  // Animation tracks for stickers (same as words)
+  animationTracks?: Array<{
+    assetId: string
+    assetName: string
+    pluginKey?: string
+    params?: Record<string, unknown>
+    timing: { start: number; end: number }
+    intensity: { min: number; max: number }
+    color?: 'blue' | 'green' | 'purple'
+  }>
+}
+
 export interface ClipItem {
   id: string
   timeline: string
@@ -28,6 +47,7 @@ export interface ClipItem {
   duration: string
   thumbnail: string
   words: Word[]
+  stickers: Sticker[] // Clip stickers for inserted texts (not included in subtitles)
   // 실제 비디오 타임라인 정보 (virtual timeline 지원용)
   startTime?: number
   endTime?: number

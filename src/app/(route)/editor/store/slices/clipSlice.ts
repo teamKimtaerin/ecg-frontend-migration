@@ -11,6 +11,13 @@ import { ProjectData } from '../../types/project'
 import { SaveSlice } from './saveSlice'
 import { UISlice } from './uiSlice'
 import { MediaSlice } from './mediaSlice'
+import {
+  insertedTextToSticker,
+  findBestMatchingClip,
+  insertStickerIntoClip,
+  removeStickersFromClip,
+  updateStickerFromInsertedText,
+} from '../../utils/insertedTextToSticker'
 
 export interface ClipSlice {
   clips: ClipItem[]
@@ -83,6 +90,52 @@ export interface ClipSlice {
   loadProject: (id: string) => Promise<void>
   createNewProject: (name?: string) => void
   setCurrentProject: (project: ProjectData) => void
+
+  // Clip Sticker management
+  insertStickersIntoClips: (
+    insertedTexts: Array<{
+      id: string
+      content: string
+      startTime: number
+      endTime: number
+      animation?: { plugin: string; parameters: Record<string, unknown> }
+    }>
+  ) => void
+  removeStickersFromClips: () => void
+  updateStickerInClips: (
+    insertedTextId: string,
+    updates: {
+      content?: string
+      startTime?: number
+      endTime?: number
+      animation?: { plugin: string; parameters: Record<string, unknown> }
+    }
+  ) => void
+  removeSpecificSticker: (insertedTextId: string) => void
+
+  // Sticker animation track management
+  updateStickerAnimationTracks: (
+    clipId: string,
+    stickerId: string,
+    tracks: Array<{
+      assetId: string
+      assetName: string
+      pluginKey?: string
+      params?: Record<string, unknown>
+      timing: { start: number; end: number }
+      intensity: { min: number; max: number }
+      color?: 'blue' | 'green' | 'purple'
+    }>
+  ) => void
+  applyStickerAsset: (
+    clipId: string,
+    stickerId: string,
+    assetId: string,
+    assetName: string,
+    pluginKey?: string,
+    params?: Record<string, unknown>
+  ) => void
+  removeStickerAsset: (clipId: string, stickerId: string, assetId: string) => void
 }
 
 export const createClipSlice: StateCreator<
@@ -668,5 +721,172 @@ export const createClipSlice: StateCreator<
 
   setCurrentProject: (project: ProjectData) => {
     set({ currentProject: project })
+  },
+
+  // Clip Sticker management
+  insertStickersIntoClips: (insertedTexts) => {
+    const { clips } = get()
+
+    // First remove all existing stickers
+    let updatedClips = clips.map(removeStickersFromClip)
+
+    // Insert stickers for each inserted text
+    insertedTexts.forEach((insertedText) => {
+      const sticker = insertedTextToSticker(insertedText)
+      const bestMatchingClip = findBestMatchingClip(updatedClips, insertedText)
+
+      if (bestMatchingClip) {
+        const clipIndex = updatedClips.findIndex(
+          (clip) => clip.id === bestMatchingClip.id
+        )
+        if (clipIndex !== -1) {
+          updatedClips[clipIndex] = insertStickerIntoClip(
+            updatedClips[clipIndex],
+            sticker
+          )
+        }
+      }
+    })
+
+    set({ clips: updatedClips })
+  },
+
+  removeStickersFromClips: () => {
+    const { clips } = get()
+
+    const updatedClips = clips.map(removeStickersFromClip)
+    set({ clips: updatedClips })
+  },
+
+  updateStickerInClips: (insertedTextId, updates) => {
+    const { clips } = get()
+
+    const updatedClips = clips.map((clip) => ({
+      ...clip,
+      stickers: (clip.stickers || []).map((sticker) => {
+        if (sticker.originalInsertedTextId === insertedTextId) {
+          // Create a mock inserted text object for the update
+          const mockInsertedText = {
+            id: insertedTextId,
+            content: updates.content || sticker.text,
+            startTime: updates.startTime ?? sticker.start,
+            endTime: updates.endTime ?? sticker.end,
+            animation: updates.animation,
+          }
+          return updateStickerFromInsertedText(sticker, mockInsertedText)
+        }
+        return sticker
+      }),
+    }))
+
+    set({ clips: updatedClips })
+  },
+
+  removeSpecificSticker: (insertedTextId) => {
+    const { clips } = get()
+
+    const updatedClips = clips.map((clip) => ({
+      ...clip,
+      stickers: (clip.stickers || []).filter(
+        (sticker) => sticker.originalInsertedTextId !== insertedTextId
+      ),
+    }))
+
+    set({ clips: updatedClips })
+  },
+
+  // Sticker animation track management methods
+  updateStickerAnimationTracks: (clipId, stickerId, tracks) => {
+    set((state) => ({
+      clips: state.clips.map((clip) =>
+        clip.id === clipId
+          ? {
+              ...clip,
+              stickers: (clip.stickers || []).map((sticker) =>
+                sticker.id === stickerId
+                  ? { ...sticker, animationTracks: tracks }
+                  : sticker
+              ),
+            }
+          : clip
+      ),
+    }))
+  },
+
+  applyStickerAsset: (clipId, stickerId, assetId, assetName, pluginKey, params) => {
+    const { clips } = get()
+    const clip = clips.find((c) => c.id === clipId)
+    if (!clip) return
+
+    const sticker = clip.stickers?.find((s) => s.id === stickerId)
+    if (!sticker) return
+
+    // Create new animation track
+    const newTrack = {
+      assetId,
+      assetName,
+      pluginKey,
+      params: params || {},
+      timing: {
+        start: sticker.start,
+        end: sticker.end,
+      },
+      intensity: { min: 0.5, max: 1.0 },
+      color: 'purple' as const,
+    }
+
+    // Add or replace animation track
+    const currentTracks = sticker.animationTracks || []
+    const existingTrackIndex = currentTracks.findIndex(
+      (track) => track.assetId === assetId
+    )
+
+    let updatedTracks
+    if (existingTrackIndex !== -1) {
+      // Replace existing track
+      updatedTracks = [...currentTracks]
+      updatedTracks[existingTrackIndex] = newTrack
+    } else {
+      // Add new track
+      updatedTracks = [...currentTracks, newTrack]
+    }
+
+    // Update sticker animation tracks
+    set((state) => ({
+      clips: state.clips.map((c) =>
+        c.id === clipId
+          ? {
+              ...c,
+              stickers: (c.stickers || []).map((s) =>
+                s.id === stickerId
+                  ? { ...s, animationTracks: updatedTracks }
+                  : s
+              ),
+            }
+          : c
+      ),
+    }))
+  },
+
+  removeStickerAsset: (clipId, stickerId, assetId) => {
+    set((state) => ({
+      clips: state.clips.map((clip) =>
+        clip.id === clipId
+          ? {
+              ...clip,
+              stickers: (clip.stickers || []).map((sticker) =>
+                sticker.id === stickerId
+                  ? {
+                      ...sticker,
+                      animationTracks: (sticker.animationTracks || []).filter(
+                        (track) => track.assetId !== assetId
+                      ),
+                    }
+                  : sticker
+              ),
+            }
+          : clip
+      ),
+    }))
   },
 })

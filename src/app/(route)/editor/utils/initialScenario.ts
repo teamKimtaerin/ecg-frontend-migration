@@ -34,13 +34,23 @@ function calculateAdjustedDomLifetime(
   wordAnimationTracks?: Map<string, any[]> // eslint-disable-line @typescript-eslint/no-explicit-any
 ): [number, number] {
   const words = Array.isArray(clip.words) ? clip.words : []
-  if (words.length === 0) return [0, 0]
+  const stickers = Array.isArray(clip.stickers) ? clip.stickers : []
+  
+  if (words.length === 0 && stickers.length === 0) return [0, 0]
 
   // Start with word-based timing
-  let domStart = Math.min(...words.map((w) => w.start))
-  let domEnd = Math.max(...words.map((w) => w.end))
+  let domStart = words.length > 0 ? Math.min(...words.map((w) => w.start)) : Infinity
+  let domEnd = words.length > 0 ? Math.max(...words.map((w) => w.end)) : -Infinity
 
-  // Adjust for animations if present
+  // Include sticker timing
+  if (stickers.length > 0) {
+    const stickerStart = Math.min(...stickers.map((s) => s.start))
+    const stickerEnd = Math.max(...stickers.map((s) => s.end))
+    domStart = Math.min(domStart === Infinity ? stickerStart : domStart, stickerStart)
+    domEnd = Math.max(domEnd === -Infinity ? stickerEnd : domEnd, stickerEnd)
+  }
+
+  // Adjust for word animations if present
   if (wordAnimationTracks) {
     for (const word of words) {
       const tracks = wordAnimationTracks.get(word.id) || []
@@ -51,6 +61,17 @@ function calculateAdjustedDomLifetime(
           domStart = Math.min(domStart, track.timing.start)
           domEnd = Math.max(domEnd, track.timing.end)
         }
+      }
+    }
+  }
+
+  // Adjust for sticker animations
+  for (const sticker of stickers) {
+    const tracks = sticker.animationTracks || []
+    for (const track of tracks) {
+      if (track.timing) {
+        domStart = Math.min(domStart, track.timing.start)
+        domEnd = Math.max(domEnd, track.timing.end)
       }
     }
   }
@@ -116,12 +137,42 @@ export function buildInitialScenarioFromClips(
           .map((track) => ({
             name: track.pluginKey,
             params: track.params || {},
-            ...(track.timeOffset && {
-              timeOffset: track.timeOffset,
-            }),
           }))
       }
       // record index path; children will push later so we know path length
+      const childIdx = children.length
+      index[nodeId] = { cueIndex: cues.length, path: [childIdx] }
+      children.push(child)
+    })
+
+    // Build sticker nodes (inserted texts with animations)
+    const stickers = Array.isArray(clip.stickers) ? clip.stickers : []
+    stickers.forEach((sticker) => {
+      const s = toAdjustedOrOriginalTime(sticker.start)
+      const e = toAdjustedOrOriginalTime(sticker.end)
+      if (!Number.isFinite(s) || !Number.isFinite(e) || e <= s) return
+
+      const nodeId = `sticker-${clip.id}_sticker_${children.length}`
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const child: any = {
+        id: nodeId,
+        eType: 'text' as const,
+        text: sticker.text,
+        baseTime: [s, e] as [number, number],
+      }
+
+      // Add plugin information from sticker animation tracks
+      const animationTracks = sticker.animationTracks
+      if (animationTracks && animationTracks.length > 0) {
+        child.pluginChain = animationTracks
+          .filter((track) => track.pluginKey) // Only include tracks with valid pluginKey
+          .map((track) => ({
+            name: track.pluginKey,
+            params: track.params || {},
+          }))
+      }
+
+      // Record index path for stickers
       const childIdx = children.length
       index[nodeId] = { cueIndex: cues.length, path: [childIdx] }
       children.push(child)

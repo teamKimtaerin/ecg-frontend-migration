@@ -27,6 +27,23 @@ export interface ClipItem {
   duration: string
   thumbnail: string
   words: Word[]
+  stickers: Array<{
+    id: string
+    text: string
+    start: number
+    end: number
+    originalInsertedTextId: string
+    appliedAssets?: string[]
+    animationTracks?: Array<{
+      assetId: string
+      assetName: string
+      pluginKey?: string
+      params?: Record<string, unknown>
+      timing: { start: number; end: number }
+      intensity: { min: number; max: number }
+      color?: 'blue' | 'green' | 'purple'
+    }>
+  }>
 }
 
 export interface ClipComponentProps {

@@ -1,7 +1,7 @@
 import React, { useRef, useCallback, useState, useEffect } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Word } from './types'
+import { Word } from '../../types'
 import { useEditorStore } from '../../store'
 
 interface ClipWordProps {
@@ -330,7 +330,9 @@ export default function ClipWord({
           dangerouslySetInnerHTML={{ __html: editingText }}
         />
       ) : (
-        <span>{word.text}</span>
+        <span className="flex items-center gap-1">
+          {word.text}
+        </span>
       )}
 
       {/* Drop indicator after word */}

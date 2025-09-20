@@ -4,8 +4,9 @@ import {
   SortableContext,
   horizontalListSortingStrategy,
 } from '@dnd-kit/sortable'
-import { Word } from './types'
+import { Word, Sticker } from '../../types'
 import ClipWord from './ClipWord'
+import ClipSticker from './ClipSticker'
 import { useWordGrouping } from '../../hooks/useWordGrouping'
 import { useEditorStore } from '../../store'
 import { getAssetIcon } from '../../utils/assetIconMapper'
@@ -13,6 +14,7 @@ import { getAssetIcon } from '../../utils/assetIconMapper'
 interface ClipWordsProps {
   clipId: string
   words: Word[]
+  stickers: Sticker[]
   onWordEdit: (clipId: string, wordId: string, newText: string) => void
 }
 
@@ -26,6 +28,7 @@ interface AssetDatabaseItem {
 export default function ClipWords({
   clipId,
   words,
+  stickers,
   onWordEdit,
 }: ClipWordsProps) {
   // Add ref for debouncing clicks
@@ -92,7 +95,7 @@ export default function ClipWords({
 
   // Combined word click handler (merging both functionalities)
   const handleWordClick = useCallback(
-    (wordId: string, _isCenter: boolean) => {
+    (wordId: string, isCenter: boolean) => {
       const word = words.find((w) => w.id === wordId)
       if (!word) return
 
@@ -141,11 +144,14 @@ export default function ClipWords({
     ]
   )
 
-  // Create sortable items for DnD (from dev)
-  const sortableItems = words.map((word) => `${clipId}-${word.id}`)
+  // Combine words and stickers, then sort by start time
+  const combinedItems = [
+    ...words.map((word) => ({ type: 'word' as const, item: word, start: word.start })),
+    ...stickers.map((sticker) => ({ type: 'sticker' as const, item: sticker, start: sticker.start })),
+  ].sort((a, b) => a.start - b.start)
 
-  // Find the dragged word for overlay (from dev)
-  // const draggedWord = words.find((w) => w.id === draggedWordId) // Currently unused
+  // Create sortable items for DnD (from dev)
+  const sortableItems = combinedItems.map((item) => `${clipId}-${item.item.id}`)
 
   return (
     <SortableContext
@@ -159,38 +165,74 @@ export default function ClipWords({
         onKeyDown={handleKeyDown}
         tabIndex={0}
       >
-        {words.map((word) => {
-          const appliedAssets = word.appliedAssets || []
+        {combinedItems.map((combinedItem) => {
+          if (combinedItem.type === 'word') {
+            const word = combinedItem.item as Word
+            const appliedAssets = word.appliedAssets || []
 
-          return (
-            <React.Fragment key={word.id}>
-              <ClipWord
-                word={word}
-                clipId={clipId}
-                onWordClick={handleWordClick}
-                onWordEdit={onWordEdit}
-              />
+            return (
+              <React.Fragment key={word.id}>
+                <ClipWord
+                  word={word}
+                  clipId={clipId}
+                  onWordClick={handleWordClick}
+                  onWordEdit={onWordEdit}
+                />
 
-              {/* Render asset icons after each word */}
-              {appliedAssets.length > 0 && (
-                <div className="flex gap-1 items-center">
-                  {appliedAssets.map((assetId: string) => {
-                    const IconComponent = getAssetIcon(assetId, allAssets)
-                    const assetName = getAssetNameById(assetId)
-                    return IconComponent ? (
-                      <div
-                        key={assetId}
-                        className="w-3 h-3 bg-slate-600/50 rounded-sm flex items-center justify-center"
-                        title={assetName}
-                      >
-                        <IconComponent size={10} className="text-slate-300" />
-                      </div>
-                    ) : null
-                  })}
-                </div>
-              )}
-            </React.Fragment>
-          )
+                {/* Render asset icons after each word */}
+                {appliedAssets.length > 0 && (
+                  <div className="flex gap-1 items-center">
+                    {appliedAssets.map((assetId: string) => {
+                      const IconComponent = getAssetIcon(assetId, allAssets)
+                      const assetName = getAssetNameById(assetId)
+                      return IconComponent ? (
+                        <div
+                          key={assetId}
+                          className="w-3 h-3 bg-slate-600/50 rounded-sm flex items-center justify-center"
+                          title={assetName}
+                        >
+                          <IconComponent size={10} className="text-slate-300" />
+                        </div>
+                      ) : null
+                    })}
+                  </div>
+                )}
+              </React.Fragment>
+            )
+          } else {
+            // Render sticker
+            const sticker = combinedItem.item as Sticker
+            const appliedAssets = sticker.appliedAssets || []
+
+            return (
+              <React.Fragment key={sticker.id}>
+                <ClipSticker
+                  sticker={sticker}
+                  clipId={clipId}
+                  onStickerClick={(stickerId) => handleWordClick(stickerId, false)} // Reuse word click handler
+                />
+
+                {/* Render asset icons after each sticker */}
+                {appliedAssets.length > 0 && (
+                  <div className="flex gap-1 items-center">
+                    {appliedAssets.map((assetId: string) => {
+                      const IconComponent = getAssetIcon(assetId, allAssets)
+                      const assetName = getAssetNameById(assetId)
+                      return IconComponent ? (
+                        <div
+                          key={assetId}
+                          className="w-3 h-3 bg-slate-600/50 rounded-sm flex items-center justify-center"
+                          title={assetName}
+                        >
+                          <IconComponent size={10} className="text-slate-300" />
+                        </div>
+                      ) : null
+                    })}
+                  </div>
+                )}
+              </React.Fragment>
+            )
+          }
         })}
 
         {/* Visual feedback for group selection (from dev) */}

@@ -30,8 +30,13 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
   onAssetSelect,
   onClose,
 }) => {
-  const { assetSidebarWidth, selectedWordId, multiSelectedWordIds } =
-    useEditorStore()
+  const {
+    assetSidebarWidth,
+    selectedWordId,
+    multiSelectedWordIds,
+    selectedStickerId,
+    focusedStickerId,
+  } = useEditorStore()
 
   const [expandedAssetId, setExpandedAssetId] = useState<string | null>(null)
   const [expandedAssetName, setExpandedAssetName] = useState<string | null>(
@@ -66,13 +71,60 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
     }
   }, [multiSelectedWordIds])
 
+  // Sticker selection info
+  const selectedStickerInfo = React.useMemo(() => {
+    if (!selectedStickerId) return null
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const store = useEditorStore.getState() as any
+      const clips = store.clips || []
+      
+      for (const clip of clips) {
+        const sticker = clip.stickers?.find((s: any) => s.id === selectedStickerId)
+        if (sticker) {
+          return { sticker, clipId: clip.id }
+        }
+      }
+    } catch {}
+    return null
+  }, [selectedStickerId])
+
   const handleAssetSelect = (asset: AssetItem) => {
     console.log('Selected asset:', asset)
 
-    // Check if the asset is already applied to determine the action
     const store = useEditorStore.getState()
-    const targetWordId = determineTargetWordId(store)
 
+    // Handle sticker asset selection
+    if (selectedStickerId && selectedStickerInfo) {
+      const { sticker, clipId } = selectedStickerInfo
+      const currentTracks = sticker.animationTracks || []
+      const isAlreadyApplied = currentTracks.find((t: any) => t.assetId === asset.id)
+
+      if (isAlreadyApplied) {
+        // Asset is already applied, open parameter panel
+        setExpandedAssetId(asset.id)
+        setExpandedAssetName(asset.name)
+        console.log('Opening parameter panel for sticker asset:', asset.name)
+        return
+      }
+
+      // Apply asset to sticker
+      const storeActions = store as any
+      if (storeActions.applyStickerAsset) {
+        storeActions.applyStickerAsset(
+          clipId,
+          selectedStickerId,
+          asset.id,
+          asset.name,
+          asset.pluginKey
+        )
+        console.log('Applied asset to sticker:', asset.name)
+      }
+      return
+    }
+
+    // Handle word asset selection (existing logic)
+    const targetWordId = determineTargetWordId(store)
     if (targetWordId) {
       const currentTracks = store.wordAnimationTracks.get(targetWordId) || []
       const isAlreadyApplied = currentTracks.find((t) => t.assetId === asset.id)
@@ -170,8 +222,20 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
 
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
-        {/* Word Selection Indicator */}
-        {multiSelectionInfo ? (
+        {/* Selection Indicator */}
+        {selectedStickerInfo ? (
+          <div className="px-4 py-2 bg-purple-50 border-b border-purple-200">
+            <div className="text-xs text-purple-600">
+              선택된 스티커:{' '}
+              <span className="font-medium text-purple-800">
+                📝 &ldquo;{selectedStickerInfo.sticker.text}&rdquo;
+              </span>
+            </div>
+            <div className="text-xs text-purple-500 mt-1">
+              삽입 텍스트 ({selectedStickerInfo.sticker.start.toFixed(1)}s - {selectedStickerInfo.sticker.end.toFixed(1)}s)
+            </div>
+          </div>
+        ) : multiSelectionInfo ? (
           <div className="px-4 py-2 bg-purple-50 border-b border-purple-200">
             <div className="text-xs text-purple-600">
               다중 선택:{' '}
