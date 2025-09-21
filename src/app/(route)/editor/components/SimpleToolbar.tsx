@@ -258,6 +258,7 @@ const SimpleToolbar: React.FC<SimpleToolbarProps> = ({
           <ToolbarButton
             icon={<AiOutlineFolderAdd className="w-5 h-5" />}
             label="다른 프로젝트로 저장"
+            disabled={true}
             onClick={onSaveAs}
           />
 
