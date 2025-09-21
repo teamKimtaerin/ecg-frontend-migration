@@ -30,7 +30,11 @@ const getStoredToastData = () => {
   }
 }
 
-const setStoredToastData = (data: { startTime: number; message: string; delayMs: number }) => {
+const setStoredToastData = (data: {
+  startTime: number
+  message: string
+  delayMs: number
+}) => {
   if (typeof window === 'undefined') return
 
   try {
@@ -121,11 +125,13 @@ const useToastTimerStore = create<ToastTimerStore>()((set, get) => ({
     const elapsedTime = currentTime - startTime
 
     // 디버깅 로그 (5초마다만 출력)
-    if (Math.floor(elapsedTime / 5000) > Math.floor((elapsedTime - 1000) / 5000)) {
+    if (
+      Math.floor(elapsedTime / 5000) > Math.floor((elapsedTime - 1000) / 5000)
+    ) {
       console.log('⏰ [ToastTimer] 진행 상황:', {
         elapsedTime: Math.floor(elapsedTime / 1000) + '초',
         remainingTime: Math.floor((delayMs - elapsedTime) / 1000) + '초',
-        message
+        message,
       })
     }
 
