@@ -1,13 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import {
-  FaTiktok,
-  FaYoutube,
-  FaFacebook,
-  FaInstagram,
-  FaTimes,
-} from 'react-icons/fa'
+import { FaTimes } from 'react-icons/fa'
 
 interface PlatformSelectionModalProps {
   isOpen: boolean
@@ -25,22 +19,22 @@ const platforms: Platform[] = [
   {
     id: 'tiktok',
     name: 'TikTok',
-    icon: <FaTiktok className="w-5 h-5" />,
+    icon: <img src="/social-media-logo/tiktok.jpg" alt="TikTok" className="w-6 h-6 rounded object-cover" />,
   },
   {
     id: 'youtube',
     name: 'YouTube',
-    icon: <FaYoutube className="w-5 h-5" />,
+    icon: <img src="/social-media-logo/youtube.png" alt="YouTube" className="w-6 h-6 rounded object-cover" />,
   },
   {
     id: 'facebook',
     name: 'Facebook',
-    icon: <FaFacebook className="w-5 h-5" />,
+    icon: <img src="/social-media-logo/facebook.jpg" alt="Facebook" className="w-6 h-6 rounded object-cover" />,
   },
   {
     id: 'instagram',
     name: 'Instagram',
-    icon: <FaInstagram className="w-5 h-5" />,
+    icon: <img src="/social-media-logo/instagram.jpg" alt="Instagram" className="w-6 h-6 rounded object-cover" />,
   },
 ]
 
@@ -185,7 +179,7 @@ export default function PlatformSelectionModal({
                   </div>
 
                   <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600">
+                    <div className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center overflow-hidden">
                       {platform.icon}
                     </div>
                     <span className="text-sm font-medium text-gray-900">
