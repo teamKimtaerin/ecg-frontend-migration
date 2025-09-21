@@ -152,8 +152,8 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
       <div className="bg-white rounded-xl p-8 relative">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">
-            1. Choose input method
+          <h1 className="text-xl font-bold text-gray-900 mb-4">
+            1. 영상 불러오기
           </h1>
 
           {/* Tabs */}
@@ -166,17 +166,13 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
                   : 'bg-gray-100 text-gray-900 rounded-l-lg border border-gray-300'
               }`}
             >
-              Upload Files
+              파일 업로드
             </button>
             <button
-              onClick={() => setActiveTab('link')}
-              className={`flex-1 h-12 text-base font-medium transition-colors cursor-pointer ${
-                activeTab === 'link'
-                  ? 'bg-gray-900 text-white rounded-r-lg'
-                  : 'bg-gray-100 text-gray-900 rounded-r-lg border border-gray-300'
-              }`}
+              disabled={true}
+              className="flex-1 h-12 text-base font-medium bg-gray-50 text-gray-400 rounded-r-lg border border-gray-200 cursor-not-allowed"
             >
-              Import Link
+              링크 가져오기
             </button>
           </div>
         </div>
@@ -345,17 +341,17 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
         {/* Transcription Settings */}
         <div className="mb-6">
           <h2 className="text-xl font-bold text-gray-900 mb-4">
-            2. Configure transcription settings
+            2. 환경 설정
           </h2>
 
           <div className="mb-4">
-            <h3 className="text-base font-bold text-gray-900 mb-4">
-              Transcription Settings
-            </h3>
+            {/* <h3 className="text-base font-bold text-gray-900 mb-4">
+              환경 설정
+            </h3> */}
 
             <div>
-              <label className="block text-sm font-medium text-gray-900 mb-2">
-                Language
+              <label className="text-base block text-sm font-medium text-gray-900 mb-2">
+                언어 선택:
               </label>
               <div className="relative">
                 <select
@@ -391,7 +387,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
                 </div>
               </div>
               <p className="text-xs text-gray-500 mt-2">
-                Select the primary language of your video content
+                영상 콘텐츠의 기본 언어를 선택해 주세요.
               </p>
             </div>
           </div>
@@ -404,7 +400,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
             className="px-6 py-2 text-gray-500 font-bold text-sm hover:text-gray-700 transition-colors cursor-pointer"
             disabled={isLoading}
           >
-            뒤로가기
+            취소
           </button>
           <button
             onClick={handleStartTranscription}
