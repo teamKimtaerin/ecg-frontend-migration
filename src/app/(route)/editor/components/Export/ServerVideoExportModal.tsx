@@ -392,20 +392,20 @@ export default function ServerVideoExportModal({
             </button>
           </div>
 
-          {/* 하단 버튼 */}
+          {/* 하단 버튼 - Modern Design */}
           <div className="flex space-x-3 justify-center">
+            <button
+              onClick={onClose}
+              className="btn-modern-secondary"
+            >
+              취소
+            </button>
             <button
               onClick={handleStartExport}
               disabled={isExporting}
-              className="px-8 py-2.5 bg-black hover:bg-gray-800 disabled:bg-gray-400 text-white text-sm font-medium rounded-md transition-colors duration-200"
+              className={`btn-modern-primary ${isExporting ? 'btn-modern-loading' : ''}`}
             >
               내보내기
-            </button>
-            <button
-              onClick={onClose}
-              className="px-8 py-2.5 bg-gray-300 hover:bg-gray-400 text-gray-700 text-sm font-medium rounded-md transition-colors duration-200"
-            >
-              취소
             </button>
           </div>
         </div>
