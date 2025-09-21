@@ -200,7 +200,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
                         파일 올려놓기
                       </h3>
                       <p className="text-sm text-gray-500">
-                        Drag or click to browse from your computer
+                        PC에서 드래그하거나 클릭하여 찾아보세요.
                       </p>
                     </div>
 
@@ -212,7 +212,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
                       파일 선택
                     </button>
 
-                    <p className="text-sm text-gray-500 mt-4">audio, video</p>
+                    <p className="text-sm text-gray-500 mt-4">비디오·오디오</p>
                   </div>
                 ) : (
                   // 파일 선택 상태: 썸네일 UI
