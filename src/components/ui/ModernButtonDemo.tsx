@@ -17,21 +17,32 @@ const ModernButtonDemo: React.FC = () => {
 
   return (
     <div className="p-8 space-y-8 bg-white rounded-lg border">
-      <h2 className="text-2xl font-bold text-gray-900">Modern Button Designs</h2>
+      <h2 className="text-2xl font-bold text-gray-900">
+        Modern Button Designs
+      </h2>
 
       {/* 디자인 1: 로그인/회원가입 스타일 (브랜드 컬러 적용) */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-gray-700">디자인 1: Primary Action (브랜드 컬러)</h3>
+        <h3 className="text-lg font-semibold text-gray-700">
+          디자인 1: Primary Action (브랜드 컬러)
+        </h3>
         <div className="flex space-x-4">
           <Button variant="modern-primary" label="로그인" />
           <Button variant="modern-primary" label="회원가입" size="large" />
-          <Button variant="modern-primary" label="처리 중..." isPending={isLoading} onClick={handleLoadingTest} />
+          <Button
+            variant="modern-primary"
+            label="처리 중..."
+            isPending={isLoading}
+            onClick={handleLoadingTest}
+          />
         </div>
       </div>
 
       {/* 디자인 2: 취소/다음 조합 */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-gray-700">디자인 2: Secondary + Primary 조합</h3>
+        <h3 className="text-lg font-semibold text-gray-700">
+          디자인 2: Secondary + Primary 조합
+        </h3>
         <div className="flex space-x-4">
           <Button variant="modern-secondary" label="취소" />
           <Button variant="modern-primary" label="다음" />
@@ -44,7 +55,9 @@ const ModernButtonDemo: React.FC = () => {
 
       {/* 추가: Dark 버전 (원본 검은색 디자인) */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-gray-700">원본 검은색 디자인</h3>
+        <h3 className="text-lg font-semibold text-gray-700">
+          원본 검은색 디자인
+        </h3>
         <div className="flex space-x-4">
           <Button variant="modern-secondary" label="취소" />
           <Button variant="modern-dark" label="로그인 / 회원가입" />
@@ -73,7 +86,9 @@ const ModernButtonDemo: React.FC = () => {
 
       {/* CSS 클래스 직접 사용 예시 */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-gray-700">CSS 클래스 직접 사용</h3>
+        <h3 className="text-lg font-semibold text-gray-700">
+          CSS 클래스 직접 사용
+        </h3>
         <div className="flex space-x-4">
           <button className="btn-modern-secondary">취소</button>
           <button className="btn-modern-primary">다음</button>

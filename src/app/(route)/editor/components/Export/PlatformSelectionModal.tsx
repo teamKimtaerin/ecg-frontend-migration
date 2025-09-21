@@ -19,22 +19,46 @@ const platforms: Platform[] = [
   {
     id: 'tiktok',
     name: 'TikTok',
-    icon: <img src="/social-media-logo/tiktok.jpg" alt="TikTok" className="w-6 h-6 rounded object-cover" />,
+    icon: (
+      <img
+        src="/social-media-logo/tiktok.jpg"
+        alt="TikTok"
+        className="w-6 h-6 rounded object-cover"
+      />
+    ),
   },
   {
     id: 'youtube',
     name: 'YouTube',
-    icon: <img src="/social-media-logo/youtube.png" alt="YouTube" className="w-6 h-6 rounded object-cover" />,
+    icon: (
+      <img
+        src="/social-media-logo/youtube.png"
+        alt="YouTube"
+        className="w-6 h-6 rounded object-cover"
+      />
+    ),
   },
   {
     id: 'facebook',
     name: 'Facebook',
-    icon: <img src="/social-media-logo/facebook.jpg" alt="Facebook" className="w-6 h-6 rounded object-cover" />,
+    icon: (
+      <img
+        src="/social-media-logo/facebook.jpg"
+        alt="Facebook"
+        className="w-6 h-6 rounded object-cover"
+      />
+    ),
   },
   {
     id: 'instagram',
     name: 'Instagram',
-    icon: <img src="/social-media-logo/instagram.jpg" alt="Instagram" className="w-6 h-6 rounded object-cover" />,
+    icon: (
+      <img
+        src="/social-media-logo/instagram.jpg"
+        alt="Instagram"
+        className="w-6 h-6 rounded object-cover"
+      />
+    ),
   },
 ]
 
@@ -194,10 +218,7 @@ export default function PlatformSelectionModal({
 
         {/* Footer - Modern Design */}
         <div className="flex justify-end space-x-3 p-6 border-t border-gray-200">
-          <button
-            onClick={onClose}
-            className="btn-modern-secondary"
-          >
+          <button onClick={onClose} className="btn-modern-secondary">
             취소
           </button>
           <button

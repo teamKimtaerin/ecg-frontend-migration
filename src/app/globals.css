@@ -141,16 +141,16 @@ input[type='range']::-moz-range-thumb {
      ======================================== */
 
   /* Primary Colors - Brand Purple */
-  --color-primary: #7C3AED;
-  --color-primary-dark: #5B21B6;
-  --color-primary-light: #A855F7;
-  --color-primary-very-light: #F3E8FF;
+  --color-primary: #7c3aed;
+  --color-primary-dark: #5b21b6;
+  --color-primary-light: #a855f7;
+  --color-primary-very-light: #f3e8ff;
 
   /* Brand Colors */
-  --color-brand-main: #7C3AED;
-  --color-brand-sub: #A855F7;
-  --color-brand-dark: #5B21B6;
-  --color-brand-light: #F3E8FF;
+  --color-brand-main: #7c3aed;
+  --color-brand-sub: #a855f7;
+  --color-brand-dark: #5b21b6;
+  --color-brand-light: #f3e8ff;
 
   /* Neutral Colors */
   --color-black: #080808;

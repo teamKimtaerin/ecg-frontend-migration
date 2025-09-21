@@ -153,7 +153,9 @@ export default function ProgressModal({
       onClick={handleBackdropClick}
       role="dialog"
       aria-modal="true"
-      aria-label={ariaLabel || `${type === 'upload' ? '업로드' : '내보내기'} 진행 상황`}
+      aria-label={
+        ariaLabel || `${type === 'upload' ? '업로드' : '내보내기'} 진행 상황`
+      }
     >
       <div
         ref={modalRef}
@@ -162,7 +164,13 @@ export default function ProgressModal({
       >
         {/* 닫기 버튼 */}
         <button
-          onClick={shouldShowCloseButton ? onClose : (canCancel ? (onCancel || onClose) : undefined)}
+          onClick={
+            shouldShowCloseButton
+              ? onClose
+              : canCancel
+                ? onCancel || onClose
+                : undefined
+          }
           className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors z-10"
           aria-label="모달 닫기"
           disabled={!shouldShowCloseButton && !canCancel}
@@ -199,8 +207,7 @@ export default function ProgressModal({
               <div className="absolute bottom-3 left-3 bg-black bg-opacity-70 text-white text-sm px-3 py-2 rounded">
                 {type === 'upload'
                   ? '업로드를 처리하는 중입니다...'
-                  : '비디오를 내보내는 중입니다...'
-                }
+                  : '비디오를 내보내는 중입니다...'}
               </div>
             </div>
           </div>

@@ -394,10 +394,7 @@ export default function ServerVideoExportModal({
 
           {/* 하단 버튼 - Modern Design */}
           <div className="flex space-x-3 justify-center">
-            <button
-              onClick={onClose}
-              className="btn-modern-secondary"
-            >
+            <button onClick={onClose} className="btn-modern-secondary">
               취소
             </button>
             <button

@@ -321,7 +321,10 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
                         task.status === 'processing'
                     )
                     .map((task) => (
-                      <div key={task.id} className="bg-purple-50 rounded-lg p-3">
+                      <div
+                        key={task.id}
+                        className="bg-purple-50 rounded-lg p-3"
+                      >
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-sm font-medium text-gray-800 truncate">
                             {task.filename}

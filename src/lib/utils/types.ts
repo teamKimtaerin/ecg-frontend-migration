@@ -4,7 +4,14 @@
 
 // Component size type definitions
 export type ComponentSize = 'small' | 'medium' | 'large' | 'extra-large'
-export type ComponentVariant = 'accent' | 'primary' | 'secondary' | 'negative' | 'modern-primary' | 'modern-secondary' | 'modern-dark'
+export type ComponentVariant =
+  | 'accent'
+  | 'primary'
+  | 'secondary'
+  | 'negative'
+  | 'modern-primary'
+  | 'modern-secondary'
+  | 'modern-dark'
 export type ComponentStyle = 'fill' | 'outline' | 'modern'
 export type StaticColor = 'none' | 'white' | 'black'
 
@@ -248,7 +255,10 @@ export const SIZE_CLASSES = {
 } as const
 
 // Utility functions for components
-export const getSizeClasses = (size: ComponentSize = 'medium', variant?: ComponentVariant) => {
+export const getSizeClasses = (
+  size: ComponentSize = 'medium',
+  variant?: ComponentVariant
+) => {
   // Modern buttons use their own size classes
   if (variant?.startsWith('modern-')) {
     const modernSizes = {
@@ -275,7 +285,11 @@ export const getVariantClasses = (
       'modern-secondary': 'btn-modern-secondary',
       'modern-dark': 'btn-modern-dark',
     }
-    return modernVariants[variant as 'modern-primary' | 'modern-secondary' | 'modern-dark'] || 'btn-modern-primary'
+    return (
+      modernVariants[
+        variant as 'modern-primary' | 'modern-secondary' | 'modern-dark'
+      ] || 'btn-modern-primary'
+    )
   }
 
   // Traditional variants

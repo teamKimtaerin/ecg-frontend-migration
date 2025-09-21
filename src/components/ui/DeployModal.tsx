@@ -303,7 +303,9 @@ const DeployModal: React.FC<DeployModalProps> = ({
                       }))
                     }
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      deployConfig.allowDownload ? 'bg-brand-main' : 'bg-gray-200'
+                      deployConfig.allowDownload
+                        ? 'bg-brand-main'
+                        : 'bg-gray-200'
                     }`}
                   >
                     <span
