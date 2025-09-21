@@ -1,9 +1,9 @@
 'use client'
 
-import React, { useState, useRef, useCallback } from 'react'
-import { LuLink } from 'react-icons/lu'
-import { FaYoutube, FaVimeo } from 'react-icons/fa'
 import Modal from '@/components/ui/Modal'
+import React, { useCallback, useRef, useState } from 'react'
+import { FaVimeo, FaYoutube } from 'react-icons/fa'
+import { LuLink } from 'react-icons/lu'
 
 interface NewUploadModalProps {
   isOpen: boolean
@@ -184,61 +184,80 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
         {/* Upload Tab Content */}
         {activeTab === 'upload' && (
           <div className="mb-6">
-            <div
-              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                isDragOver
-                  ? 'border-blue-400 bg-blue-50'
-                  : 'border-gray-300 bg-gray-50'
-              }`}
-              onDragEnter={handleDragEnter}
-              onDragLeave={handleDragLeave}
-              onDragOver={handleDragOver}
-              onDrop={handleDrop}
-            >
-              <div className="mb-4">
-                <h3 className="text-lg font-bold text-gray-900 mb-2">
-                  파일 올려놓기
-                </h3>
-                <p className="text-sm text-gray-500">
-                  Drag or click to browse from your computer
-                </p>
-              </div>
-
-              <button
-                onClick={handleFileSelectClick}
-                className="bg-gray-900 text-white px-6 py-2 rounded font-bold hover:bg-gray-800 transition-colors cursor-pointer"
-                disabled={isLoading}
+            <div className="relative">
+              <div
+                className={`border-2 border-dashed rounded-lg transition-colors ${
+                  isDragOver
+                    ? 'border-blue-400 bg-blue-50'
+                    : 'border-gray-300 bg-gray-50'
+                }`}
+                onDragEnter={handleDragEnter}
+                onDragLeave={handleDragLeave}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
               >
-                파일 선택
-              </button>
+                {selectedFiles.length === 0 ? (
+                  // 파일 미선택 상태: 기존 UI
+                  <div className="p-8 text-center">
+                    <div className="mb-4">
+                      <h3 className="text-lg font-bold text-gray-900 mb-2">
+                        파일 올려놓기
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        Drag or click to browse from your computer
+                      </p>
+                    </div>
 
-              <p className="text-sm text-gray-500 mt-4">audio, video</p>
+                    <button
+                      onClick={handleFileSelectClick}
+                      className="bg-gray-900 text-white px-6 py-2 rounded font-bold hover:bg-gray-800 transition-colors cursor-pointer"
+                      disabled={isLoading}
+                    >
+                      파일 선택
+                    </button>
 
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept={acceptedTypes.join(',')}
-                onChange={handleFileInputChange}
-                multiple={multiple}
-                className="hidden"
-                disabled={isLoading}
-              />
-            </div>
+                    <p className="text-sm text-gray-500 mt-4">audio, video</p>
+                  </div>
+                ) : (
+                  // 파일 선택 상태: 썸네일 UI
+                  <div className="p-4">
+                    <div className="w-full bg-gray-100 rounded-lg overflow-hidden relative">
+                      <img
+                        src="/friends-thumbnail.png"
+                        alt="선택된 비디오 파일"
+                        className="w-full h-48 object-cover"
+                      />
+                      {/* 썸네일 우상단 파일 변경 버튼 */}
+                      <button
+                        onClick={handleFileSelectClick}
+                        className="absolute top-2 right-2 bg-black bg-opacity-70 text-white px-3 py-1 rounded text-xs font-medium hover:bg-opacity-80 transition-all cursor-pointer"
+                        disabled={isLoading}
+                      >
+                        파일 변경
+                      </button>
+                    </div>
+                    <div className="mt-3 text-center">
+                      <p className="text-sm font-medium text-gray-900">
+                        {selectedFiles[0].name}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {(selectedFiles[0].size / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                    </div>
+                  </div>
+                )}
 
-            {selectedFiles.length > 0 && (
-              <div className="mt-4">
-                <h4 className="text-sm font-medium text-gray-900 mb-2">
-                  Selected Files:
-                </h4>
-                <ul className="text-sm text-gray-600">
-                  {selectedFiles.map((file, index) => (
-                    <li key={index} className="truncate">
-                      {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
-                    </li>
-                  ))}
-                </ul>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept={acceptedTypes.join(',')}
+                  onChange={handleFileInputChange}
+                  multiple={multiple}
+                  className="hidden"
+                  disabled={isLoading}
+                />
               </div>
-            )}
+            </div>
           </div>
         )}
 
