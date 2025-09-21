@@ -156,7 +156,6 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
       return {
         name,
         params: t.params || {},
-        baseTime,
         timeOffset, // seconds relative to baseTime[0]
       }
     })

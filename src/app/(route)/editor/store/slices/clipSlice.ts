@@ -745,7 +745,8 @@ export const createClipSlice: StateCreator<
     const state = get() as unknown as {
       currentScenario?: import('@/app/shared/motiontext').RendererConfigV2
       clips: ClipItem[]
-      buildInitialScenario?: (clips: ClipItem[]) => void
+      buildInitialScenario?: (clips: ClipItem[], opts?: { wordAnimationTracks?: Map<string, unknown[]> }) => void
+      wordAnimationTracks?: Map<string, unknown[]>
     }
     const currentScenario = state.currentScenario
 
@@ -783,9 +784,38 @@ export const createClipSlice: StateCreator<
 
     // 시나리오 업데이트 - clips와 시나리오 동기화
     const anyGet = get() as unknown as {
-      buildInitialScenario?: (clips: ClipItem[]) => void
+      buildInitialScenario?: (clips: ClipItem[], opts?: { wordAnimationTracks?: Map<string, unknown[]> }) => void
+      wordAnimationTracks?: Map<string, unknown[]>
+      scenarioVersion?: number
     }
-    anyGet.buildInitialScenario?.(processedClips)
+
+    // Word ID 매핑 확인
+    const originalWordIds = state.clips.flatMap(clip => clip.words.map(w => w.id))
+    const processedWordIds = processedClips.flatMap(clip => clip.words.map(w => w.id))
+    const wordIdChanges = {
+      original: originalWordIds,
+      processed: processedWordIds,
+      missing: originalWordIds.filter(id => !processedWordIds.includes(id)),
+      added: processedWordIds.filter(id => !originalWordIds.includes(id))
+    }
+
+    console.log('🔄 applyAutoLineBreak - Before scenario rebuild:', {
+      originalClipsCount: state.clips.length,
+      processedClipsCount: processedClips.length,
+      wordAnimationTracksSize: anyGet.wordAnimationTracks?.size || 0,
+      wordAnimationTracksKeys: anyGet.wordAnimationTracks ? Array.from(anyGet.wordAnimationTracks.keys()) : [],
+      scenarioVersionBefore: anyGet.scenarioVersion,
+      wordIdChanges
+    })
+
+    anyGet.buildInitialScenario?.(processedClips, {
+      wordAnimationTracks: anyGet.wordAnimationTracks
+    })
+
+    const finalGet = get() as unknown as { scenarioVersion?: number }
+    console.log('✅ applyAutoLineBreak - After scenario rebuild:', {
+      scenarioVersionAfter: finalGet.scenarioVersion
+    })
   },
 
   // === 레거시 호환 메서드 ===

@@ -93,6 +93,25 @@ export function buildInitialScenarioFromClips(
     const clipEnd = Math.max(...words.map((w) => w.end))
     const adjClipStart = toAdjustedOrOriginalTime(clipStart)
     const adjClipEnd = toAdjustedOrOriginalTime(clipEnd)
+
+    // Debug: Log clip timing details
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`📊 Clip ${clip.id} timing:`, {
+        clipId: clip.id,
+        clipStart,
+        clipEnd,
+        adjClipStart,
+        adjClipEnd,
+        wordsCount: words.length,
+        wordTimings: words.map(w => ({
+          id: w.id,
+          text: w.text,
+          start: w.start,
+          end: w.end
+        }))
+      })
+    }
+
     if (!Number.isFinite(adjClipStart) || !Number.isFinite(adjClipEnd)) return
     if (adjClipEnd <= adjClipStart) return
 
@@ -173,6 +192,18 @@ export function buildInitialScenarioFromClips(
         children,
       },
     }
+
+    // Debug: Log cue timing
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`🎬 Cue ${cueId} created:`, {
+        cueId,
+        domLifetime: [adjDomStart, adjDomEnd],
+        displayTime: [adjClipStart, adjClipEnd],
+        childrenCount: children.length,
+        text: children.map(c => c.text).join(' ')
+      })
+    }
+
     cues.push(cue)
   })
 
