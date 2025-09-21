@@ -3,6 +3,7 @@
 import { AssetCard } from '@/app/(route)/asset-store/components/AssetCard'
 import { AssetModal } from '@/app/(route)/asset-store/components/AssetModal'
 import { AssetSidebar } from '@/app/(route)/asset-store/components/AssetSidebar'
+import { AssetCreationModal } from '@/app/(route)/asset-store/components/creation'
 import Header from '@/components/NewLandingPage/Header'
 import { TRANSITIONS } from '@/lib/utils'
 import { AssetItem } from '@/types/asset-store'
@@ -19,12 +20,13 @@ export default function AssetPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedAsset, setSelectedAsset] = useState<AssetItem | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isCreationModalOpen, setIsCreationModalOpen] = useState(false)
   const [activeFilter, setActiveFilter] = useState('All')
   const [sortOrder, setSortOrder] = useState('favorites') // 기본값: 즐겨찾기
   const [showSortDropdown, setShowSortDropdown] = useState(false)
   const [contentType, setContentType] = useState<'effects' | 'templates'>(
     'effects'
-  ) // 이펙트/템플릿 토글
+  ) // 트/템플릿 토글
 
   const [assets, setAssets] = useState<AssetItem[]>([])
   const [templates, setTemplates] = useState<AssetItem[]>([])
@@ -169,13 +171,51 @@ export default function AssetPage() {
   }, [])
   const [isLoading, setIsLoading] = useState(true)
 
+  // 사용자 즐겨찾기 목록 상태
+  const [userFavorites, setUserFavorites] = useState<Set<string>>(new Set())
+
+  // selectedAsset의 즐겨찾기 상태를 userFavorites와 동기화
+  useEffect(() => {
+    if (selectedAsset) {
+      const currentFavoriteStatus = userFavorites.has(selectedAsset.id)
+      if (selectedAsset.isFavorite !== currentFavoriteStatus) {
+        setSelectedAsset((prev) =>
+          prev
+            ? {
+                ...prev,
+                isFavorite: currentFavoriteStatus,
+              }
+            : null
+        )
+      }
+    }
+  }, [userFavorites, selectedAsset])
+
   const handleCardClick = (asset: AssetItem) => {
-    setSelectedAsset(asset)
+    const assetWithFavoriteStatus = {
+      ...asset,
+      isFavorite: userFavorites.has(asset.id),
+    }
+    setSelectedAsset(assetWithFavoriteStatus)
     setIsModalOpen(true)
   }
 
+  const handleAssetChange = (asset: AssetItem) => {
+    const assetWithFavoriteStatus = {
+      ...asset,
+      isFavorite: userFavorites.has(asset.id),
+    }
+    setSelectedAsset(assetWithFavoriteStatus)
+  }
+
   const handleUploadClick = () => {
-    console.log('에셋 업로드 클릭됨')
+    setIsCreationModalOpen(true)
+  }
+
+  const handleAssetSave = (asset: AssetItem) => {
+    console.log('새 에셋 저장:', asset)
+    // TODO: 실제 저장 로직 구현
+    setIsCreationModalOpen(false)
   }
 
   // Header event handlers
@@ -202,13 +242,15 @@ export default function AssetPage() {
   }
 
   const handleFavoriteToggle = (assetId: string) => {
-    setAssets((prevAssets) =>
-      prevAssets.map((asset) =>
-        asset.id === assetId
-          ? { ...asset, isFavorite: !asset.isFavorite }
-          : asset
-      )
-    )
+    setUserFavorites((prev) => {
+      const newFavorites = new Set(prev)
+      if (newFavorites.has(assetId)) {
+        newFavorites.delete(assetId)
+      } else {
+        newFavorites.add(assetId)
+      }
+      return newFavorites
+    })
   }
 
   // 정렬 옵션
@@ -226,8 +268,14 @@ export default function AssetPage() {
   }
 
   const filteredAndSortedAssets = useMemo(() => {
+    // userFavorites 상태를 반영한 데이터
+    const dataWithFavoriteStatus = currentData.map((item) => ({
+      ...item,
+      isFavorite: userFavorites.has(item.id),
+    }))
+
     // 필터링
-    const filtered = currentData.filter((item) => {
+    const filtered = dataWithFavoriteStatus.filter((item) => {
       const matchesSearch = item.title
         .toLowerCase()
         .includes(searchTerm.toLowerCase())
@@ -307,7 +355,14 @@ export default function AssetPage() {
     })
 
     return sorted
-  }, [currentData, searchTerm, activeFilter, sortOrder, contentType])
+  }, [
+    currentData,
+    searchTerm,
+    activeFilter,
+    sortOrder,
+    contentType,
+    userFavorites,
+  ])
 
   // 메인 컨테이너 클래스
   const mainContainerClasses = clsx('min-h-screen', 'bg-gray-50', 'text-black')
@@ -382,7 +437,7 @@ export default function AssetPage() {
             <div className="flex items-center bg-gray-200 rounded-full p-1 relative">
               {/* 슬라이딩 배경 */}
               <div
-                className={`absolute top-1 bottom-1 bg-black rounded-full transition-all duration-300 ease-in-out ${
+                className={`absolute top-1 bottom-1 bg-purple-700 rounded-full transition-all duration-300 ease-in-out ${
                   contentType === 'effects'
                     ? 'left-1 right-[50%]'
                     : 'left-[50%] right-1'
@@ -443,7 +498,7 @@ export default function AssetPage() {
                         onClick={() => handleSortChange(option.value)}
                         className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg cursor-pointer ${
                           sortOrder === option.value
-                            ? 'text-blue-600 bg-blue-50'
+                            ? 'text-purple-700 bg-blue-50'
                             : 'text-gray-700'
                         }`}
                       >
@@ -457,17 +512,16 @@ export default function AssetPage() {
               {/* 업로드 에셋 버튼 */}
               <button
                 onClick={handleUploadClick}
-                className="px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors flex items-center space-x-2 cursor-pointer"
+                className="px-4 py-2 bg-purple-400 text-white rounded-lg text-sm font-medium hover:bg-purple-700 hover:scale-105 transition-colors flex items-center space-x-2 cursor-pointer"
               >
-                <span className="font-bold">+</span>
-                <span>에셋 업로드</span>
+                <span>에셋 만들기</span>
               </button>
             </div>
           </div>
 
           {isLoading ? (
             <div className="flex justify-center items-center py-20">
-              <div className="text-gray-500">Loading assets...</div>
+              <div className="text-purple-400">Loading assets...</div>
             </div>
           ) : (
             <>
@@ -513,7 +567,20 @@ export default function AssetPage() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         asset={selectedAsset}
-        onAddToCart={handleAddToCart}
+        onFavoriteToggle={() =>
+          selectedAsset && handleFavoriteToggle(selectedAsset.id)
+        }
+        availableAssets={filteredAndSortedAssets}
+        onAssetChange={handleAssetChange}
+      />
+
+      <AssetCreationModal
+        isOpen={isCreationModalOpen}
+        onClose={() => setIsCreationModalOpen(false)}
+        selectedAsset={selectedAsset}
+        onAssetSave={handleAssetSave}
+        availableAssets={assets}
+        onAssetChange={handleAssetChange}
       />
     </div>
   )

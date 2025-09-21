@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react'
 import { IoCheckmark, IoClose, IoRefresh, IoSettings } from 'react-icons/io5'
-import { PluginParameterControls } from '../../../asset-store/components/PluginParameterControls'
+import { TabbedParameterControls } from '../../../asset-store/components/creation/TabbedParameterControls'
 import {
   loadPluginManifest,
   getDefaultParameters,
@@ -10,6 +10,7 @@ import {
 } from '@/app/(route)/asset-store/utils/scenarioGenerator'
 import { useEditorStore } from '../../store'
 import { AssetSettings } from './types'
+import { Sticker } from '../../types'
 import {
   determineTargetWordId,
   determineTargetWordIds,
@@ -65,10 +66,6 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
   const {
     expandedAssetId,
     wordAnimationTracks,
-    focusedWordId,
-    selectedWordId,
-    expandedWordId,
-    multiSelectedWordIds,
     selectedStickerId,
     focusedStickerId,
   } = useEditorStore()
@@ -86,7 +83,7 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
 
       for (const clip of clips) {
         const sticker = clip.stickers?.find(
-          (s: any) => s.id === selectedStickerId
+          (s: Sticker) => s.id === selectedStickerId
         )
         if (sticker) {
           return { sticker, clipId: clip.id }
@@ -105,14 +102,7 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
     } catch {
       return null
     }
-  }, [
-    isSticker,
-    wordAnimationTracks,
-    focusedWordId,
-    selectedWordId,
-    expandedWordId,
-    multiSelectedWordIds,
-  ])
+  }, [isSticker])
 
   // Get all target word IDs for multi-selection
   const targetWordIds = useMemo(() => {
@@ -122,13 +112,7 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
     } catch {
       return []
     }
-  }, [
-    wordAnimationTracks,
-    focusedWordId,
-    selectedWordId,
-    expandedWordId,
-    multiSelectedWordIds,
-  ])
+  }, [])
 
   // Check if multi-selection is active
   const isMultiSelection = useMemo(() => {
@@ -138,7 +122,7 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
     } catch {
       return false
     }
-  }, [multiSelectedWordIds])
+  }, [])
 
   // Resolve pluginKey from current target (word or sticker) animation tracks
   const pluginKeyFromStore = useMemo(() => {
@@ -148,7 +132,10 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
     if (isSticker && selectedStickerInfo) {
       // Get pluginKey from sticker animation tracks
       const tracks = selectedStickerInfo.sticker.animationTracks || []
-      const track = tracks.find((t: any) => t.assetId === targetAssetId)
+      const track = tracks.find(
+        (t: NonNullable<Sticker['animationTracks']>[0]) =>
+          t.assetId === targetAssetId
+      )
       return track?.pluginKey
     } else if (targetWordId) {
       // Get pluginKey from word animation tracks
@@ -368,6 +355,11 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
     fallbackPluginKey,
     expandedAssetId,
     assetId,
+    isMultiSelection,
+    isSticker,
+    selectedStickerInfo,
+    targetWordId,
+    targetWordIds,
   ])
 
   // If we found a fallback key but store lacked it, persist it back to store
@@ -396,6 +388,7 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
     assetId,
     expandedAssetId,
     targetWordId,
+    isSticker,
   ])
 
   const handleParameterChange = (key: string, value: unknown) => {
@@ -468,7 +461,7 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
             <div className="text-sm text-slate-600">설정을 불러오는 중...</div>
           </div>
         ) : manifest ? (
-          <PluginParameterControls
+          <TabbedParameterControls
             manifest={manifest}
             parameters={parameters}
             onParameterChange={handleParameterChange}

@@ -8,8 +8,10 @@ import EditorMotionTextOverlay from './EditorMotionTextOverlay'
 import TextInsertionOverlay from './TextInsertion/TextInsertionOverlay'
 import TextEditInput from './TextInsertion/TextEditInput'
 import ScenarioJsonEditor from './ScenarioJsonEditor'
-import VirtualTimelineVideoController from './VirtualTimelineVideoController'
 import VirtualTimelineController from './VirtualTimelineController'
+import ChatBotFloatingButton from './ChatBot/ChatBotFloatingButton'
+import ChatBotModal from './ChatBot/ChatBotModal'
+import { ChatMessage } from '../types/chatBot'
 import { playbackEngine } from '@/utils/timeline/playbackEngine'
 import { timelineEngine } from '@/utils/timeline/timelineEngine'
 import {
@@ -21,13 +23,9 @@ import { VirtualTimelineManager } from '@/utils/virtual-timeline/VirtualTimeline
 
 interface VideoSectionProps {
   width?: number
-  onCurrentTimeChange?: (currentTime: number) => void
 }
 
-const VideoSection: React.FC<VideoSectionProps> = ({
-  width = 300,
-  onCurrentTimeChange,
-}) => {
+const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
   const videoContainerRef = useRef<HTMLDivElement>(null)
   const videoPlayerRef = useRef<HTMLVideoElement>(null)
 
@@ -40,6 +38,11 @@ const VideoSection: React.FC<VideoSectionProps> = ({
   // Text insertion state
   const [currentTime, setCurrentTime] = useState(0) // 가상 타임라인 시간
   const [realVideoTime, setRealVideoTime] = useState(0) // 실제 영상 시간 (텍스트 삽입용)
+
+  // ChatBot state
+  const [isChatBotOpen, setIsChatBotOpen] = useState(false)
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
+  const [isChatBotTyping, setIsChatBotTyping] = useState(false)
 
   // Virtual Timeline 시스템
   const virtualTimelineManagerRef = useRef<VirtualTimelineManager | null>(null)
@@ -124,7 +127,6 @@ const VideoSection: React.FC<VideoSectionProps> = ({
           const avgDurationPerClip = (videoDuration || 0) / clips.length
           const clipIndex = clips.indexOf(clip)
           const startTime = clipIndex * avgDurationPerClip
-          // endTime calculation removed as it's not used
 
           return {
             ...clip,
@@ -209,7 +211,6 @@ const VideoSection: React.FC<VideoSectionProps> = ({
     (time: number) => {
       // 실제 영상 시간만 업데이트 (텍스트 삽입용)
       setRealVideoTime(time)
-      onCurrentTimeChange?.(time)
 
       // 가상 타임라인이 비활성화된 경우에만 currentTime도 업데이트
       if (!virtualPlayerControllerRef.current) {
@@ -220,7 +221,7 @@ const VideoSection: React.FC<VideoSectionProps> = ({
       }
       // Virtual Player Controller가 있으면 RVFC가 자동으로 시간 업데이트 처리
     },
-    [onCurrentTimeChange, setPlaybackPosition]
+    [setPlaybackPosition]
   )
 
   // Handle text click for selection
@@ -233,6 +234,52 @@ const VideoSection: React.FC<VideoSectionProps> = ({
   const handleTextDoubleClick = useCallback((textId: string) => {
     console.log('📱 VideoSection handleTextDoubleClick:', textId)
     // Double click functionality disabled
+  }, [])
+
+  // ChatBot handlers
+  const handleChatBotOpen = useCallback(() => {
+    setIsChatBotOpen(true)
+  }, [])
+
+  const handleChatBotClose = useCallback(() => {
+    setIsChatBotOpen(false)
+  }, [])
+
+  const handleSendMessage = useCallback((message: string) => {
+    try {
+      // Add user message
+      const userMessage: ChatMessage = {
+        id: `user_${Date.now()}`,
+        content: message,
+        sender: 'user',
+        timestamp: new Date(),
+      }
+      setChatMessages((prev) => [...prev, userMessage])
+
+      // Simulate bot typing
+      setIsChatBotTyping(true)
+
+      // Simulate bot response (replace with actual AI integration later)
+      setTimeout(() => {
+        try {
+          const botMessage: ChatMessage = {
+            id: `bot_${Date.now()}`,
+            content:
+              '안녕하세요! 현재 UI만 구현된 상태입니다. 실제 AI 응답 기능은 추후 추가될 예정입니다.',
+            sender: 'bot',
+            timestamp: new Date(),
+          }
+          setChatMessages((prev) => [...prev, botMessage])
+          setIsChatBotTyping(false)
+        } catch (error) {
+          console.error('Error in bot response:', error)
+          setIsChatBotTyping(false)
+        }
+      }, 1500)
+    } catch (error) {
+      console.error('Error in handleSendMessage:', error)
+      setIsChatBotTyping(false)
+    }
   }, [])
 
   return (
@@ -269,21 +316,6 @@ const VideoSection: React.FC<VideoSectionProps> = ({
           />
         </div>
 
-        {/* Virtual Timeline Video Controller - Show only when DEBUG_UI is enabled */}
-        {process.env.NEXT_PUBLIC_DEBUG_UI === 'true' && (
-          <div className="mb-4">
-            <VirtualTimelineVideoController
-              virtualPlayerController={virtualPlayerControllerRef.current}
-              onVirtualTimeUpdate={() => {
-                // Virtual Time은 이미 RVFC 콜백을 통해 자동으로 MotionText Renderer에 전달됨
-              }}
-              showSegmentVisualization={true}
-              showVolumeControls={true}
-              className="rounded-lg border border-gray-200 bg-white shadow-sm"
-            />
-          </div>
-        )}
-
         {/* Virtual Timeline Controller */}
         <div className="mb-4">
           <VirtualTimelineController
@@ -303,21 +335,25 @@ const VideoSection: React.FC<VideoSectionProps> = ({
           />
         )}
       </div>
+
+      {/* ChatBot Floating Button */}
+      <div className="absolute bottom-4 right-4 z-30">
+        <ChatBotFloatingButton onClick={handleChatBotOpen} />
+      </div>
+
+      {/* ChatBot Modal */}
+      <ChatBotModal
+        isOpen={isChatBotOpen}
+        onClose={handleChatBotClose}
+        messages={chatMessages}
+        isTyping={isChatBotTyping}
+        onSendMessage={handleSendMessage}
+      />
     </div>
   )
 }
 
 // Cleanup on unmount
 VideoSection.displayName = 'VideoSection'
-
-// Virtual Timeline 정리 함수 (현재 사용하지 않음)
-// const cleanupVirtualTimeline = (
-//   virtualPlayerControllerRef: React.MutableRefObject<VirtualPlayerController | null>
-// ) => {
-//   if (virtualPlayerControllerRef.current) {
-//     virtualPlayerControllerRef.current.cleanup()
-//     virtualPlayerControllerRef.current = null
-//   }
-// }
 
 export default VideoSection

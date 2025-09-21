@@ -1,23 +1,27 @@
 'use client'
 
-import { clsx } from 'clsx'
 import {
   logComponentWarning,
   TRANSITIONS,
   type BaseComponentProps,
 } from '@/lib/utils'
-import React, { useState, useCallback, useEffect } from 'react'
 import { AssetItem } from '@/types/asset-store'
-import { MotionTextPreview } from './MotionTextPreview'
-import { PluginParameterControls } from './PluginParameterControls'
+import { clsx } from 'clsx'
+import React, { useCallback, useEffect, useState } from 'react'
+import { IoStar, IoStarOutline } from 'react-icons/io5'
 import { type PluginManifest } from '../utils/scenarioGenerator'
+import { MotionTextPreview } from './MotionTextPreview'
+import { TabbedParameterControls } from './creation/TabbedParameterControls'
+import { AssetNavigationPanel } from './AssetNavigationPanel'
 
 // Asset Modal Props 타입
 interface AssetModalProps extends BaseComponentProps {
   isOpen: boolean
   onClose: () => void
   asset: AssetItem | null
-  onAddToCart?: () => void
+  onFavoriteToggle?: () => void
+  availableAssets?: AssetItem[]
+  onAssetChange?: (asset: AssetItem) => void
 }
 
 // Asset Modal 컴포넌트
@@ -25,10 +29,12 @@ export const AssetModal: React.FC<AssetModalProps> = ({
   isOpen,
   onClose,
   asset,
-  onAddToCart,
+  onFavoriteToggle,
+  availableAssets = [],
+  onAssetChange,
   className,
 }) => {
-  const [text, setText] = useState('SAMPLE TEXT')
+  const [text, setText] = useState('텍스트를 입력해보세요')
   const [manifest, setManifest] = useState<PluginManifest | null>(null)
   const [parameters, setParameters] = useState<Record<string, unknown>>({})
   const previewRef = React.useRef<{
@@ -83,6 +89,20 @@ export const AssetModal: React.FC<AssetModalProps> = ({
     },
     []
   )
+
+  /**
+   * 파라미터 초기화 핸들러
+   */
+  const handleParametersReset = useCallback(() => {
+    // 미리보기에도 초기화 알림
+    if (previewRef.current && manifest?.schema) {
+      const defaultParameters: Record<string, unknown> = {}
+      Object.entries(manifest.schema).forEach(([key, property]) => {
+        defaultParameters[key] = property.default
+      })
+      previewRef.current.updateParameters(defaultParameters)
+    }
+  }, [manifest])
 
   // 안정적인 에러 핸들러 (리렌더 시 함수 아이덴티티 고정)
   const handlePreviewError = useCallback((error: string) => {
@@ -152,23 +172,49 @@ export const AssetModal: React.FC<AssetModalProps> = ({
       <div className={modalClasses} onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className={headerClasses}>
-          <div>
+          <div className="flex-1">
             <h2 className="text-2xl font-semibold text-white">{asset.title}</h2>
             <p className="text-gray-400 text-sm mt-1">{asset.description}</p>
+
+            {/* 에셋 정보 (헤더에 작게 표시) */}
+            <div className="flex gap-6 mt-3 text-xs text-gray-300">
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500">작성자:</span>
+                <span>{asset.authorName}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500">카테고리:</span>
+                <span>{asset.category}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500">다운로드:</span>
+                <span>{asset.downloads?.toLocaleString()}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500">평점:</span>
+                <span>
+                  {'★'.repeat(asset.rating || 0)}
+                  {'☆'.repeat(5 - (asset.rating || 0))}
+                </span>
+              </div>
+            </div>
           </div>
           <div className="flex items-center space-x-4">
-            {onAddToCart && (
-              <button
-                onClick={onAddToCart}
-                className={clsx(
-                  'px-4 py-2 bg-blue-600 hover:bg-blue-700',
-                  'text-white rounded-lg font-medium cursor-pointer',
-                  TRANSITIONS.colors
-                )}
-              >
-                Add to Cart
-              </button>
-            )}
+            <button
+              onClick={onFavoriteToggle}
+              className={clsx(
+                'px-4 py-2 bg-gray-200 hover:bg-gray-300',
+                'text-gray-700 rounded-lg font-medium cursor-pointer flex items-center gap-2',
+                TRANSITIONS.colors
+              )}
+            >
+              {asset?.isFavorite ? (
+                <IoStar className="text-yellow-500" size={16} />
+              ) : (
+                <IoStarOutline size={16} />
+              )}
+              <span>{asset?.isFavorite ? '즐겨찾기' : '즐겨찾기'}</span>
+            </button>
             <button
               onClick={onClose}
               className={clsx(
@@ -194,10 +240,41 @@ export const AssetModal: React.FC<AssetModalProps> = ({
         </div>
 
         {/* Content */}
-        <div className="flex h-[calc(95vh-120px)]">
-          {/* 미리보기 영역 */}
-          <div className="flex-1 min-h-0 p-6 overflow-y-auto">
-            <div className="mb-4">
+        <div className="flex h-[calc(95vh-140px)] min-h-0">
+          {/* 미리보기 영역 컬럼 */}
+          <div className="flex-1 min-w-0 flex flex-col gap-6">
+            {/* 미리보기 컨테이너 */}
+            <div className="flex-[2] min-h-0 p-6">
+              <div className="bg-gray-100 rounded-lg p-4 border border-gray-300 h-full flex items-center justify-center">
+                <MotionTextPreview
+                  ref={previewRef}
+                  manifestFile={asset.manifestFile || ''}
+                  pluginKey={asset.pluginKey}
+                  text={text}
+                  onParameterChange={handleParametersInit}
+                  onManifestLoad={handlePreviewManifestLoad}
+                  onError={handlePreviewError}
+                  className="w-3/4 max-w-md h-full max-h-[50vh] mx-auto"
+                />
+              </div>
+            </div>
+
+            {/* 네비게이션 패널 - 미리보기 영역 하단에서 상하 확장 */}
+            {availableAssets.length > 1 && onAssetChange && (
+              <div className="flex-1 min-h-[120px]">
+                <AssetNavigationPanel
+                  assets={availableAssets}
+                  currentAssetId={asset.id}
+                  onAssetChange={onAssetChange}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* 파라미터 컨트롤 영역 */}
+          <div className="w-80 flex-shrink-0 bg-gray-100 border-l border-gray-300 p-6 overflow-y-auto">
+            {/* 미리보기 텍스트 입력 - 사이드바 상단으로 이동 */}
+            <div className="mb-6">
               <label className="block text-black text-sm font-medium mb-2">
                 미리보기 텍스트
               </label>
@@ -206,7 +283,7 @@ export const AssetModal: React.FC<AssetModalProps> = ({
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 className={clsx(
-                  'w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded',
+                  'w-full px-3 py-2 bg-white border border-gray-300 rounded',
                   'text-black placeholder-gray-500',
                   'focus:outline-none focus:border-blue-500',
                   TRANSITIONS.colors
@@ -215,51 +292,11 @@ export const AssetModal: React.FC<AssetModalProps> = ({
               />
             </div>
 
-            <div className="bg-gray-100 rounded-lg p-4 border border-gray-300">
-              <MotionTextPreview
-                ref={previewRef}
-                manifestFile={asset.manifestFile || ''}
-                pluginKey={asset.pluginKey}
-                text={text}
-                onParameterChange={handleParametersInit}
-                onManifestLoad={handlePreviewManifestLoad}
-                onError={handlePreviewError}
-                className="w-full max-h-[70vh]"
-              />
-            </div>
-
-            {/* 에셋 정보 */}
-            <div className="mt-6 grid grid-cols-2 gap-4 text-sm">
-              <div className="space-y-2">
-                <div className="text-gray-600">작성자</div>
-                <div className="text-black">{asset.authorName}</div>
-              </div>
-              <div className="space-y-2">
-                <div className="text-gray-600">카테고리</div>
-                <div className="text-black">{asset.category}</div>
-              </div>
-              <div className="space-y-2">
-                <div className="text-gray-600">다운로드</div>
-                <div className="text-black">
-                  {asset.downloads?.toLocaleString()}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div className="text-gray-600">평점</div>
-                <div className="text-black">
-                  {'★'.repeat(asset.rating || 0)}
-                  {'☆'.repeat(5 - (asset.rating || 0))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 파라미터 컨트롤 영역 */}
-          <div className="w-80 bg-gray-100 border-l border-gray-300 p-6 overflow-y-auto">
-            <PluginParameterControls
+            <TabbedParameterControls
               manifest={manifest}
               parameters={parameters}
               onParameterChange={handleParameterChange}
+              onParametersReset={handleParametersReset}
             />
           </div>
         </div>
