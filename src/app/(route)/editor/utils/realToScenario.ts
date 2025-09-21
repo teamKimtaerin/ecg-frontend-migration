@@ -169,10 +169,6 @@ export function buildScenarioFromReal(
     cues,
   }
 
-  console.log('[buildScenarioFromReal] Generated scenario config:', {
-    totalCues: cues.length,
-    config,
-  })
 
   return config
 }

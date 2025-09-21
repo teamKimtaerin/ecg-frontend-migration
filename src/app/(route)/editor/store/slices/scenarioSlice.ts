@@ -281,7 +281,6 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
     }
 
     if (!currentScenario?.cues) {
-      console.warn('No current scenario or cues found')
       return
     }
 
@@ -377,10 +376,6 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
       cues: updatedCues,
     }
 
-    console.log('Successfully updated group node style')
-    console.log('Original scenario reference:', currentScenario)
-    console.log('New scenario reference:', newScenario)
-    console.log('References are different:', currentScenario !== newScenario)
 
     set({
       currentScenario: newScenario,

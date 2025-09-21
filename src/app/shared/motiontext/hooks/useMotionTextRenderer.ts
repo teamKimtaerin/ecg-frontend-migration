@@ -150,7 +150,6 @@ export function useMotionTextRenderer(
         try {
           await preloadPluginsForScenario(config)
         } catch (pluginError) {
-          console.warn('Plugin preload failed:', pluginError)
           // Continue execution - plugin errors shouldn't be fatal
         }
 

@@ -72,6 +72,15 @@ export function buildInitialScenarioFromClips(
   const fontSizeRel = opts.fontSizeRel ?? 0.07 // Changed from 0.05 to 0.07 to match cwi_demo_full
   const baseAspect = opts.baseAspect ?? '16:9'
 
+  // Debug: Log wordAnimationTracks info
+  if (process.env.NODE_ENV === 'development') {
+    console.log('buildInitialScenarioFromClips - wordAnimationTracks:', {
+      exists: !!wordAnimationTracks,
+      size: wordAnimationTracks?.size || 0,
+      keys: wordAnimationTracks ? Array.from(wordAnimationTracks.keys()) : []
+    })
+  }
+
   const cues: RendererConfigV2['cues'] = []
   const index: Record<string, NodeIndexEntry> = {}
 
@@ -110,6 +119,14 @@ export function buildInitialScenarioFromClips(
 
       // Add plugin information from animation tracks
       const animationTracks = wordAnimationTracks?.get(w.id)
+
+      // Debug: Log word ID and animation tracks lookup
+      if (process.env.NODE_ENV === 'development') {
+        if (animationTracks && animationTracks.length > 0) {
+          console.log(`Plugin found for word ID '${w.id}':`, animationTracks.length, 'tracks')
+        }
+      }
+
       if (animationTracks && animationTracks.length > 0) {
         child.pluginChain = animationTracks
           .filter((track) => track.pluginKey) // Only include tracks with valid pluginKey

@@ -906,7 +906,6 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
         defaultParams = await getPluginDefaultParams(asset.pluginKey)
       }
     } catch (error) {
-      console.warn('Failed to load plugin manifest data:', error)
     }
 
     // Apply toggles in memory first

@@ -76,14 +76,6 @@ export default function ServerVideoExportModal({
 
       // 🔍 시나리오 생성 및 검증
       const scenario = buildScenarioFromClips(clips)
-      console.log('🔍 Generated scenario debug:', {
-        version: scenario.version,
-        tracks: scenario.tracks.length,
-        cues: scenario.cues.length,
-        validCues: scenario.cues.filter((c) => c.hintTime?.start !== undefined)
-          .length,
-        firstCue: scenario.cues[0],
-      })
 
       if (scenario.cues.length === 0) {
         throw new Error(

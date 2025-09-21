@@ -177,11 +177,6 @@ export default function EditorMotionTextOverlay({
       const timelineClips = getSequentialClips()
       // TODO: Map timeline clips to regular clip format for buildInitialScenarioFromClips
       // For now, fallback to regular clips
-      console.log(
-        '[EditorMotionTextOverlay] Timeline mode detected, using',
-        timelineClips.length,
-        'timeline clips'
-      )
     }
 
     const { config } = buildInitialScenarioFromClips(activeClips, {
@@ -229,31 +224,9 @@ export default function EditorMotionTextOverlay({
     if (timeline.isSequentialMode) {
       // Sequential mode: use timeline clips with proper timing
       const timelineClips = getSequentialClips()
-      console.log('[EditorMotionTextOverlay] Sequential mode debug:', {
-        timelineClipsCount: timelineClips.length,
-        clipOrder: timeline.clipOrder,
-        clipOrderLength: timeline.clipOrder?.length || 0,
-        clipsCount: clips.length,
-        isSequentialMode: timeline.isSequentialMode,
-        timelineClips: timelineClips.map((tc) => ({
-          id: tc.id,
-          sourceClipId: tc.sourceClipId,
-          startTime: tc.startTime,
-          duration: tc.duration,
-        })),
-      })
 
       // Safety check: if no timeline clips available, return early with diagnostic info
       if (timelineClips.length === 0) {
-        console.warn(
-          '[EditorMotionTextOverlay] No timeline clips available in sequential mode:',
-          {
-            clipOrder: timeline.clipOrder,
-            originalClipsCount: clips.length,
-            isSequentialMode: timeline.isSequentialMode,
-            hasGetSequentialClips: typeof getSequentialClips === 'function',
-          }
-        )
       }
 
       for (const timelineClip of timelineClips) {
@@ -264,9 +237,6 @@ export default function EditorMotionTextOverlay({
 
         // Ensure valid timing (absEnd must be greater than absStart)
         if (adjEnd <= adjStart) {
-          console.warn(
-            `[EditorMotionTextOverlay] Skipping timeline clip ${timelineClip.id} - invalid timing: start=${adjStart}, end=${adjEnd}`
-          )
           continue
         }
 
@@ -335,9 +305,6 @@ export default function EditorMotionTextOverlay({
 
         // Ensure valid timing (absEnd must be greater than absStart)
         if (adjEnd <= adjStart) {
-          console.warn(
-            `[EditorMotionTextOverlay] Skipping clip ${clip.id} - invalid timing: start=${adjStart}, end=${adjEnd}`
-          )
           continue
         }
 
@@ -407,19 +374,6 @@ export default function EditorMotionTextOverlay({
       cues,
     }
 
-    // Debug logging to check plugin chain structure
-    const firstCueChildren = cues[0]?.root?.children as
-      | Array<Record<string, unknown>>
-      | undefined
-    const firstCuePluginChain = firstCueChildren?.[0]?.pluginChain as
-      | Array<Record<string, unknown>>
-      | undefined
-    console.log('[EditorMotionTextOverlay] Generated config:', {
-      isSequentialMode: timeline.isSequentialMode,
-      cuesCount: cues.length,
-      firstCue: cues[0],
-      pluginChain: firstCuePluginChain?.[0],
-    })
 
     // Safety check: ensure all cues have valid plugin chains
     const validCues = cues.filter((cue, index) => {
@@ -433,10 +387,6 @@ export default function EditorMotionTextOverlay({
 
       // Enhanced validation
       if (!firstPlugin) {
-        console.warn(
-          '[EditorMotionTextOverlay] Skipping cue with missing plugin:',
-          { cueId: cue.id, index, children, pluginChain }
-        )
         return false
       }
 
@@ -444,28 +394,11 @@ export default function EditorMotionTextOverlay({
         !firstPlugin.name ||
         (typeof firstPlugin.name === 'string' && firstPlugin.name.trim() === '')
       ) {
-        console.warn(
-          '[EditorMotionTextOverlay] Skipping cue with invalid plugin name:',
-          {
-            cueId: cue.id,
-            index,
-            pluginName: firstPlugin.name,
-            plugin: firstPlugin,
-          }
-        )
         return false
       }
 
       // Validate timing
       if (!cue.hintTime || !cue.hintTime.start || !cue.hintTime.end) {
-        console.warn(
-          '[EditorMotionTextOverlay] Skipping cue with invalid timing:',
-          {
-            cueId: cue.id,
-            index,
-            hintTime: cue.hintTime,
-          }
-        )
         return false
       }
 
@@ -473,22 +406,6 @@ export default function EditorMotionTextOverlay({
     })
 
     if (validCues.length === 0) {
-      console.warn(
-        '[EditorMotionTextOverlay] No valid cues found, returning empty config',
-        {
-          totalCuesGenerated: cues.length,
-          validCuesCount: validCues.length,
-          isSequentialMode: timeline.isSequentialMode,
-          clipOrder: timeline.clipOrder,
-          clipsCount: clips.length,
-          deletedClipIdsCount: deletedClipIds.size,
-          pluginName: pluginName,
-          hasManifest: !!manifestRef.current,
-          manifestKey: manifestRef.current?.key,
-          reasonsForFailure:
-            'Check console for individual cue validation failures above',
-        }
-      )
       return {
         ...config,
         cues: [],

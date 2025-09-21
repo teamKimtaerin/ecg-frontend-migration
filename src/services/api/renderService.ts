@@ -40,18 +40,6 @@ class RenderService {
    */
   async createRenderJob(request: RenderRequest): Promise<CreateRenderResponse> {
     try {
-      // 🔍 디버깅: 요청 데이터 검증
-      console.log('=== GPU Render Request Debug ===')
-      console.log('1. Video URL:', request.videoUrl)
-      console.log('2. Scenario validation:')
-      console.log('   - Version:', request.scenario.version)
-      console.log('   - Tracks count:', request.scenario.tracks?.length)
-      console.log('   - Cues count:', request.scenario.cues?.length)
-      console.log(
-        '   - Valid cues:',
-        request.scenario.cues?.filter((c) => c.hintTime?.start !== undefined)
-          .length
-      )
 
       const token = useAuthStore.getState().token
       console.log('3. Auth token exists:', !!token)
