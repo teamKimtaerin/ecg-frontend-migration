@@ -256,105 +256,107 @@ export default function ServerVideoExportModal({
       closeOnBackdropClick={!isExporting}
       aria-label="동영상 내보내기"
     >
-      <div className="p-6">
-        {/* 제목 */}
-        <h2 className="text-xl font-semibold text-center text-gray-900 mb-6">동영상 내보내기</h2>
+      {!isProgressModalOpen && (
+        <div className="p-6">
+          {/* 제목 */}
+          <h2 className="text-xl font-semibold text-center text-gray-900 mb-6">동영상 내보내기</h2>
 
-        {/* 대상 클립 섹션 */}
-        <div className="mb-6">
-          <h3 className="text-sm font-medium text-gray-700 mb-3">대상 클립</h3>
-          <div className="space-y-3">
-            <label className="flex items-center space-x-3 cursor-pointer">
-              <div className="relative">
-                <input
-                  type="radio"
-                  name="targetClip"
-                  value="all"
-                  defaultChecked
-                  className="sr-only"
-                />
-                <div className="w-4 h-4 bg-cyan-500 rounded-full flex items-center justify-center">
-                  <div className="w-2 h-2 bg-white rounded-full"></div>
+          {/* 대상 클립 섹션 */}
+          <div className="mb-6">
+            <h3 className="text-sm font-medium text-gray-700 mb-3">대상 클립</h3>
+            <div className="space-y-3">
+              <label className="flex items-center space-x-3 cursor-pointer">
+                <div className="relative">
+                  <input
+                    type="radio"
+                    name="targetClip"
+                    value="all"
+                    defaultChecked
+                    className="sr-only"
+                  />
+                  <div className="w-4 h-4 bg-cyan-500 rounded-full flex items-center justify-center">
+                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                  </div>
                 </div>
-              </div>
-              <span className="text-sm text-gray-900">모든 씬, 모든 클립</span>
-            </label>
+                <span className="text-sm text-gray-900">모든 씬, 모든 클립</span>
+              </label>
 
-            <label className="flex items-center space-x-3 cursor-pointer opacity-50">
-              <div className="relative">
-                <input
-                  type="radio"
-                  name="targetClip"
-                  value="current"
-                  disabled
-                  className="sr-only"
-                />
-                <div className="w-4 h-4 border-2 border-gray-300 rounded-full bg-white"></div>
-              </div>
-              <span className="text-sm text-gray-400">현재 씬, 모든 클립</span>
-            </label>
+              <label className="flex items-center space-x-3 cursor-pointer opacity-50">
+                <div className="relative">
+                  <input
+                    type="radio"
+                    name="targetClip"
+                    value="current"
+                    disabled
+                    className="sr-only"
+                  />
+                  <div className="w-4 h-4 border-2 border-gray-300 rounded-full bg-white"></div>
+                </div>
+                <span className="text-sm text-gray-400">현재 씬, 모든 클립</span>
+              </label>
 
-            <label className="flex items-center space-x-3 cursor-pointer opacity-50">
-              <div className="relative">
-                <input
-                  type="radio"
-                  name="targetClip"
-                  value="selected"
-                  disabled
-                  className="sr-only"
-                />
-                <div className="w-4 h-4 border-2 border-gray-300 rounded-full bg-white"></div>
-              </div>
-              <span className="text-sm text-gray-400">선택된 클립 (없음)</span>
-            </label>
-          </div>
-        </div>
-
-        {/* 해상도 섹션 */}
-        <div className="mb-6">
-          <h3 className="text-sm font-medium text-gray-700 mb-3">해상도</h3>
-          <div className="relative">
-            <select className="w-full px-3 py-2.5 text-sm border text-gray-900 border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 appearance-none">
-              <option value="원본 (640 x 360)" className="text-gray-900">원본 (640 x 360)</option>
-              <option value="HD (1280 x 720)" disabled className="text-gray-400">HD (1280 x 720)</option>
-              <option value="Full HD (1920 x 1080)" disabled className="text-gray-400">Full HD (1920 x 1080)</option>
-              <option value="4K (3840 x 2160)" disabled className="text-gray-400">4K (3840 x 2160)</option>
-            </select>
-            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
+              <label className="flex items-center space-x-3 cursor-pointer opacity-50">
+                <div className="relative">
+                  <input
+                    type="radio"
+                    name="targetClip"
+                    value="selected"
+                    disabled
+                    className="sr-only"
+                  />
+                  <div className="w-4 h-4 border-2 border-gray-300 rounded-full bg-white"></div>
+                </div>
+                <span className="text-sm text-gray-400">선택된 클립 (없음)</span>
+              </label>
             </div>
           </div>
-        </div>
 
-        {/* 고급 설정 섹션 */}
-        <div className="mb-6">
-          <button className="flex items-center text-sm font-medium text-gray-700">
-            <svg className="w-4 h-4 mr-2 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-            고급 설정
-          </button>
-        </div>
+          {/* 해상도 섹션 */}
+          <div className="mb-6">
+            <h3 className="text-sm font-medium text-gray-700 mb-3">해상도</h3>
+            <div className="relative">
+              <select className="w-full px-3 py-2.5 text-sm border text-gray-900 border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 appearance-none">
+                <option value="원본 (640 x 360)" className="text-gray-900">원본 (640 x 360)</option>
+                <option value="HD (1280 x 720)" disabled className="text-gray-400">HD (1280 x 720)</option>
+                <option value="Full HD (1920 x 1080)" disabled className="text-gray-400">Full HD (1920 x 1080)</option>
+                <option value="4K (3840 x 2160)" disabled className="text-gray-400">4K (3840 x 2160)</option>
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+          </div>
 
-        {/* 하단 버튼 */}
-        <div className="flex space-x-3 justify-center">
-          <button
-            onClick={handleStartExport}
-            disabled={isExporting}
-            className="px-8 py-2.5 bg-black hover:bg-gray-800 disabled:bg-gray-400 text-white text-sm font-medium rounded-md transition-colors duration-200"
-          >
-            내보내기
-          </button>
-          <button
-            onClick={onClose}
-            className="px-8 py-2.5 bg-gray-300 hover:bg-gray-400 text-gray-700 text-sm font-medium rounded-md transition-colors duration-200"
-          >
-            취소
-          </button>
+          {/* 고급 설정 섹션 */}
+          <div className="mb-6">
+            <button className="flex items-center text-sm font-medium text-gray-700">
+              <svg className="w-4 h-4 mr-2 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+              고급 설정
+            </button>
+          </div>
+
+          {/* 하단 버튼 */}
+          <div className="flex space-x-3 justify-center">
+            <button
+              onClick={handleStartExport}
+              disabled={isExporting}
+              className="px-8 py-2.5 bg-black hover:bg-gray-800 disabled:bg-gray-400 text-white text-sm font-medium rounded-md transition-colors duration-200"
+            >
+              내보내기
+            </button>
+            <button
+              onClick={onClose}
+              className="px-8 py-2.5 bg-gray-300 hover:bg-gray-400 text-gray-700 text-sm font-medium rounded-md transition-colors duration-200"
+            >
+              취소
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* 영상 출력 진행률 모달 */}
       <VideoExportProgressModal
