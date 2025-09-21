@@ -191,6 +191,7 @@ export default function ServerVideoExportModal({
   const handleProgressModalClose = () => {
     setIsProgressModalOpen(false)
     setPhase('ready')
+    onClose() // 부모 모달도 함께 닫기
   }
 
   const handleProgressModalComplete = () => {
