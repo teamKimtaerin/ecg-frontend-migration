@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect } from 'react'
 import { useProgressStore } from '@/lib/store/progressStore'
+import { useEffect } from 'react'
 
 // Common interfaces for components
 export interface ExportTask {
@@ -94,26 +94,26 @@ export const useProgressTasks = () => {
     // 종료된 내보내기들
     {
       id: 2,
-      filename: 'video_project_2.mp4',
+      filename: 'friends.mp4',
       progress: 100,
       status: 'completed',
-      completedAt: '2025-01-11 14:30',
+      completedAt: '2025-09-27',
     },
-    {
-      id: 3,
-      filename: 'video_project_3.mp4',
-      progress: 100,
-      status: 'completed',
-      completedAt: '2025-01-11 12:15',
-    },
-    // 🆕 새로 추가된 완료 항목
-    {
-      id: 4,
-      filename: 'video_project_4.mp4',
-      progress: 100,
-      status: 'completed',
-      completedAt: '2025-01-11 16:20',
-    },
+    // {
+    //   id: 3,
+    //   filename: 'video_project_3.mp4',
+    //   progress: 100,
+    //   status: 'completed',
+    //   completedAt: '2025-01-11 12:15',
+    // },
+    // // 🆕 새로 추가된 완료 항목
+    // {
+    //   id: 4,
+    //   filename: 'video_project_4.mp4',
+    //   progress: 100,
+    //   status: 'completed',
+    //   completedAt: '2025-01-11 16:20',
+    // },
   ]
 
   // Transform for Upload Tasks (includes uploading, processing, completed, and failed)
