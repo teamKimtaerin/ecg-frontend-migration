@@ -2,15 +2,15 @@
 
 import { buildScenarioFromClips } from '@/app/(route)/editor/utils/scenarioBuilder'
 import { showToast } from '@/utils/ui/toast'
-import { useEffect, useState } from 'react'
-
-// 중복 토스트 방지를 위한 전역 변수
-let lastToastTime = 0
-const TOAST_DEBOUNCE_TIME = 1000 // 1초
+import { useEffect, useRef, useState } from 'react'
 import { useServerVideoExport } from '../../hooks/useServerVideoExport'
 import { useEditorStore } from '../../store'
 import CustomExportModal from './CustomExportModal'
 import VideoExportProgressModal from './VideoExportProgressModal'
+
+// 중복 토스트 방지를 위한 전역 변수
+let lastToastTime = 0
+const TOAST_DEBOUNCE_TIME = 1000 // 1초
 
 interface ServerVideoExportModalProps {
   isOpen: boolean
@@ -44,6 +44,9 @@ export default function ServerVideoExportModal({
   >('ready')
   const [isProgressModalOpen, setIsProgressModalOpen] = useState(false)
 
+  // 지연된 토스트 타이머 참조
+  const delayedToastTimerRef = useRef<NodeJS.Timeout | null>(null)
+
   // 비디오 URL 결정 (props > store)
   const videoUrl = propVideoUrl || storeVideoUrl
 
@@ -69,6 +72,16 @@ export default function ServerVideoExportModal({
       setPhase('exporting')
     }
   }, [status, downloadUrl, error, isExporting, onClose])
+
+  // 컴포넌트 unmount 시 타이머 정리
+  useEffect(() => {
+    return () => {
+      if (delayedToastTimerRef.current) {
+        clearTimeout(delayedToastTimerRef.current)
+        delayedToastTimerRef.current = null
+      }
+    }
+  }, [])
 
   const handleStartExport = async () => {
     // 🧪 [기존 업로드 상태 체크 - 주석처리] UI 개발을 위한 임시 우회
@@ -192,6 +205,15 @@ export default function ServerVideoExportModal({
     setIsProgressModalOpen(false)
     setPhase('ready')
     onClose() // 부모 모달도 함께 닫기
+
+    // 30초 후 완료 토스트 표시
+    delayedToastTimerRef.current = setTimeout(() => {
+      const currentTime = Date.now()
+      if (currentTime - lastToastTime > TOAST_DEBOUNCE_TIME) {
+        showToast('영상 출력이 완료되었습니다', 'success')
+        lastToastTime = currentTime
+      }
+    }, 30000) // 30초 후
   }
 
   const handleProgressModalComplete = () => {
