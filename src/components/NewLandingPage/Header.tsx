@@ -102,7 +102,9 @@ const Header: React.FC<HeaderProps> = ({
               buttonRef={buttonRef}
               onDeployClick={(task) => {
                 // 에디터 페이지로 리다이렉트하면서 배포 모달 파라미터 전달
-                router.push(`/editor?deploy=true&taskId=${task.id}&filename=${encodeURIComponent(task.filename)}`)
+                router.push(
+                  `/editor?deploy=true&taskId=${task.id}&filename=${encodeURIComponent(task.filename)}`
+                )
                 setIsDocumentModalOpen(false) // 현재 모달 닫기
               }}
             />

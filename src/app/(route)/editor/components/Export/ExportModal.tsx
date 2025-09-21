@@ -110,7 +110,6 @@ export default function ExportModal({
               </div>
             </div>
 
-
             {/* 다른 형식으로 내보내기 */}
             <div className="mb-4">
               <h3 className="text-sm font-medium text-gray-600 mb-3">
@@ -130,19 +129,29 @@ export default function ExportModal({
                           ? 'cursor-default opacity-50'
                           : 'cursor-pointer hover:bg-gray-50'
                       }`}
-                      onClick={isDisabled ? undefined : () => handleExport(option.id)}
+                      onClick={
+                        isDisabled ? undefined : () => handleExport(option.id)
+                      }
                     >
                       <div className="flex items-center flex-1">
-                        <div className={`w-5 h-5 mr-3 flex items-center justify-center rounded p-1 ${
-                          isDisabled ? 'text-gray-400 bg-gray-100' : 'text-gray-600 bg-gray-200'
-                        }`}>
+                        <div
+                          className={`w-5 h-5 mr-3 flex items-center justify-center rounded p-1 ${
+                            isDisabled
+                              ? 'text-gray-400 bg-gray-100'
+                              : 'text-gray-600 bg-gray-200'
+                          }`}
+                        >
                           <IconComponent className="w-full h-full" />
                         </div>
                         <div>
-                          <span className={`text-sm ${isDisabled ? 'text-gray-400' : 'text-black'}`}>
+                          <span
+                            className={`text-sm ${isDisabled ? 'text-gray-400' : 'text-black'}`}
+                          >
                             {option.label}
                           </span>
-                          <span className={`text-sm ml-1 ${isDisabled ? 'text-gray-300' : 'text-gray-500'}`}>
+                          <span
+                            className={`text-sm ml-1 ${isDisabled ? 'text-gray-300' : 'text-gray-500'}`}
+                          >
                             ({option.description})
                           </span>
                         </div>

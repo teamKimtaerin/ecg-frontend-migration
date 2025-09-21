@@ -533,9 +533,13 @@ export default function EditorPage() {
   const [shouldOpenExportModal, setShouldOpenExportModal] = useState(false) // OAuth 인증 후 모달 재오픈 플래그
 
   // Platform selection and deploy modal states
-  const [isPlatformSelectionModalOpen, setIsPlatformSelectionModalOpen] = useState(false)
+  const [isPlatformSelectionModalOpen, setIsPlatformSelectionModalOpen] =
+    useState(false)
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([])
-  const [pendingDeployTask, setPendingDeployTask] = useState<{ id: number; filename: string } | null>(null)
+  const [pendingDeployTask, setPendingDeployTask] = useState<{
+    id: number
+    filename: string
+  } | null>(null)
 
   // Deploy modal hook
   const { openDeployModal, deployModalProps } = useDeployModal()

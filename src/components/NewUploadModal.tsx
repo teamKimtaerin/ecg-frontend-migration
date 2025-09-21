@@ -37,9 +37,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('upload')
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
-  const [language, setLanguage] = useState<'ko' | 'en' | 'ja' | 'zh'>(
-    'ko'
-  )
+  const [language, setLanguage] = useState<'ko' | 'en' | 'ja' | 'zh'>('ko')
   const [isDragOver, setIsDragOver] = useState(false)
   const [videoUrl, setVideoUrl] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -340,9 +338,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
 
         {/* Transcription Settings */}
         <div className="mb-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">
-            2. 환경 설정
-          </h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">2. 환경 설정</h2>
 
           <div className="mb-4">
             {/* <h3 className="text-base font-bold text-gray-900 mb-4">
@@ -357,9 +353,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
                 <select
                   value={language}
                   onChange={(e) =>
-                    setLanguage(
-                      e.target.value as 'ko' | 'en' | 'ja' | 'zh'
-                    )
+                    setLanguage(e.target.value as 'ko' | 'en' | 'ja' | 'zh')
                   }
                   className="w-full h-12 px-4 bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-900 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   disabled={isLoading}

@@ -83,28 +83,31 @@ export default function ServerVideoExportModal({
 
     // 🧪 UI 개발용: 샘플 데이터로 항상 진행 가능하도록 설정
     const sampleVideoUrl = videoUrl || '/friends.mp4'
-    const sampleClips = clips && clips.length > 0 ? clips : [
-      {
-        id: 'sample-1',
-        text: '샘플 자막 텍스트입니다',
-        startTime: 0,
-        endTime: 5,
-        speaker: 'Speaker 1'
-      },
-      {
-        id: 'sample-2',
-        text: '두 번째 샘플 자막입니다',
-        startTime: 5,
-        endTime: 10,
-        speaker: 'Speaker 2'
-      }
-    ]
+    const sampleClips =
+      clips && clips.length > 0
+        ? clips
+        : [
+            {
+              id: 'sample-1',
+              text: '샘플 자막 텍스트입니다',
+              startTime: 0,
+              endTime: 5,
+              speaker: 'Speaker 1',
+            },
+            {
+              id: 'sample-2',
+              text: '두 번째 샘플 자막입니다',
+              startTime: 5,
+              endTime: 10,
+              speaker: 'Speaker 2',
+            },
+          ]
 
     console.log('🧪 개발 모드: 업로드 상태 체크 우회됨', {
       originalVideoUrl: videoUrl,
       sampleVideoUrl,
       originalClips: clips?.length || 0,
-      sampleClips: sampleClips.length
+      sampleClips: sampleClips.length,
     })
 
     // 진행률 모달 열기
@@ -146,7 +149,7 @@ export default function ServerVideoExportModal({
         const mockScenario = buildScenarioFromClips(sampleClips)
         console.log('🧪 가상 시나리오 생성 성공:', {
           clips: sampleClips.length,
-          cues: mockScenario.cues.length
+          cues: mockScenario.cues.length,
         })
       } catch (scenarioError) {
         console.log('🧪 시나리오 생성 우회: 가상 시나리오 사용')
@@ -160,7 +163,7 @@ export default function ServerVideoExportModal({
       console.log('🧪 UI 개발 모드: 실제 GPU 렌더링 없이 진행률 모달만 표시', {
         sampleVideoUrl,
         fileName,
-        clipCount: sampleClips.length
+        clipCount: sampleClips.length,
       })
     } catch (error) {
       console.error('🚨 Export failed:', error)
@@ -259,11 +262,15 @@ export default function ServerVideoExportModal({
       {!isProgressModalOpen && (
         <div className="p-6">
           {/* 제목 */}
-          <h2 className="text-xl font-semibold text-center text-gray-900 mb-6">동영상 내보내기</h2>
+          <h2 className="text-xl font-semibold text-center text-gray-900 mb-6">
+            동영상 내보내기
+          </h2>
 
           {/* 대상 클립 섹션 */}
           <div className="mb-6">
-            <h3 className="text-sm font-medium text-gray-700 mb-3">대상 클립</h3>
+            <h3 className="text-sm font-medium text-gray-700 mb-3">
+              대상 클립
+            </h3>
             <div className="space-y-3">
               <label className="flex items-center space-x-3 cursor-pointer">
                 <div className="relative">
@@ -278,7 +285,9 @@ export default function ServerVideoExportModal({
                     <div className="w-2 h-2 bg-white rounded-full"></div>
                   </div>
                 </div>
-                <span className="text-sm text-gray-900">모든 씬, 모든 클립</span>
+                <span className="text-sm text-gray-900">
+                  모든 씬, 모든 클립
+                </span>
               </label>
 
               <label className="flex items-center space-x-3 cursor-pointer opacity-50">
@@ -292,7 +301,9 @@ export default function ServerVideoExportModal({
                   />
                   <div className="w-4 h-4 border-2 border-gray-300 rounded-full bg-white"></div>
                 </div>
-                <span className="text-sm text-gray-400">현재 씬, 모든 클립</span>
+                <span className="text-sm text-gray-400">
+                  현재 씬, 모든 클립
+                </span>
               </label>
 
               <label className="flex items-center space-x-3 cursor-pointer opacity-50">
@@ -306,7 +317,9 @@ export default function ServerVideoExportModal({
                   />
                   <div className="w-4 h-4 border-2 border-gray-300 rounded-full bg-white"></div>
                 </div>
-                <span className="text-sm text-gray-400">선택된 클립 (없음)</span>
+                <span className="text-sm text-gray-400">
+                  선택된 클립 (없음)
+                </span>
               </label>
             </div>
           </div>
@@ -316,14 +329,44 @@ export default function ServerVideoExportModal({
             <h3 className="text-sm font-medium text-gray-700 mb-3">해상도</h3>
             <div className="relative">
               <select className="w-full px-3 py-2.5 text-sm border text-gray-900 border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 appearance-none">
-                <option value="원본 (640 x 360)" className="text-gray-900">원본 (640 x 360)</option>
-                <option value="HD (1280 x 720)" disabled className="text-gray-400">HD (1280 x 720)</option>
-                <option value="Full HD (1920 x 1080)" disabled className="text-gray-400">Full HD (1920 x 1080)</option>
-                <option value="4K (3840 x 2160)" disabled className="text-gray-400">4K (3840 x 2160)</option>
+                <option value="원본 (640 x 360)" className="text-gray-900">
+                  원본 (640 x 360)
+                </option>
+                <option
+                  value="HD (1280 x 720)"
+                  disabled
+                  className="text-gray-400"
+                >
+                  HD (1280 x 720)
+                </option>
+                <option
+                  value="Full HD (1920 x 1080)"
+                  disabled
+                  className="text-gray-400"
+                >
+                  Full HD (1920 x 1080)
+                </option>
+                <option
+                  value="4K (3840 x 2160)"
+                  disabled
+                  className="text-gray-400"
+                >
+                  4K (3840 x 2160)
+                </option>
               </select>
               <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                <svg
+                  className="w-4 h-4 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
                 </svg>
               </div>
             </div>
@@ -332,8 +375,18 @@ export default function ServerVideoExportModal({
           {/* 고급 설정 섹션 */}
           <div className="mb-6">
             <button className="flex items-center text-sm font-medium text-gray-700">
-              <svg className="w-4 h-4 mr-2 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              <svg
+                className="w-4 h-4 mr-2 transform transition-transform"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
               </svg>
               고급 설정
             </button>
@@ -364,7 +417,6 @@ export default function ServerVideoExportModal({
         onClose={handleProgressModalClose}
         onComplete={handleProgressModalComplete}
       />
-
     </CustomExportModal>
   )
 }

@@ -123,9 +123,13 @@ export default function UploadProgressModal({
 
         {/* Progress and time info */}
         <div className="flex items-center justify-between mb-3 text-base">
-          <span className="text-blue-500 font-semibold">{Math.round(progress)}%</span>
+          <span className="text-blue-500 font-semibold">
+            {Math.round(progress)}%
+          </span>
           {estimatedTimeRemaining && estimatedTimeRemaining > 0 && (
-            <span className="text-gray-500">남은 시간: {formatTime(estimatedTimeRemaining)}</span>
+            <span className="text-gray-500">
+              남은 시간: {formatTime(estimatedTimeRemaining)}
+            </span>
           )}
           {canCancel && !shouldShowCloseButton && (
             <button

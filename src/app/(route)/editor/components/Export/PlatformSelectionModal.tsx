@@ -1,7 +1,13 @@
 'use client'
 
 import React, { useState } from 'react'
-import { FaTiktok, FaYoutube, FaFacebook, FaInstagram, FaTimes } from 'react-icons/fa'
+import {
+  FaTiktok,
+  FaYoutube,
+  FaFacebook,
+  FaInstagram,
+  FaTimes,
+} from 'react-icons/fa'
 
 interface PlatformSelectionModalProps {
   isOpen: boolean
@@ -19,38 +25,38 @@ const platforms: Platform[] = [
   {
     id: 'tiktok',
     name: 'TikTok',
-    icon: <FaTiktok className="w-5 h-5" />
+    icon: <FaTiktok className="w-5 h-5" />,
   },
   {
     id: 'youtube',
     name: 'YouTube',
-    icon: <FaYoutube className="w-5 h-5" />
+    icon: <FaYoutube className="w-5 h-5" />,
   },
   {
     id: 'facebook',
     name: 'Facebook',
-    icon: <FaFacebook className="w-5 h-5" />
+    icon: <FaFacebook className="w-5 h-5" />,
   },
   {
     id: 'instagram',
     name: 'Instagram',
-    icon: <FaInstagram className="w-5 h-5" />
-  }
+    icon: <FaInstagram className="w-5 h-5" />,
+  },
 ]
 
 export default function PlatformSelectionModal({
   isOpen,
   onClose,
-  onNext
+  onNext,
 }: PlatformSelectionModalProps) {
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([])
 
   if (!isOpen) return null
 
   const handlePlatformToggle = (platformId: string) => {
-    setSelectedPlatforms(prev =>
+    setSelectedPlatforms((prev) =>
       prev.includes(platformId)
-        ? prev.filter(id => id !== platformId)
+        ? prev.filter((id) => id !== platformId)
         : [...prev, platformId]
     )
   }
@@ -59,7 +65,7 @@ export default function PlatformSelectionModal({
     if (selectedPlatforms.length === platforms.length) {
       setSelectedPlatforms([])
     } else {
-      setSelectedPlatforms(platforms.map(p => p.id))
+      setSelectedPlatforms(platforms.map((p) => p.id))
     }
   }
 
@@ -74,7 +80,10 @@ export default function PlatformSelectionModal({
   return (
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[10000]" onClick={onClose} />
+      <div
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[10000]"
+        onClick={onClose}
+      />
 
       {/* Modal */}
       <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[420px] bg-white rounded-xl shadow-2xl z-[10001]">
@@ -103,19 +112,33 @@ export default function PlatformSelectionModal({
                   onChange={handleSelectAll}
                   className="sr-only"
                 />
-                <div className={`w-5 h-5 border-2 rounded flex items-center justify-center transition-colors ${
-                  isAllSelected
-                    ? 'bg-black border-black'
-                    : 'border-gray-300 bg-white hover:border-gray-400'
-                }`}>
+                <div
+                  className={`w-5 h-5 border-2 rounded flex items-center justify-center transition-colors ${
+                    isAllSelected
+                      ? 'bg-black border-black'
+                      : 'border-gray-300 bg-white hover:border-gray-400'
+                  }`}
+                >
                   {isAllSelected && (
-                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    <svg
+                      className="w-3 h-3 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
                     </svg>
                   )}
                 </div>
               </div>
-              <span className="text-sm font-medium text-gray-900">전체선택</span>
+              <span className="text-sm font-medium text-gray-900">
+                전체선택
+              </span>
             </label>
           </div>
 
@@ -136,14 +159,26 @@ export default function PlatformSelectionModal({
                       onChange={() => handlePlatformToggle(platform.id)}
                       className="sr-only"
                     />
-                    <div className={`w-5 h-5 border-2 rounded flex items-center justify-center transition-colors ${
-                      isSelected
-                        ? 'bg-black border-black'
-                        : 'border-gray-300 bg-white hover:border-gray-400'
-                    }`}>
+                    <div
+                      className={`w-5 h-5 border-2 rounded flex items-center justify-center transition-colors ${
+                        isSelected
+                          ? 'bg-black border-black'
+                          : 'border-gray-300 bg-white hover:border-gray-400'
+                      }`}
+                    >
                       {isSelected && (
-                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        <svg
+                          className="w-3 h-3 text-white"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                          />
                         </svg>
                       )}
                     </div>
