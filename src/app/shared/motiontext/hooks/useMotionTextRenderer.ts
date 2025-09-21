@@ -154,30 +154,25 @@ export function useMotionTextRenderer(
           // Continue execution - plugin errors shouldn't be fatal
         }
 
-        // 새 시나리오 로드 전에 명시적으로 기존 시나리오 정리
-        // clear()는 동기 메소드
-        if (rendererRef.current.clear) {
-          try {
-            rendererRef.current.clear()
-          } catch (clearError) {
-            console.warn('Failed to clear renderer:', clearError)
-            // clear 실패해도 계속 진행
-          }
-        }
-
         // Load config with renderer validation
         if (!rendererRef.current) {
           throw new Error('Renderer is not available')
         }
 
-        if (typeof rendererRef.current.loadConfig !== 'function') {
+        // 새 시나리오 로드 - loadConfigAsync 우선 사용 (내부에서 clearAsync 포함)
+        if (typeof rendererRef.current.loadConfigAsync === 'function') {
+          // v1.5.0: 내부에서 clearAsync() 후 로드 (한 번에 처리)
+          await rendererRef.current.loadConfigAsync(
+            config as unknown as Record<string, unknown>
+          )
+        } else if (typeof rendererRef.current.loadConfig === 'function') {
+          // 하위 호환성 유지 (이전 버전)
+          await rendererRef.current.loadConfig(
+            config as unknown as Record<string, unknown>
+          )
+        } else {
           throw new Error('Renderer loadConfig method is not available')
         }
-
-        // 새 시나리오 로드
-        await rendererRef.current.loadConfig(
-          config as unknown as Record<string, unknown>
-        )
         currentConfigRef.current = config
         if (autoPlayRef.current) {
           try {

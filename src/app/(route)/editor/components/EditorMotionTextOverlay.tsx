@@ -678,7 +678,7 @@ export default function EditorMotionTextOverlay({
       if (timer) clearTimeout(timer)
       timer = setTimeout(() => {
         void loadScenario(cfg, { silent: true }).catch(() => {})
-      }, 60)
+      }, 100)
     })
     return () => {
       if (timer) clearTimeout(timer)
