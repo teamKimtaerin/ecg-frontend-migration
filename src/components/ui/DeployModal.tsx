@@ -324,7 +324,7 @@ const DeployModal: React.FC<DeployModalProps> = ({
           {currentStep === 'deploying' && (
             <div className="text-center space-y-4">
               <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto">
-                <div className="w-8 h-8 border-2 border-brand-main border-t-transparent rounded-full animate-spin"></div>
+                <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
               </div>
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
