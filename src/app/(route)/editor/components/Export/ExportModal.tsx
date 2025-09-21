@@ -14,6 +14,9 @@ export default function ExportModal({
   const [selectedFormat, setSelectedFormat] =
     useState<ExportFormat>('gpu-render')
 
+  // 비활성화할 옵션들
+  const disabledOptions = ['srt', 'txt', 'mp3']
+
   // 모달이 열릴 때 기본 선택값 설정
   useEffect(() => {
     if (isOpen) {
@@ -117,22 +120,29 @@ export default function ExportModal({
               <div className="space-y-1">
                 {otherOptions.map((option) => {
                   const IconComponent = getIconComponent(option.icon)
+                  const isDisabled = disabledOptions.includes(option.id)
 
                   return (
                     <div
                       key={option.id}
-                      className="flex items-center p-3 rounded-lg cursor-pointer transition-all duration-200 hover:bg-gray-50"
-                      onClick={() => handleExport(option.id)}
+                      className={`flex items-center p-3 rounded-lg transition-all duration-200 ${
+                        isDisabled
+                          ? 'cursor-default opacity-50'
+                          : 'cursor-pointer hover:bg-gray-50'
+                      }`}
+                      onClick={isDisabled ? undefined : () => handleExport(option.id)}
                     >
                       <div className="flex items-center flex-1">
-                        <div className="w-5 h-5 mr-3 text-gray-600 flex items-center justify-center bg-gray-200 rounded p-1">
+                        <div className={`w-5 h-5 mr-3 flex items-center justify-center rounded p-1 ${
+                          isDisabled ? 'text-gray-400 bg-gray-100' : 'text-gray-600 bg-gray-200'
+                        }`}>
                           <IconComponent className="w-full h-full" />
                         </div>
                         <div>
-                          <span className="text-sm text-black">
+                          <span className={`text-sm ${isDisabled ? 'text-gray-400' : 'text-black'}`}>
                             {option.label}
                           </span>
-                          <span className="text-sm text-gray-500 ml-1">
+                          <span className={`text-sm ml-1 ${isDisabled ? 'text-gray-300' : 'text-gray-500'}`}>
                             ({option.description})
                           </span>
                         </div>
