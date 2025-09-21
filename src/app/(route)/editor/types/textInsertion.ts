@@ -2,6 +2,8 @@
  * Text insertion feature types
  */
 
+import type { ClipItem } from './index'
+
 export interface TextPosition {
   x: number // Percentage (0-100)
   y: number // Percentage (0-100)
@@ -45,6 +47,9 @@ export interface TextInsertionState {
   selectedTextId: string | null
   defaultStyle: TextStyle
   clipboard: InsertedText[]
+  // Scenario management
+  currentScenario: import('@/app/shared/motiontext').RendererConfigV2 | null
+  isScenarioMode: boolean // true: unified scenario rendering, false: individual rendering
 }
 
 export interface TextInsertionActions {
@@ -75,6 +80,23 @@ export interface TextInsertionActions {
   // Time management
   getActiveTexts: (currentTime: number) => InsertedText[]
   updateTextTiming: (id: string, startTime: number, endTime: number) => void
+
+  // Animation management
+  toggleRotationAnimation: (id: string) => void
+  setAnimationPreset: (id: string, preset: RotationPreset) => void
+  updateTextAnimation: (id: string, animation: TextAnimation) => void
+
+  // Scenario management
+  initializeScenario: (clips?: ClipItem[]) => void
+  toggleScenarioMode: () => void
+  updateScenario: (
+    scenario: import('@/app/shared/motiontext').RendererConfigV2
+  ) => void
+  addScenarioUpdateListener: (
+    listener: (
+      scenario: import('@/app/shared/motiontext').RendererConfigV2
+    ) => void
+  ) => () => void
 }
 
 export type TextInsertionSlice = TextInsertionState & TextInsertionActions
@@ -93,6 +115,34 @@ export const DEFAULT_TEXT_STYLE: TextStyle = {
   padding: 8,
   opacity: 1,
 }
+
+// 스핀 애니메이션 프리셋
+export const ROTATION_PRESETS = {
+  NONE: {
+    plugin: '',
+    parameters: {},
+  },
+  SUBTLE: {
+    plugin: 'spin@2.0.0',
+    parameters: {
+      fullTurns: 0.25, // 1/4 회전 (90도)
+    },
+  },
+  DYNAMIC: {
+    plugin: 'spin@2.0.0',
+    parameters: {
+      fullTurns: 1.0, // 1번 완전 회전 (360도)
+    },
+  },
+  FLIP_3D: {
+    plugin: 'spin@2.0.0',
+    parameters: {
+      fullTurns: 0.5, // 1/2 회전 (180도)
+    },
+  },
+} as const
+
+export type RotationPreset = keyof typeof ROTATION_PRESETS
 
 export const DEFAULT_TEXT_ANIMATION: TextAnimation = {
   plugin: '', // No default animation - empty pluginChain [] works

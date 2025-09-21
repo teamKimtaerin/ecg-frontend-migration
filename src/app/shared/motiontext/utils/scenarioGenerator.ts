@@ -110,6 +110,10 @@ export interface SchemaProperty {
     allowDefine?: boolean
     unit?: string // px, s, °, Hz 등
     step?: number // UI에서 사용할 step (schema.step과 별개)
+    autofill?: {
+      source: string // 데이터 소스 식별자 (예: "clip.speaker", "editor.speakerColors")
+      type: 'current' | 'global' // 현재 컨텍스트 또는 전역 데이터
+    }
   }
 
   // 제약사항
@@ -269,10 +273,10 @@ export function generatePreviewScenarioV2(
 ): RendererConfigV2 {
   const centerX = settings.position.x + settings.size.width / 2
   const centerY = settings.position.y + settings.size.height / 2
-  const normalizedX = Math.max(0, Math.min(1, centerX / 640))
-  const normalizedY = Math.max(0, Math.min(1, centerY / 360))
-  const relW = Math.max(0, Math.min(1, settings.size.width / 640))
-  const relH = Math.max(0, Math.min(1, settings.size.height / 360))
+  const normalizedX = Math.max(0, Math.min(1, centerX / 512))
+  const normalizedY = Math.max(0, Math.min(1, centerY / 384))
+  const relW = Math.max(0, Math.min(1, settings.size.width / 512))
+  const relH = Math.max(0, Math.min(1, settings.size.height / 384))
 
   const groupDisplay: [number, number] = [0, duration]
   const { baseTime, timeOffset } = computeBaseTimeAndOffset(groupDisplay)
@@ -334,10 +338,10 @@ export function generateLoopedScenarioV2(
 ): RendererConfigV2 {
   const centerX = settings.position.x + settings.size.width / 2
   const centerY = settings.position.y + settings.size.height / 2
-  const normalizedX = Math.max(0, Math.min(1, centerX / 640))
-  const normalizedY = Math.max(0, Math.min(1, centerY / 360))
-  const relW = Math.max(0, Math.min(1, settings.size.width / 640))
-  const relH = Math.max(0, Math.min(1, settings.size.height / 360))
+  const normalizedX = Math.max(0, Math.min(1, centerX / 512))
+  const normalizedY = Math.max(0, Math.min(1, centerY / 384))
+  const relW = Math.max(0, Math.min(1, settings.size.width / 512))
+  const relH = Math.max(0, Math.min(1, settings.size.height / 384))
 
   const groupDisplay: [number, number] = [0, duration]
   const { baseTime, timeOffset } = computeBaseTimeAndOffset(groupDisplay, 0, 1)
@@ -409,10 +413,10 @@ export function generatePreviewScenario(
 ): RendererConfig {
   const centerX = settings.position.x + settings.size.width / 2
   const centerY = settings.position.y + settings.size.height / 2
-  const normalizedX = Math.max(0, Math.min(1, centerX / 640))
-  const normalizedY = Math.max(0, Math.min(1, centerY / 360))
-  const relW = Math.max(0, Math.min(1, settings.size.width / 640))
-  const relH = Math.max(0, Math.min(1, settings.size.height / 360))
+  const normalizedX = Math.max(0, Math.min(1, centerX / 512))
+  const normalizedY = Math.max(0, Math.min(1, centerY / 384))
+  const relW = Math.max(0, Math.min(1, settings.size.width / 512))
+  const relH = Math.max(0, Math.min(1, settings.size.height / 384))
 
   return {
     version: '1.3',
@@ -472,10 +476,10 @@ export function generateLoopedScenario(
   // Convert top-left position to center position for group layout
   const centerX = settings.position.x + settings.size.width / 2
   const centerY = settings.position.y + settings.size.height / 2
-  const normalizedX = Math.max(0, Math.min(1, centerX / 640))
-  const normalizedY = Math.max(0, Math.min(1, centerY / 360))
-  const relW = Math.max(0, Math.min(1, settings.size.width / 640))
-  const relH = Math.max(0, Math.min(1, settings.size.height / 360))
+  const normalizedX = Math.max(0, Math.min(1, centerX / 512))
+  const normalizedY = Math.max(0, Math.min(1, centerY / 384))
+  const relW = Math.max(0, Math.min(1, settings.size.width / 512))
+  const relH = Math.max(0, Math.min(1, settings.size.height / 384))
   const pluginChain = [
     {
       name: pluginName,

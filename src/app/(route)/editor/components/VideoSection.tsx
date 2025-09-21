@@ -8,7 +8,10 @@ import EditorMotionTextOverlay from './EditorMotionTextOverlay'
 import TextInsertionOverlay from './TextInsertion/TextInsertionOverlay'
 import TextEditInput from './TextInsertion/TextEditInput'
 import ScenarioJsonEditor from './ScenarioJsonEditor'
-import VirtualTimelineVideoController from './VirtualTimelineVideoController'
+import VirtualTimelineController from './VirtualTimelineController'
+import ChatBotFloatingButton from './ChatBot/ChatBotFloatingButton'
+import ChatBotModal from './ChatBot/ChatBotModal'
+import { ChatMessage } from '../types/chatBot'
 import { playbackEngine } from '@/utils/timeline/playbackEngine'
 import { timelineEngine } from '@/utils/timeline/timelineEngine'
 import {
@@ -33,7 +36,13 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
     useState<RendererConfig | null>(null)
 
   // Text insertion state
-  const [currentTime, setCurrentTime] = useState(0)
+  const [currentTime, setCurrentTime] = useState(0) // 가상 타임라인 시간
+  const [realVideoTime, setRealVideoTime] = useState(0) // 실제 영상 시간 (텍스트 삽입용)
+
+  // ChatBot state
+  const [isChatBotOpen, setIsChatBotOpen] = useState(false)
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
+  const [isChatBotTyping, setIsChatBotTyping] = useState(false)
 
   // Virtual Timeline 시스템
   const virtualTimelineManagerRef = useRef<VirtualTimelineManager | null>(null)
@@ -118,7 +127,6 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
           const avgDurationPerClip = (videoDuration || 0) / clips.length
           const clipIndex = clips.indexOf(clip)
           const startTime = clipIndex * avgDurationPerClip
-          // endTime calculation removed as it's not used
 
           return {
             ...clip,
@@ -185,8 +193,9 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
         virtualTime: number
       ) => {
         // EditorMotionTextOverlay의 MotionText Renderer에 Virtual Time 전달
-        // 현재는 currentTime 상태로 전달하지만, 직접 MotionText Renderer API 호출도 가능
+        // 가상 타임라인 시간은 자막 렌더링용으로만 사용
         setCurrentTime(virtualTime)
+        // 실제 영상 시간은 별도로 관리하여 텍스트 삽입에서 중복 렌더링 방지
       }
 
       const cleanup = virtualPlayerControllerRef.current.onMotionTextSeek(
@@ -200,11 +209,12 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
   // Handle time update from video player
   const handleTimeUpdate = useCallback(
     (time: number) => {
-      setCurrentTime(time)
+      // 실제 영상 시간만 업데이트 (텍스트 삽입용)
+      setRealVideoTime(time)
 
-      // Virtual Timeline 시스템이 활성화된 경우 Virtual Player Controller에서 자동 처리
-      // 그렇지 않으면 기존 playbackEngine 사용
+      // 가상 타임라인이 비활성화된 경우에만 currentTime도 업데이트
       if (!virtualPlayerControllerRef.current) {
+        setCurrentTime(time)
         // 타임라인 재생 위치 업데이트 (기존 시스템)
         setPlaybackPosition(time)
         playbackEngine.setCurrentTime(time)
@@ -224,6 +234,52 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
   const handleTextDoubleClick = useCallback((textId: string) => {
     console.log('📱 VideoSection handleTextDoubleClick:', textId)
     // Double click functionality disabled
+  }, [])
+
+  // ChatBot handlers
+  const handleChatBotOpen = useCallback(() => {
+    setIsChatBotOpen(true)
+  }, [])
+
+  const handleChatBotClose = useCallback(() => {
+    setIsChatBotOpen(false)
+  }, [])
+
+  const handleSendMessage = useCallback((message: string) => {
+    try {
+      // Add user message
+      const userMessage: ChatMessage = {
+        id: `user_${Date.now()}`,
+        content: message,
+        sender: 'user',
+        timestamp: new Date(),
+      }
+      setChatMessages((prev) => [...prev, userMessage])
+
+      // Simulate bot typing
+      setIsChatBotTyping(true)
+
+      // Simulate bot response (replace with actual AI integration later)
+      setTimeout(() => {
+        try {
+          const botMessage: ChatMessage = {
+            id: `bot_${Date.now()}`,
+            content:
+              '안녕하세요! 현재 UI만 구현된 상태입니다. 실제 AI 응답 기능은 추후 추가될 예정입니다.',
+            sender: 'bot',
+            timestamp: new Date(),
+          }
+          setChatMessages((prev) => [...prev, botMessage])
+          setIsChatBotTyping(false)
+        } catch (error) {
+          console.error('Error in bot response:', error)
+          setIsChatBotTyping(false)
+        }
+      }, 1500)
+    } catch (error) {
+      console.error('Error in handleSendMessage:', error)
+      setIsChatBotTyping(false)
+    }
   }, [])
 
   return (
@@ -251,29 +307,21 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
             scenarioOverride={scenarioOverride || undefined}
           />
 
-          {/* Text Insertion Overlay */}
+          {/* Text Insertion Overlay - 실제 영상 시간만 사용 */}
           <TextInsertionOverlay
             videoContainerRef={videoContainerRef}
-            currentTime={currentTime}
+            currentTime={realVideoTime}
             onTextClick={handleTextClick}
             onTextDoubleClick={handleTextDoubleClick}
           />
         </div>
 
-        {/* Virtual Timeline Video Controller - Show only when DEBUG_UI is enabled */}
-        {process.env.NEXT_PUBLIC_DEBUG_UI === 'true' && (
-          <div className="mb-4">
-            <VirtualTimelineVideoController
-              virtualPlayerController={virtualPlayerControllerRef.current}
-              onVirtualTimeUpdate={() => {
-                // Virtual Time은 이미 RVFC 콜백을 통해 자동으로 MotionText Renderer에 전달됨
-              }}
-              showSegmentVisualization={true}
-              showVolumeControls={true}
-              className="rounded-lg border border-gray-200 bg-white shadow-sm"
-            />
-          </div>
-        )}
+        {/* Virtual Timeline Controller */}
+        <div className="mb-4">
+          <VirtualTimelineController
+            virtualPlayerController={virtualPlayerControllerRef.current}
+          />
+        </div>
 
         {/* Text Edit Input Panel */}
         <TextEditInput />
@@ -287,21 +335,25 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
           />
         )}
       </div>
+
+      {/* ChatBot Floating Button */}
+      <div className="absolute bottom-4 right-4 z-30">
+        <ChatBotFloatingButton onClick={handleChatBotOpen} />
+      </div>
+
+      {/* ChatBot Modal */}
+      <ChatBotModal
+        isOpen={isChatBotOpen}
+        onClose={handleChatBotClose}
+        messages={chatMessages}
+        isTyping={isChatBotTyping}
+        onSendMessage={handleSendMessage}
+      />
     </div>
   )
 }
 
 // Cleanup on unmount
 VideoSection.displayName = 'VideoSection'
-
-// Virtual Timeline 정리 함수 (현재 사용하지 않음)
-// const cleanupVirtualTimeline = (
-//   virtualPlayerControllerRef: React.MutableRefObject<VirtualPlayerController | null>
-// ) => {
-//   if (virtualPlayerControllerRef.current) {
-//     virtualPlayerControllerRef.current.cleanup()
-//     virtualPlayerControllerRef.current = null
-//   }
-// }
 
 export default VideoSection

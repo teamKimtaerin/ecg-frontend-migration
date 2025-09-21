@@ -1,4 +1,5 @@
 import type { ClipItem } from '@/app/(route)/editor/types'
+import type { InsertedText } from '@/app/(route)/editor/types/textInsertion'
 import type { RendererConfigV2 } from '@/app/shared/motiontext'
 import { videoSegmentManager } from '@/utils/video/segmentManager'
 
@@ -8,6 +9,7 @@ export interface InitialScenarioOptions {
   fontSizeRel?: number
   baseAspect?: '16:9' | '9:16' | 'auto'
   wordAnimationTracks?: Map<string, any[]> // eslint-disable-line @typescript-eslint/no-explicit-any
+  insertedTexts?: InsertedText[] // Add support for inserted texts
 }
 
 export interface NodeIndexEntry {
@@ -21,6 +23,46 @@ export interface InitialScenarioResult {
   index: Record<string, NodeIndexEntry>
 }
 
+// Memoization cache for scenario generation
+const scenarioCache = new Map<string, InitialScenarioResult>()
+
+// Generate cache key for scenario memoization
+function generateScenarioKey(
+  clips: ClipItem[],
+  opts: InitialScenarioOptions
+): string {
+  const clipsHash = JSON.stringify(
+    clips.map((clip) => ({
+      id: clip.id,
+      words: clip.words.map((w) => ({
+        id: w.id,
+        text: w.text,
+        start: w.start,
+        end: w.end,
+      })),
+    }))
+  )
+
+  const insertedTextsHash = JSON.stringify(
+    (opts.insertedTexts || []).map((text) => ({
+      id: text.id,
+      content: text.content,
+      startTime: text.startTime,
+      endTime: text.endTime,
+      animation: text.animation,
+    }))
+  )
+
+  const optsHash = JSON.stringify({
+    position: opts.position,
+    anchor: opts.anchor,
+    fontSizeRel: opts.fontSizeRel,
+    baseAspect: opts.baseAspect,
+  })
+
+  return `${clipsHash}|${insertedTextsHash}|${optsHash}`
+}
+
 function toAdjustedOrOriginalTime(sec: number): number {
   const mapped = videoSegmentManager.mapToAdjustedTime(sec)
   return mapped == null || Number.isNaN(mapped) ? sec : mapped
@@ -31,16 +73,18 @@ function toAdjustedOrOriginalTime(sec: number): number {
  */
 function calculateAdjustedDomLifetime(
   clip: ClipItem,
-  wordAnimationTracks?: Map<string, any[]> // eslint-disable-line @typescript-eslint/no-explicit-any
+  wordAnimationTracks?: Map<string, any[]>, // eslint-disable-line @typescript-eslint/no-explicit-any
+  insertedTexts?: InsertedText[]
 ): [number, number] {
   const words = Array.isArray(clip.words) ? clip.words : []
+
   if (words.length === 0) return [0, 0]
 
-  // Start with word-based timing
+  // Start with word-based timing (clips are for subtitles only)
   let domStart = Math.min(...words.map((w) => w.start))
   let domEnd = Math.max(...words.map((w) => w.end))
 
-  // Adjust for animations if present
+  // Adjust for word animations if present
   if (wordAnimationTracks) {
     for (const word of words) {
       const tracks = wordAnimationTracks.get(word.id) || []
@@ -55,6 +99,21 @@ function calculateAdjustedDomLifetime(
     }
   }
 
+  // Include insertedTexts timing that overlap with this clip timeframe
+  if (insertedTexts && insertedTexts.length > 0) {
+    const clipStart = Math.min(...words.map((w) => w.start))
+    const clipEnd = Math.max(...words.map((w) => w.end))
+
+    const overlappingTexts = insertedTexts.filter(
+      (text) => text.startTime < clipEnd && text.endTime > clipStart
+    )
+
+    for (const text of overlappingTexts) {
+      domStart = Math.min(domStart, text.startTime)
+      domEnd = Math.max(domEnd, text.endTime)
+    }
+  }
+
   // Apply segment time mapping
   const adjDomStart = toAdjustedOrOriginalTime(domStart)
   const adjDomEnd = toAdjustedOrOriginalTime(domEnd)
@@ -66,15 +125,32 @@ export function buildInitialScenarioFromClips(
   clips: ClipItem[],
   opts: InitialScenarioOptions = {}
 ): InitialScenarioResult {
+  // Check cache first
+  const cacheKey = generateScenarioKey(clips, opts)
+  const cached = scenarioCache.get(cacheKey)
+  if (cached) {
+    console.log(
+      '📦 Using cached scenario for key:',
+      cacheKey.substring(0, 50) + '...'
+    )
+    return cached
+  }
+
+  console.log(
+    '🔨 Building new scenario for key:',
+    cacheKey.substring(0, 50) + '...'
+  )
   const position = opts.position ?? { x: 0.5, y: 0.925 } // 7.5% from bottom
   const anchor = opts.anchor ?? 'bc'
   const wordAnimationTracks = opts.wordAnimationTracks
+  const insertedTexts = opts.insertedTexts ?? []
   const fontSizeRel = opts.fontSizeRel ?? 0.07 // Changed from 0.05 to 0.07 to match cwi_demo_full
   const baseAspect = opts.baseAspect ?? '16:9'
 
   const cues: RendererConfigV2['cues'] = []
   const index: Record<string, NodeIndexEntry> = {}
 
+  // Process clips for subtitle track (words only)
   clips.forEach((clip) => {
     // Compute clip start/end from words for robustness
     const words = Array.isArray(clip.words) ? clip.words : []
@@ -97,7 +173,7 @@ export function buildInitialScenarioFromClips(
       const e = toAdjustedOrOriginalTime(w.end)
       if (!Number.isFinite(s) || !Number.isFinite(e) || e <= s) return
 
-      const nodeId = `word-${clip.id}_word_${children.length}` // Changed to match cwi_demo_full pattern
+      const nodeId = w.id // Use the actual word ID to match wordSlice expectations
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const child: any = {
         id: nodeId,
@@ -116,9 +192,6 @@ export function buildInitialScenarioFromClips(
           .map((track) => ({
             name: track.pluginKey,
             params: track.params || {},
-            ...(track.timeOffset && {
-              timeOffset: track.timeOffset,
-            }),
           }))
       }
       // record index path; children will push later so we know path length
@@ -132,10 +205,11 @@ export function buildInitialScenarioFromClips(
     const cueId = `cue-${clip.id}`
     const groupId = `clip-${clip.id}`
 
-    // Calculate adjusted domLifetime based on animation timeOffsets
+    // Calculate adjusted domLifetime based on animation timeOffsets and insertedTexts
     const [adjDomStart, adjDomEnd] = calculateAdjustedDomLifetime(
       clip,
-      wordAnimationTracks
+      wordAnimationTracks,
+      insertedTexts
     )
 
     const cue = {
@@ -156,6 +230,65 @@ export function buildInitialScenarioFromClips(
         children,
       },
     }
+    cues.push(cue)
+  })
+
+  // Process insertedTexts for overlay track (separate from subtitles)
+  insertedTexts.forEach((insertedText) => {
+    const s = toAdjustedOrOriginalTime(insertedText.startTime)
+    const e = toAdjustedOrOriginalTime(insertedText.endTime)
+    if (!Number.isFinite(s) || !Number.isFinite(e) || e <= s) return
+
+    const nodeId = `insertedtext-${insertedText.id}`
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const child: any = {
+      id: nodeId,
+      eType: 'text' as const,
+      text: insertedText.content,
+      baseTime: [s, e] as [number, number],
+      // Apply insertedText positioning and styling
+      layout: {
+        anchor: 'tl', // Top-left anchor for absolute positioning
+        position: {
+          x: insertedText.position.x / 100, // Convert percentage to decimal
+          y: insertedText.position.y / 100,
+        },
+      },
+      style: {
+        fontSizeRel: (insertedText.style.fontSize || 24) / 100, // Convert to relative size
+        fontFamily: insertedText.style.fontFamily || 'Arial, sans-serif',
+        color: insertedText.style.color || '#ffffff',
+        fontWeight: insertedText.style.fontWeight || 'normal',
+        fontStyle: insertedText.style.fontStyle || 'normal',
+      },
+    }
+
+    // Add animation plugin information from insertedText
+    if (insertedText.animation && insertedText.animation.plugin) {
+      child.pluginChain = [
+        {
+          name: insertedText.animation.plugin,
+          params: insertedText.animation.parameters || {},
+        },
+      ]
+    }
+
+    // Create separate cue for each insertedText (overlay track)
+    const cueId = `cue-insertedtext-${insertedText.id}`
+    const cue = {
+      id: cueId,
+      track: 'overlay',
+      domLifetime: [s, e] as [number, number],
+      root: {
+        id: nodeId,
+        eType: 'group' as const,
+        displayTime: [s, e] as [number, number],
+        children: [child],
+      },
+    }
+
+    // Record index path for insertedText
+    index[nodeId] = { cueIndex: cues.length, path: [0] }
     cues.push(cue)
   })
 
@@ -200,9 +333,34 @@ export function buildInitialScenarioFromClips(
           opacity: 1,
         },
       },
+      {
+        id: 'overlay',
+        type: 'free',
+        layer: 2, // Higher layer than subtitles
+        defaultStyle: {
+          fontSizeRel: 0.06,
+          fontFamily: 'Arial, sans-serif',
+          color: '#ffffff',
+        },
+        // No defaultBoxStyle for overlay texts - they're positioned individually
+      },
     ],
     cues,
   }
 
-  return { config, index }
+  const result = { config, index }
+
+  // Cache the result
+  scenarioCache.set(cacheKey, result)
+
+  // Limit cache size to prevent memory leaks
+  if (scenarioCache.size > 50) {
+    const firstKey = scenarioCache.keys().next().value
+    if (firstKey) {
+      scenarioCache.delete(firstKey)
+      console.log('🧹 Cache cleaned up, removed oldest entry')
+    }
+  }
+
+  return result
 }

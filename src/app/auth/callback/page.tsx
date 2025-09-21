@@ -3,6 +3,7 @@
 import { useAuthStore } from '@/lib/store/authStore'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
+import { API_CONFIG } from '@/config/api.config'
 
 function AuthCallbackContent() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>(

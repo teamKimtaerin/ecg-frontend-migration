@@ -50,10 +50,9 @@ const MovableAnimatedText = forwardRef<
     const [showSimpleText, setShowSimpleText] = useState(false)
     const [, setCurrentConfig] = useState<RendererConfigV2 | null>(null)
     const [manifest, setManifest] = useState<PluginManifest | null>(null)
-    const [position, setPosition] = useState({
-      x: text.position.x,
-      y: text.position.y,
-    })
+    const [position, setPosition] = useState<{ x: number; y: number } | null>(
+      null
+    )
     const [size, setSize] = useState({ width: 240, height: 80 })
     const [rotationDeg, setRotationDeg] = useState(0)
 
@@ -62,7 +61,6 @@ const MovableAnimatedText = forwardRef<
       width: 640,
       height: 360,
     })
-    const hasScaledFromInitialRef = useRef(false)
     const updateTimerRef = useRef<number | null>(null)
     const firstLoadDoneRef = useRef(false)
 
@@ -107,7 +105,7 @@ const MovableAnimatedText = forwardRef<
      * Update scenario with proper coordinate normalization
      */
     const updateScenario = useCallback(async () => {
-      if (!manifest || isDragging) return
+      if (!manifest || isDragging || !position) return
 
       try {
         const STAGE_W = stageSizeRef.current.width
@@ -134,9 +132,9 @@ const MovableAnimatedText = forwardRef<
           fontSizeRel,
         }
 
-        // Convert current stage space to generator's 640x360 base for normalization
-        const baseW = 640
-        const baseH = 360
+        // Convert current stage space to generator's 512x384 base for normalization
+        const baseW = 512
+        const baseH = 384
         const scaleX = baseW / STAGE_W
         const scaleY = baseH / STAGE_H
         const settingsForGenerator = {
@@ -301,7 +299,7 @@ const MovableAnimatedText = forwardRef<
       setShowSimpleText(false)
 
       // Convert top-left position back to percentage for store update (using center point for consistency)
-      if (videoContainerRef.current) {
+      if (videoContainerRef.current && position) {
         const container = videoContainerRef.current
         const rect = container.getBoundingClientRect()
         const centerX = position.x + size.width / 2
@@ -323,7 +321,7 @@ const MovableAnimatedText = forwardRef<
     }, [position, size, videoContainerRef, onUpdate, updateScenario, play])
 
     /**
-     * Initialize position from text data and setup responsive container observation
+     * Initialize position - simple center-based calculation
      */
     useEffect(() => {
       if (!videoContainerRef.current) return
@@ -331,39 +329,16 @@ const MovableAnimatedText = forwardRef<
       const container = videoContainerRef.current
       const rect = container.getBoundingClientRect()
 
-      // Convert percentage position to pixel position
-      // Note: text.position represents the center point, so we need to subtract half the size
-      const centerPixelX = (text.position.x / 100) * rect.width
-      const centerPixelY = (text.position.y / 100) * rect.height
+      // Simple center-based position calculation
+      const centerX = (text.position.x / 100) * rect.width
+      const centerY = (text.position.y / 100) * rect.height
+      const topLeftX = centerX - size.width / 2
+      const topLeftY = centerY - size.height / 2
 
-      // Calculate top-left position by subtracting half of the text box size
-      const pixelX = centerPixelX - size.width / 2
-      const pixelY = centerPixelY - size.height / 2
-
-      setPosition({ x: pixelX, y: pixelY })
+      setPosition({ x: topLeftX, y: topLeftY })
       stageSizeRef.current = { width: rect.width, height: rect.height }
 
-      // Initial scaling for responsive design
-      if (!hasScaledFromInitialRef.current) {
-        const scaleX = rect.width / 640
-        const scaleY = rect.height / 360
-        const newSize = {
-          width: size.width * scaleX,
-          height: size.height * scaleY,
-        }
-        setSize(newSize)
-
-        // Recalculate position with new size to ensure proper centering
-        const centerPixelX = (text.position.x / 100) * rect.width
-        const centerPixelY = (text.position.y / 100) * rect.height
-        const adjustedPixelX = centerPixelX - newSize.width / 2
-        const adjustedPixelY = centerPixelY - newSize.height / 2
-        setPosition({ x: adjustedPixelX, y: adjustedPixelY })
-
-        hasScaledFromInitialRef.current = true
-      }
-
-      // ResizeObserver for responsive handling
+      // Simple ResizeObserver for container changes
       const ro = new ResizeObserver((entries) => {
         const entry = entries[0]
         const cr = entry.contentRect
@@ -376,9 +351,7 @@ const MovableAnimatedText = forwardRef<
           const scaleY = newH / prev.height
 
           stageSizeRef.current = { width: newW, height: newH }
-
-          // Scale position and size proportionally
-          setPosition((p) => ({ x: p.x * scaleX, y: p.y * scaleY }))
+          setPosition((p) => (p ? { x: p.x * scaleX, y: p.y * scaleY } : null))
           setSize((s) => ({
             width: s.width * scaleX,
             height: s.height * scaleY,
@@ -387,11 +360,8 @@ const MovableAnimatedText = forwardRef<
       })
 
       ro.observe(container)
-
-      return () => {
-        ro.disconnect()
-      }
-    }, [text.position, videoContainerRef, size.height, size.width])
+      return () => ro.disconnect()
+    }, [text.position, videoContainerRef, size.width, size.height])
 
     const handleClick = useCallback(
       (e: React.MouseEvent) => {
@@ -406,6 +376,28 @@ const MovableAnimatedText = forwardRef<
 
         e.preventDefault()
         e.stopPropagation()
+
+        // Pause virtual timeline when text is clicked
+        const virtualPlayerController = (
+          window as {
+            virtualPlayerController?: {
+              pause?: () => void
+            }
+          }
+        ).virtualPlayerController
+
+        if (virtualPlayerController) {
+          console.log('⏸️ Pausing virtual timeline for text selection')
+          virtualPlayerController.pause?.()
+        } else {
+          // Fallback to regular video player if virtual timeline not available
+          const videoPlayer = (
+            window as { videoPlayer?: { pause: () => void } }
+          ).videoPlayer
+          if (videoPlayer) {
+            videoPlayer.pause()
+          }
+        }
 
         console.log('✅ Selecting text:', text.content)
         onSelect()
@@ -431,7 +423,7 @@ const MovableAnimatedText = forwardRef<
       }
     }, [isSelected])
 
-    if (!isVisible) {
+    if (!isVisible || !position) {
       return null
     }
 
