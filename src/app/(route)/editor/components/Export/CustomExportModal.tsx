@@ -96,7 +96,7 @@ export default function CustomExportModal({
     >
       <div
         ref={modalRef}
-        className="bg-white rounded-xl shadow-md w-full max-w-2xl max-h-[90vh] overflow-y-auto relative"
+        className="bg-white rounded-xl shadow-md w-full max-w-lg max-h-[90vh] overflow-y-auto relative"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 닫기 버튼 */}
