@@ -91,14 +91,6 @@ export const useProgressTasks = () => {
 
   // 🧪 [하드코딩된 테스트 데이터] - 배포 기능 테스트용
   const exportTasks: ExportTask[] = [
-    // 현재 진행중인 내보내기
-    {
-      id: 1,
-      filename: 'video_project_1.mp4',
-      progress: 75,
-      status: 'processing',
-      currentStage: '처리 중...',
-    },
     // 종료된 내보내기들
     {
       id: 2,
