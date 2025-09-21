@@ -106,7 +106,7 @@ export function buildInitialScenarioFromClips(
       const e = toAdjustedOrOriginalTime(w.end)
       if (!Number.isFinite(s) || !Number.isFinite(e) || e <= s) return
 
-      const nodeId = `word-${clip.id}_word_${children.length}` // Changed to match cwi_demo_full pattern
+      const nodeId = `word-${w.id}` // Use actual word.id for consistent nodeIndex mapping
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const child: any = {
         id: nodeId,
