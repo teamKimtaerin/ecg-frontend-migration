@@ -182,7 +182,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
               <div
                 className={`border-2 border-dashed rounded-lg transition-colors ${
                   isDragOver
-                    ? 'border-blue-400 bg-blue-50'
+                    ? 'border-brand-sub bg-purple-50'
                     : 'border-gray-300 bg-gray-50'
                 }`}
                 onDragEnter={handleDragEnter}
@@ -306,7 +306,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
 
                 {/* Vimeo */}
                 <div className="flex items-center p-3 bg-gray-50 rounded-lg border border-gray-200">
-                  <div className="w-10 h-10 bg-blue-500 rounded flex items-center justify-center mr-3">
+                  <div className="w-10 h-10 bg-brand-main rounded flex items-center justify-center mr-3">
                     <FaVimeo className="w-6 h-6 text-white" />
                   </div>
                   <div>

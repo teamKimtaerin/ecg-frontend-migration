@@ -78,7 +78,7 @@ const Header: React.FC<HeaderProps> = ({
               className="relative text-sm font-medium text-gray-700 hover:text-black transition-colors cursor-pointer"
             >
               베타
-              <span className="absolute -top-2 left-full ml-1 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+              <span className="absolute -top-2 left-full ml-1 bg-brand-main text-white text-xs px-1.5 py-0.5 rounded-full">
                 βeta
               </span>
             </Link>

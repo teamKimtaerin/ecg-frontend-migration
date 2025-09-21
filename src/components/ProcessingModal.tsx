@@ -155,7 +155,7 @@ export default function ProcessingModal({
           {fileName && (
             <div className="flex items-center gap-3 mb-6">
               {(status === 'uploading' || status === 'processing') && (
-                <FaSpinner className="animate-spin text-blue-500" size={16} />
+                <FaSpinner className="animate-spin text-brand-main" size={16} />
               )}
               <span className="text-gray-700 font-medium">{fileName}</span>
             </div>
@@ -173,9 +173,9 @@ export default function ProcessingModal({
           </div>
 
           {/* Tip Section */}
-          <div className="mb-6 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+          <div className="mb-6 p-4 bg-purple-50 rounded-lg border-l-4 border-brand-sub">
             <div className="flex items-start gap-3">
-              <LuLightbulb className="text-blue-500 text-lg mt-0.5 flex-shrink-0" />
+              <LuLightbulb className="text-brand-main text-lg mt-0.5 flex-shrink-0" />
               <div>
                 <h4 className="font-medium text-gray-900 mb-2">
                   알고 계셨나요?
@@ -201,7 +201,7 @@ export default function ProcessingModal({
             </div>
             <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
               <div
-                className="h-full bg-blue-500 transition-all duration-500 ease-out rounded-full"
+                className="h-full bg-brand-main transition-all duration-500 ease-out rounded-full"
                 style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
               />
             </div>
@@ -228,7 +228,7 @@ export default function ProcessingModal({
             <div className="flex justify-center mt-6">
               <button
                 onClick={onClose}
-                className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+                className="px-6 py-2 bg-brand-main hover:bg-brand-dark text-white rounded-lg transition-colors"
               >
                 에디터로 이동
               </button>

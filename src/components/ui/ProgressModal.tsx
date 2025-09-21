@@ -181,7 +181,7 @@ export default function ProgressModal({
           {fileName && (
             <div className="flex items-center gap-3 mb-6">
               {(status === 'uploading' || status === 'processing') && (
-                <FaSpinner className="animate-spin text-blue-500" size={16} />
+                <FaSpinner className="animate-spin text-brand-main" size={16} />
               )}
               <span className="text-gray-700 font-medium">{fileName}</span>
             </div>
@@ -207,7 +207,7 @@ export default function ProgressModal({
 
           {/* 진행률과 시간 정보 */}
           <div className="flex items-center justify-between mb-3 text-base">
-            <span className="text-blue-500 font-semibold">
+            <span className="text-brand-main font-semibold">
               {Math.round(progress)}%
             </span>
             {estimatedTimeRemaining && estimatedTimeRemaining > 0 && (
@@ -228,7 +228,7 @@ export default function ProgressModal({
           {/* 진행률 바 */}
           <div className="w-full bg-gray-200 rounded-full h-2 mb-6">
             <div
-              className="bg-blue-500 h-2 rounded-full transition-all duration-200 ease-out"
+              className="bg-brand-main h-2 rounded-full transition-all duration-200 ease-out"
               style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
             />
           </div>
@@ -238,7 +238,7 @@ export default function ProgressModal({
             <div className="flex justify-center">
               <button
                 onClick={onClose}
-                className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+                className="px-6 py-2 bg-brand-main hover:bg-brand-dark text-white rounded-lg transition-colors"
               >
                 {type === 'upload' ? '에디터로 이동' : '확인'}
               </button>
