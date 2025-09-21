@@ -343,7 +343,7 @@ export default function ServerVideoExportModal({
           <button
             onClick={handleStartExport}
             disabled={isExporting}
-            className="flex-1 px-4 py-2.5 bg-cyan-500 hover:bg-cyan-600 disabled:bg-cyan-300 text-white text-sm font-medium rounded-md transition-colors duration-200"
+            className="flex-1 px-4 py-2.5 bg-black hover:bg-gray-800 disabled:bg-gray-400 text-white text-sm font-medium rounded-md transition-colors duration-200"
           >
             내보내기
           </button>
