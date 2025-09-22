@@ -32,8 +32,7 @@ export async function getAssets(options?: {
 
     // 플러그인 URL 해석
     const origin = (
-      process.env.NEXT_PUBLIC_MOTIONTEXT_PLUGIN_ORIGIN ||
-      'http://localhost:80'
+      process.env.NEXT_PUBLIC_MOTIONTEXT_PLUGIN_ORIGIN || 'http://localhost:80'
     ).replace(/\/$/, '')
 
     const resolvedAssets = data.assets.map((asset) => {

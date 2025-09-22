@@ -75,7 +75,6 @@ function resolveKey(name: string): string {
   return name.includes('@') ? name : `${name}@2.0.0`
 }
 
-
 export async function loadLocalPlugin(
   name: string
 ): Promise<PluginRuntimeModule> {
@@ -127,7 +126,6 @@ export async function loadLocalPlugin(
 
       // Blob URL 정리
       URL.revokeObjectURL(blobUrl)
-
     } catch (error) {
       console.error(`Failed to register plugin ${key}:`, error)
       throw error

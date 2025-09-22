@@ -145,7 +145,6 @@ const ChatBotModal: React.FC<ChatBotProps> = ({
       className="max-w-lg"
     >
       <div className="flex flex-col h-[550px]" onKeyDown={handleModalKeyDown}>
-
         {/* Messages container */}
         <div className="flex-1 overflow-y-auto p-4 bg-gray-50 rounded-lg mb-4">
           {messages.length === 0 ? (
@@ -166,7 +165,7 @@ const ChatBotModal: React.FC<ChatBotProps> = ({
                 {sampleQuestions.map((question, index) => {
                   const questionIndex = activeQuestionIndices.indexOf(index)
                   const isActive = questionIndex !== -1
-                  
+
                   return (
                     <div
                       key={index}
