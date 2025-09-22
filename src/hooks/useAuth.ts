@@ -1,5 +1,5 @@
-import { AuthAPI } from '@/lib/api/auth'
 import { useAuthStore } from '@/lib/store/authStore'
+import { AuthAPI } from '@/lib/api/auth'
 import { useEffect } from 'react'
 
 /**
