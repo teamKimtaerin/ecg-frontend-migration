@@ -39,10 +39,14 @@ const Header: React.FC<HeaderProps> = ({
   const { exportTasks, uploadTasks } = useProgressTasks()
 
   // Get notification status
-  const { hasUnreadExportNotification, markNotificationAsRead } = useProgressStore()
+  const { hasUnreadExportNotification, markNotificationAsRead } =
+    useProgressStore()
 
   // 디버깅: 알림 상태 추적
-  console.log('[Header] hasUnreadExportNotification:', hasUnreadExportNotification)
+  console.log(
+    '[Header] hasUnreadExportNotification:',
+    hasUnreadExportNotification
+  )
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-gray-200 shadow-sm">
       <div className="container flex h-16 items-center justify-between px-4 mx-auto max-w-7xl">

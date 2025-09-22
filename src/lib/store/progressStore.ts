@@ -310,7 +310,10 @@ export const useProgressStore = create<ProgressStore>()(
 
       // Notification management
       setExportNotification: (hasNotification) => {
-        console.log('[ProgressStore] setExportNotification called with:', hasNotification)
+        console.log(
+          '[ProgressStore] setExportNotification called with:',
+          hasNotification
+        )
         set({ hasUnreadExportNotification: hasNotification })
       },
 

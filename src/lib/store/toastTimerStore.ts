@@ -148,7 +148,8 @@ const useToastTimerStore = create<ToastTimerStore>()((set, get) => ({
         if (message.includes('영상 출력이 완료되었습니다')) {
           console.log('🔔 [ToastTimer] 내보내기 완료 알림 설정')
           // progressStore의 setExportNotification을 직접 호출
-          const { setExportNotification } = require('./progressStore').useProgressStore.getState()
+          const { setExportNotification } =
+            require('./progressStore').useProgressStore.getState()
           setExportNotification(true)
         }
       } else {

@@ -206,7 +206,9 @@ export default function ServerVideoExportModal({
 
     // 30초 후 내보내기 완료 알림 설정 (종 아이콘에 빨간점 표시)
     setTimeout(() => {
-      console.log('[ServerVideoExportModal] Setting export notification to true (after 30s)')
+      console.log(
+        '[ServerVideoExportModal] Setting export notification to true (after 30s)'
+      )
       setExportNotification(true)
     }, 30000)
   }
