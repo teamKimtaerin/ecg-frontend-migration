@@ -246,6 +246,8 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
             useEditorStore.getState().setMediaInfo({
               isPlaying: true,
             })
+            // Clear text selection when video starts playing
+            useEditorStore.getState().clearSelection()
           }
         } catch (error) {
           // AbortError는 무시 (이미 다른 play/pause가 진행중)
@@ -453,7 +455,11 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
           onClick={(e) => togglePlayPause(e)}
           onTimeUpdate={handleTimeUpdate}
           onLoadedMetadata={handleLoadedMetadata}
-          onPlay={() => setIsPlaying(true)}
+          onPlay={() => {
+            setIsPlaying(true)
+            // Clear text selection when video starts playing
+            useEditorStore.getState().clearSelection()
+          }}
           onPause={() => setIsPlaying(false)}
           onError={handleVideoError}
           onLoadStart={() => {

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react'
 import { IoCheckmark, IoClose, IoRefresh, IoSettings } from 'react-icons/io5'
-import { PluginParameterControls } from '../../../asset-store/components/PluginParameterControls'
+import { TabbedParameterControls } from '../../../asset-store/components/creation/TabbedParameterControls'
 import {
   loadPluginManifest,
   getDefaultParameters,
@@ -10,6 +10,7 @@ import {
 } from '@/app/(route)/asset-store/utils/scenarioGenerator'
 import { useEditorStore } from '../../store'
 import { AssetSettings } from './types'
+import { Sticker } from '../../types'
 import {
   determineTargetWordId,
   determineTargetWordIds,
@@ -17,6 +18,11 @@ import {
   getCommonAnimationParams,
   getExistingTrackParams as getExistingTrackParamsHelper,
 } from '../../utils/animationHelpers'
+import {
+  getAutofillData,
+  extractAutofillSources,
+  type AutofillContext,
+} from '../../utils/autofillDataProvider'
 // import { useAnimationParams } from '../../hooks/useAnimationParams' // Available for future use
 
 interface AssetControlPanelProps {
@@ -60,27 +66,43 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
   const {
     expandedAssetId,
     wordAnimationTracks,
-    focusedWordId,
-    selectedWordId,
-    expandedWordId,
-    multiSelectedWordIds,
+    selectedStickerId,
+    focusedStickerId,
   } = useEditorStore()
+
+  // Determine if we're working with a sticker or word
+  const isSticker = selectedStickerId || focusedStickerId
+
+  // Get selected sticker info
+  const selectedStickerInfo = useMemo(() => {
+    if (!selectedStickerId) return null
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const store = useEditorStore.getState() as any
+      const clips = store.clips || []
+
+      for (const clip of clips) {
+        const sticker = clip.stickers?.find(
+          (s: Sticker) => s.id === selectedStickerId
+        )
+        if (sticker) {
+          return { sticker, clipId: clip.id }
+        }
+      }
+    } catch {}
+    return null
+  }, [selectedStickerId])
 
   // Use unified target word resolution (expanded > focused > single selected)
   const targetWordId = useMemo(() => {
+    if (isSticker) return null // Don't resolve word ID for stickers
     try {
       const store = useEditorStore.getState()
       return determineTargetWordId(store)
     } catch {
       return null
     }
-  }, [
-    wordAnimationTracks,
-    focusedWordId,
-    selectedWordId,
-    expandedWordId,
-    multiSelectedWordIds,
-  ])
+  }, [isSticker])
 
   // Get all target word IDs for multi-selection
   const targetWordIds = useMemo(() => {
@@ -90,13 +112,7 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
     } catch {
       return []
     }
-  }, [
-    wordAnimationTracks,
-    focusedWordId,
-    selectedWordId,
-    expandedWordId,
-    multiSelectedWordIds,
-  ])
+  }, [])
 
   // Check if multi-selection is active
   const isMultiSelection = useMemo(() => {
@@ -106,17 +122,37 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
     } catch {
       return false
     }
-  }, [multiSelectedWordIds])
+  }, [])
 
-  // Resolve pluginKey from current word's animation tracks -> expanded asset
+  // Resolve pluginKey from current target (word or sticker) animation tracks
   const pluginKeyFromStore = useMemo(() => {
-    if (!targetWordId) return undefined
     const targetAssetId = assetId || expandedAssetId
     if (!targetAssetId) return undefined
-    const tracks = wordAnimationTracks.get(targetWordId) || []
-    const track = tracks.find((t) => t.assetId === targetAssetId)
-    return track?.pluginKey
-  }, [targetWordId, assetId, expandedAssetId, wordAnimationTracks])
+
+    if (isSticker && selectedStickerInfo) {
+      // Get pluginKey from sticker animation tracks
+      const tracks = selectedStickerInfo.sticker.animationTracks || []
+      const track = tracks.find(
+        (t: NonNullable<Sticker['animationTracks']>[0]) =>
+          t.assetId === targetAssetId
+      )
+      return track?.pluginKey
+    } else if (targetWordId) {
+      // Get pluginKey from word animation tracks
+      const tracks = wordAnimationTracks.get(targetWordId) || []
+      const track = tracks.find((t) => t.assetId === targetAssetId)
+      return track?.pluginKey
+    }
+
+    return undefined
+  }, [
+    isSticker,
+    selectedStickerInfo,
+    targetWordId,
+    assetId,
+    expandedAssetId,
+    wordAnimationTracks,
+  ])
 
   // Try to resolve pluginKey from the assets database when store doesn't provide it
   useEffect(() => {
@@ -212,7 +248,14 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
         const defaultParams = getDefaultParameters(loadedManifest)
 
         let existingParams: Record<string, unknown> = {}
-        if (isMultiSelection && targetWordIds.length > 0) {
+        if (isSticker && selectedStickerInfo) {
+          // For sticker, get existing parameters from sticker animation tracks
+          const tracks = selectedStickerInfo.sticker.animationTracks || []
+          const track = tracks.find(
+            (t: any) => t.assetId === (assetId || expandedAssetId)
+          )
+          existingParams = track?.params || {}
+        } else if (isMultiSelection && targetWordIds.length > 0) {
           // For multi-selection, get common parameters across all selected words
           const store = useEditorStore.getState()
           existingParams = getCommonAnimationParams(
@@ -228,8 +271,74 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
           )
         }
 
-        // Merge: existing params take priority, defaults fill missing keys
-        const initialParams = { ...defaultParams, ...existingParams }
+        // Apply autofill data if available
+        const autofillSources = extractAutofillSources(loadedManifest.schema)
+        const store = useEditorStore.getState()
+        const autofillContext: AutofillContext = {
+          store,
+          targetWordId,
+          targetClipId: targetWordId
+            ? targetWordId.match(/^word-(\d+)-\d+$/)?.[1]
+            : null,
+        }
+
+        // Autofill 디버깅 시작
+        console.log('🔍 [AUTOFILL DEBUG] =====================================')
+        console.log('🔍 [AUTOFILL] Target Word ID:', targetWordId)
+        console.log('🔍 [AUTOFILL] Store State:', {
+          expandedWordId: store.expandedWordId,
+          focusedWordId: store.focusedWordId,
+          selectedWordId: store.selectedWordId,
+          multiSelectedWordIds: Array.from(store.multiSelectedWordIds || []),
+        })
+        console.log('🔍 [AUTOFILL] Extracted Sources:', autofillSources)
+
+        const autofillData: Record<string, unknown> = {}
+        Object.entries(autofillSources).forEach(([paramKey, source]) => {
+          const data = getAutofillData(source, autofillContext)
+          console.log(`🔍 [AUTOFILL] Getting data for ${paramKey}:`, {
+            source,
+            result: data,
+          })
+          if (data !== null && data !== undefined) {
+            autofillData[paramKey] = data
+          }
+        })
+
+        // Merge parameters with proper priority handling
+        const initialParams = { ...defaultParams }
+
+        // Apply autofill data first
+        Object.entries(autofillData).forEach(([key, value]) => {
+          if (value !== null && value !== undefined) {
+            initialParams[key] = value
+          }
+        })
+
+        // Apply existing params only if they are not empty
+        Object.entries(existingParams).forEach(([key, value]) => {
+          // Only override autofill if existing value is meaningful
+          if (
+            value !== '' &&
+            value !== null &&
+            value !== undefined &&
+            !(
+              typeof value === 'object' &&
+              Object.keys(value as Record<string, unknown>).length === 0
+            )
+          ) {
+            initialParams[key] = value
+          }
+        })
+
+        console.log('🔍 [AUTOFILL] Merge Details:', {
+          defaultParams,
+          autofillData,
+          existingParams,
+          finalMerged: initialParams,
+        })
+        console.log('🔍 [AUTOFILL DEBUG] =====================================')
+
         setParameters(initialParams)
       } catch (error) {
         console.error(`Failed to load manifest for ${pluginKey}:`, error)
@@ -246,12 +355,20 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
     fallbackPluginKey,
     expandedAssetId,
     assetId,
+    isMultiSelection,
+    isSticker,
+    selectedStickerInfo,
+    targetWordId,
+    targetWordIds,
   ])
 
   // If we found a fallback key but store lacked it, persist it back to store
   useEffect(() => {
     const targetAssetId = assetId || expandedAssetId
-    if (!targetAssetId || !targetWordId) return
+    if (!targetAssetId) return
+
+    // Skip if working with stickers (different persistence logic)
+    if (isSticker || !targetWordId) return
     if (fallbackPluginKey && !pluginKeyFromStore) {
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -271,6 +388,7 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
     assetId,
     expandedAssetId,
     targetWordId,
+    isSticker,
   ])
 
   const handleParameterChange = (key: string, value: unknown) => {
@@ -301,7 +419,7 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
       await onSettingsChange(parameters as AssetSettings)
 
       // Show success feedback and close panel
-      console.log('Settings applied successfully')
+      // console.log('Settings applied successfully')
       onClose()
     } catch (error) {
       console.error('Failed to apply settings:', error)
@@ -343,7 +461,7 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
             <div className="text-sm text-slate-600">설정을 불러오는 중...</div>
           </div>
         ) : manifest ? (
-          <PluginParameterControls
+          <TabbedParameterControls
             manifest={manifest}
             parameters={parameters}
             onParameterChange={handleParameterChange}

@@ -1,22 +1,22 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import ToolbarButton from './Toolbars/shared/ToolbarButton'
-import ToolbarDivider from './Toolbars/shared/ToolbarDivider'
-import ToolbarBase from './Toolbars/shared/ToolbarBase'
+import React, { useEffect, useState } from 'react'
 import {
   AiOutlineExport,
-  AiOutlineSave,
   AiOutlineFolderAdd,
+  AiOutlineSave,
 } from 'react-icons/ai'
 import ExportModal from './Export/ExportModal'
-import YouTubeUploadModal from './Export/YouTubeUploadModal'
-import ServerVideoExportModal from './Export/ServerVideoExportModal'
 import {
   ExportFormat,
   SocialPlatform,
   YouTubeUploadData,
 } from './Export/ExportTypes'
+import ServerVideoExportModal from './Export/ServerVideoExportModal'
+import YouTubeUploadModal from './Export/YouTubeUploadModal'
+import ToolbarBase from './Toolbars/shared/ToolbarBase'
+import ToolbarButton from './Toolbars/shared/ToolbarButton'
+import ToolbarDivider from './Toolbars/shared/ToolbarDivider'
 
 interface SimpleToolbarProps {
   activeClipId: string | null
@@ -143,6 +143,7 @@ const SimpleToolbar: React.FC<SimpleToolbarProps> = ({
               </svg>
             }
             label="프로젝트 열기"
+            disabled={true}
             onClick={handleOpenProject}
             shortcut="Ctrl+O"
           />
@@ -257,12 +258,13 @@ const SimpleToolbar: React.FC<SimpleToolbarProps> = ({
           <ToolbarButton
             icon={<AiOutlineFolderAdd className="w-5 h-5" />}
             label="다른 프로젝트로 저장"
+            disabled={true}
             onClick={onSaveAs}
           />
 
           {/* 내보내기 - 원래 스타일 유지 */}
           <button
-            className="px-5 py-3 bg-gray-600 text-white rounded hover:bg-black hover:scale-105 hover:shadow-lg transition-all duration-200 flex items-center gap-1.5 text-xs font-bold cursor-pointer"
+            className="px-5 py-3 bg-brand-main text-white rounded-full hover:bg-brand-dark hover:scale-105 hover:shadow-lg transition-all duration-200 flex items-center gap-1.5 text-xs font-bold cursor-pointer"
             onClick={handleExportClick}
           >
             <AiOutlineExport className="w-4 h-4" />

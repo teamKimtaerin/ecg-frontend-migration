@@ -1,7 +1,7 @@
 import React, { useRef, useCallback, useState, useEffect } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Word } from './types'
+import { Word } from '../../types'
 import { useEditorStore } from '../../store'
 
 interface ClipWordProps {
@@ -9,6 +9,8 @@ interface ClipWordProps {
   clipId: string
   onWordClick: (wordId: string, isCenter: boolean) => void
   onWordEdit: (clipId: string, wordId: string, newText: string) => void
+  isStickerDropTarget?: boolean
+  isStickerHovered?: boolean
 }
 
 export default function ClipWord({
@@ -16,6 +18,8 @@ export default function ClipWord({
   clipId,
   onWordClick,
   onWordEdit,
+  isStickerDropTarget = false,
+  isStickerHovered = false,
 }: ClipWordProps) {
   const wordRef = useRef<HTMLDivElement>(null)
   const editableRef = useRef<HTMLSpanElement>(null)
@@ -41,6 +45,7 @@ export default function ClipWord({
     setLastSelectedWord,
     playingWordId,
     playingClipId,
+    setSelectedWordId,
   } = useEditorStore()
 
   const isFocused = focusedWordId === word.id && focusedClipId === clipId
@@ -116,6 +121,8 @@ export default function ClipWord({
         clearMultiSelection()
         // Set as last selected for future range selection
         setLastSelectedWord(clipId, word.id)
+        // Sync selectedWordId for AnimationAssetSidebar
+        setSelectedWordId(word.id)
 
         // Seek video player to word start time
         const videoPlayer = (
@@ -166,6 +173,7 @@ export default function ClipWord({
       toggleMultiSelectWord,
       clearMultiSelection,
       setLastSelectedWord,
+      setSelectedWordId,
     ]
   )
 
@@ -236,7 +244,7 @@ export default function ClipWord({
         'text-white',
         'shadow-md',
         'ring-2',
-        'ring-blue-300',
+        'ring-purple-300',
         'ring-opacity-50',
         'transform',
         'scale-105',
@@ -274,6 +282,29 @@ export default function ClipWord({
       classes.push('opacity-50', 'cursor-grabbing')
     } else if (isDraggable && !isEditing) {
       classes.push('cursor-grab')
+    }
+
+    // Drop zone visual feedback for sticker attachment
+    if (isStickerDropTarget && !isEditing) {
+      classes.push('transition-all', 'duration-200')
+      if (isStickerHovered) {
+        classes.push(
+          'ring-2',
+          'ring-purple-400',
+          'ring-opacity-60',
+          'bg-purple-50',
+          'border-purple-300',
+          'shadow-md',
+          'scale-105'
+        )
+      } else {
+        classes.push(
+          'ring-1',
+          'ring-purple-200',
+          'ring-opacity-40',
+          'bg-purple-25'
+        )
+      }
     }
 
     return classes.join(' ')
@@ -314,7 +345,7 @@ export default function ClipWord({
     >
       {/* Drop indicator before word */}
       {isDropTarget && dropPosition === 'before' && !isEditing && (
-        <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-blue-500 -translate-x-1 animate-pulse" />
+        <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-purple-500 -translate-x-1 animate-pulse" />
       )}
 
       {isEditing ? (
@@ -330,12 +361,12 @@ export default function ClipWord({
           dangerouslySetInnerHTML={{ __html: editingText }}
         />
       ) : (
-        <span>{word.text}</span>
+        <span className="flex items-center gap-1">{word.text}</span>
       )}
 
       {/* Drop indicator after word */}
       {isDropTarget && dropPosition === 'after' && !isEditing && (
-        <div className="absolute right-0 top-0 bottom-0 w-0.5 bg-blue-500 translate-x-1 animate-pulse" />
+        <div className="absolute right-0 top-0 bottom-0 w-0.5 bg-purple-500 translate-x-1 animate-pulse" />
       )}
     </div>
   )

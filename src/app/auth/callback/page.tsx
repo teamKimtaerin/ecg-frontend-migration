@@ -3,6 +3,7 @@
 import { useAuthStore } from '@/lib/store/authStore'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
+import { API_CONFIG } from '@/config/api.config'
 
 function AuthCallbackContent() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>(
@@ -35,11 +36,13 @@ function AuthCallbackContent() {
 
         // 성공 파라미터가 있거나 에러가 없는 경우 사용자 정보 조회
         // HttpOnly 쿠키의 토큰으로 사용자 정보 가져오기
-        console.log('🔍 OAuth callback - calling /api/auth/me')
-        const userResponse = await fetch('/api/auth/me', {
-          method: 'GET',
-          credentials: 'include', // HttpOnly 쿠키 포함
-        })
+        const userResponse = await fetch(
+          `${API_CONFIG.FASTAPI_BASE_URL}${API_CONFIG.endpoints.auth.me}`,
+          {
+            method: 'GET',
+            credentials: 'include', // HttpOnly 쿠키 포함
+          }
+        )
 
         if (userResponse.ok) {
           const userData = await userResponse.json()

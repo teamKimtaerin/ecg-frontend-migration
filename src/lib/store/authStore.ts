@@ -107,6 +107,7 @@ const useAuthStore = create<AuthStore>()((set, get) => ({
       isAuthenticated: false,
       error: null,
       isLoading: false, // 로그아웃 중 로딩 상태 방지
+      hasAuthChecked: true,
     })
 
     console.log('🚪 Client state reset after logout')

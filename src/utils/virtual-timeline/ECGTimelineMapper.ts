@@ -367,6 +367,7 @@ export class ECGTimelineMapper {
       duration: `${duration.toFixed(3)}초`,
       thumbnail: originalClip.thumbnail,
       words: updatedWords,
+      stickers: [],
     }
   }
 
