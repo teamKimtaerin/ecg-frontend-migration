@@ -143,6 +143,14 @@ const useToastTimerStore = create<ToastTimerStore>()((set, get) => ({
         console.log('🎉 [ToastTimer] 토스트 표시:', message)
         showToast(message, 'success')
         setLastToastTime(currentTime)
+
+        // 내보내기 완료 메시지인 경우 알림 설정
+        if (message.includes('영상 출력이 완료되었습니다')) {
+          console.log('🔔 [ToastTimer] 내보내기 완료 알림 설정')
+          // progressStore의 setExportNotification을 직접 호출
+          const { setExportNotification } = require('./progressStore').useProgressStore.getState()
+          setExportNotification(true)
+        }
       } else {
         console.log('⏭️ [ToastTimer] 중복 방지로 토스트 스킵')
       }

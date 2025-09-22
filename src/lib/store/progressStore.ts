@@ -1,7 +1,10 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { uploadService } from '@/services/api/uploadService'
-import type { ProcessingResult, UploadErrorResponse } from '@/services/api/types/upload.types'
+import type {
+  ProcessingResult,
+  UploadErrorResponse,
+} from '@/services/api/types/upload.types'
 
 export interface ProgressTask {
   id: number
@@ -18,6 +21,7 @@ export interface ProgressTask {
 interface ProgressStore {
   tasks: ProgressTask[]
   globalPollingJobs: Map<string, { taskId: number; stopPolling: () => void }>
+  hasUnreadExportNotification: boolean
 
   // Task management
   addTask: (task: Omit<ProgressTask, 'id'>) => number
@@ -44,6 +48,10 @@ interface ProgressStore {
   ) => void
   stopGlobalPolling: (jobId: string) => void
   stopAllPolling: () => void
+
+  // Notification management
+  setExportNotification: (hasNotification: boolean) => void
+  markNotificationAsRead: () => void
 }
 
 export const useProgressStore = create<ProgressStore>()(
@@ -51,6 +59,7 @@ export const useProgressStore = create<ProgressStore>()(
     (set, get) => ({
       tasks: [],
       globalPollingJobs: new Map(),
+      hasUnreadExportNotification: false,
 
       addTask: (task) => {
         const id = Date.now() + Math.random()
@@ -273,7 +282,9 @@ export const useProgressStore = create<ProgressStore>()(
         const job = state.globalPollingJobs.get(jobId)
 
         if (job) {
-          console.log(`[ProgressStore] Stopping global polling for job: ${jobId}`)
+          console.log(
+            `[ProgressStore] Stopping global polling for job: ${jobId}`
+          )
           job.stopPolling()
 
           set((state) => {
@@ -286,13 +297,26 @@ export const useProgressStore = create<ProgressStore>()(
 
       stopAllPolling: () => {
         const state = get()
-        console.log(`[ProgressStore] Stopping all global polling (${state.globalPollingJobs.size} jobs)`)
+        console.log(
+          `[ProgressStore] Stopping all global polling (${state.globalPollingJobs.size} jobs)`
+        )
 
         state.globalPollingJobs.forEach((job, jobId) => {
           job.stopPolling()
         })
 
         set({ globalPollingJobs: new Map() })
+      },
+
+      // Notification management
+      setExportNotification: (hasNotification) => {
+        console.log('[ProgressStore] setExportNotification called with:', hasNotification)
+        set({ hasUnreadExportNotification: hasNotification })
+      },
+
+      markNotificationAsRead: () => {
+        console.log('[ProgressStore] markNotificationAsRead called')
+        set({ hasUnreadExportNotification: false })
       },
     }),
     {
@@ -317,6 +341,7 @@ export const useProgressStore = create<ProgressStore>()(
             return false
           }),
           // globalPollingJobs는 persist하지 않음 (Map은 직렬화 불가)
+          hasUnreadExportNotification: state.hasUnreadExportNotification,
         }
       },
       // 스토어 복원 후 오래된 작업 자동 정리

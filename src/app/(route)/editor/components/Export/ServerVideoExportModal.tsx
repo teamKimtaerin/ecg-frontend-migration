@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { useServerVideoExport } from '../../hooks/useServerVideoExport'
 import { useEditorStore } from '../../store'
 import { useToastTimerStore } from '@/lib/store/toastTimerStore'
+import { useProgressStore } from '@/lib/store/progressStore'
 import CustomExportModal from './CustomExportModal'
 import VideoExportProgressModal from './VideoExportProgressModal'
 
@@ -47,6 +48,9 @@ export default function ServerVideoExportModal({
 
   // 전역 토스트 타이머 store 사용
   const { startDelayedToast, cancelDelayedToast } = useToastTimerStore()
+
+  // 내보내기 완료 알림 관리
+  const { setExportNotification } = useProgressStore()
 
   // 비디오 URL 결정 (props > store)
   const videoUrl = propVideoUrl || storeVideoUrl
@@ -199,6 +203,12 @@ export default function ServerVideoExportModal({
 
     // 전역 토스트 타이머로 30초 후 완료 토스트 표시
     startDelayedToast('영상 출력이 완료되었습니다', 30000)
+
+    // 30초 후 내보내기 완료 알림 설정 (종 아이콘에 빨간점 표시)
+    setTimeout(() => {
+      console.log('[ServerVideoExportModal] Setting export notification to true (after 30s)')
+      setExportNotification(true)
+    }, 30000)
   }
 
   const handleProgressModalComplete = () => {
@@ -210,6 +220,10 @@ export default function ServerVideoExportModal({
       showToast('영상 출력이 완료되었습니다', 'success')
       lastToastTime = currentTime
     }
+
+    // 내보내기 완료 알림 설정 (종 아이콘에 빨간점 표시)
+    console.log('[ServerVideoExportModal] Setting export notification to true')
+    setExportNotification(true)
 
     setPhase('completed')
     onClose()

@@ -43,7 +43,13 @@ export const useUploadModal = () => {
   } = useEditorStore()
 
   // Progress store integration
-  const { addTask, updateTask, removeTask, startGlobalPolling, stopGlobalPolling } = useProgressStore()
+  const {
+    addTask,
+    updateTask,
+    removeTask,
+    startGlobalPolling,
+    stopGlobalPolling,
+  } = useProgressStore()
 
   const [state, setState] = useState<UploadModalState>({
     isOpen: false,
@@ -410,7 +416,10 @@ export const useUploadModal = () => {
         updateState({ estimatedTimeRemaining: estimated_time || 180 })
 
         log('useUploadModal', `🔄 Starting global polling for job: ${job_id}`)
-        console.log('[useUploadModal] About to start global polling for job:', job_id)
+        console.log(
+          '[useUploadModal] About to start global polling for job:',
+          job_id
+        )
 
         // 5. 전역 상태 폴링 시작 (페이지 이동해도 계속 폴링)
         if (progressTaskId) {
@@ -418,7 +427,10 @@ export const useUploadModal = () => {
             job_id,
             progressTaskId,
             (result: ProcessingResult) => {
-              log('useUploadModal', '🎉 Processing completed successfully via global polling')
+              log(
+                'useUploadModal',
+                '🎉 Processing completed successfully via global polling'
+              )
               handleProcessingComplete(result)
             }
           )
@@ -440,7 +452,10 @@ export const useUploadModal = () => {
           },
           (result: ProcessingResult) => {
             // 전역 폴링에서 이미 처리됨
-            log('useUploadModal', '🎉 Local polling completed - handled by global polling')
+            log(
+              'useUploadModal',
+              '🎉 Local polling completed - handled by global polling'
+            )
           },
           (error) => {
             const errorMessage =
@@ -859,7 +874,13 @@ export const useUploadModal = () => {
     }
 
     closeModal()
-  }, [currentJobId, currentProgressTaskId, removeTask, closeModal, stopGlobalPolling])
+  }, [
+    currentJobId,
+    currentProgressTaskId,
+    removeTask,
+    closeModal,
+    stopGlobalPolling,
+  ])
 
   // 재시도
   const retryUpload = useCallback(() => {
