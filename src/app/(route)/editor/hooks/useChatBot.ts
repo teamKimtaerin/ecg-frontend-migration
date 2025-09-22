@@ -21,17 +21,8 @@ const useChatBot = () => {
   )
   const updateClips = useEditorStore((state) => state.updateClips)
 
-  // ChatBot 서비스 인스턴스 생성 (useMemo로 최적화)
-  const chatBotService = useMemo(
-    () =>
-      new ScenarioAwareChatBotService({
-        region: process.env.NEXT_PUBLIC_AWS_BEDROCK_REGION || 'us-east-1',
-        accessKeyId: process.env.NEXT_PUBLIC_AWS_BEDROCK_ACCESS_KEY_ID || '',
-        secretAccessKey:
-          process.env.NEXT_PUBLIC_AWS_BEDROCK_SECRET_ACCESS_KEY || '',
-      }),
-    []
-  )
+  // ChatBot 서비스 인스턴스 생성 (API 기반으로 변경, 자격 증명 불필요)
+  const chatBotService = useMemo(() => new ScenarioAwareChatBotService(), [])
 
   const sendMessage = useCallback(
     async (content: string) => {
