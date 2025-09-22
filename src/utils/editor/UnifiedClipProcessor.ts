@@ -301,16 +301,27 @@ export class UnifiedClipProcessor {
     const minDuration = config.minClipDuration || 0.5
     const result: ClipItem[] = []
     let buffer: ClipItem[] = []
+    let currentSpeaker: string | undefined = undefined
 
     for (const clip of clips) {
       const clipDuration = this.calculateDuration(clip.words)
+      const clipSpeaker = clip.speaker
+
+      // 화자가 바뀌면 버퍼를 비우고 새로 시작
+      if (buffer.length > 0 && clipSpeaker !== currentSpeaker) {
+        result.push(...this.mergeManual(buffer))
+        buffer = []
+        currentSpeaker = undefined
+      }
 
       if (clipDuration < minDuration) {
         buffer.push(clip)
+        currentSpeaker = clipSpeaker
       } else {
         if (buffer.length > 0) {
           result.push(...this.mergeManual(buffer))
           buffer = []
+          currentSpeaker = undefined
         }
         result.push(clip)
       }

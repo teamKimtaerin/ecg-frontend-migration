@@ -72,14 +72,6 @@ export function buildInitialScenarioFromClips(
   const fontSizeRel = opts.fontSizeRel ?? 0.07 // Changed from 0.05 to 0.07 to match cwi_demo_full
   const baseAspect = opts.baseAspect ?? '16:9'
 
-  // Debug: Log wordAnimationTracks info
-  if (process.env.NODE_ENV === 'development') {
-    console.log('buildInitialScenarioFromClips - wordAnimationTracks:', {
-      exists: !!wordAnimationTracks,
-      size: wordAnimationTracks?.size || 0,
-      keys: wordAnimationTracks ? Array.from(wordAnimationTracks.keys()) : []
-    })
-  }
 
   const cues: RendererConfigV2['cues'] = []
   const index: Record<string, NodeIndexEntry> = {}
@@ -93,25 +85,6 @@ export function buildInitialScenarioFromClips(
     const clipEnd = Math.max(...words.map((w) => w.end))
     const adjClipStart = toAdjustedOrOriginalTime(clipStart)
     const adjClipEnd = toAdjustedOrOriginalTime(clipEnd)
-
-    // Debug: Log clip timing details
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`📊 Clip ${clip.id} timing:`, {
-        clipId: clip.id,
-        clipStart,
-        clipEnd,
-        adjClipStart,
-        adjClipEnd,
-        wordsCount: words.length,
-        wordTimings: words.map(w => ({
-          id: w.id,
-          text: w.text,
-          start: w.start,
-          end: w.end
-        }))
-      })
-    }
-
     if (!Number.isFinite(adjClipStart) || !Number.isFinite(adjClipEnd)) return
     if (adjClipEnd <= adjClipStart) return
 
@@ -138,14 +111,6 @@ export function buildInitialScenarioFromClips(
 
       // Add plugin information from animation tracks
       const animationTracks = wordAnimationTracks?.get(w.id)
-
-      // Debug: Log word ID and animation tracks lookup
-      if (process.env.NODE_ENV === 'development') {
-        if (animationTracks && animationTracks.length > 0) {
-          console.log(`Plugin found for word ID '${w.id}':`, animationTracks.length, 'tracks')
-        }
-      }
-
       if (animationTracks && animationTracks.length > 0) {
         child.pluginChain = animationTracks
           .filter((track) => track.pluginKey) // Only include tracks with valid pluginKey
@@ -174,6 +139,10 @@ export function buildInitialScenarioFromClips(
       wordAnimationTracks
     )
 
+    // displayTime은 이 클립의 첫 단어 시작과 마지막 단어 끝 시간
+    const firstWordStart = children[0]?.baseTime?.[0] ?? adjClipStart
+    const lastWordEnd = children[children.length - 1]?.baseTime?.[1] ?? adjClipEnd
+
     const cue = {
       id: cueId,
       track: 'caption',
@@ -181,7 +150,7 @@ export function buildInitialScenarioFromClips(
       root: {
         id: groupId,
         eType: 'group' as const,
-        displayTime: [adjClipStart, adjClipEnd] as [number, number],
+        displayTime: [firstWordStart, lastWordEnd] as [number, number],
         layout: {
           anchor: 'define.caption.layout.anchor',
           position: 'define.caption.position',
@@ -192,18 +161,6 @@ export function buildInitialScenarioFromClips(
         children,
       },
     }
-
-    // Debug: Log cue timing
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`🎬 Cue ${cueId} created:`, {
-        cueId,
-        domLifetime: [adjDomStart, adjDomEnd],
-        displayTime: [adjClipStart, adjClipEnd],
-        childrenCount: children.length,
-        text: children.map(c => c.text).join(' ')
-      })
-    }
-
     cues.push(cue)
   })
 

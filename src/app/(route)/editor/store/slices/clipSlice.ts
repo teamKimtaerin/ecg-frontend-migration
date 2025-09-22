@@ -789,32 +789,8 @@ export const createClipSlice: StateCreator<
       scenarioVersion?: number
     }
 
-    // Word ID 매핑 확인
-    const originalWordIds = state.clips.flatMap(clip => clip.words.map(w => w.id))
-    const processedWordIds = processedClips.flatMap(clip => clip.words.map(w => w.id))
-    const wordIdChanges = {
-      original: originalWordIds,
-      processed: processedWordIds,
-      missing: originalWordIds.filter(id => !processedWordIds.includes(id)),
-      added: processedWordIds.filter(id => !originalWordIds.includes(id))
-    }
-
-    console.log('🔄 applyAutoLineBreak - Before scenario rebuild:', {
-      originalClipsCount: state.clips.length,
-      processedClipsCount: processedClips.length,
-      wordAnimationTracksSize: anyGet.wordAnimationTracks?.size || 0,
-      wordAnimationTracksKeys: anyGet.wordAnimationTracks ? Array.from(anyGet.wordAnimationTracks.keys()) : [],
-      scenarioVersionBefore: anyGet.scenarioVersion,
-      wordIdChanges
-    })
-
     anyGet.buildInitialScenario?.(processedClips, {
       wordAnimationTracks: anyGet.wordAnimationTracks
-    })
-
-    const finalGet = get() as unknown as { scenarioVersion?: number }
-    console.log('✅ applyAutoLineBreak - After scenario rebuild:', {
-      scenarioVersionAfter: finalGet.scenarioVersion
     })
   },
 
