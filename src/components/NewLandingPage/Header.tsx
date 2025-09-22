@@ -32,11 +32,11 @@ const Header: React.FC<HeaderProps> = ({
   const {} = useAuthStatus()
   const router = useRouter()
   const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false)
-  const { openDeployModal, deployModalProps } = useDeployModal()
+  const { deployModalProps } = useDeployModal()
   const buttonRef = useRef<HTMLButtonElement>(null)
 
-  // Get real progress data
-  const { exportTasks, uploadTasks } = useProgressTasks()
+  // Get real progress data - variables kept for future use
+  // const { exportTasks, uploadTasks } = useProgressTasks()
 
   // Get notification status
   const { hasUnreadExportNotification, markNotificationAsRead } =

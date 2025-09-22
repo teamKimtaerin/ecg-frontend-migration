@@ -29,25 +29,18 @@ export default function ServerVideoExportModal({
   const {
     isExporting,
     progress,
-    estimatedTime,
-    timeRemaining,
     status,
     error,
     downloadUrl,
-    selectedFileHandle,
-    startExport,
-    cancelExport,
     downloadFile,
     reset,
   } = useServerVideoExport()
 
-  const [phase, setPhase] = useState<
-    'ready' | 'exporting' | 'completed' | 'error'
-  >('ready')
   const [isProgressModalOpen, setIsProgressModalOpen] = useState(false)
+  const [phase, setPhase] = useState<string>('ready')
 
   // 전역 토스트 타이머 store 사용
-  const { startDelayedToast, cancelDelayedToast } = useToastTimerStore()
+  const { startDelayedToast } = useToastTimerStore()
 
   // 내보내기 완료 알림 관리
   const { setExportNotification } = useProgressStore()
@@ -159,7 +152,7 @@ export default function ServerVideoExportModal({
           clips: sampleClips.length,
           cues: mockScenario.cues.length,
         })
-      } catch (scenarioError) {
+      } catch {
         console.log('🧪 시나리오 생성 우회: 가상 시나리오 사용')
       }
 
@@ -229,51 +222,6 @@ export default function ServerVideoExportModal({
 
     setPhase('completed')
     onClose()
-  }
-
-  // 파일명 생성 함수
-  const getFileName = (): string => {
-    const baseName = videoName?.replace(/\.[^/.]+$/, '') || '파일 영상'
-    return `${baseName}.mp4`
-  }
-
-  // 🧪 테스트용: 진행률 모달 직접 열기 (개발환경 전용)
-  const handleTestProgressModal = () => {
-    setIsProgressModalOpen(true)
-  }
-
-  // 🧪 테스트용: 결과 토스트 직접 표시 (개발환경 전용)
-  const handleTestResultModalSuccess = () => {
-    setPhase('completed')
-    onClose()
-  }
-
-  const handleTestResultModalError = () => {
-    setPhase('error')
-    showToast('영상 출력 중 오류가 발생했습니다', 'error')
-    onClose()
-  }
-
-  const formatTime = (seconds: number | null): string => {
-    if (seconds === null) return '계산 중...'
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return mins > 0 ? `${mins}분 ${secs}초` : `${secs}초`
-  }
-
-  const getProgressText = (): string => {
-    switch (status) {
-      case 'queued':
-        return '렌더링 대기 중...'
-      case 'processing':
-        return `처리 중... ${progress}%`
-      case 'completed':
-        return '렌더링 완료!'
-      case 'failed':
-        return '렌더링 실패'
-      default:
-        return '준비 중...'
-    }
   }
 
   return (
