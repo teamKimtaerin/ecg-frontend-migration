@@ -407,7 +407,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
               (activeTab === 'link' && !videoUrl.trim()) ||
               isLoading
             }
-            className={`btn-modern-primary ${
+            className={`btn-modern-black ${
               (activeTab === 'upload' && selectedFiles.length === 0) ||
               (activeTab === 'link' && !videoUrl.trim()) ||
               isLoading
