@@ -23,7 +23,7 @@ export default function VideoExportProgressModal({
       return
     }
 
-    const duration = 8000 // 8초간 진행 (더 천천히)
+    const duration = 40000 // 40초간 진행 (실제 시간에 맞춤)
     const intervalTime = 100 // 100ms마다 업데이트 (더 천천히)
     const increment = 100 / (duration / intervalTime)
 
