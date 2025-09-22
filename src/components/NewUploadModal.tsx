@@ -206,7 +206,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
 
                     <button
                       onClick={handleFileSelectClick}
-                      className="bg-brand-sub text-white px-6 py-2 rounded font-bold hover:bg-brand-dark transition-colors cursor-pointer"
+                      className="bg-black text-white px-6 py-2 rounded font-bold hover:bg-gray-800 hover:scale-105 transition-all duration-200 cursor-pointer"
                       disabled={isLoading}
                     >
                       파일 선택
