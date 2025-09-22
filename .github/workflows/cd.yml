@@ -32,6 +32,15 @@ jobs:
           echo "FRONTEND_PORT=3000" >> .env
           echo "NEXT_PUBLIC_FRONTEND_URL=${{ secrets.NEXT_PUBLIC_FRONTEND_URL }}" >> .env
           echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" >> .env
+          echo "NEXT_PUBLIC_MOTIONTEXT_PLUGIN_ORIGIN=${{ secrets.NEXT_PUBLIC_MOTIONTEXT_PLUGIN_ORIGIN }}" >> .env
+          echo "NEXT_PUBLIC_AWS_BEDROCK_ACCESS_KEY_ID=${{ secrets.NEXT_PUBLIC_AWS_BEDROCK_ACCESS_KEY_ID }}" >> .env
+          echo "NEXT_PUBLIC_AWS_BEDROCK_SECRET_ACCESS_KEY=${{ secrets.NEXT_PUBLIC_AWS_BEDROCK_SECRET_ACCESS_KEY }}" >> .env
+          echo "NEXT_PUBLIC_CLAUDE_MODEL_ID=${{ secrets.NEXT_PUBLIC_CLAUDE_MODEL_ID }}" >> .env
+          echo "NEXT_PUBLIC_CHATBOT_MAX_TOKENS=${{ secrets.NEXT_PUBLIC_CHATBOT_MAX_TOKENS }}" >> .env
+          echo "NEXT_PUBLIC_CHATBOT_TEMPERATURE=${{ secrets.NEXT_PUBLIC_CHATBOT_TEMPERATURE }}" >> .env
+          echo "NEXT_PUBLIC_DEBUG_UI=${{ secrets.NEXT_PUBLIC_DEBUG_UI }}" >> .env
+          echo "NEXT_PUBLIC_USE_MOCK_DATA=${{ secrets.NEXT_PUBLIC_USE_MOCK_DATA }}" >> .env
+          echo "AWS_BEDROCK_REGION=${{ secrets.AWS_BEDROCK_REGION }}" >> .env
 
       # 5. Next.js 빌드
       - name: Build application
@@ -39,6 +48,15 @@ jobs:
         env:
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
           NEXT_PUBLIC_FRONTEND_URL: ${{ secrets.NEXT_PUBLIC_FRONTEND_URL }}
+          NEXT_PUBLIC_MOTIONTEXT_PLUGIN_ORIGIN: ${{ secrets.NEXT_PUBLIC_MOTIONTEXT_PLUGIN_ORIGIN }}
+          NEXT_PUBLIC_AWS_BEDROCK_ACCESS_KEY_ID: ${{ secrets.NEXT_PUBLIC_AWS_BEDROCK_ACCESS_KEY_ID }}
+          NEXT_PUBLIC_AWS_BEDROCK_SECRET_ACCESS_KEY: ${{ secrets.NEXT_PUBLIC_AWS_BEDROCK_SECRET_ACCESS_KEY }}
+          NEXT_PUBLIC_CLAUDE_MODEL_ID: ${{ secrets.NEXT_PUBLIC_CLAUDE_MODEL_ID }}
+          NEXT_PUBLIC_CHATBOT_MAX_TOKENS: ${{ secrets.NEXT_PUBLIC_CHATBOT_MAX_TOKENS }}
+          NEXT_PUBLIC_CHATBOT_TEMPERATURE: ${{ secrets.NEXT_PUBLIC_CHATBOT_TEMPERATURE }}
+          NEXT_PUBLIC_DEBUG_UI: ${{ secrets.NEXT_PUBLIC_DEBUG_UI }}
+          NEXT_PUBLIC_USE_MOCK_DATA: ${{ secrets.NEXT_PUBLIC_USE_MOCK_DATA }}
+          AWS_BEDROCK_REGION: ${{ secrets.AWS_BEDROCK_REGION }}
 
       # 6. AWS 자격 증명 설정
       - name: Configure AWS credentials

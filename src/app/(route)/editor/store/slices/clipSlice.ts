@@ -11,13 +11,27 @@ import { ProjectData } from '../../types/project'
 import { SaveSlice } from './saveSlice'
 import { UISlice } from './uiSlice'
 import { MediaSlice } from './mediaSlice'
-import { clipProcessor, SplitMode, MergeMode, ProcessorConfig } from '@/utils/editor/UnifiedClipProcessor'
+import {
+  insertedTextToSticker,
+  findBestMatchingClip,
+  findClipAtTime,
+  insertStickerIntoClip,
+  removeStickersFromClip,
+  updateStickerFromInsertedText,
+} from '../../utils/insertedTextToSticker'
+import {
+  clipProcessor,
+  SplitMode,
+  MergeMode,
+  ProcessorConfig,
+} from '@/utils/editor/UnifiedClipProcessor'
 
 export interface ClipSlice {
   clips: ClipItem[]
   originalClips: ClipItem[] // 원본 클립 데이터 저장 (메모리)
   deletedClipIds: Set<string>
   currentProject: ProjectData | null
+  lastStickerUpdateTime?: number // 무한루프 방지용 timestamp
   setClips: (clips: ClipItem[]) => void
   // Alias used by other slices; ensures indexes rebuild
   updateClips: (clips: ClipItem[]) => void
@@ -84,6 +98,56 @@ export interface ClipSlice {
   loadProject: (id: string) => Promise<void>
   createNewProject: (name?: string) => void
   setCurrentProject: (project: ProjectData) => void
+
+  // Clip Sticker management
+  insertStickersIntoClips: (
+    insertedTexts: Array<{
+      id: string
+      content: string
+      startTime: number
+      endTime: number
+      animation?: { plugin: string; parameters: Record<string, unknown> }
+    }>
+  ) => void
+  removeStickersFromClips: () => void
+  updateStickerInClips: (
+    insertedTextId: string,
+    updates: {
+      content?: string
+      startTime?: number
+      endTime?: number
+      animation?: { plugin: string; parameters: Record<string, unknown> }
+    }
+  ) => void
+  removeSpecificSticker: (insertedTextId: string) => void
+
+  // Sticker animation track management
+  updateStickerAnimationTracks: (
+    clipId: string,
+    stickerId: string,
+    tracks: Array<{
+      assetId: string
+      assetName: string
+      pluginKey?: string
+      params?: Record<string, unknown>
+      timing: { start: number; end: number }
+      intensity: { min: number; max: number }
+      color?: 'blue' | 'green' | 'purple'
+    }>
+  ) => void
+  applyStickerAsset: (
+    clipId: string,
+    stickerId: string,
+    assetId: string,
+    assetName: string,
+    pluginKey?: string,
+    params?: Record<string, unknown>
+  ) => void
+  removeStickerAsset: (
+    clipId: string,
+    stickerId: string,
+    assetId: string
+  ) => void
 
   // 새로운 통합 메서드
   splitClipUnified: (
@@ -691,11 +755,254 @@ export const createClipSlice: StateCreator<
     set({ currentProject: project })
   },
 
+  // Clip Sticker management - SAFE implementation with single clip selection
+  insertStickersIntoClips: (insertedTexts) => {
+    const state = get()
+
+    // Safety check: prevent excessive calls
+    const now = Date.now()
+    const lastCallTime = state.lastStickerUpdateTime || 0
+    if (now - lastCallTime < 100) {
+      // Debounce 100ms
+      console.log(
+        '🔇 insertStickersIntoClips debounced to prevent infinite loops'
+      )
+      return
+    }
+
+    console.log(
+      '📌 Creating stickers for inserted texts:',
+      insertedTexts.length
+    )
+
+    const updatedClips = [...state.clips]
+
+    // Process each inserted text individually to find the single best matching clip
+    insertedTexts.forEach((text) => {
+      // Find the single clip that contains the inserted text's start time
+      const targetClip = findClipAtTime(state.clips, text.startTime)
+
+      if (!targetClip) {
+        console.log(
+          `⚠️ No clip found for inserted text at time ${text.startTime}`
+        )
+        return
+      }
+
+      // Check if sticker already exists for this text in this clip
+      const existingSticker = targetClip.stickers?.some(
+        (sticker) => sticker.originalInsertedTextId === text.id
+      )
+
+      if (existingSticker) {
+        console.log(
+          `📌 Sticker already exists for text ${text.id} in clip ${targetClip.id}`
+        )
+        return
+      }
+
+      // Find the clip in updatedClips array and add sticker
+      const clipIndex = updatedClips.findIndex(
+        (clip) => clip.id === targetClip.id
+      )
+      if (clipIndex !== -1) {
+        const newSticker = {
+          id: `sticker_${text.id}_${Date.now()}`,
+          text: text.content,
+          start: text.startTime,
+          end: text.endTime,
+          originalInsertedTextId: text.id,
+        }
+
+        const existingStickers = updatedClips[clipIndex].stickers || []
+        updatedClips[clipIndex] = {
+          ...updatedClips[clipIndex],
+          stickers: [...existingStickers, newSticker],
+        }
+
+        console.log(
+          `📌 Added sticker for text "${text.content}" to clip ${targetClip.id}`
+        )
+      }
+    })
+
+    set({
+      clips: updatedClips,
+      lastStickerUpdateTime: now,
+    })
+
+    console.log('📌 Stickers inserted successfully (single clip per text)')
+  },
+
+  removeStickersFromClips: () => {
+    const { clips } = get()
+
+    const updatedClips = clips.map(removeStickersFromClip)
+    set({ clips: updatedClips })
+  },
+
+  updateStickerInClips: (insertedTextId, updates) => {
+    const state = get()
+
+    // Safety check: prevent excessive calls
+    const now = Date.now()
+    const lastCallTime = state.lastStickerUpdateTime || 0
+    if (now - lastCallTime < 50) {
+      // Debounce 50ms for updates
+      console.log('🔇 updateStickerInClips debounced to prevent infinite loops')
+      return
+    }
+
+    console.log('🔄 Updating sticker for inserted text:', insertedTextId)
+
+    const updatedClips = state.clips.map((clip) => {
+      const updatedStickers = (clip.stickers || []).map((sticker) => {
+        if (sticker.originalInsertedTextId === insertedTextId) {
+          return {
+            ...sticker,
+            text: updates.content || sticker.text,
+            start:
+              updates.startTime !== undefined
+                ? updates.startTime
+                : sticker.start,
+            end: updates.endTime !== undefined ? updates.endTime : sticker.end,
+          }
+        }
+        return sticker
+      })
+
+      return { ...clip, stickers: updatedStickers }
+    })
+
+    set({
+      clips: updatedClips,
+      lastStickerUpdateTime: now,
+    })
+
+    console.log('🔄 Sticker updated successfully')
+  },
+
+  removeSpecificSticker: (insertedTextId) => {
+    console.log(
+      '🔇 removeSpecificSticker called but skipped to prevent infinite loops'
+    )
+    // This method is disabled to prevent circular dependencies
+    // Stickers are now managed through the scenario generation process
+    return
+  },
+
+  // Sticker animation track management methods
+  updateStickerAnimationTracks: (clipId, stickerId, tracks) => {
+    set((state) => ({
+      clips: state.clips.map((clip) =>
+        clip.id === clipId
+          ? {
+              ...clip,
+              stickers: (clip.stickers || []).map((sticker) =>
+                sticker.id === stickerId
+                  ? { ...sticker, animationTracks: tracks }
+                  : sticker
+              ),
+            }
+          : clip
+      ),
+    }))
+  },
+
+  applyStickerAsset: (
+    clipId,
+    stickerId,
+    assetId,
+    assetName,
+    pluginKey,
+    params
+  ) => {
+    const { clips } = get()
+    const clip = clips.find((c) => c.id === clipId)
+    if (!clip) return
+
+    const sticker = clip.stickers?.find((s) => s.id === stickerId)
+    if (!sticker) return
+
+    // Create new animation track
+    const newTrack = {
+      assetId,
+      assetName,
+      pluginKey,
+      params: params || {},
+      timing: {
+        start: sticker.start,
+        end: sticker.end,
+      },
+      intensity: { min: 0.5, max: 1.0 },
+      color: 'purple' as const,
+    }
+
+    // Add or replace animation track
+    const currentTracks = sticker.animationTracks || []
+    const existingTrackIndex = currentTracks.findIndex(
+      (track) => track.assetId === assetId
+    )
+
+    let updatedTracks
+    if (existingTrackIndex !== -1) {
+      // Replace existing track
+      updatedTracks = [...currentTracks]
+      updatedTracks[existingTrackIndex] = newTrack
+    } else {
+      // Add new track
+      updatedTracks = [...currentTracks, newTrack]
+    }
+
+    // Update sticker animation tracks
+    set((state) => ({
+      clips: state.clips.map((c) =>
+        c.id === clipId
+          ? {
+              ...c,
+              stickers: (c.stickers || []).map((s) =>
+                s.id === stickerId
+                  ? { ...s, animationTracks: updatedTracks }
+                  : s
+              ),
+            }
+          : c
+      ),
+    }))
+  },
+
+  removeStickerAsset: (clipId, stickerId, assetId) => {
+    set((state) => ({
+      clips: state.clips.map((clip) =>
+        clip.id === clipId
+          ? {
+              ...clip,
+              stickers: (clip.stickers || []).map((sticker) =>
+                sticker.id === stickerId
+                  ? {
+                      ...sticker,
+                      animationTracks: (sticker.animationTracks || []).filter(
+                        (track) => track.assetId !== assetId
+                      ),
+                    }
+                  : sticker
+              ),
+            }
+          : clip
+      ),
+    }))
+  },
+
   // === 새로운 통합 메서드 구현 ===
 
-  splitClipUnified: (clipId, mode = SplitMode.MANUAL_HALF, config, position) => {
+  splitClipUnified: (
+    clipId,
+    mode = SplitMode.MANUAL_HALF,
+    config,
+    position
+  ) => {
     const state = get()
-    const clipIndex = state.clips.findIndex(c => c.id === clipId)
+    const clipIndex = state.clips.findIndex((c) => c.id === clipId)
     if (clipIndex === -1) return
 
     const clip = state.clips[clipIndex]
@@ -717,18 +1024,19 @@ export const createClipSlice: StateCreator<
   mergeClipsUnified: (clipIds, mode = MergeMode.MANUAL, config) => {
     const state = get()
     const selectedClips = clipIds
-      .map(id => state.clips.find(c => c.id === id))
+      .map((id) => state.clips.find((c) => c.id === id))
       .filter(Boolean) as ClipItem[]
 
     if (selectedClips.length === 0) return
 
     const merged = clipProcessor.merge(selectedClips, mode, config)
     const firstIndex = Math.min(
-      ...clipIds.map(id => state.clips.findIndex(c => c.id === id))
-        .filter(i => i !== -1)
+      ...clipIds
+        .map((id) => state.clips.findIndex((c) => c.id === id))
+        .filter((i) => i !== -1)
     )
 
-    const newClips = state.clips.filter(c => !clipIds.includes(c.id))
+    const newClips = state.clips.filter((c) => !clipIds.includes(c.id))
     newClips.splice(firstIndex, 0, ...merged)
 
     const reorderedClips = newClips.map((clip, index) => ({
@@ -745,14 +1053,21 @@ export const createClipSlice: StateCreator<
     const state = get() as unknown as {
       currentScenario?: import('@/app/shared/motiontext').RendererConfigV2
       clips: ClipItem[]
-      buildInitialScenario?: (clips: ClipItem[], opts?: { wordAnimationTracks?: Map<string, unknown[]> }) => void
+      buildInitialScenario?: (
+        clips: ClipItem[],
+        opts?: { wordAnimationTracks?: Map<string, unknown[]> }
+      ) => void
       wordAnimationTracks?: Map<string, unknown[]>
     }
     const currentScenario = state.currentScenario
 
     // 현재 폰트 설정 가져오기
-    const fontFamily = (currentScenario?.tracks?.[0]?.defaultStyle?.fontFamily as string) ?? 'Arial'
-    const fontSizeRel = (currentScenario?.tracks?.[0]?.defaultStyle?.fontSizeRel as number) ?? 0.07
+    const fontFamily =
+      (currentScenario?.tracks?.[0]?.defaultStyle?.fontFamily as string) ??
+      'Arial'
+    const fontSizeRel =
+      (currentScenario?.tracks?.[0]?.defaultStyle?.fontSizeRel as number) ??
+      0.07
 
     const mergedConfig: ProcessorConfig = {
       fontFamily,
@@ -784,13 +1099,16 @@ export const createClipSlice: StateCreator<
 
     // 시나리오 업데이트 - clips와 시나리오 동기화
     const anyGet = get() as unknown as {
-      buildInitialScenario?: (clips: ClipItem[], opts?: { wordAnimationTracks?: Map<string, unknown[]> }) => void
+      buildInitialScenario?: (
+        clips: ClipItem[],
+        opts?: { wordAnimationTracks?: Map<string, unknown[]> }
+      ) => void
       wordAnimationTracks?: Map<string, unknown[]>
       scenarioVersion?: number
     }
 
     anyGet.buildInitialScenario?.(processedClips, {
-      wordAnimationTracks: anyGet.wordAnimationTracks
+      wordAnimationTracks: anyGet.wordAnimationTracks,
     })
   },
 

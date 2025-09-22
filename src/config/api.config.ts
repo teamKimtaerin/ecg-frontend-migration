@@ -5,16 +5,16 @@
 
 export const API_CONFIG = {
   // Feature flags
-  // Global debug mode: when true, mock upload + transcription using local data
+  // Global debug mode: for general debugging purposes
   DEBUG_MODE:
     (typeof process !== 'undefined' &&
       process.env.NEXT_PUBLIC_DEBUG_MODE === 'true') ||
     false,
 
-  // Legacy flag kept for compatibility; derived from DEBUG_MODE when set
+  // Mock data flag: independently controlled from DEBUG_MODE
   USE_MOCK_DATA:
     (typeof process !== 'undefined' &&
-      process.env.NEXT_PUBLIC_DEBUG_MODE === 'true') ||
+      process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true') ||
     false, // Toggle between mock and real API
 
   // API Base URL (환경변수에서 가져오기)

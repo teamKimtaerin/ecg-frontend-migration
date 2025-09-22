@@ -81,6 +81,7 @@ export function convertSegmentToClip(
     duration: `${segment.duration.toFixed(1)}초`,
     thumbnail: '/placeholder-thumb.jpg',
     words,
+    stickers: [],
     // 실제 타임라인 정보를 별도 필드로 추가 (향후 virtual timeline에서 활용)
     startTime: segment.start_time,
     endTime: segment.end_time,

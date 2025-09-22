@@ -11,7 +11,7 @@ interface LoginRequest {
 
 interface User {
   id: number
-  name: string
+  username: string
   email: string
   auth_provider: string
   is_active: boolean
@@ -59,6 +59,7 @@ export class AuthAPI {
         method: 'POST',
         headers: this.getHeaders(),
         body: JSON.stringify(data),
+        credentials: 'include', // HttpOnly 쿠키를 받기 위해 필요
       })
 
       console.log('🔍 Auth signup response:', {
@@ -123,6 +124,7 @@ export class AuthAPI {
       method: 'POST',
       headers: this.getHeaders(),
       body: JSON.stringify(data),
+      credentials: 'include',
     })
 
     if (!response.ok) {
@@ -133,10 +135,13 @@ export class AuthAPI {
     return response.json()
   }
 
-  static async getCurrentUser(token: string): Promise<User> {
+  static async getCurrentUser(token?: string): Promise<User> {
     const response = await fetch(`${BASE_URL}/api/auth/me`, {
       method: 'GET',
-      headers: this.getHeaders(token),
+      headers: token
+        ? this.getHeaders(token)
+        : { 'Content-Type': 'application/json' },
+      credentials: 'include', // HttpOnly 쿠키 포함
     })
 
     if (!response.ok) {
@@ -154,4 +159,4 @@ export class AuthAPI {
   }
 }
 
-export type { SignupRequest, LoginRequest, User, AuthResponse }
+export type { AuthResponse, LoginRequest, SignupRequest, User }

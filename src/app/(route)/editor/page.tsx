@@ -20,7 +20,6 @@ import { mediaStorage } from '@/utils/storage/mediaStorage'
 import { projectStorage } from '@/utils/storage/projectStorage'
 
 // API Services
-import { API_CONFIG } from '@/config/api.config'
 import { transcriptionService } from '@/services/api/transcriptionService'
 
 // Types
@@ -29,7 +28,9 @@ import { EditorTab } from './types'
 
 // Hooks
 import ProcessingModal from '@/components/ProcessingModal'
+import { useDeployModal } from '@/hooks/useDeployModal'
 import { useUploadModal } from '@/hooks/useUploadModal'
+import useChatBot from './hooks/useChatBot'
 import { useDragAndDrop } from './hooks/useDragAndDrop'
 import { useGlobalWordDragAndDrop } from './hooks/useGlobalWordDragAndDrop'
 import { useSelectionBox } from './hooks/useSelectionBox'
@@ -41,12 +42,15 @@ import NewUploadModal from '@/components/NewUploadModal'
 import TutorialModal from '@/components/TutorialModal'
 import { ChevronDownIcon } from '@/components/icons'
 import AlertDialog from '@/components/ui/AlertDialog'
+import DeployModal from '@/components/ui/DeployModal'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import ResizablePanelDivider from '@/components/ui/ResizablePanelDivider'
 import { normalizeClipOrder } from '@/utils/editor/clipTimelineUtils'
 import { getSpeakerColor } from '@/utils/editor/speakerColors'
 import AnimationAssetSidebar from './components/AnimationAssetSidebar'
+import ChatBotContainer from './components/ChatBot/ChatBotContainer'
 import EditorHeaderTabs from './components/EditorHeaderTabs'
+import PlatformSelectionModal from './components/Export/PlatformSelectionModal'
 import SimpleToolbar from './components/SimpleToolbar'
 import SpeakerManagementSidebar from './components/SpeakerManagementSidebar'
 import SubtitleEditList from './components/SubtitleEditList'
@@ -444,8 +448,8 @@ function TimelineClipCard({
                 </button>
                 <button
                   onClick={() => handleRenameChoice(true)}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded
-                          hover:bg-blue-700 transition-colors cursor-pointer"
+                  className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded
+                          hover:bg-purple-700 transition-colors cursor-pointer"
                 >
                   예 (모든 클립)
                 </button>
@@ -489,8 +493,16 @@ export default function EditorPage() {
     isMultipleWordsSelected,
     deleteSelectedWords,
     clearMultiSelection,
+    speakerColors,
+    setSpeakerColor,
+    removeSpeakerColor,
+    speakers: globalSpeakers,
+    setSpeakers: setGlobalSpeakers,
     applyAutoLineBreak,
   } = useEditorStore()
+
+  // ChatBot state
+  const { isOpen: isChatBotOpen } = useChatBot()
 
   // Local state
   const [activeTab, setActiveTab] = useState<EditorTab>('home')
@@ -509,16 +521,66 @@ export default function EditorPage() {
   )
   const [isRecovering, setIsRecovering] = useState(false) // 세션 복구 스피너 비활성화
   const [scrollProgress, setScrollProgress] = useState(0) // 스크롤 진행도
-  const [speakers, setSpeakers] = useState<string[]>([]) // Speaker 리스트 전역 관리
-  const [speakerColors, setSpeakerColors] = useState<Record<string, string>>({}) // 화자별 색상 매핑
   // Store에서 rightSidebarType 가져오기 (로컬 state 대신 store 사용)
   const [clipboard, setClipboard] = useState<ClipItem[]>([]) // 클립보드 상태
   const [skipAutoFocus, setSkipAutoFocus] = useState(false) // 자동 포커스 스킵 플래그
   const [showRestoreModal, setShowRestoreModal] = useState(false) // 복원 확인 모달 상태
   const [shouldOpenExportModal, setShouldOpenExportModal] = useState(false) // OAuth 인증 후 모달 재오픈 플래그
 
+  // Platform selection and deploy modal states
+  const [isPlatformSelectionModalOpen, setIsPlatformSelectionModalOpen] =
+    useState(false)
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([])
+  const [pendingDeployTask, setPendingDeployTask] = useState<{
+    id: number
+    filename: string
+  } | null>(null)
+
+  // Deploy modal hook
+  const { openDeployModal, deployModalProps } = useDeployModal()
+
   // Get media actions from store
   const { setMediaInfo } = useEditorStore()
+
+  // URL 파라미터에서 deploy 모달 파라미터 감지
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      const shouldDeploy = urlParams.get('deploy')
+      const taskId = urlParams.get('taskId')
+      const filename = urlParams.get('filename')
+
+      if (shouldDeploy === 'true' && taskId && filename) {
+        // 배포 작업 정보 저장하고 플랫폼 선택 모달 먼저 열기
+        setPendingDeployTask({
+          id: parseInt(taskId),
+          filename: decodeURIComponent(filename),
+        })
+        setIsPlatformSelectionModalOpen(true)
+
+        // URL에서 파라미터 제거 (뒤로가기 시 모달이 다시 뜨지 않도록)
+        const newUrl = window.location.pathname
+        window.history.replaceState({}, '', newUrl)
+      }
+    }
+  }, [])
+
+  // Platform selection modal handlers
+  const handlePlatformSelectionClose = () => {
+    setIsPlatformSelectionModalOpen(false)
+    setPendingDeployTask(null)
+    setSelectedPlatforms([])
+  }
+
+  const handlePlatformSelectionNext = (platforms: string[]) => {
+    setSelectedPlatforms(platforms)
+    setIsPlatformSelectionModalOpen(false)
+
+    // 플랫폼 선택 완료 후 배포 모달 열기
+    if (pendingDeployTask) {
+      openDeployModal(pendingDeployTask)
+    }
+  }
 
   // Cleanup blob URLs when component unmounts or videoUrl changes
   useEffect(() => {
@@ -585,10 +647,72 @@ export default function EditorPage() {
         // Initialize AutosaveManager
         const autosaveManager = AutosaveManager.getInstance()
 
-        // Load transcription data using the TranscriptionService
-        // This provides an extensible interface for switching between mock and API data
-        const transcriptionClips =
-          await transcriptionService.loadTranscriptionClips()
+        // Load friends_result.json for testing
+        interface FriendsWord {
+          word: string
+          start_time: number
+          end_time: number
+          acoustic_features?: { confidence?: number }
+        }
+
+        interface FriendsSegment {
+          speaker_id: string
+          text: string
+          start_time: number
+          end_time: number
+          words: FriendsWord[]
+        }
+
+        interface FriendsData {
+          segments: FriendsSegment[]
+        }
+
+        let transcriptionClips: ClipItem[] = []
+        try {
+          const response = await fetch('/friends_result.json')
+          const friendsData = (await response.json()) as FriendsData
+
+          // Convert friends_result.json format to transcription clips
+          transcriptionClips = friendsData.segments.map(
+            (segment: FriendsSegment, index: number) => ({
+              id: `clip_${index}`,
+              speaker: segment.speaker_id,
+              fullText: segment.text,
+              subtitle: segment.text, // Add subtitle field
+              timeline: `${Math.floor(segment.start_time / 60)
+                .toString()
+                .padStart(2, '0')}:${Math.floor(segment.start_time % 60)
+                .toString()
+                .padStart(2, '0')} → ${Math.floor(segment.end_time / 60)
+                .toString()
+                .padStart(2, '0')}:${Math.floor(segment.end_time % 60)
+                .toString()
+                .padStart(2, '0')}`,
+              duration: `${(segment.end_time - segment.start_time).toFixed(1)}s`, // Add duration field
+              thumbnail: '', // Add empty thumbnail field
+              words: segment.words.map(
+                (word: FriendsWord, wordIndex: number) => ({
+                  id: `word_${index}_${wordIndex}`,
+                  text: word.word,
+                  start: word.start_time,
+                  end: word.end_time,
+                  isEditable: true, // Add isEditable field
+                  confidence: word.acoustic_features?.confidence || 0.9,
+                })
+              ),
+              stickers: [],
+            })
+          )
+
+          console.log(
+            `Loaded ${transcriptionClips.length} clips from friends_result.json`
+          )
+        } catch (error) {
+          console.error('Failed to load friends_result.json:', error)
+          // Fallback to original service
+          transcriptionClips =
+            await transcriptionService.loadTranscriptionClips()
+        }
         if (transcriptionClips.length > 0) {
           log(
             'EditorPage.tsx',
@@ -616,22 +740,20 @@ export default function EditorPage() {
 
           setClips(updatedClips)
           setOriginalClips(updatedClips) // 메모리에 원본 클립 데이터 저장
-          setSpeakers(numberedSpeakers)
+          setGlobalSpeakers(numberedSpeakers)
 
           // IndexedDB에도 원본 클립 저장 (세션 간 유지)
           saveOriginalClipsToStorage().catch((error) => {
             console.error('Failed to save original clips to IndexedDB:', error)
           })
 
-          // Set media info when in mock mode
-          if (API_CONFIG.USE_MOCK_DATA) {
-            setMediaInfo({
-              videoUrl: API_CONFIG.MOCK_VIDEO_PATH,
-              videoName: 'friends.mp4',
-              videoType: 'video/mp4',
-              videoDuration: 143.39,
-            })
-          }
+          // Set media info for friends video
+          setMediaInfo({
+            videoUrl: '/friends.mp4',
+            videoName: 'friends.mp4',
+            videoType: 'video/mp4',
+            videoDuration: 143.4,
+          })
         } else {
           log(
             'EditorPage.tsx',
@@ -829,6 +951,7 @@ export default function EditorPage() {
     setMediaInfo,
     saveOriginalClipsToStorage,
     loadOriginalClipsFromStorage,
+    setGlobalSpeakers,
   ])
 
   // Generate stable ID for DndContext to prevent hydration mismatch
@@ -926,11 +1049,11 @@ export default function EditorPage() {
     // Use Command pattern for undo/redo support
     const command = new ChangeSpeakerCommand(
       clips,
-      speakers,
+      globalSpeakers,
       clipId,
       newSpeaker,
       setClips,
-      setSpeakers
+      setGlobalSpeakers
     )
     editorHistory.executeCommand(command)
   }
@@ -958,11 +1081,11 @@ export default function EditorPage() {
     // Use Command pattern for batch speaker change
     const command = new BatchChangeSpeakerCommand(
       clips,
-      speakers,
+      globalSpeakers,
       targetClipIds,
       newSpeaker,
       setClips,
-      setSpeakers
+      setGlobalSpeakers
     )
     editorHistory.executeCommand(command)
   }
@@ -990,17 +1113,17 @@ export default function EditorPage() {
 
   const handleAddSpeaker = (name: string) => {
     console.log('handleAddSpeaker called with:', name)
-    console.log('Current speakers before adding:', speakers)
+    console.log('Current speakers before adding:', globalSpeakers)
 
     // 최대 화자 수 제한 체크 (9명)
-    if (speakers.length >= 9) {
+    if (globalSpeakers.length >= 9) {
       console.log('Maximum speaker limit reached (9), cannot add more')
       return
     }
 
-    if (!speakers.includes(name)) {
-      const newSpeakers = [...speakers, name]
-      setSpeakers(newSpeakers)
+    if (!globalSpeakers.includes(name)) {
+      const newSpeakers = [...globalSpeakers, name]
+      setGlobalSpeakers(newSpeakers)
       console.log('Speaker added successfully. New speakers:', newSpeakers)
     } else {
       console.log('Speaker already exists, skipping addition')
@@ -1011,17 +1134,15 @@ export default function EditorPage() {
     // Use Command pattern for speaker removal
     const command = new RemoveSpeakerCommand(
       clips,
-      speakers,
+      globalSpeakers,
       name,
       setClips,
-      setSpeakers
+      setGlobalSpeakers
     )
     editorHistory.executeCommand(command)
 
     // Remove speaker color mapping
-    const updatedSpeakerColors = { ...speakerColors }
-    delete updatedSpeakerColors[name]
-    setSpeakerColors(updatedSpeakerColors)
+    removeSpeakerColor(name)
   }
 
   const handleRenameSpeaker = (oldName: string, newName: string) => {
@@ -1031,27 +1152,22 @@ export default function EditorPage() {
     )
 
     // Update speakers list
-    const updatedSpeakers = speakers.map((speaker) =>
+    const updatedSpeakers = globalSpeakers.map((speaker) =>
       speaker === oldName ? newName : speaker
     )
 
     // Update speaker colors mapping
-    const updatedSpeakerColors = { ...speakerColors }
-    if (updatedSpeakerColors[oldName]) {
-      updatedSpeakerColors[newName] = updatedSpeakerColors[oldName]
-      delete updatedSpeakerColors[oldName]
+    if (speakerColors[oldName]) {
+      setSpeakerColor(newName, speakerColors[oldName])
+      removeSpeakerColor(oldName)
     }
 
     setClips(updatedClips)
-    setSpeakers(updatedSpeakers)
-    setSpeakerColors(updatedSpeakerColors)
+    setGlobalSpeakers(updatedSpeakers)
   }
 
   const handleSpeakerColorChange = (speakerName: string, color: string) => {
-    setSpeakerColors((prev) => ({
-      ...prev,
-      [speakerName]: color,
-    }))
+    setSpeakerColor(speakerName, color)
   }
 
   const handleClipCheck = (clipId: string, checked: boolean) => {
@@ -1509,6 +1625,11 @@ export default function EditorPage() {
   // 키보드 단축키 처리 (macOS Command + Windows/Linux Ctrl 지원)
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      // ChatBot 모달이 열려있을 때는 단축키 비활성화
+      if (isChatBotOpen) {
+        return
+      }
+
       // 입력 필드에서는 단축키 비활성화
       const target = event.target as HTMLElement
       if (
@@ -1574,11 +1695,6 @@ export default function EditorPage() {
           handlePasteClips()
         }
       }
-      // Enter (split clip) - 포커싱된 클립 나누기
-      else if (event.key === 'Enter' && !cmdOrCtrl) {
-        event.preventDefault()
-        handleSplitClip()
-      }
       // Delete key - delete selected words if any are selected
       else if (event.key === 'Delete' || event.key === 'Backspace') {
         if (isMultipleWordsSelected()) {
@@ -1593,6 +1709,7 @@ export default function EditorPage() {
       window.removeEventListener('keydown', handleKeyDown)
     }
   }, [
+    isChatBotOpen,
     handleUndo,
     handleRedo,
     saveProject,
@@ -1794,6 +1911,10 @@ export default function EditorPage() {
             isToolbarVisible={isToolbarVisible}
             onToolbarToggle={handleToolbarToggle}
             onShowToolbar={handleShowToolbar}
+            onPlatformSelectionOpen={(task) => {
+              setPendingDeployTask(task)
+              setIsPlatformSelectionModalOpen(true)
+            }}
           />
 
           <div
@@ -1887,7 +2008,7 @@ export default function EditorPage() {
                   clips={clips}
                   selectedClipIds={selectedClipIds}
                   activeClipId={activeClipId}
-                  speakers={speakers}
+                  speakers={globalSpeakers}
                   speakerColors={speakerColors}
                   onClipSelect={handleClipSelect}
                   onClipCheck={handleClipCheck}
@@ -1929,7 +2050,7 @@ export default function EditorPage() {
                             isActive={isActive}
                             startTime={startTime}
                             endTime={endTime}
-                            speakers={speakers}
+                            speakers={globalSpeakers}
                             speakerColors={speakerColors}
                             onClipSelect={handleClipSelect}
                             onSpeakerChange={handleSpeakerChange}
@@ -2033,7 +2154,7 @@ export default function EditorPage() {
                         <SpeakerManagementSidebar
                           isOpen={rightSidebarType === 'speaker'}
                           onClose={handleCloseSidebar}
-                          speakers={speakers}
+                          speakers={globalSpeakers}
                           clips={clips}
                           speakerColors={speakerColors}
                           onAddSpeaker={handleAddSpeaker}
@@ -2096,7 +2217,7 @@ export default function EditorPage() {
               if (!draggedWord) return null
 
               return (
-                <div className="bg-blue-500 text-white px-2 py-1 rounded text-sm shadow-lg opacity-90">
+                <div className="bg-purple-500 text-white px-2 py-1 rounded text-sm shadow-lg opacity-90">
                   {groupedWordIds.size > 1
                     ? `${groupedWordIds.size} words`
                     : draggedWord.text}
@@ -2137,6 +2258,19 @@ export default function EditorPage() {
         canCancel={uploadModal.step !== 'failed'}
         backdrop={false}
       />
+
+      {/* Platform Selection Modal */}
+      <PlatformSelectionModal
+        isOpen={isPlatformSelectionModalOpen}
+        onClose={handlePlatformSelectionClose}
+        onNext={handlePlatformSelectionNext}
+      />
+
+      {/* Deploy Modal */}
+      <DeployModal {...deployModalProps} />
+
+      {/* ChatBot */}
+      <ChatBotContainer />
     </>
   )
 }

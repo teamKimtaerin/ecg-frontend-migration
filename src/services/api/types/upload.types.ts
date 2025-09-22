@@ -16,7 +16,7 @@ export interface PresignedUrlResponse {
 
 // ML 처리 요청/응답
 export interface MLProcessingRequest {
-  file_key: string
+  fileKey: string
   language: string
   whisper_model?: string
 }
@@ -58,6 +58,9 @@ export interface ProcessingResult {
       model: string
       processing_time: number
     }
+    // 화자 정보 (선택적)
+    speakers?: string[]
+    speakerMapping?: Record<string, string>
   }
 }
 
