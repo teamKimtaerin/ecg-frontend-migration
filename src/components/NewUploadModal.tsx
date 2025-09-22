@@ -143,13 +143,13 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      className="w-[700px] max-w-[90vw] max-h-[85vh]"
+      className="w-[512px] max-w-[90vw] max-h-[85vh]"
       closeOnBackdropClick={!isLoading}
       closeOnEsc={!isLoading}
       aria-label="파일 업로드"
       scrollable={true}
     >
-      <div className="bg-white rounded-xl p-8 relative">
+      <div className="bg-white rounded-xl p-6 relative">
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-xl font-bold text-gray-900 mb-4">
