@@ -162,7 +162,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
               onClick={() => setActiveTab('upload')}
               className={`flex-1 h-12 text-base font-bold transition-colors cursor-pointer ${
                 activeTab === 'upload'
-                  ? 'bg-brand-main text-white rounded-l-lg'
+                  ? 'bg-brand-sub text-white rounded-l-lg'
                   : 'bg-gray-100 text-gray-900 rounded-l-lg border border-gray-300'
               }`}
             >
@@ -206,7 +206,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
 
                     <button
                       onClick={handleFileSelectClick}
-                      className="bg-brand-main text-white px-6 py-2 rounded font-bold hover:bg-brand-dark transition-colors cursor-pointer"
+                      className="bg-brand-sub text-white px-6 py-2 rounded font-bold hover:bg-brand-dark transition-colors cursor-pointer"
                       disabled={isLoading}
                     >
                       파일 선택
@@ -226,7 +226,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
                       {/* 썸네일 우상단 파일 변경 버튼 */}
                       <button
                         onClick={handleFileSelectClick}
-                        className="absolute top-2 right-2 bg-brand-main bg-opacity-90 text-white px-3 py-1 rounded text-xs font-medium hover:bg-brand-dark transition-all cursor-pointer"
+                        className="absolute top-2 right-2 bg-brand-sub bg-opacity-90 text-white px-3 py-1 rounded text-xs font-medium hover:bg-brand-dark transition-all cursor-pointer"
                         disabled={isLoading}
                       >
                         파일 변경
