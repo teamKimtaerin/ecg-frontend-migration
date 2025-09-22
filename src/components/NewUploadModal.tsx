@@ -162,7 +162,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
               onClick={() => setActiveTab('upload')}
               className={`flex-1 h-12 text-base font-bold transition-colors cursor-pointer ${
                 activeTab === 'upload'
-                  ? 'bg-brand-sub text-white rounded-l-lg'
+                  ? 'bg-black text-white rounded-l-lg'
                   : 'bg-gray-100 text-gray-900 rounded-l-lg border border-gray-300'
               }`}
             >
@@ -359,7 +359,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
                       e.target.value as 'auto' | 'ko' | 'en' | 'ja' | 'zh'
                     )
                   }
-                  className="w-full h-12 px-4 bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-900 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full h-12 px-4 bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-900 appearance-none focus:outline-none focus:ring-2 focus:ring-brand-sub focus:border-transparent"
                   disabled={isLoading}
                 >
                   <option value="auto">Auto Detect</option>
