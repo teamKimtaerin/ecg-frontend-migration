@@ -36,6 +36,7 @@ import { useDragAndDrop } from './hooks/useDragAndDrop'
 import { useGlobalWordDragAndDrop } from './hooks/useGlobalWordDragAndDrop'
 import { useSelectionBox } from './hooks/useSelectionBox'
 import { useUnsavedChanges } from './hooks/useUnsavedChanges'
+import useChatBot from './hooks/useChatBot'
 
 // Components
 import SelectionBox from '@/components/DragDrop/SelectionBox'
@@ -47,6 +48,7 @@ import DeployModal from '@/components/ui/DeployModal'
 import PlatformSelectionModal from './components/Export/PlatformSelectionModal'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import ResizablePanelDivider from '@/components/ui/ResizablePanelDivider'
+import ChatBotContainer from './components/ChatBot/ChatBotContainer'
 import { normalizeClipOrder } from '@/utils/editor/clipTimelineUtils'
 import { getSpeakerColor } from '@/utils/editor/speakerColors'
 import AnimationAssetSidebar from './components/AnimationAssetSidebar'
@@ -499,6 +501,9 @@ export default function EditorPage() {
     speakers: globalSpeakers,
     setSpeakers: setGlobalSpeakers,
   } = useEditorStore()
+
+  // ChatBot state
+  const { isOpen: isChatBotOpen } = useChatBot()
 
   // Local state
   const [activeTab, setActiveTab] = useState<EditorTab>('home')
@@ -1610,6 +1615,11 @@ export default function EditorPage() {
   // 키보드 단축키 처리 (macOS Command + Windows/Linux Ctrl 지원)
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      // ChatBot 모달이 열려있을 때는 단축키 비활성화
+      if (isChatBotOpen) {
+        return
+      }
+
       // 입력 필드에서는 단축키 비활성화
       const target = event.target as HTMLElement
       if (
@@ -1675,11 +1685,6 @@ export default function EditorPage() {
           handlePasteClips()
         }
       }
-      // Enter (split clip) - 포커싱된 클립 나누기
-      else if (event.key === 'Enter' && !cmdOrCtrl) {
-        event.preventDefault()
-        handleSplitClip()
-      }
       // Delete key - delete selected words if any are selected
       else if (event.key === 'Delete' || event.key === 'Backspace') {
         if (isMultipleWordsSelected()) {
@@ -1694,6 +1699,7 @@ export default function EditorPage() {
       window.removeEventListener('keydown', handleKeyDown)
     }
   }, [
+    isChatBotOpen,
     handleUndo,
     handleRedo,
     saveProject,
@@ -2251,6 +2257,9 @@ export default function EditorPage() {
 
       {/* Deploy Modal */}
       <DeployModal {...deployModalProps} />
+
+      {/* ChatBot */}
+      <ChatBotContainer />
     </>
   )
 }

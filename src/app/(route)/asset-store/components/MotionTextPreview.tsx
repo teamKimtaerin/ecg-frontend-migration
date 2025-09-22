@@ -118,7 +118,7 @@ export const MotionTextPreview = React.forwardRef<
 
           const serverBase = (
             process.env.NEXT_PUBLIC_MOTIONTEXT_PLUGIN_ORIGIN ||
-            'http://localhost:3300'
+            'http://localhost:80'
           ).replace(/\/$/, '')
           const loadedManifest = await loadPluginManifest(pluginName, {
             mode: 'server',
@@ -318,7 +318,6 @@ export const MotionTextPreview = React.forwardRef<
       containerRef,
       play,
       showControls,
-      extractedPluginKey,
       extractedPluginKey,
     ])
 
