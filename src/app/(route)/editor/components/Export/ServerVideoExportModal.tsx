@@ -1,12 +1,12 @@
 'use client'
 
 import { buildScenarioFromClips } from '@/app/(route)/editor/utils/scenarioBuilder'
+import { useProgressStore } from '@/lib/store/progressStore'
+import { useToastTimerStore } from '@/lib/store/toastTimerStore'
 import { showToast } from '@/utils/ui/toast'
 import { useEffect, useState } from 'react'
 import { useServerVideoExport } from '../../hooks/useServerVideoExport'
 import { useEditorStore } from '../../store'
-import { useToastTimerStore } from '@/lib/store/toastTimerStore'
-import { useProgressStore } from '@/lib/store/progressStore'
 import CustomExportModal from './CustomExportModal'
 import VideoExportProgressModal from './VideoExportProgressModal'
 
@@ -303,7 +303,7 @@ export default function ServerVideoExportModal({
                     defaultChecked
                     className="sr-only"
                   />
-                  <div className="w-4 h-4 bg-cyan-500 rounded-full flex items-center justify-center">
+                  <div className="w-4 h-4 bg-brand-sub rounded-full flex items-center justify-center">
                     <div className="w-2 h-2 bg-white rounded-full"></div>
                   </div>
                 </div>
@@ -422,7 +422,7 @@ export default function ServerVideoExportModal({
             <button
               onClick={handleStartExport}
               disabled={isExporting}
-              className={`btn-modern-primary ${isExporting ? 'btn-modern-loading' : ''}`}
+              className={`btn-modern-black ${isExporting ? 'btn-modern-loading' : ''}`}
             >
               내보내기
             </button>
