@@ -122,13 +122,26 @@ const useAuthStore = create<AuthStore>()((set, get) => ({
       // 토큰이 있으면 Bearer 인증, 없으면 쿠키 인증 시도
       const user = await AuthAPI.getCurrentUser(token || undefined)
 
-      set({
-        user,
-        isAuthenticated: true,
-        isLoading: false,
-        hasAuthChecked: true,
-      })
+      if (user) {
+        set({
+          user,
+          isAuthenticated: true,
+          isLoading: false,
+          hasAuthChecked: true,
+          error: null,
+        })
+      } else {
+        set({
+          user: null,
+          token: null,
+          isAuthenticated: false,
+          isLoading: false,
+          error: null,
+          hasAuthChecked: true,
+        })
+      }
     } catch (error) {
+      console.error('❌ Failed to restore auth state:', error)
       set({
         user: null,
         token: null,
