@@ -7,7 +7,6 @@ import {
   type RendererConfigV2,
   type RendererConfig,
 } from '@/app/shared/motiontext'
-import { buildInitialScenarioFromClips } from '../utils/initialScenario'
 import { buildScenarioFromReal, type RealJson } from '../utils/realToScenario'
 
 interface EditorMotionTextOverlayProps {
@@ -51,6 +50,7 @@ export default function EditorMotionTextOverlay({
     initializeTimeline: _initializeTimeline,
     currentScenario,
     scenarioVersion,
+    buildInitialScenario,
   } = useEditorStore()
 
   // Internal state
@@ -164,38 +164,7 @@ export default function EditorMotionTextOverlay({
   }, [videoEl, renderer])
 
   // No manifest preload required for initial, animation-less scenario
-  // Use the simplified scenario building approach
-
-  const buildScenarioFromClips = useCallback((): RendererConfigV2 => {
-    const fontSizeRel =
-      subtitleSize === 'small' ? 0.05 : subtitleSize === 'large' ? 0.09 : 0.07
-    const position = { x: 0.5, y: subtitlePosition === 'top' ? 0.15 : 0.925 } // 7.5% from bottom
-
-    // Use timeline clips if in sequential mode, otherwise use original clips
-    const activeClips = clips.filter((c) => !deletedClipIds.has(c.id))
-    if (timeline.isSequentialMode) {
-      const timelineClips = getSequentialClips()
-      // TODO: Map timeline clips to regular clip format for buildInitialScenarioFromClips
-      // For now, fallback to regular clips
-    }
-
-    const { config } = buildInitialScenarioFromClips(activeClips, {
-      position,
-      anchor: 'bc',
-      fontSizeRel,
-      baseAspect: '16:9',
-      wordAnimationTracks,
-    })
-    return config
-  }, [
-    subtitlePosition,
-    subtitleSize,
-    clips,
-    deletedClipIds,
-    wordAnimationTracks,
-    timeline.isSequentialMode,
-    getSequentialClips,
-  ])
+  // Scenario building is now handled by Store's buildInitialScenario
 
   // External scenario (from JSON editor) - Build scenario with animations
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -543,8 +512,17 @@ export default function EditorMotionTextOverlay({
     // Skip if Store already has a scenario (let Store subscription handle updates)
     if (currentScenario && scenarioVersion > 0) return
 
-    // Only build and load when no Store scenario exists (initial load)
-    const config = buildScenarioFromClips()
+    // Need clips to build scenario
+    const activeClips = clips.filter((c) => !deletedClipIds.has(c.id))
+    if (activeClips.length === 0) return
+
+    // Build scenario using Store's buildInitialScenario to ensure consistency
+    const config = buildInitialScenario(activeClips, {
+      position: { x: 0.5, y: subtitlePosition === 'top' ? 0.15 : 0.925 },
+      anchor: 'bc',
+      fontSizeRel: subtitleSize === 'small' ? 0.05 : subtitleSize === 'large' ? 0.09 : 0.07,
+      baseAspect: '16:9',
+    })
 
     // Send current scenario to parent for JSON editor
     if (onScenarioUpdate) {
@@ -557,15 +535,17 @@ export default function EditorMotionTextOverlay({
     }, 120)
     return () => clearTimeout(t)
   }, [
-    buildScenarioFromClips,
+    buildInitialScenario,
     showSubtitles,
     loadScenario,
     usingExternalScenario,
     isLoadingScenario,
     onScenarioUpdate,
     scenarioOverride,
-    // Removed clips, deletedClipIds, subtitlePosition, subtitleSize, wordAnimationTracks
-    // These should not trigger scenario rebuilding - only Store updates should
+    clips,
+    deletedClipIds,
+    subtitlePosition,
+    subtitleSize,
     currentScenario,
     scenarioVersion,
   ])

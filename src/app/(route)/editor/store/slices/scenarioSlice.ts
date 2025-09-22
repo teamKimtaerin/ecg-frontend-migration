@@ -51,14 +51,16 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
   scenarioVersion: 0,
 
   buildInitialScenario: (clips, opts) => {
-    // Get insertedTexts from TextInsertionSlice
+    // Get insertedTexts from TextInsertionSlice and wordAnimationTracks from WordSlice
     const fullState = get() as any
     const insertedTexts = fullState.insertedTexts || []
+    const wordAnimationTracks = fullState.wordAnimationTracks
 
-    // Merge insertedTexts into options
+    // Merge insertedTexts and wordAnimationTracks into options
     const mergedOpts = {
       ...opts,
       insertedTexts,
+      wordAnimationTracks,
     }
 
     const { config, index } = buildInitialScenarioFromClips(clips, mergedOpts)
@@ -93,6 +95,7 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
       }
     }
     if (!currentScenario) return
+    // wordId already has the word- prefix from clips, use it directly
     const entry = nodeIndex[wordId]
     if (!entry) return
     const cue = currentScenario.cues[entry.cueIndex]
@@ -143,6 +146,7 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
       }
     }
     if (!currentScenario) return
+    // wordId already has the word- prefix from clips, use it directly
     const entry = nodeIndex[wordId]
     if (!entry) return
     const cue = currentScenario.cues[entry.cueIndex]

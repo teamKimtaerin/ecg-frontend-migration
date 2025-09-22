@@ -30,7 +30,8 @@ export const autofillProviders = {
     if (!targetWordId) return null
 
     // wordId에서 clipId 추출 (word-{segmentId}-{wordIndex} 형식)
-    const clipIdMatch = targetWordId.match(/^word-(\d+)-\d+$/)
+    // Handle both "word-0-0" and potential "word-word-0-0" formats
+    const clipIdMatch = targetWordId.match(/^(?:word-)?word-(\d+)-\d+$/)
     console.log('🔍 [AUTOFILL Provider] clipIdMatch:', clipIdMatch)
 
     if (!clipIdMatch) return null

@@ -174,7 +174,8 @@ export function buildInitialScenarioFromClips(
       const e = toAdjustedOrOriginalTime(w.end)
       if (!Number.isFinite(s) || !Number.isFinite(e) || e <= s) return
 
-      const nodeId = `word-${w.id}` // Use actual word.id for consistent nodeIndex mapping
+      // Use word.id directly if it already has the word- prefix, otherwise add it
+      const nodeId = w.id.startsWith('word-') ? w.id : `word-${w.id}`
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const child: any = {
         id: nodeId,
@@ -190,10 +191,21 @@ export function buildInitialScenarioFromClips(
       if (animationTracks && animationTracks.length > 0) {
         child.pluginChain = animationTracks
           .filter((track) => track.pluginKey) // Only include tracks with valid pluginKey
-          .map((track) => ({
-            name: track.pluginKey,
-            params: track.params || {},
-          }))
+          .map((track) => {
+            // Calculate timeOffset if timing is provided
+            let timeOffset: [number, number] | undefined
+            if (track.timing) {
+              const startOffset = track.timing.start - s // timing.start - baseTime start
+              const endOffset = track.timing.end - e // timing.end - baseTime end
+              timeOffset = [startOffset, endOffset]
+            }
+
+            return {
+              name: track.pluginKey,
+              params: track.params || {},
+              ...(timeOffset && { timeOffset }),
+            }
+          })
       }
       // record index path; children will push later so we know path length
       const childIdx = children.length
