@@ -2,7 +2,7 @@
 
 import { FaTimes } from 'react-icons/fa'
 import { FaSpinner } from 'react-icons/fa'
-import { LuLightbulb, LuChevronDown } from 'react-icons/lu'
+import { LuLightbulb } from 'react-icons/lu'
 import React, { useState, useRef } from 'react'
 
 export interface VideoMetadata {
@@ -250,12 +250,6 @@ export default function ProcessingModal({
             </div>
           )}
 
-          {/* Collapse Arrow */}
-          <div className="flex justify-center mt-4">
-            <button className="text-gray-400 hover:text-gray-600 transition-colors">
-              <LuChevronDown className="w-5 h-5" />
-            </button>
-          </div>
 
           {/* Action Buttons for Completed/Failed States */}
           {status === 'completed' && (
