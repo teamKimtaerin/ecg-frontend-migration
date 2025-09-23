@@ -114,10 +114,13 @@ const useAuthStore = create<AuthStore>()((set, get) => ({
   },
 
   getCurrentUser: async () => {
-    const { token } = get()
+    const { token, refreshAccessToken } = get()
 
     try {
       set({ isLoading: true, error: null })
+
+      const fetchUser = (candidateToken?: string | null) =>
+        AuthAPI.getCurrentUser(candidateToken || undefined)
 
       // 토큰이 있으면 Bearer 인증, 없으면 쿠키 인증 시도
       const user = await AuthAPI.getCurrentUser(token || undefined)
@@ -128,9 +131,9 @@ const useAuthStore = create<AuthStore>()((set, get) => ({
           isAuthenticated: true,
           isLoading: false,
           hasAuthChecked: true,
-          error: null,
         })
       } else {
+        // 401/403 에러는 정상적인 비로그인 상태로 처리
         set({
           user: null,
           token: null,
@@ -146,12 +149,9 @@ const useAuthStore = create<AuthStore>()((set, get) => ({
         user: null,
         token: null,
         isAuthenticated: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : '사용자 정보를 가져오는데 실패했습니다.',
         isLoading: false,
         hasAuthChecked: true,
+        error: null, // 사용자에게는 에러를 보여주지 않음
       })
     }
   },
