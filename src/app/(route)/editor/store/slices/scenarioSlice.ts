@@ -51,14 +51,18 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
   scenarioVersion: 0,
 
   buildInitialScenario: (clips, opts) => {
-    // Get insertedTexts from TextInsertionSlice
+    // Get insertedTexts from TextInsertionSlice and wordAnimationTracks from WordSlice
     const fullState = get() as any
     const insertedTexts = fullState.insertedTexts || []
+    const wordAnimationTracks = fullState.wordAnimationTracks
+    const speakerColors = fullState.speakerColors || {}
 
-    // Merge insertedTexts into options
+    // Merge insertedTexts, wordAnimationTracks, and speakerColors into options
     const mergedOpts = {
       ...opts,
       insertedTexts,
+      wordAnimationTracks,
+      speakerColors,
     }
 
     const { config, index } = buildInitialScenarioFromClips(clips, mergedOpts)
@@ -93,6 +97,7 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
       }
     }
     if (!currentScenario) return
+    // wordId already has the word- prefix from clips, use it directly
     const entry = nodeIndex[wordId]
     if (!entry) return
     const cue = currentScenario.cues[entry.cueIndex]
@@ -143,6 +148,7 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
       }
     }
     if (!currentScenario) return
+    // wordId already has the word- prefix from clips, use it directly
     const entry = nodeIndex[wordId]
     if (!entry) return
     const cue = currentScenario.cues[entry.cueIndex]
@@ -168,7 +174,6 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
       return {
         name,
         params: t.params || {},
-        baseTime,
         timeOffset, // seconds relative to baseTime[0]
       }
     })
@@ -295,7 +300,6 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
     }
 
     if (!currentScenario?.cues) {
-      console.warn('No current scenario or cues found')
       return
     }
 
@@ -390,11 +394,6 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
       ...currentScenario,
       cues: updatedCues,
     }
-
-    console.log('Successfully updated group node style')
-    console.log('Original scenario reference:', currentScenario)
-    console.log('New scenario reference:', newScenario)
-    console.log('References are different:', currentScenario !== newScenario)
 
     set({
       currentScenario: newScenario,

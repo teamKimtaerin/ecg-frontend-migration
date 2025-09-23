@@ -10,6 +10,7 @@ export interface InitialScenarioOptions {
   baseAspect?: '16:9' | '9:16' | 'auto'
   wordAnimationTracks?: Map<string, any[]> // eslint-disable-line @typescript-eslint/no-explicit-any
   insertedTexts?: InsertedText[] // Add support for inserted texts
+  speakerColors?: Record<string, string> // Speaker color palette for cwi-color plugin
 }
 
 export interface NodeIndexEntry {
@@ -144,8 +145,9 @@ export function buildInitialScenarioFromClips(
   const anchor = opts.anchor ?? 'bc'
   const wordAnimationTracks = opts.wordAnimationTracks
   const insertedTexts = opts.insertedTexts ?? []
-  const fontSizeRel = opts.fontSizeRel ?? 0.07 // Changed from 0.05 to 0.07 to match cwi_demo_full
+  const fontSizeRel = opts.fontSizeRel ?? 0.05 // Default font size
   const baseAspect = opts.baseAspect ?? '16:9'
+  const speakerColors = opts.speakerColors ?? {}
 
   const cues: RendererConfigV2['cues'] = []
   const index: Record<string, NodeIndexEntry> = {}
@@ -173,7 +175,8 @@ export function buildInitialScenarioFromClips(
       const e = toAdjustedOrOriginalTime(w.end)
       if (!Number.isFinite(s) || !Number.isFinite(e) || e <= s) return
 
-      const nodeId = w.id // Use the actual word ID to match wordSlice expectations
+      // Use word.id directly if it already has the word- prefix, otherwise add it
+      const nodeId = w.id.startsWith('word-') ? w.id : `word-${w.id}`
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const child: any = {
         id: nodeId,
@@ -189,10 +192,30 @@ export function buildInitialScenarioFromClips(
       if (animationTracks && animationTracks.length > 0) {
         child.pluginChain = animationTracks
           .filter((track) => track.pluginKey) // Only include tracks with valid pluginKey
-          .map((track) => ({
-            name: track.pluginKey,
-            params: track.params || {},
-          }))
+          .map((track) => {
+            // Calculate timeOffset if timing is provided
+            let timeOffset: [number, number] | undefined
+            if (track.timing) {
+              const startOffset = track.timing.start - s // timing.start - baseTime start
+              const endOffset = track.timing.end - e // timing.end - baseTime end
+              timeOffset = [startOffset, endOffset]
+            }
+
+            // For cwi-color plugin, update palette reference to use define.speakerPalette
+            const params = { ...track.params }
+            if (
+              track.pluginKey === 'cwi-color@2.0.0' &&
+              params.palette === 'definitions.speakerPalette'
+            ) {
+              params.palette = 'define.speakerPalette'
+            }
+
+            return {
+              name: track.pluginKey,
+              params,
+              ...(timeOffset && { timeOffset }),
+            }
+          })
       }
       // record index path; children will push later so we know path length
       const childIdx = children.length
@@ -212,6 +235,11 @@ export function buildInitialScenarioFromClips(
       insertedTexts
     )
 
+    // displayTime은 이 클립의 첫 단어 시작과 마지막 단어 끝 시간
+    const firstWordStart = children[0]?.baseTime?.[0] ?? adjClipStart
+    const lastWordEnd =
+      children[children.length - 1]?.baseTime?.[1] ?? adjClipEnd
+
     const cue = {
       id: cueId,
       track: 'caption',
@@ -219,7 +247,7 @@ export function buildInitialScenarioFromClips(
       root: {
         id: groupId,
         eType: 'group' as const,
-        displayTime: [adjClipStart, adjClipEnd] as [number, number],
+        displayTime: [firstWordStart, lastWordEnd] as [number, number],
         layout: {
           anchor: 'define.caption.layout.anchor',
           position: 'define.caption.position',
@@ -307,13 +335,16 @@ export function buildInitialScenarioFromClips(
         childrenLayout: {
           mode: 'flow',
           direction: 'horizontal',
-          wrap: true,
-          maxWidth: '100%',
+          wrap: true, // 강제 줄바꿈 방지 - 자동 줄바꿈 로직이 미리 처리
+          maxWidth: '90%',
           gap: 0.005, // Small gap between words
           align: 'center',
           justify: 'center',
         },
       },
+      // Speaker color palette for cwi-color plugin
+      speakerPalette:
+        Object.keys(speakerColors).length > 0 ? speakerColors : undefined,
     },
     tracks: [
       {
@@ -327,10 +358,18 @@ export function buildInitialScenarioFromClips(
           align: 'center',
         },
         defaultBoxStyle: {
-          backgroundColor: 'rgba(0, 0, 0, 0.9)',
-          padding: '8px 16px',
+          backgroundColor: 'rgba(0, 0, 0, 0.6)',
+          padding: '4px 8px',
           borderRadius: '4px',
           opacity: 1,
+        },
+        defaultConstraints: {
+          safeArea: {
+            top: 0.025,
+            bottom: 0.075,
+            left: 0.05,
+            right: 0.05,
+          },
         },
       },
       {

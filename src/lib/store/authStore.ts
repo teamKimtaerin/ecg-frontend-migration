@@ -144,6 +144,7 @@ const useAuthStore = create<AuthStore>()((set, get) => ({
         })
       }
     } catch (error) {
+      console.error('❌ Failed to restore auth state:', error)
       set({
         user: null,
         token: null,

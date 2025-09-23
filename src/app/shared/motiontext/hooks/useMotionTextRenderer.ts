@@ -150,7 +150,6 @@ export function useMotionTextRenderer(
         try {
           await preloadPluginsForScenario(config)
         } catch (pluginError) {
-          console.warn('Plugin preload failed:', pluginError)
           // Continue execution - plugin errors shouldn't be fatal
         }
 
@@ -159,13 +158,20 @@ export function useMotionTextRenderer(
           throw new Error('Renderer is not available')
         }
 
-        if (typeof rendererRef.current.loadConfig !== 'function') {
+        // 새 시나리오 로드 - loadConfigAsync 우선 사용 (내부에서 clearAsync 포함)
+        if (typeof rendererRef.current.loadConfigAsync === 'function') {
+          // v1.5.0: 내부에서 clearAsync() 후 로드 (한 번에 처리)
+          await rendererRef.current.loadConfigAsync(
+            config as unknown as Record<string, unknown>
+          )
+        } else if (typeof rendererRef.current.loadConfig === 'function') {
+          // 하위 호환성 유지 (이전 버전)
+          await rendererRef.current.loadConfig(
+            config as unknown as Record<string, unknown>
+          )
+        } else {
           throw new Error('Renderer loadConfig method is not available')
         }
-
-        await rendererRef.current.loadConfig(
-          config as unknown as Record<string, unknown>
-        )
         currentConfigRef.current = config
         if (autoPlayRef.current) {
           try {

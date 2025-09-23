@@ -72,7 +72,7 @@ export function buildScenarioFromReal(
   const boxH = 64
   const centerX = Math.round(stageW / 2)
   const centerY = Math.max(0, Math.min(stageH, stageH - marginY - boxH / 2))
-  const fontSizeRel = opts?.fontSizeRel ?? 0.07
+  const fontSizeRel = opts?.fontSizeRel ?? 0.05
   const pluginName = 'elastic'
 
   const cues = (real.segments || [])
@@ -168,11 +168,6 @@ export function buildScenarioFromReal(
     ],
     cues,
   }
-
-  console.log('[buildScenarioFromReal] Generated scenario config:', {
-    totalCues: cues.length,
-    config,
-  })
 
   return config
 }

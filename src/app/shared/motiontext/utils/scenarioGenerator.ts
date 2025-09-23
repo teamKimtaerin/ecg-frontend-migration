@@ -258,9 +258,9 @@ export function computeTimeOffsetSeconds(
 ): { baseTime: [number, number]; timeOffset: [number, number] } {
   const b0 = Number(baseTime[0] || 0)
   const b1 = Number(baseTime[1] || 0)
-  const len = Math.max(0, b1 - b0)
-  const s = Math.max(0, Math.min(len, Number(absStartSec ?? 0) - b0))
-  const e = Math.max(s, Math.min(len, Number(absEndSec ?? len) - b0))
+  // Allow negative offsets: timing - baseTime
+  const s = Number(absStartSec ?? b0) - b0 // timing.start - baseTime.start
+  const e = Number(absEndSec ?? b1) - b1 // timing.end - baseTime.end
   return { baseTime: [b0, b1], timeOffset: [s, e] }
 }
 
@@ -384,7 +384,7 @@ export function generateLoopedScenarioV2(
                 overflow: 'visible',
               },
               style: {
-                fontSizeRel: settings.fontSizeRel || 0.07,
+                fontSizeRel: settings.fontSizeRel || 0.05,
                 fontFamily: 'Arial, sans-serif',
                 color: '#ffffff',
                 align: 'center',
@@ -522,7 +522,7 @@ export function generateLoopedScenario(
                 overflow: 'visible',
               },
               style: {
-                fontSizeRel: settings.fontSizeRel || 0.07,
+                fontSizeRel: settings.fontSizeRel || 0.05,
                 fontFamily: 'Arial, sans-serif',
                 color: '#ffffff',
                 align: 'center',

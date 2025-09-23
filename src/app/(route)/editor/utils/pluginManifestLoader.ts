@@ -56,7 +56,6 @@ export async function loadPluginManifest(
 
     return manifest
   } catch (error) {
-    console.warn(`Error loading plugin manifest for ${pluginKey}:`, error)
     return null
   }
 }
