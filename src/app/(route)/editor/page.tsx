@@ -1947,7 +1947,7 @@ export default function EditorPage() {
                     </p>
                     <button
                       onClick={() => uploadModal.openModal()}
-                      className="px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold text-lg transition-colors shadow-lg hover:shadow-xl"
+                      className="px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl hover:outline-2 hover:outline-purple-500 hover:outline-offset-4 hover:scale-105"
                     >
                       새로 만들기
                     </button>
@@ -2131,6 +2131,7 @@ export default function EditorPage() {
             }
             onFileSelect={uploadModal.handleFileSelect}
             onStartTranscription={wrappedHandleStartTranscription}
+            onVideoInfoReady={uploadModal.setVideoInfo}
             acceptedTypes={['audio/*', 'video/*']}
             maxFileSize={500 * 1024 * 1024} // 500MB
             multiple={false}
@@ -2186,29 +2187,8 @@ export default function EditorPage() {
         isOpen={
           uploadModal.step !== 'select' && uploadModal.step !== 'completed'
         }
-        onClose={
-          uploadModal.step === 'completed'
-            ? uploadModal.goToEditor
-            : uploadModal.closeModal
-        }
+        onClose={uploadModal.closeModal}
         onCancel={uploadModal.cancelProcessing}
-        status={
-          uploadModal.step as
-            | 'uploading'
-            | 'processing'
-            | 'completed'
-            | 'failed'
-            | 'select'
-        }
-        progress={
-          uploadModal.step === 'uploading'
-            ? uploadModal.uploadProgress
-            : uploadModal.processingProgress
-        }
-        currentStage={uploadModal.currentStage}
-        estimatedTimeRemaining={uploadModal.estimatedTimeRemaining}
-        fileName={uploadModal.fileName}
-        canCancel={uploadModal.step !== 'failed'}
         backdrop={false}
       />
 

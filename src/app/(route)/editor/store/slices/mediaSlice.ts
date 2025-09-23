@@ -2,9 +2,9 @@
  * 미디어 상태 관리 슬라이스
  */
 
-import { StateCreator } from 'zustand'
-import { log } from '@/utils/logger'
 import { WaveformData } from '@/utils/audio/waveformExtractor'
+import { log } from '@/utils/logger'
+import { StateCreator } from 'zustand'
 
 export interface MediaState {
   // Media information
@@ -14,6 +14,7 @@ export interface MediaState {
   videoName: string | null
   videoType: string | null
   videoDuration: number | null
+  videoThumbnail: string | null // 비디오 썸네일 URL
   videoMetadata: {
     width?: number
     height?: number
@@ -78,6 +79,7 @@ const initialState: MediaState = {
   videoName: null,
   videoType: null,
   videoDuration: null,
+  videoThumbnail: null,
   videoMetadata: null,
   isVideoLoading: false,
   videoError: null,
@@ -106,6 +108,44 @@ export const createMediaSlice: StateCreator<MediaSlice> = (set) => ({
 
   setMediaInfo: (info) => {
     set((state) => {
+      // 새 썸네일이 있고 기존 썸네일과 다르면 기존 썸네일 정리
+      if (
+        info.videoThumbnail &&
+        state.videoThumbnail &&
+        state.videoThumbnail !== info.videoThumbnail &&
+        state.videoThumbnail.startsWith('blob:')
+      ) {
+        try {
+          URL.revokeObjectURL(state.videoThumbnail)
+          log(
+            'mediaSlice.ts',
+            'Revoked old thumbnail blob URL:',
+            state.videoThumbnail
+          )
+        } catch (error) {
+          log(
+            'mediaSlice.ts',
+            'Failed to revoke old thumbnail blob URL:',
+            error
+          )
+        }
+      }
+
+      // 새 비디오 URL이 있고 기존 비디오 URL과 다르면 기존 URL 정리
+      if (
+        info.videoUrl &&
+        state.videoUrl &&
+        state.videoUrl !== info.videoUrl &&
+        state.videoUrl.startsWith('blob:')
+      ) {
+        try {
+          URL.revokeObjectURL(state.videoUrl)
+          log('mediaSlice.ts', 'Revoked old video blob URL:', state.videoUrl)
+        } catch (error) {
+          log('mediaSlice.ts', 'Failed to revoke old video blob URL:', error)
+        }
+      }
+
       log('mediaSlice.ts', 'Media info updated', info)
 
       // If we're setting a new videoUrl and it's a blob URL, track it for cleanup
@@ -135,6 +175,30 @@ export const createMediaSlice: StateCreator<MediaSlice> = (set) => ({
 
   clearMedia: () => {
     set((state) => {
+      // 기존 썸네일이 blob URL이면 메모리 정리
+      if (state.videoThumbnail && state.videoThumbnail.startsWith('blob:')) {
+        try {
+          URL.revokeObjectURL(state.videoThumbnail)
+          log(
+            'mediaSlice.ts',
+            'Revoked thumbnail blob URL:',
+            state.videoThumbnail
+          )
+        } catch (error) {
+          log('mediaSlice.ts', 'Failed to revoke thumbnail blob URL:', error)
+        }
+      }
+
+      // 기존 비디오 URL이 blob URL이면 메모리 정리
+      if (state.videoUrl && state.videoUrl.startsWith('blob:')) {
+        try {
+          URL.revokeObjectURL(state.videoUrl)
+          log('mediaSlice.ts', 'Revoked video blob URL:', state.videoUrl)
+        } catch (error) {
+          log('mediaSlice.ts', 'Failed to revoke video blob URL:', error)
+        }
+      }
+
       log('mediaSlice.ts', 'Media cleared')
 
       // Cleanup current blob URL before clearing
