@@ -170,35 +170,43 @@ export default function ExpandedClipWaveform({
         }
       }
 
-      // Get previous, current, and next words (3 words total)
-      const prevWord = focusedIndex > 0 ? words[focusedIndex - 1] : null
+      // Get 3 previous + current + 3 next words (7 words total for better context)
+      const CONTEXT_WORDS = 3 // 각 방향으로 보여줄 단어 개수
       const currentWord = words[focusedIndex]
-      const nextWord =
-        focusedIndex < words.length - 1 ? words[focusedIndex + 1] : null
 
-      // Calculate display range with padding for missing words
-      let start = currentWord.start
-      let end = currentWord.end
+      // 이전 3개 단어 가져오기
+      const prevWords = []
+      for (let i = CONTEXT_WORDS; i >= 1; i--) {
+        const idx = focusedIndex - i
+        if (idx >= 0) {
+          prevWords.push(words[idx])
+        }
+      }
+
+      // 다음 3개 단어 가져오기
+      const nextWords = []
+      for (let i = 1; i <= CONTEXT_WORDS; i++) {
+        const idx = focusedIndex + i
+        if (idx < words.length) {
+          nextWords.push(words[idx])
+        }
+      }
+
+      // 전체 displayWords 배열 구성
+      const displayWords = [...prevWords, currentWord, ...nextWords]
+
+      // 시간 범위 계산
+      let start = displayWords[0].start
+      let end = displayWords[displayWords.length - 1].end
       const paddingTime = 1.0 // 1 second padding
 
-      if (prevWord) {
-        start = prevWord.start
-      } else {
-        // Add padding before current word if no previous word
+      // 단어가 부족한 경우 패딩 추가
+      if (prevWords.length < CONTEXT_WORDS) {
         start = Math.max(0, currentWord.start - paddingTime)
       }
-
-      if (nextWord) {
-        end = nextWord.end
-      } else {
-        // Add padding after current word if no next word
+      if (nextWords.length < CONTEXT_WORDS) {
         end = currentWord.end + paddingTime
       }
-
-      // Build display words array
-      const displayWords = [prevWord, currentWord, nextWord].filter(
-        Boolean
-      ) as Word[]
 
       return {
         displayWords,
