@@ -19,6 +19,14 @@ import API_CONFIG from '@/config/api.config'
 import { useProgressStore } from '@/lib/store/progressStore'
 import { getSpeakerColorByIndex } from '@/utils/editor/speakerColors'
 
+export interface VideoMetadata {
+  duration?: number
+  size?: number
+  width?: number
+  height?: number
+  fps?: number
+}
+
 export interface UploadModalState {
   isOpen: boolean
   step: UploadStep
@@ -28,6 +36,9 @@ export interface UploadModalState {
   estimatedTimeRemaining?: number
   fileName?: string
   videoUrl?: string // S3 업로드된 비디오 URL 저장
+  videoFile?: File // 원본 비디오 파일
+  videoThumbnail?: string // 비디오 썸네일 URL
+  videoMetadata?: VideoMetadata // 비디오 메타데이터
   error?: string
 }
 
@@ -91,6 +102,9 @@ export const useUploadModal = () => {
       currentStage: undefined,
       estimatedTimeRemaining: undefined,
       fileName: undefined,
+      videoFile: undefined,
+      videoThumbnail: undefined,
+      videoMetadata: undefined,
       error: undefined,
     })
     setCurrentJobId(undefined)
@@ -103,6 +117,26 @@ export const useUploadModal = () => {
       if (files.length > 0) {
         updateState({ fileName: files[0].name })
       }
+    },
+    [updateState]
+  )
+
+  // 비디오 정보 설정 함수
+  const setVideoInfo = useCallback(
+    (file: File, thumbnailUrl?: string, metadata?: VideoMetadata) => {
+      console.log('🎬 useUploadModal.setVideoInfo called:', {
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
+        thumbnailUrl: thumbnailUrl ? 'present' : 'missing',
+        metadata: metadata || 'missing',
+      })
+      updateState({
+        videoFile: file,
+        videoThumbnail: thumbnailUrl,
+        videoMetadata: metadata,
+        fileName: file.name,
+      })
     },
     [updateState]
   )
@@ -920,6 +954,7 @@ export const useUploadModal = () => {
     openModal,
     closeModal,
     handleFileSelect,
+    setVideoInfo,
     handleStartTranscription,
     goToEditor,
     cancelProcessing,

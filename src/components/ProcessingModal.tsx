@@ -5,6 +5,14 @@ import { FaSpinner } from 'react-icons/fa'
 import { LuLightbulb, LuChevronDown } from 'react-icons/lu'
 import React, { useState, useRef } from 'react'
 
+export interface VideoMetadata {
+  duration?: number
+  size?: number
+  width?: number
+  height?: number
+  fps?: number
+}
+
 export interface ProcessingModalProps {
   isOpen: boolean
   onClose: () => void
@@ -14,6 +22,9 @@ export interface ProcessingModalProps {
   currentStage?: string
   estimatedTimeRemaining?: number
   fileName?: string
+  videoFile?: File
+  videoThumbnail?: string
+  videoMetadata?: VideoMetadata
   canCancel?: boolean
   backdrop?: boolean
 }
@@ -35,9 +46,23 @@ export default function ProcessingModal({
   currentStage,
   estimatedTimeRemaining,
   fileName,
+  videoFile,
+  videoThumbnail,
+  videoMetadata,
   canCancel = true,
   backdrop = true,
 }: ProcessingModalProps) {
+  // 디버깅 로그
+  React.useEffect(() => {
+    if (isOpen) {
+      console.log('🎬 ProcessingModal opened with video info:', {
+        fileName,
+        videoFile: videoFile ? 'present' : 'missing',
+        videoThumbnail: videoThumbnail ? 'present' : 'missing',
+        videoMetadata: videoMetadata || 'missing',
+      })
+    }
+  }, [isOpen, fileName, videoFile, videoThumbnail, videoMetadata])
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [dragging, setDragging] = useState(false)
 
@@ -161,13 +186,23 @@ export default function ProcessingModal({
             </div>
           )}
 
-          {/* Thumbnail Image */}
+          {/* Video Thumbnail */}
           <div className="mb-6 flex justify-center">
             <div className="w-full max-w-md bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center h-48">
-              <div className="text-center">
-                <div className="text-6xl mb-2">🎬</div>
-                <p className="text-sm text-gray-600">처리 중인 비디오</p>
-              </div>
+              {videoThumbnail ? (
+                <div className="relative w-full h-full">
+                  <img
+                    src={videoThumbnail}
+                    alt="Video thumbnail"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="text-center">
+                  <div className="text-6xl mb-2">🎬</div>
+                  <p className="text-sm text-gray-600">처리 중인 비디오</p>
+                </div>
+              )}
             </div>
           </div>
 

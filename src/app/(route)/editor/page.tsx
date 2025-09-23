@@ -2119,6 +2119,7 @@ export default function EditorPage() {
             }
             onFileSelect={uploadModal.handleFileSelect}
             onStartTranscription={wrappedHandleStartTranscription}
+            onVideoInfoReady={uploadModal.setVideoInfo}
             acceptedTypes={['audio/*', 'video/*']}
             maxFileSize={500 * 1024 * 1024} // 500MB
             multiple={false}
@@ -2196,6 +2197,9 @@ export default function EditorPage() {
         currentStage={uploadModal.currentStage}
         estimatedTimeRemaining={uploadModal.estimatedTimeRemaining}
         fileName={uploadModal.fileName}
+        videoFile={uploadModal.videoFile}
+        videoThumbnail={uploadModal.videoThumbnail}
+        videoMetadata={uploadModal.videoMetadata}
         canCancel={uploadModal.step !== 'failed'}
         backdrop={false}
       />
