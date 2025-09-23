@@ -21,7 +21,7 @@ export async function getAssets(options?: {
       queryParams.append('is_pro', options.is_pro.toString())
     }
 
-    const endpoint = `/api/v1/assets${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+    const endpoint = `/api/v1/assets/${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
     const response = await apiGet(endpoint)
 
     if (!response.ok) {
