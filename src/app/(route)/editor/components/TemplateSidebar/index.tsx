@@ -84,8 +84,8 @@ const TemplateSidebar: React.FC<TemplateSidebarProps> = ({
       {/* Control Panel - Disabled to prevent template detail options */}
       {false && expandedTemplateId && (
         <TemplateControlPanel
-          templateId={expandedTemplateId}
-          templateName={expandedTemplateName}
+          templateId={expandedTemplateId || ''}
+          templateName={expandedTemplateName || ''}
           onClose={() => {
             setExpandedTemplateId(null)
             setExpandedTemplateName(null)
