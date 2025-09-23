@@ -1935,7 +1935,7 @@ export default function EditorPage() {
                     </p>
                     <button
                       onClick={() => uploadModal.openModal()}
-                      className="px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold text-lg transition-colors shadow-lg hover:shadow-xl"
+                      className="px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl hover:outline-2 hover:outline-purple-500 hover:outline-offset-4 hover:scale-105"
                     >
                       새로 만들기
                     </button>
