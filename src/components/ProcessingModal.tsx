@@ -166,7 +166,7 @@ export default function ProcessingModal({
             {getStatusText()}
           </h2>
           <button
-            onClick={shouldShowCloseButton ? onClose : onCancel}
+            onClick={onClose}
             onMouseDown={(e) => e.stopPropagation()}
             className="text-gray-400 hover:text-gray-600 transition-colors p-1 pointer-events-auto"
           >

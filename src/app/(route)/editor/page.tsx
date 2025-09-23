@@ -2175,11 +2175,7 @@ export default function EditorPage() {
         isOpen={
           uploadModal.step !== 'select' && uploadModal.step !== 'completed'
         }
-        onClose={
-          uploadModal.step === 'completed'
-            ? uploadModal.goToEditor
-            : uploadModal.closeModal
-        }
+        onClose={uploadModal.closeModal}
         onCancel={uploadModal.cancelProcessing}
         status={
           uploadModal.step as
