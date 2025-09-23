@@ -203,7 +203,10 @@ export function buildInitialScenarioFromClips(
 
             // For cwi-color plugin, update palette reference to use define.speakerPalette
             const params = { ...track.params }
-            if (track.pluginKey === 'cwi-color@2.0.0' && params.palette === 'definitions.speakerPalette') {
+            if (
+              track.pluginKey === 'cwi-color@2.0.0' &&
+              params.palette === 'definitions.speakerPalette'
+            ) {
               params.palette = 'define.speakerPalette'
             }
 
@@ -340,7 +343,8 @@ export function buildInitialScenarioFromClips(
         },
       },
       // Speaker color palette for cwi-color plugin
-      speakerPalette: Object.keys(speakerColors).length > 0 ? speakerColors : undefined,
+      speakerPalette:
+        Object.keys(speakerColors).length > 0 ? speakerColors : undefined,
     },
     tracks: [
       {

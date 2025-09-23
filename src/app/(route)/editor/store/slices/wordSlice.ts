@@ -593,7 +593,7 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
         // Update palette reference and ensure speaker is included
         adjustedParams = {
           ...params,
-          palette: 'define.speakerPalette'
+          palette: 'define.speakerPalette',
         }
 
         // Try to get speaker from the clip containing this word
@@ -609,7 +609,10 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
               if (!c.words) return false
               return c.words.some((w: any) => {
                 // Also normalize the word IDs in clips for comparison
-                const normalizedWId = (w.id || '').replace(/^word-word-/, 'word-')
+                const normalizedWId = (w.id || '').replace(
+                  /^word-word-/,
+                  'word-'
+                )
                 return normalizedWId === normalizedWordId || w.id === wordId
               })
             })
@@ -959,8 +962,7 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
         // Load full manifest for autofill
         manifest = await loadPluginManifest(asset.pluginKey)
       }
-    } catch (error) {
-    }
+    } catch (error) {}
 
     // Apply toggles in memory first
     for (const wordId of wordIds) {

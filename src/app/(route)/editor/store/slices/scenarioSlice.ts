@@ -395,7 +395,6 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
       cues: updatedCues,
     }
 
-
     set({
       currentScenario: newScenario,
       scenarioVersion: (get().scenarioVersion || 0) + 1,

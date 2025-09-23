@@ -469,15 +469,15 @@ import { TextMeasurementService } from '../subtitle/textMeasurement'
 import { calculateMaxWidthForFontSize } from '../subtitle/safeAreaCalculator'
 
 export enum SplitMode {
-  MANUAL_HALF = 'manual_half',      // 기존 수동 절반 분할
+  MANUAL_HALF = 'manual_half', // 기존 수동 절반 분할
   MANUAL_POSITION = 'manual_position', // 특정 위치에서 분할
   AUTO_LINE_BREAK = 'auto_line_break', // 자동 줄바꿈 분할
-  AUTO_DURATION = 'auto_duration',     // 길이 기반 분할
+  AUTO_DURATION = 'auto_duration', // 길이 기반 분할
 }
 
 export enum MergeMode {
-  MANUAL = 'manual',           // 수동 선택 병합
-  AUTO_SHORT = 'auto_short',   // 짧은 클립 자동 병합
+  MANUAL = 'manual', // 수동 선택 병합
+  AUTO_SHORT = 'auto_short', // 짧은 클립 자동 병합
   AUTO_SPEAKER = 'auto_speaker', // 같은 화자 자동 병합
 }
 
@@ -591,19 +591,15 @@ export class UnifiedClipProcessor {
 
     for (const op of operations) {
       if (op.type === 'split') {
-        result = result.flatMap(clip => {
+        result = result.flatMap((clip) => {
           if (op.filter && !op.filter(clip)) {
             return [clip]
           }
           return this.split(clip, op.mode as SplitMode, op.config)
         })
       } else if (op.type === 'merge') {
-        const toMerge = op.filter
-          ? result.filter(op.filter)
-          : result
-        const notToMerge = op.filter
-          ? result.filter(c => !op.filter!(c))
-          : []
+        const toMerge = op.filter ? result.filter(op.filter) : result
+        const notToMerge = op.filter ? result.filter((c) => !op.filter!(c)) : []
         const merged = this.merge(toMerge, op.mode as MergeMode, op.config)
         result = [...notToMerge, ...merged]
       }
@@ -679,9 +675,10 @@ export class UnifiedClipProcessor {
         word.text,
         measureConfig
       )
-      const spaceWidth = currentWords.length > 0
-        ? this.textMeasurer.measureTextWidth(' ', measureConfig)
-        : 0
+      const spaceWidth =
+        currentWords.length > 0
+          ? this.textMeasurer.measureTextWidth(' ', measureConfig)
+          : 0
       const totalWidth = currentWidth + spaceWidth + wordWidth
 
       if (totalWidth > maxWidth && currentWords.length > 0) {
@@ -708,10 +705,7 @@ export class UnifiedClipProcessor {
   /**
    * 길이 기반 분할
    */
-  private splitByDuration(
-    clip: ClipItem,
-    config: ProcessorConfig
-  ): ClipItem[] {
+  private splitByDuration(clip: ClipItem, config: ProcessorConfig): ClipItem[] {
     const maxDuration = config.maxClipDuration || 5
     const clipDuration = this.calculateDuration(clip.words)
 
@@ -750,8 +744,8 @@ export class UnifiedClipProcessor {
       ...firstClip,
       id: `merged_${Date.now()}`,
       words: mergedWords,
-      subtitle: mergedWords.map(w => w.text).join(' '),
-      fullText: mergedWords.map(w => w.text).join(' '),
+      subtitle: mergedWords.map((w) => w.text).join(' '),
+      fullText: mergedWords.map((w) => w.text).join(' '),
       duration: this.formatDuration(this.calculateDuration(mergedWords)),
     }
 
@@ -841,16 +835,13 @@ export class UnifiedClipProcessor {
     let bufferWidth = 0
 
     for (const clip of clips) {
-      const clipText = clip.words.map(w => w.text).join(' ')
-      const clipWidth = this.textMeasurer.measureTextWidth(
-        clipText,
-        {
-          fontFamily: config.fontFamily!,
-          fontSizeRel: config.fontSizeRel!,
-          videoWidth: config.videoWidth!,
-          videoHeight: config.videoHeight!,
-        }
-      )
+      const clipText = clip.words.map((w) => w.text).join(' ')
+      const clipWidth = this.textMeasurer.measureTextWidth(clipText, {
+        fontFamily: config.fontFamily!,
+        fontSizeRel: config.fontSizeRel!,
+        videoWidth: config.videoWidth!,
+        videoHeight: config.videoHeight!,
+      })
 
       if (buffer.length > 0) {
         const spaceWidth = this.textMeasurer.measureTextWidth(' ', {
@@ -902,8 +893,8 @@ export class UnifiedClipProcessor {
       ...originalClip,
       id: clipId,
       words: updatedWords,
-      subtitle: words.map(w => w.text).join(' '),
-      fullText: words.map(w => w.text).join(' '),
+      subtitle: words.map((w) => w.text).join(' '),
+      fullText: words.map((w) => w.text).join(' '),
       duration: this.formatDuration(duration),
       startTime: words[0]?.start,
       endTime: words[words.length - 1]?.end,
@@ -959,7 +950,7 @@ export const splitSelectedClip = (
   clips: ClipItem[],
   clipId: string
 ): ClipItem[] => {
-  const clipIndex = clips.findIndex(clip => clip.id === clipId)
+  const clipIndex = clips.findIndex((clip) => clip.id === clipId)
   if (clipIndex === -1) {
     throw new Error('나눌 클립을 찾을 수 없습니다.')
   }
@@ -985,7 +976,7 @@ export const mergeClips = (
   selectedIds: string[]
 ): ClipItem => {
   const selectedClips = selectedIds
-    .map(id => clips.find(c => c.id === id))
+    .map((id) => clips.find((c) => c.id === id))
     .filter(Boolean) as ClipItem[]
 
   const merged = clipProcessor.merge(selectedClips, MergeMode.MANUAL)
@@ -1004,18 +995,18 @@ export const mergeSelectedClips = (
   const allSelectedIds = Array.from(new Set([...selectedIds, ...checkedIds]))
 
   const selectedClips = allSelectedIds
-    .map(id => clips.find(c => c.id === id))
+    .map((id) => clips.find((c) => c.id === id))
     .filter(Boolean) as ClipItem[]
 
   const merged = clipProcessor.merge(selectedClips, MergeMode.MANUAL)
 
   const firstSelectedIndex = Math.min(
     ...allSelectedIds
-      .map(id => clips.findIndex(clip => clip.id === id))
-      .filter(index => index !== -1)
+      .map((id) => clips.findIndex((clip) => clip.id === id))
+      .filter((index) => index !== -1)
   )
 
-  const newClips = clips.filter(clip => !allSelectedIds.includes(clip.id))
+  const newClips = clips.filter((clip) => !allSelectedIds.includes(clip.id))
   newClips.splice(firstSelectedIndex, 0, ...merged)
 
   return newClips.map((clip, index) => ({
@@ -1034,7 +1025,12 @@ export { areClipsConsecutive } from './clipMerger'
 
 ```typescript
 // 추가 imports
-import { clipProcessor, SplitMode, MergeMode, ProcessorConfig } from '@/utils/editor/UnifiedClipProcessor'
+import {
+  clipProcessor,
+  SplitMode,
+  MergeMode,
+  ProcessorConfig,
+} from '@/utils/editor/UnifiedClipProcessor'
 
 export interface ClipSlice {
   // ... existing fields ...
@@ -1064,9 +1060,14 @@ export interface ClipSlice {
 const createClipSlice = (set, get) => ({
   // ... existing implementation ...
 
-  splitClipUnified: (clipId, mode = SplitMode.MANUAL_HALF, config, position) => {
+  splitClipUnified: (
+    clipId,
+    mode = SplitMode.MANUAL_HALF,
+    config,
+    position
+  ) => {
     const state = get()
-    const clipIndex = state.clips.findIndex(c => c.id === clipId)
+    const clipIndex = state.clips.findIndex((c) => c.id === clipId)
     if (clipIndex === -1) return
 
     const clip = state.clips[clipIndex]
@@ -1076,7 +1077,7 @@ const createClipSlice = (set, get) => ({
     newClips.splice(clipIndex, 1, ...splitClips)
 
     set({
-      clips: clipProcessor.reorderClipNumbers(newClips)
+      clips: clipProcessor.reorderClipNumbers(newClips),
     })
 
     // 시나리오 업데이트 트리거
@@ -1086,22 +1087,23 @@ const createClipSlice = (set, get) => ({
   mergeClipsUnified: (clipIds, mode = MergeMode.MANUAL, config) => {
     const state = get()
     const selectedClips = clipIds
-      .map(id => state.clips.find(c => c.id === id))
+      .map((id) => state.clips.find((c) => c.id === id))
       .filter(Boolean) as ClipItem[]
 
     if (selectedClips.length === 0) return
 
     const merged = clipProcessor.merge(selectedClips, mode, config)
     const firstIndex = Math.min(
-      ...clipIds.map(id => state.clips.findIndex(c => c.id === id))
-        .filter(i => i !== -1)
+      ...clipIds
+        .map((id) => state.clips.findIndex((c) => c.id === id))
+        .filter((i) => i !== -1)
     )
 
-    const newClips = state.clips.filter(c => !clipIds.includes(c.id))
+    const newClips = state.clips.filter((c) => !clipIds.includes(c.id))
     newClips.splice(firstIndex, 0, ...merged)
 
     set({
-      clips: clipProcessor.reorderClipNumbers(newClips)
+      clips: clipProcessor.reorderClipNumbers(newClips),
     })
 
     // 시나리오 업데이트 트리거
@@ -1113,8 +1115,10 @@ const createClipSlice = (set, get) => ({
     const currentScenario = state.currentScenario
 
     // 현재 폰트 설정 가져오기
-    const fontFamily = currentScenario?.tracks?.[0]?.defaultStyle?.fontFamily ?? 'Arial'
-    const fontSizeRel = currentScenario?.tracks?.[0]?.defaultStyle?.fontSizeRel ?? 0.07
+    const fontFamily =
+      currentScenario?.tracks?.[0]?.defaultStyle?.fontFamily ?? 'Arial'
+    const fontSizeRel =
+      currentScenario?.tracks?.[0]?.defaultStyle?.fontSizeRel ?? 0.07
 
     const mergedConfig: ProcessorConfig = {
       fontFamily,
@@ -1197,16 +1201,19 @@ const EditToolbar = () => {
 ### 마이그레이션 계획
 
 #### Phase 1: 기반 구축 (즉시)
+
 1. `UnifiedClipProcessor` 클래스 구현
 2. `TextMeasurementService` 구현
 3. 레거시 호환성 Wrapper 생성
 
 #### Phase 2: Store 통합 (다음)
+
 1. ClipSlice에 새 메서드 추가
 2. 시나리오 동기화 로직 구현
 3. 기존 UI 동작 테스트
 
 #### Phase 3: UI 업데이트 (마지막)
+
 1. 자동 줄바꿈 버튼 추가
 2. 고급 설정 패널 구현
 3. 사용자 피드백 수집
@@ -1227,13 +1234,13 @@ describe('UnifiedClipProcessor', () => {
 
   it('should split clips by line width correctly', () => {
     const longClip = createLongMockClip()
-    const result = clipProcessor.split(
-      longClip,
-      SplitMode.AUTO_LINE_BREAK,
-      { fontSizeRel: 0.07, videoWidth: 1920, videoHeight: 1080 }
-    )
+    const result = clipProcessor.split(longClip, SplitMode.AUTO_LINE_BREAK, {
+      fontSizeRel: 0.07,
+      videoWidth: 1920,
+      videoHeight: 1080,
+    })
 
-    result.forEach(clip => {
+    result.forEach((clip) => {
       const width = measureClipWidth(clip)
       expect(width).toBeLessThanOrEqual(MAX_SAFE_WIDTH)
     })
@@ -1241,13 +1248,11 @@ describe('UnifiedClipProcessor', () => {
 
   it('should merge short clips automatically', () => {
     const shortClips = createShortMockClips()
-    const result = clipProcessor.merge(
-      shortClips,
-      MergeMode.AUTO_SHORT,
-      { minClipDuration: 0.5 }
-    )
+    const result = clipProcessor.merge(shortClips, MergeMode.AUTO_SHORT, {
+      minClipDuration: 0.5,
+    })
 
-    result.forEach(clip => {
+    result.forEach((clip) => {
       const duration = calculateClipDuration(clip)
       expect(duration).toBeGreaterThanOrEqual(0.5)
     })

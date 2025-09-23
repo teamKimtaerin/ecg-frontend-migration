@@ -46,7 +46,6 @@ class RenderService {
    */
   async createRenderJob(request: RenderRequest): Promise<CreateRenderResponse> {
     try {
-
       const token = useAuthStore.getState().token
       console.log('3. Auth token exists:', !!token)
       console.log(

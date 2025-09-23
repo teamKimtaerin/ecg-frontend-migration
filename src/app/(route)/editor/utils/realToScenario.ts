@@ -169,6 +169,5 @@ export function buildScenarioFromReal(
     cues,
   }
 
-
   return config
 }

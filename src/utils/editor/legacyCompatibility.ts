@@ -21,7 +21,7 @@ export const splitSelectedClip = (
   clips: ClipItem[],
   clipId: string
 ): ClipItem[] => {
-  const clipIndex = clips.findIndex(clip => clip.id === clipId)
+  const clipIndex = clips.findIndex((clip) => clip.id === clipId)
   if (clipIndex === -1) {
     throw new Error('나눌 클립을 찾을 수 없습니다.')
   }
@@ -47,7 +47,7 @@ export const mergeClips = (
   selectedIds: string[]
 ): ClipItem => {
   const selectedClips = selectedIds
-    .map(id => clips.find(c => c.id === id))
+    .map((id) => clips.find((c) => c.id === id))
     .filter(Boolean) as ClipItem[]
 
   const merged = clipProcessor.merge(selectedClips, MergeMode.MANUAL)
@@ -66,18 +66,18 @@ export const mergeSelectedClips = (
   const allSelectedIds = Array.from(new Set([...selectedIds, ...checkedIds]))
 
   const selectedClips = allSelectedIds
-    .map(id => clips.find(c => c.id === id))
+    .map((id) => clips.find((c) => c.id === id))
     .filter(Boolean) as ClipItem[]
 
   const merged = clipProcessor.merge(selectedClips, MergeMode.MANUAL)
 
   const firstSelectedIndex = Math.min(
     ...allSelectedIds
-      .map(id => clips.findIndex(clip => clip.id === id))
-      .filter(index => index !== -1)
+      .map((id) => clips.findIndex((clip) => clip.id === id))
+      .filter((index) => index !== -1)
   )
 
-  const newClips = clips.filter(clip => !allSelectedIds.includes(clip.id))
+  const newClips = clips.filter((clip) => !allSelectedIds.includes(clip.id))
   newClips.splice(firstSelectedIndex, 0, ...merged)
 
   return newClips.map((clip, index) => ({

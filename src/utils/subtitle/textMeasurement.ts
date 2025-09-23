@@ -52,7 +52,9 @@ export class TextMeasurementService {
       // 대략적인 문자 너비 계산 (한글은 더 넓게)
       const koreanChars = text.match(/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/g)?.length || 0
       const otherChars = text.length - koreanChars
-      return (koreanChars * pixelFontSize * 0.9) + (otherChars * pixelFontSize * 0.6)
+      return (
+        koreanChars * pixelFontSize * 0.9 + otherChars * pixelFontSize * 0.6
+      )
     }
 
     const pixelFontSize = this.calculatePixelFontSize(

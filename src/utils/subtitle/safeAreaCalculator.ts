@@ -125,7 +125,8 @@ export function extractSafeAreaFromScenario(scenario?: RendererConfigV2): {
   }
 
   // 2순위: stage의 safeArea
-  const stageSafeArea = (scenario.stage as Record<string, unknown>)?.safeArea as
+  const stageSafeArea = (scenario.stage as Record<string, unknown>)
+    ?.safeArea as
     | { top?: number; bottom?: number; left?: number; right?: number }
     | undefined
   if (stageSafeArea) {

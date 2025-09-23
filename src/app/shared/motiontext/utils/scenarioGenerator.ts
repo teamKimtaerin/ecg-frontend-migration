@@ -259,8 +259,8 @@ export function computeTimeOffsetSeconds(
   const b0 = Number(baseTime[0] || 0)
   const b1 = Number(baseTime[1] || 0)
   // Allow negative offsets: timing - baseTime
-  const s = Number(absStartSec ?? b0) - b0  // timing.start - baseTime.start
-  const e = Number(absEndSec ?? b1) - b1    // timing.end - baseTime.end
+  const s = Number(absStartSec ?? b0) - b0 // timing.start - baseTime.start
+  const e = Number(absEndSec ?? b1) - b1 // timing.end - baseTime.end
   return { baseTime: [b0, b1], timeOffset: [s, e] }
 }
 

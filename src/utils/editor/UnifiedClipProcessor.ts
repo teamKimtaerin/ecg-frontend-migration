@@ -4,15 +4,15 @@ import { TextMeasurementService } from '../subtitle/textMeasurement'
 import { calculateMaxWidthForFontSize } from '../subtitle/safeAreaCalculator'
 
 export enum SplitMode {
-  MANUAL_HALF = 'manual_half',      // 기존 수동 절반 분할
+  MANUAL_HALF = 'manual_half', // 기존 수동 절반 분할
   MANUAL_POSITION = 'manual_position', // 특정 위치에서 분할
   AUTO_LINE_BREAK = 'auto_line_break', // 자동 줄바꿈 분할
-  AUTO_DURATION = 'auto_duration',     // 길이 기반 분할
+  AUTO_DURATION = 'auto_duration', // 길이 기반 분할
 }
 
 export enum MergeMode {
-  MANUAL = 'manual',           // 수동 선택 병합
-  AUTO_SHORT = 'auto_short',   // 짧은 클립 자동 병합
+  MANUAL = 'manual', // 수동 선택 병합
+  AUTO_SHORT = 'auto_short', // 짧은 클립 자동 병합
   AUTO_SPEAKER = 'auto_speaker', // 같은 화자 자동 병합
 }
 
@@ -126,19 +126,15 @@ export class UnifiedClipProcessor {
 
     for (const op of operations) {
       if (op.type === 'split') {
-        result = result.flatMap(clip => {
+        result = result.flatMap((clip) => {
           if (op.filter && !op.filter(clip)) {
             return [clip]
           }
           return this.split(clip, op.mode as SplitMode, op.config)
         })
       } else if (op.type === 'merge') {
-        const toMerge = op.filter
-          ? result.filter(op.filter)
-          : result
-        const notToMerge = op.filter
-          ? result.filter(c => !op.filter!(c))
-          : []
+        const toMerge = op.filter ? result.filter(op.filter) : result
+        const notToMerge = op.filter ? result.filter((c) => !op.filter!(c)) : []
         const merged = this.merge(toMerge, op.mode as MergeMode, op.config)
         result = [...notToMerge, ...merged]
       }
@@ -214,9 +210,10 @@ export class UnifiedClipProcessor {
         word.text,
         measureConfig
       )
-      const spaceWidth = currentWords.length > 0
-        ? this.textMeasurer.measureTextWidth(' ', measureConfig)
-        : 0
+      const spaceWidth =
+        currentWords.length > 0
+          ? this.textMeasurer.measureTextWidth(' ', measureConfig)
+          : 0
       const totalWidth = currentWidth + spaceWidth + wordWidth
 
       if (totalWidth > maxWidth && currentWords.length > 0) {
@@ -243,10 +240,7 @@ export class UnifiedClipProcessor {
   /**
    * 길이 기반 분할
    */
-  private splitByDuration(
-    clip: ClipItem,
-    config: ProcessorConfig
-  ): ClipItem[] {
+  private splitByDuration(clip: ClipItem, config: ProcessorConfig): ClipItem[] {
     const maxDuration = config.maxClipDuration || 5
     const clipDuration = this.calculateDuration(clip.words)
 
@@ -274,15 +268,15 @@ export class UnifiedClipProcessor {
     if (clips.length === 1) return clips
 
     // Word ID는 유지 - 애니메이션 트랙 보존을 위해
-    const mergedWords = clips.flatMap(clip => clip.words)
+    const mergedWords = clips.flatMap((clip) => clip.words)
 
     const firstClip = clips[0]
     const mergedClip: ClipItem = {
       ...firstClip,
       id: `merged_${Date.now()}`,
       words: mergedWords,
-      subtitle: mergedWords.map(w => w.text).join(' '),
-      fullText: mergedWords.map(w => w.text).join(' '),
+      subtitle: mergedWords.map((w) => w.text).join(' '),
+      fullText: mergedWords.map((w) => w.text).join(' '),
       duration: this.formatDuration(this.calculateDuration(mergedWords)),
       startTime: mergedWords[0]?.start,
       endTime: mergedWords[mergedWords.length - 1]?.end,
@@ -385,16 +379,13 @@ export class UnifiedClipProcessor {
     let bufferWidth = 0
 
     for (const clip of clips) {
-      const clipText = clip.words.map(w => w.text).join(' ')
-      const clipWidth = this.textMeasurer.measureTextWidth(
-        clipText,
-        {
-          fontFamily: config.fontFamily!,
-          fontSizeRel: config.fontSizeRel!,
-          videoWidth: config.videoWidth!,
-          videoHeight: config.videoHeight!,
-        }
-      )
+      const clipText = clip.words.map((w) => w.text).join(' ')
+      const clipWidth = this.textMeasurer.measureTextWidth(clipText, {
+        fontFamily: config.fontFamily!,
+        fontSizeRel: config.fontSizeRel!,
+        videoWidth: config.videoWidth!,
+        videoHeight: config.videoHeight!,
+      })
 
       if (buffer.length > 0) {
         const spaceWidth = this.textMeasurer.measureTextWidth(' ', {
@@ -444,8 +435,8 @@ export class UnifiedClipProcessor {
       ...originalClip,
       id: clipId,
       words: updatedWords,
-      subtitle: words.map(w => w.text).join(' '),
-      fullText: words.map(w => w.text).join(' '),
+      subtitle: words.map((w) => w.text).join(' '),
+      fullText: words.map((w) => w.text).join(' '),
       duration: this.formatDuration(duration),
       startTime: words[0]?.start,
       endTime: words[words.length - 1]?.end,

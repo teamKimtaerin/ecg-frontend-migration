@@ -71,7 +71,7 @@ export const autofillProviders = {
       searchedPatterns: [`clip-${segmentId}`, `clip-${segmentId}_split_*`],
       clip: clip ? { id: clip.id, speaker: clip.speaker } : null,
       speaker: clip?.speaker,
-      allClipIds: store.clips.map(c => c.id), // Debug: show all clip IDs
+      allClipIds: store.clips.map((c) => c.id), // Debug: show all clip IDs
     })
 
     return clip?.speaker || null

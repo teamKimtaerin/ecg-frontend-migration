@@ -343,7 +343,6 @@ export default function EditorMotionTextOverlay({
       cues,
     }
 
-
     // Safety check: ensure all cues have valid plugin chains
     const validCues = cues.filter((cue, index) => {
       const children = cue.root?.children as
@@ -520,7 +519,12 @@ export default function EditorMotionTextOverlay({
     const config = buildInitialScenario(activeClips, {
       position: { x: 0.5, y: subtitlePosition === 'top' ? 0.15 : 0.925 },
       anchor: 'bc',
-      fontSizeRel: subtitleSize === 'small' ? 0.035 : subtitleSize === 'large' ? 0.07 : 0.05,
+      fontSizeRel:
+        subtitleSize === 'small'
+          ? 0.035
+          : subtitleSize === 'large'
+            ? 0.07
+            : 0.05,
       baseAspect: '16:9',
     })
 
