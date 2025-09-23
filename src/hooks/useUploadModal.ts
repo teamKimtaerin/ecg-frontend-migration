@@ -1,30 +1,38 @@
 'use client'
 
-import { useState, useCallback, useRef } from 'react'
-import { useRouter } from 'next/navigation'
-import { uploadService } from '@/services/api/uploadService'
 import { useEditorStore } from '@/app/(route)/editor/store'
-import {
-  UploadFormData,
-  UploadStep,
-  ProcessingStatus,
-  ProcessingResult,
-  SegmentData,
-} from '@/services/api/types/upload.types'
 import { ClipItem, Word } from '@/app/(route)/editor/types'
 import { ProjectData } from '@/app/(route)/editor/types/project'
-import { projectStorage } from '@/utils/storage/projectStorage'
-import { log } from '@/utils/logger'
 import API_CONFIG from '@/config/api.config'
 import { useProgressStore } from '@/lib/store/progressStore'
-import { getSpeakerColorByIndex } from '@/utils/editor/speakerColors'
 import {
+  ProcessingResult,
+  ProcessingStatus,
+  SegmentData,
+  UploadFormData,
+  UploadStep,
+} from '@/services/api/types/upload.types'
+import { uploadService } from '@/services/api/uploadService'
+import { getSpeakerColorByIndex } from '@/utils/editor/speakerColors'
+import { log } from '@/utils/logger'
+import {
+  ensureMinimumSpeakers,
   extractSpeakersFromClips,
   normalizeSpeakerList,
-  ensureMinimumSpeakers,
   normalizeSpeakerMapping,
 } from '@/utils/speaker/speakerUtils'
 import { useWaveformGeneration } from '@/hooks/useWaveformGeneration'
+import { projectStorage } from '@/utils/storage/projectStorage'
+import { useRouter } from 'next/navigation'
+import { useCallback, useRef, useState } from 'react'
+
+export interface VideoMetadata {
+  duration?: number
+  size?: number
+  width?: number
+  height?: number
+  fps?: number
+}
 
 export interface UploadModalState {
   isOpen: boolean
@@ -35,6 +43,9 @@ export interface UploadModalState {
   estimatedTimeRemaining?: number
   fileName?: string
   videoUrl?: string // S3 업로드된 비디오 URL 저장
+  videoFile?: File // 원본 비디오 파일
+  videoThumbnail?: string // 비디오 썸네일 URL
+  videoMetadata?: VideoMetadata // 비디오 메타데이터
   error?: string
 }
 
@@ -122,8 +133,19 @@ export const useUploadModal = () => {
     // 전역 폴링은 유지하고, progress task도 유지 (다른 페이지에서 확인 가능하도록)
     // Progress store task는 제거하지 않음
 
-    // 완전한 초기 상태로 리셋 (isOpen은 false로 설정)
-    setState(() => getInitialModalState())
+    updateState({
+      isOpen: false,
+      step: 'select',
+      uploadProgress: 0,
+      processingProgress: 0,
+      currentStage: undefined,
+      estimatedTimeRemaining: undefined,
+      fileName: undefined,
+      videoFile: undefined,
+      videoThumbnail: undefined,
+      videoMetadata: undefined,
+      error: undefined,
+    })
     setCurrentJobId(undefined)
     setCurrentProgressTaskId(undefined)
 
@@ -136,6 +158,26 @@ export const useUploadModal = () => {
       if (files.length > 0) {
         updateState({ fileName: files[0].name })
       }
+    },
+    [updateState]
+  )
+
+  // 비디오 정보 설정 함수
+  const setVideoInfo = useCallback(
+    (file: File, thumbnailUrl?: string, metadata?: VideoMetadata) => {
+      console.log('🎬 useUploadModal.setVideoInfo called:', {
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
+        thumbnailUrl: thumbnailUrl ? 'present' : 'missing',
+        metadata: metadata || 'missing',
+      })
+      updateState({
+        videoFile: file,
+        videoThumbnail: thumbnailUrl,
+        videoMetadata: metadata,
+        fileName: file.name,
+      })
     },
     [updateState]
   )
@@ -183,6 +225,7 @@ export const useUploadModal = () => {
           videoName: data.file.name,
           videoType: data.file.type,
           videoDuration: 0, // Duration은 비디오 로드 후 자동 설정
+          videoThumbnail: state.videoThumbnail, // 업로드 시 생성된 썸네일 저장
         })
         console.log('[VIDEO REPLACEMENT DEBUG] Media info set successfully:', {
           videoUrl: blobUrl,
@@ -704,6 +747,7 @@ export const useUploadModal = () => {
             videoUrl: resolvedVideoUrl, // ✅ 안정적으로 해결된 URL 사용!
             videoName: state.fileName,
             videoType: 'video/mp4',
+            videoThumbnail: state.videoThumbnail, // 썸네일 유지
           })
 
           // 빈 프로젝트도 생성 및 저장 (중요: videoUrl 포함!)
@@ -776,10 +820,10 @@ export const useUploadModal = () => {
         // 메타데이터 업데이트 (Blob URL 유지!)
         setMediaInfo({
           videoDuration: videoDuration || 0,
-
           videoUrl: resolvedVideoUrl, // ✅ 안정적으로 해결된 URL 사용!
           videoName: state.fileName,
           videoType: 'video/mp4', // 타입 명시
+          videoThumbnail: state.videoThumbnail, // 썸네일 유지
         })
         setClips(clips)
 
@@ -1041,6 +1085,7 @@ export const useUploadModal = () => {
     openModal,
     closeModal,
     handleFileSelect,
+    setVideoInfo,
     handleStartTranscription,
     goToEditor,
     cancelProcessing,

@@ -1,12 +1,8 @@
 'use client'
 
-import React, { useState, useRef, useEffect } from 'react'
+import { useProgressTasks } from '@/hooks/useProgressTasks'
+import React, { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import {
-  useProgressTasks,
-  ExportTask,
-  UploadTask,
-} from '@/hooks/useProgressTasks'
 
 export interface DocumentModalProps {
   isOpen: boolean
@@ -91,8 +87,8 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
           onClick={() => setActiveTab('upload')}
           className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
             activeTab === 'upload'
-              ? 'text-black border-b-2 border-black bg-gray-50'
-              : 'text-gray-600 hover:text-black'
+              ? 'text-black border-b-2 border-black'
+              : 'text-gray-600 hover:text-black bg-gray-50'
           }`}
         >
           업로드
@@ -101,8 +97,8 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
           onClick={() => setActiveTab('export')}
           className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
             activeTab === 'export'
-              ? 'text-black border-b-2 border-black bg-gray-50'
-              : 'text-gray-600 hover:text-black'
+              ? 'text-black border-b-2 border-black'
+              : 'text-gray-600 hover:text-black bg-gray-50'
           }`}
         >
           내보내기

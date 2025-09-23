@@ -8,7 +8,7 @@ ECG (Easy Caption Generator) Frontend - A powerful subtitle editing tool built w
 
 ### Tech Stack
 
-- **Framework**: Next.js 15.5.2 with App Router
+- **Framework**: Next.js 15.5.3 with App Router
 - **Language**: TypeScript 5
 - **UI Library**: React 19.1.1
 - **Styling**: TailwindCSS v4 with PostCSS
@@ -35,6 +35,7 @@ yarn format      # Format code with Prettier
 yarn format:check # Check code formatting
 yarn type-check  # TypeScript type checking
 yarn gen:scenario # Generate scenario from real.json
+yarn prepare     # Setup husky git hooks
 ```
 
 ### Testing Commands
@@ -85,7 +86,7 @@ src/
 │   ├── icons/           # Centralized Lucide icon wrappers
 │   └── DnD/             # Drag & drop components
 ├── lib/
-│   ├── store/           # Global stores (authStore)
+│   ├── store/           # Global stores (authStore, toastTimerStore)
 │   └── utils/           # Utility functions
 │       └── colors.ts    # Color system utilities
 ├── services/            # API services
@@ -118,7 +119,8 @@ store/
     ├── scenarioSlice.ts # Animation scenario management
     ├── indexSlice.ts    # Index management for clips
     ├── textInsertionSlice.ts # Text insertion overlay state
-    └── timelineSlice.ts # Timeline and playback state
+    ├── timelineSlice.ts # Timeline and playback state
+    └── virtualTimelineSlice.ts # Virtual timeline functionality
 ```
 
 ### Animation Plugin System
@@ -179,7 +181,7 @@ Audio metadata in `public/real.json` drives dynamic animations:
 ```
 EditorPage
 ├── EditorHeaderTabs
-├── Toolbar
+├── Toolbar (Advanced) / SimpleToolbar (Simple)
 ├── VideoSection
 │   ├── VideoPlayer
 │   └── SubtitleOverlay
@@ -190,11 +192,23 @@ EditorPage
 │       ├── ClipSpeaker
 │       ├── ClipWords
 │       └── ClipText
-├── AnimationAssetSidebar
-│   ├── AssetGrid
-│   ├── AssetControlPanel
-│   └── UsedAssetsStrip
-└── SelectionBox
+├── Right Sidebar (Conditional)
+│   ├── AnimationAssetSidebar
+│   │   ├── AssetGrid
+│   │   ├── AssetControlPanel
+│   │   └── UsedAssetsStrip
+│   ├── TemplateSidebar
+│   └── SpeakerManagementSidebar
+├── SelectionBox
+├── ChatBotContainer
+│   ├── ChatBotFloatingButton
+│   ├── ChatMessage
+│   └── FloatingQuestion
+└── Various Modals
+    ├── ProcessingModal
+    ├── PlatformSelectionModal
+    ├── DeployModal
+    └── TutorialModal
 ```
 
 ## 💡 Development Guidelines
@@ -234,6 +248,35 @@ All icons are centralized in `components/icons/`:
 import { ChevronDownIcon, InfoIcon } from '@/components/icons'
 ```
 
+### ProcessingModal Enhancements
+
+Recent improvements to ProcessingModal include video thumbnail display:
+
+```typescript
+// Extended props interface
+interface VideoMetadata {
+  duration?: number
+  size?: number
+  width?: number
+  height?: number
+  fps?: number
+}
+
+interface ProcessingModalProps {
+  // ... existing props
+  videoFile?: File // For automatic thumbnail generation
+  videoThumbnail?: string // Pre-generated thumbnail URL
+  videoMetadata?: VideoMetadata // Video information display
+}
+```
+
+**Features:**
+
+- Automatic thumbnail generation from video files using `generateVideoThumbnail`
+- Video metadata display (size, duration, resolution, FPS)
+- Graceful fallback to emoji placeholder when thumbnail generation fails
+- Proper resource cleanup and error handling
+
 ### Plugin Development
 
 When creating animation plugins:
@@ -244,6 +287,37 @@ When creating animation plugins:
 4. Use GSAP for animations
 5. Ensure proper cleanup in `dispose()`
 
+### Windows Development Notes
+
+#### Webpack Cache Issues
+
+If you encounter `EPERM: operation not permitted, rename` errors on Windows:
+
+1. **Clear Cache Directories**:
+
+   ```bash
+   # Remove webpack cache
+   rm -rf .next/cache
+   rm -rf node_modules/.cache
+   ```
+
+2. **Restart Development Server**:
+
+   ```bash
+   # Kill existing process and restart
+   yarn dev
+   ```
+
+3. **Antivirus Exclusions** (if issues persist):
+   - Add project folder to Windows Defender exclusions
+   - Exclude from real-time scanning
+
+#### File System Access API
+
+- Modern browsers support direct file saving without downloads
+- Used in GPU rendering for automatic video export
+- Graceful fallback to traditional downloads
+
 ### Key Features
 
 1. **Multi-Selection System**: Checkbox selection with group operations
@@ -251,8 +325,11 @@ When creating animation plugins:
 3. **Audio-Driven Effects**: Dynamic animations based on audio analysis
 4. **Real-time Preview**: Live animation preview with controls
 5. **Speaker Management**: Auto-detection and manual assignment
-6. **Undo/Redo**: Command pattern implementation
+6. **Undo/Redo**: Command pattern implementation for all operations
 7. **Automatic Line Splitting**: Smart line breaks based on safe area calculation and fontSizeRel
+8. **AI ChatBot Integration**: Contextual assistance with floating UI components
+9. **GPU Rendering**: Server-side rendering for 20-40x performance improvement
+10. **File System Access API**: Direct file saving without downloads
 
 ## 🚀 GPU Rendering System
 
