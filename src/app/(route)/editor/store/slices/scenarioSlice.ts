@@ -46,6 +46,9 @@ export interface ScenarioSlice {
 
   // Set scenario from arbitrary JSON (editor apply)
   setScenarioFromJson: (config: RendererConfigV2) => void
+
+  // Clear scenario (for reset)
+  clearScenario: () => void
 }
 
 export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
@@ -485,6 +488,14 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
       currentScenario: config,
       nodeIndex: index,
       scenarioVersion: (get().scenarioVersion || 0) + 1,
+    })
+  },
+
+  clearScenario: () => {
+    set({
+      currentScenario: null,
+      nodeIndex: {},
+      scenarioVersion: 0,
     })
   },
 })
