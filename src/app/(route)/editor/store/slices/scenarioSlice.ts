@@ -190,8 +190,8 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
       ...cue,
       root: {
         ...cue.root,
-        children: [...(cue.root.children || [])]
-      }
+        children: [...(cue.root.children || [])],
+      },
     }
 
     // Create a new node object with updated pluginChain and style
@@ -201,7 +201,7 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
       style: {
         ...(node.style || {}),
         opacity: pluginChain.length > 0 ? 1 : (node.style?.opacity ?? 0),
-      }
+      },
     }
 
     // Replace the specific node in the children array

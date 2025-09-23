@@ -1372,7 +1372,10 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
         const anyGet = get() as any
         anyGet.refreshWordPluginChain?.(wordId)
       } catch (error) {
-        console.warn('Failed to refresh plugin chain after async track addition:', error)
+        console.warn(
+          'Failed to refresh plugin chain after async track addition:',
+          error
+        )
       }
     }, 0)
   },
