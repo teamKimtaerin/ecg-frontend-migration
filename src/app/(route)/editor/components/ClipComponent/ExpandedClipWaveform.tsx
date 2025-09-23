@@ -4,6 +4,7 @@ import { useEditorStore } from '../../store'
 import { IoPlay, IoPause, IoArrowUndo, IoArrowRedo } from 'react-icons/io5'
 import { Word } from './types'
 import { createParameterDebounce } from '../../utils/animationHelpers'
+import { getSegmentPeaks, smoothWaveformPeaks, WaveformData } from '@/utils/audio/waveformExtractor'
 
 interface ExpandedClipWaveformProps {
   words: Word[]
@@ -38,75 +39,48 @@ function gaussianSmooth(data: number[], radius: number = 3): number[] {
   return smoothed
 }
 
-// Load and process audio data from real.json for a specific time range
-async function loadRangeAudioData(
+// Extract real waveform data for a specific time range from global waveform
+function extractRangeWaveformData(
   startTime: number,
   endTime: number,
-  displayWords: Word[]
-) {
+  globalWaveformData: WaveformData | null // WaveformData from store
+): number[] {
   try {
-    const response = await fetch('/real.json')
-    const data = await response.json()
-
-    // Extract volume data for the time range
-    const volumeData: number[] = []
-    const sampleRate = 100 // Simulated sample rate (samples per second)
-    const duration = endTime - startTime
-    const totalSamples = Math.max(100, Math.ceil(duration * sampleRate))
-
-    for (let i = 0; i < totalSamples; i++) {
-      const currentTime = startTime + (i / totalSamples) * duration
-
-      // Find the word that contains this time point
-      let currentVolume = -20 // Default volume
-      let currentPitch = 440 // Default pitch for variation
-
-      const containingWord = displayWords.find(
-        (word) => currentTime >= word.start && currentTime <= word.end
-      )
-
-      if (containingWord) {
-        // Find volume data from segments
-        for (const segment of data.segments) {
-          const wordData = segment.words?.find(
-            (w: { word: string; start: number }) =>
-              w.word === containingWord.text &&
-              Math.abs(w.start - containingWord.start) < 0.1
-          )
-          if (wordData && wordData.volume_db !== undefined) {
-            currentVolume = wordData.volume_db
-            currentPitch = wordData.pitch_hz || 440
-            break
-          }
-        }
-      }
-
-      // Add natural variation based on frequency and time
-      const timeOffset = currentTime * 2 * Math.PI
-      const naturalVariation =
-        Math.sin((timeOffset * currentPitch) / 1000) * 0.3 + // Primary frequency component
-        Math.sin((timeOffset * currentPitch) / 500) * 0.2 + // Harmonic
-        Math.sin(timeOffset * 0.5) * 0.1 // Low frequency modulation
-
-      volumeData.push(currentVolume + naturalVariation)
+    if (!globalWaveformData || !globalWaveformData.peaks || globalWaveformData.peaks.length === 0) {
+      console.warn('No global waveform data available, generating fallback')
+      // Generate fallback waveform data with smooth transitions
+      const duration = endTime - startTime
+      const totalSamples = Math.max(100, Math.ceil(duration * 100)) // 100 samples per second
+      const fallbackData = Array.from({ length: totalSamples }, (_, i) => {
+        const t = i / totalSamples
+        return (
+          0.3 + 0.4 * Math.sin(t * Math.PI * 8) + 0.2 * Math.sin(t * Math.PI * 20)
+        )
+      })
+      return gaussianSmooth(fallbackData)
     }
 
-    // Apply Gaussian smoothing for even smoother transitions
-    const smoothedData = gaussianSmooth(volumeData, 4)
+    // Extract segment from global waveform data
+    const segmentPeaks = getSegmentPeaks(globalWaveformData, startTime, endTime)
 
-    // Normalize volume data to 0-1 range for waveform peaks
-    const minDb = -45
-    const maxDb = 0
-    const peaks = smoothedData.map((db) => {
-      const normalized = (db - minDb) / (maxDb - minDb)
-      return Math.max(0, Math.min(1, normalized))
+    // Apply smoothing for better visual appearance
+    const smoothedPeaks = smoothWaveformPeaks(segmentPeaks, 2)
+
+    console.log('🎵 Extracted real waveform segment:', {
+      startTime,
+      endTime,
+      duration: endTime - startTime,
+      originalPeaksCount: globalWaveformData.peaks.length,
+      extractedPeaksCount: segmentPeaks.length,
+      smoothedPeaksCount: smoothedPeaks.length
     })
 
-    return peaks
+    return smoothedPeaks
   } catch (error) {
-    console.error('Failed to load audio data:', error)
+    console.error('Failed to extract waveform segment:', error)
     // Generate fallback waveform data with smooth transitions
-    const totalSamples = Math.max(100, Math.ceil((endTime - startTime) * 50))
+    const duration = endTime - startTime
+    const totalSamples = Math.max(100, Math.ceil(duration * 100))
     const fallbackData = Array.from({ length: totalSamples }, (_, i) => {
       const t = i / totalSamples
       return (
@@ -144,6 +118,7 @@ export default function ExpandedClipWaveform({
     isPlaying: isVideoPlaying,
     updateWordBaseTime,
     refreshWordPluginChain,
+    globalWaveformData,
   } = useEditorStore()
 
   // Debounced update functions for high-frequency events (except animation track timing)
@@ -233,12 +208,15 @@ export default function ExpandedClipWaveform({
       }
     }, [focusedWord, words])
 
-  // Load audio data for the focused range
+  // Load audio data for the focused range from global waveform data
   useEffect(() => {
-    loadRangeAudioData(rangeStart, rangeEnd, displayWords).then((data) => {
-      setPeaks(data)
-    })
-  }, [rangeStart, rangeEnd, displayWords])
+    console.log('🎵 Loading waveform data for range:', { rangeStart, rangeEnd, globalWaveformData: !!globalWaveformData })
+
+    const data = extractRangeWaveformData(rangeStart, rangeEnd, globalWaveformData)
+    setPeaks(data)
+
+    console.log('🎵 Waveform peaks loaded:', { peaksCount: data.length, rangeStart, rangeEnd })
+  }, [rangeStart, rangeEnd, globalWaveformData])
 
   // Initialize WaveSurfer
   useEffect(() => {

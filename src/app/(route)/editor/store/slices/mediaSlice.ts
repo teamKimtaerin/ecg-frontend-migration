@@ -4,6 +4,7 @@
 
 import { StateCreator } from 'zustand'
 import { log } from '@/utils/logger'
+import { WaveformData } from '@/utils/audio/waveformExtractor'
 
 export interface MediaState {
   // Media information
@@ -22,6 +23,12 @@ export interface MediaState {
   } | null
   isVideoLoading: boolean
   videoError: string | null
+
+  // Audio waveform state
+  audioBuffer: AudioBuffer | null
+  globalWaveformData: WaveformData | null
+  isWaveformLoading: boolean
+  waveformError: string | null
 
   // Playback state
   currentTime: number
@@ -42,6 +49,13 @@ export interface MediaActions {
   cleanupPreviousBlobUrl: () => void // New action for blob URL cleanup
   setVideoLoading: (loading: boolean) => void
   setVideoError: (error: string | null) => void
+
+  // Audio waveform actions
+  setAudioBuffer: (buffer: AudioBuffer | null) => void
+  setGlobalWaveformData: (data: WaveformData | null) => void
+  setWaveformLoading: (loading: boolean) => void
+  setWaveformError: (error: string | null) => void
+  clearWaveformData: () => void
 
   // Playback actions
   setCurrentTime: (time: number) => void
@@ -67,6 +81,12 @@ const initialState: MediaState = {
   videoMetadata: null,
   isVideoLoading: false,
   videoError: null,
+
+  // Audio waveform state
+  audioBuffer: null,
+  globalWaveformData: null,
+  isWaveformLoading: false,
+  waveformError: null,
 
   // Playback state
   currentTime: 0,
@@ -130,6 +150,9 @@ export const createMediaSlice: StateCreator<MediaSlice> = (set) => ({
         }
       }
 
+      // Clear waveform data
+      log('mediaSlice.ts', 'Clearing waveform data')
+
       return initialState
     })
   },
@@ -165,6 +188,43 @@ export const createMediaSlice: StateCreator<MediaSlice> = (set) => ({
       log('mediaSlice.ts', `Video error: ${error}`)
     }
     set({ videoError: error })
+  },
+
+  // Audio waveform actions
+  setAudioBuffer: (buffer) => {
+    set({ audioBuffer: buffer })
+    log('mediaSlice.ts', `Audio buffer ${buffer ? 'set' : 'cleared'}`)
+  },
+
+  setGlobalWaveformData: (data) => {
+    set({ globalWaveformData: data })
+    if (data) {
+      log('mediaSlice.ts', `Waveform data set: ${data.peaks.length} peaks, ${data.duration.toFixed(2)}s duration`)
+    } else {
+      log('mediaSlice.ts', 'Waveform data cleared')
+    }
+  },
+
+  setWaveformLoading: (loading) => {
+    set({ isWaveformLoading: loading })
+    log('mediaSlice.ts', `Waveform loading: ${loading}`)
+  },
+
+  setWaveformError: (error) => {
+    if (error) {
+      log('mediaSlice.ts', `Waveform error: ${error}`)
+    }
+    set({ waveformError: error })
+  },
+
+  clearWaveformData: () => {
+    set({
+      audioBuffer: null,
+      globalWaveformData: null,
+      isWaveformLoading: false,
+      waveformError: null,
+    })
+    log('mediaSlice.ts', 'All waveform data cleared')
   },
 
   // Playback actions
