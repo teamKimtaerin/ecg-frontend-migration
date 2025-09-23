@@ -728,7 +728,9 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
       ) {
         const clipId = anyGet.getClipIdByWordId?.(wordId)
         if (clipId) {
-          const assetIds = updatedTracks.map((track: AnimationTrack) => track.assetId)
+          const assetIds = updatedTracks.map(
+            (track: AnimationTrack) => track.assetId
+          )
           if (anyGet.applyAssetsToWord) {
             anyGet.applyAssetsToWord(clipId, wordId, assetIds)
           }
@@ -1743,11 +1745,7 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
     }),
 
   removeAnimationFromMultipleWords: (wordIds, assetId) => {
-    const colors: ('blue' | 'green' | 'purple')[] = [
-      'blue',
-      'green',
-      'purple',
-    ]
+    const colors: ('blue' | 'green' | 'purple')[] = ['blue', 'green', 'purple']
 
     // 1. First update the state
     let hasChanges = false
@@ -1801,7 +1799,9 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
           if (anyGet.applyAssetsToWord) {
             const clipId = anyGet.getClipIdByWordId?.(wordId)
             if (clipId) {
-              const assetIds = updatedTracks.map((track: AnimationTrack) => track.assetId)
+              const assetIds = updatedTracks.map(
+                (track: AnimationTrack) => track.assetId
+              )
               anyGet.applyAssetsToWord(clipId, wordId, assetIds)
             }
           }
