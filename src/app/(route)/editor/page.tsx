@@ -540,7 +540,7 @@ export default function EditorPage() {
   const { openDeployModal, deployModalProps } = useDeployModal()
 
   // Get media actions from store
-  const { setMediaInfo } = useEditorStore()
+  const { setMediaInfo, validateAndRestoreBlobUrl } = useEditorStore()
 
   // URL 파라미터에서 deploy 모달 파라미터 감지
   useEffect(() => {
@@ -666,6 +666,7 @@ export default function EditorPage() {
         // Check for project to recover
         const projectId = sessionStorage.getItem('currentProjectId')
         const mediaId = sessionStorage.getItem('currentMediaId')
+        const storedMediaIdFromSession = sessionStorage.getItem('currentStoredMediaId')
         const lastUploadProjectId = sessionStorage.getItem(
           'lastUploadProjectId'
         )
@@ -695,7 +696,7 @@ export default function EditorPage() {
                 )
               }
 
-              // Restore media info - Blob URL 우선 사용
+              // Restore media info - Blob URL 우선 사용, storedMediaId 포함
               if (savedProject.videoUrl) {
                 // 신규 업로드인 경우 유효성 검사 없이 바로 사용
                 setMediaInfo({
@@ -704,6 +705,7 @@ export default function EditorPage() {
                   videoDuration: savedProject.videoDuration,
                   videoType: savedProject.videoType || 'video/mp4',
                   videoMetadata: savedProject.videoMetadata,
+                  storedMediaId: savedProject.storedMediaId, // IndexedDB 미디어 ID 포함
                 })
 
                 log(
@@ -717,6 +719,15 @@ export default function EditorPage() {
                     'EditorPage.tsx',
                     '⚠️ Using Blob URL - may expire on page refresh'
                   )
+
+                  // Blob URL 유효성 검사 및 복원 시도 (백그라운드)
+                  if (savedProject.storedMediaId) {
+                    setTimeout(() => {
+                      validateAndRestoreBlobUrl().catch((error) => {
+                        log('EditorPage.tsx', `Failed to validate blob URL: ${error}`)
+                      })
+                    }, 1000) // 1초 후 검증 시도
+                  }
                 }
               }
             }
@@ -796,7 +807,18 @@ export default function EditorPage() {
                   videoType: savedProject.videoType || null,
                   videoDuration: savedProject.videoDuration || null,
                   videoMetadata: savedProject.videoMetadata || null,
+                  storedMediaId: savedProject.storedMediaId || null, // IndexedDB 미디어 ID 포함
                 })
+
+                // 기존 프로젝트의 경우 blob URL 검증 및 복원 시도
+                if (savedProject.storedMediaId && savedProject.videoUrl?.startsWith('blob:')) {
+                  log('EditorPage.tsx', '🔄 Validating existing project blob URL...')
+                  setTimeout(() => {
+                    validateAndRestoreBlobUrl().catch((error) => {
+                      log('EditorPage.tsx', `Failed to restore blob URL: ${error}`)
+                    })
+                  }, 500) // 0.5초 후 검증 시도
+                }
               }
 
               // Set project in AutosaveManager
@@ -825,6 +847,31 @@ export default function EditorPage() {
             const normalizedClips = normalizeClipOrder(currentProject.clips)
             setClips(normalizedClips)
             autosaveManager.setProject(currentProject.id, 'browser')
+
+            // 미디어 정보 복원 (storedMediaId가 있으면 즉시 복원)
+            if (currentProject.storedMediaId || currentProject.videoUrl || currentProject.mediaId) {
+              log('EditorPage.tsx', '🔄 Restoring media from autosaved project...')
+
+              setMediaInfo({
+                mediaId: currentProject.mediaId || null,
+                videoUrl: currentProject.videoUrl || null,
+                videoName: currentProject.videoName || null,
+                videoType: currentProject.videoType || null,
+                videoDuration: currentProject.videoDuration || null,
+                videoMetadata: currentProject.videoMetadata || null,
+                storedMediaId: currentProject.storedMediaId || null,
+              })
+
+              // storedMediaId가 있으면 즉시 복원 시도
+              if (currentProject.storedMediaId) {
+                log('EditorPage.tsx', `🎬 Attempting immediate media restoration: ${currentProject.storedMediaId}`)
+                setTimeout(() => {
+                  validateAndRestoreBlobUrl().catch((error) => {
+                    log('EditorPage.tsx', `Failed to restore autosaved media: ${error}`)
+                  })
+                }, 100) // 100ms 후 즉시 복원 시도
+              }
+            }
           } else {
             // New project
             const newProjectId = `project_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
@@ -837,6 +884,7 @@ export default function EditorPage() {
         // Clear session storage after recovery
         sessionStorage.removeItem('currentProjectId')
         sessionStorage.removeItem('currentMediaId')
+        sessionStorage.removeItem('currentStoredMediaId')
       } catch (error) {
         console.error('Failed to initialize editor:', error)
         showToast('에디터 초기화에 실패했습니다', 'error')

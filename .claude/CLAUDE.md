@@ -29,6 +29,7 @@ yarn dev         # Start development server (http://localhost:3000)
 yarn build       # Build for production
 yarn build:static # Build for static S3 hosting
 yarn start       # Start production server
+yarn serve       # Serve static build from out/ directory (port 3000)
 yarn lint        # Run ESLint checks
 yarn lint:fix    # Fix linting issues automatically
 yarn format      # Format code with Prettier
@@ -476,3 +477,9 @@ docker build --target prod -t ecg-frontend:prod .
 13. **Error Handling**: Show error messages instead of fallbacks when plugins fail to load
 14. **Pre-push Hook**: Uses `npm run type-check` (not yarn) to validate TypeScript before push
 15. **Testing**: Jest unit tests are configured and working, but Playwright E2E tests are only in CI, not local development
+
+# important-instruction-reminders
+Do what has been asked; nothing more, nothing less.
+NEVER create files unless they're absolutely necessary for achieving your goal.
+ALWAYS prefer editing an existing file to creating a new one.
+NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
