@@ -649,6 +649,14 @@ export default function EditorPage() {
         log('EditorPage.tsx', '⚠️ Failed to clear session storage:', error)
       }
 
+      // 14. Upload Modal 상태 초기화
+      try {
+        uploadModal.closeModal()
+        log('EditorPage.tsx', '✅ Upload modal state reset')
+      } catch (error) {
+        log('EditorPage.tsx', '⚠️ Failed to reset upload modal:', error)
+      }
+
       log('EditorPage.tsx', '✅ Complete editor state reset finished')
       showToast('새 프로젝트가 생성되었습니다', 'success')
 
@@ -672,7 +680,10 @@ export default function EditorPage() {
   // 초기화 확인 핸들러
   const handleResetConfirm = async () => {
     await resetEditorState()
-    uploadModal.openModal()
+    // 상태 초기화가 완전히 완료되도록 약간의 지연 추가
+    setTimeout(() => {
+      uploadModal.openModal()
+    }, 100)
   }
 
   // 초기화 취소 핸들러
