@@ -43,6 +43,7 @@ export const useUploadModal = () => {
     setMediaInfo,
     setClips,
     clearMedia,
+    cleanupPreviousBlobUrl,
     setCurrentProject,
     setSpeakerColors,
     setSpeakers,
@@ -119,8 +120,13 @@ export const useUploadModal = () => {
       try {
         log('useUploadModal', '🚀 Starting upload and transcription process')
 
-        // 기존 데이터 초기화
-        clearMedia() // 이전 영상 정보 제거
+        // 기존 데이터 초기화 (clearMedia는 자동으로 blob URL을 정리함)
+        log(
+          'useUploadModal',
+          '🧹 Cleaning up previous video data and blob URLs'
+        )
+        cleanupPreviousBlobUrl() // 이전 blob URL 먼저 정리
+        clearMedia() // 이전 영상 정보 제거 (내부적으로 blob URL도 정리)
         setClips([]) // 이전 클립 제거
 
         // localStorage에서 이전 프로젝트 완전 제거
@@ -145,16 +151,19 @@ export const useUploadModal = () => {
         })
 
         // 즉시 비디오 플레이어 업데이트 - 업로드 전에 바로 재생 가능!
+        log('useUploadModal', '📺 Setting new video in player with blob URL')
         setMediaInfo({
           videoUrl: blobUrl, // S3 대신 로컬 Blob URL 사용
           videoName: data.file.name,
           videoType: data.file.type,
           videoDuration: 0, // Duration은 비디오 로드 후 자동 설정
         })
-        console.log('[VIDEO DEBUG] Media info set:', {
+        console.log('[VIDEO REPLACEMENT DEBUG] Media info set successfully:', {
           videoUrl: blobUrl,
           videoName: data.file.name,
           videoType: data.file.type,
+          blobUrlPrefix: blobUrl.substring(0, 20) + '...',
+          timestamp: new Date().toISOString(),
         })
 
         // State에도 Blob URL 저장 (S3 업로드 중에도 계속 사용)
@@ -516,7 +525,134 @@ export const useUploadModal = () => {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [updateState, setMediaInfo, clearMedia, setClips, state]
+    [
+      updateState,
+      setMediaInfo,
+      clearMedia,
+      cleanupPreviousBlobUrl,
+      setClips,
+      state,
+    ]
+  )
+
+  // 화자 정보 초기화 헬퍼 함수
+  const initializeSpeakers = useCallback(
+    (clips: ClipItem[], mlSpeakers?: string[]) => {
+      try {
+        // 1. ML 분석에서 받은 화자 목록 정규화
+        const normalizedMLSpeakers = mlSpeakers
+          ? normalizeSpeakerList(mlSpeakers).speakers
+          : []
+
+        // 2. 실제 클립에서 사용된 화자 추출
+        const clipsBasedSpeakers = extractSpeakersFromClips(clips)
+
+        // 3. 두 목록을 병합하고 정규화
+        const allSpeakers = [...normalizedMLSpeakers, ...clipsBasedSpeakers]
+        const { speakers: finalSpeakers, colors: speakerColors } =
+          normalizeSpeakerList(allSpeakers)
+
+        // 4. 최소 1명의 화자 보장
+        const guaranteedSpeakers = ensureMinimumSpeakers(finalSpeakers)
+
+        // 5. 보장된 화자에 대한 색상 재할당
+        const finalColors: Record<string, string> = {}
+        guaranteedSpeakers.forEach((speaker, index) => {
+          finalColors[speaker] = getSpeakerColorByIndex(index)
+        })
+
+        // 6. Store에 화자 정보 설정
+        setSpeakers(guaranteedSpeakers)
+        setSpeakerColors(finalColors)
+
+        log('useUploadModal', `🎨 Initialized speakers:`, {
+          mlSpeakers: mlSpeakers || [],
+          clipsBasedSpeakers,
+          finalSpeakers: guaranteedSpeakers,
+          colors: finalColors,
+        })
+
+        return {
+          speakers: guaranteedSpeakers,
+          colors: finalColors,
+        }
+      } catch (error) {
+        log('useUploadModal', `❌ Failed to initialize speakers: ${error}`)
+
+        // 실패 시 기본 화자 설정
+        const defaultSpeakers = ['화자1']
+        const defaultColors = { 화자1: getSpeakerColorByIndex(0) }
+
+        setSpeakers(defaultSpeakers)
+        setSpeakerColors(defaultColors)
+
+        return {
+          speakers: defaultSpeakers,
+          colors: defaultColors,
+        }
+      }
+    },
+    [setSpeakers, setSpeakerColors]
+  )
+
+  // 화자 정보 초기화 헬퍼 함수
+  const initializeSpeakers = useCallback(
+    (clips: ClipItem[], mlSpeakers?: string[]) => {
+      try {
+        // 1. ML 분석에서 받은 화자 목록 정규화
+        const normalizedMLSpeakers = mlSpeakers
+          ? normalizeSpeakerList(mlSpeakers).speakers
+          : []
+
+        // 2. 실제 클립에서 사용된 화자 추출
+        const clipsBasedSpeakers = extractSpeakersFromClips(clips)
+
+        // 3. 두 목록을 병합하고 정규화
+        const allSpeakers = [...normalizedMLSpeakers, ...clipsBasedSpeakers]
+        const { speakers: finalSpeakers, colors: speakerColors } =
+          normalizeSpeakerList(allSpeakers)
+
+        // 4. 최소 1명의 화자 보장
+        const guaranteedSpeakers = ensureMinimumSpeakers(finalSpeakers)
+
+        // 5. 보장된 화자에 대한 색상 재할당
+        const finalColors: Record<string, string> = {}
+        guaranteedSpeakers.forEach((speaker, index) => {
+          finalColors[speaker] = getSpeakerColorByIndex(index)
+        })
+
+        // 6. Store에 화자 정보 설정
+        setSpeakers(guaranteedSpeakers)
+        setSpeakerColors(finalColors)
+
+        log('useUploadModal', `🎨 Initialized speakers:`, {
+          mlSpeakers: mlSpeakers || [],
+          clipsBasedSpeakers,
+          finalSpeakers: guaranteedSpeakers,
+          colors: finalColors,
+        })
+
+        return {
+          speakers: guaranteedSpeakers,
+          colors: finalColors,
+        }
+      } catch (error) {
+        log('useUploadModal', `❌ Failed to initialize speakers: ${error}`)
+
+        // 실패 시 기본 화자 설정
+        const defaultSpeakers = ['화자1']
+        const defaultColors = { 화자1: getSpeakerColorByIndex(0) }
+
+        setSpeakers(defaultSpeakers)
+        setSpeakerColors(defaultColors)
+
+        return {
+          speakers: defaultSpeakers,
+          colors: defaultColors,
+        }
+      }
+    },
+    [setSpeakers, setSpeakerColors]
   )
 
   // 화자 정보 초기화 헬퍼 함수
