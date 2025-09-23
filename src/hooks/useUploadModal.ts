@@ -178,6 +178,7 @@ export const useUploadModal = () => {
           videoName: data.file.name,
           videoType: data.file.type,
           videoDuration: 0, // Duration은 비디오 로드 후 자동 설정
+          videoThumbnail: state.videoThumbnail, // 업로드 시 생성된 썸네일 저장
         })
         console.log('[VIDEO DEBUG] Media info set:', {
           videoUrl: blobUrl,
@@ -602,6 +603,7 @@ export const useUploadModal = () => {
             videoUrl: resolvedVideoUrl, // ✅ 안정적으로 해결된 URL 사용!
             videoName: state.fileName,
             videoType: 'video/mp4',
+            videoThumbnail: state.videoThumbnail, // 썸네일 유지
           })
 
           // 빈 프로젝트도 생성 및 저장 (중요: videoUrl 포함!)
@@ -672,10 +674,10 @@ export const useUploadModal = () => {
         // 메타데이터 업데이트 (Blob URL 유지!)
         setMediaInfo({
           videoDuration: videoDuration || 0,
-
           videoUrl: resolvedVideoUrl, // ✅ 안정적으로 해결된 URL 사용!
           videoName: state.fileName,
           videoType: 'video/mp4', // 타입 명시
+          videoThumbnail: state.videoThumbnail, // 썸네일 유지
         })
         setClips(clips)
 
