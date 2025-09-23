@@ -18,7 +18,7 @@ interface WorkerResponse {
 }
 
 // Handle messages from main thread
-self.onmessage = async function(e: MessageEvent<GenerateWaveformMessage>) {
+self.onmessage = async function (e: MessageEvent<GenerateWaveformMessage>) {
   const { type, audioBuffer, samplesPerSecond = 100 } = e.data
 
   if (type === 'GENERATE_WAVEFORM') {
@@ -31,13 +31,13 @@ self.onmessage = async function(e: MessageEvent<GenerateWaveformMessage>) {
       console.log('✅ Worker: Waveform generation completed', {
         duration: waveformData.duration,
         peaksCount: waveformData.peaks.length,
-        sampleRate: waveformData.sampleRate
+        sampleRate: waveformData.sampleRate,
       })
 
       // Send result back to main thread
       const response: WorkerResponse = {
         type: 'WAVEFORM_GENERATED',
-        data: waveformData
+        data: waveformData,
       }
 
       self.postMessage(response)
@@ -46,7 +46,7 @@ self.onmessage = async function(e: MessageEvent<GenerateWaveformMessage>) {
 
       const response: WorkerResponse = {
         type: 'WAVEFORM_ERROR',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       }
 
       self.postMessage(response)

@@ -4,7 +4,11 @@ import { useEditorStore } from '../../store'
 import { IoPlay, IoPause, IoArrowUndo, IoArrowRedo } from 'react-icons/io5'
 import { Word } from './types'
 import { createParameterDebounce } from '../../utils/animationHelpers'
-import { getSegmentPeaks, smoothWaveformPeaks, WaveformData } from '@/utils/audio/waveformExtractor'
+import {
+  getSegmentPeaks,
+  smoothWaveformPeaks,
+  WaveformData,
+} from '@/utils/audio/waveformExtractor'
 
 interface ExpandedClipWaveformProps {
   words: Word[]
@@ -46,7 +50,11 @@ function extractRangeWaveformData(
   globalWaveformData: WaveformData | null // WaveformData from store
 ): number[] {
   try {
-    if (!globalWaveformData || !globalWaveformData.peaks || globalWaveformData.peaks.length === 0) {
+    if (
+      !globalWaveformData ||
+      !globalWaveformData.peaks ||
+      globalWaveformData.peaks.length === 0
+    ) {
       console.warn('No global waveform data available, generating fallback')
       // Generate fallback waveform data with smooth transitions
       const duration = endTime - startTime
@@ -54,7 +62,9 @@ function extractRangeWaveformData(
       const fallbackData = Array.from({ length: totalSamples }, (_, i) => {
         const t = i / totalSamples
         return (
-          0.3 + 0.4 * Math.sin(t * Math.PI * 8) + 0.2 * Math.sin(t * Math.PI * 20)
+          0.3 +
+          0.4 * Math.sin(t * Math.PI * 8) +
+          0.2 * Math.sin(t * Math.PI * 20)
         )
       })
       return gaussianSmooth(fallbackData)
@@ -72,7 +82,7 @@ function extractRangeWaveformData(
       duration: endTime - startTime,
       originalPeaksCount: globalWaveformData.peaks.length,
       extractedPeaksCount: segmentPeaks.length,
-      smoothedPeaksCount: smoothedPeaks.length
+      smoothedPeaksCount: smoothedPeaks.length,
     })
 
     return smoothedPeaks
@@ -218,12 +228,24 @@ export default function ExpandedClipWaveform({
 
   // Load audio data for the focused range from global waveform data
   useEffect(() => {
-    console.log('🎵 Loading waveform data for range:', { rangeStart, rangeEnd, globalWaveformData: !!globalWaveformData })
+    console.log('🎵 Loading waveform data for range:', {
+      rangeStart,
+      rangeEnd,
+      globalWaveformData: !!globalWaveformData,
+    })
 
-    const data = extractRangeWaveformData(rangeStart, rangeEnd, globalWaveformData)
+    const data = extractRangeWaveformData(
+      rangeStart,
+      rangeEnd,
+      globalWaveformData
+    )
     setPeaks(data)
 
-    console.log('🎵 Waveform peaks loaded:', { peaksCount: data.length, rangeStart, rangeEnd })
+    console.log('🎵 Waveform peaks loaded:', {
+      peaksCount: data.length,
+      rangeStart,
+      rangeEnd,
+    })
   }, [rangeStart, rangeEnd, globalWaveformData])
 
   // Initialize WaveSurfer

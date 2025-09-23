@@ -23,14 +23,18 @@ export async function extractAudioBuffer(file: File): Promise<AudioBuffer> {
     return audioBuffer
   } catch (error) {
     console.error('Failed to extract audio buffer:', error)
-    throw new Error(`Audio extraction failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    throw new Error(
+      `Audio extraction failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+    )
   }
 }
 
 /**
  * Extract AudioBuffer from video URL (blob URL)
  */
-export async function extractAudioBufferFromUrl(videoUrl: string): Promise<AudioBuffer> {
+export async function extractAudioBufferFromUrl(
+  videoUrl: string
+): Promise<AudioBuffer> {
   try {
     const response = await fetch(videoUrl)
     const arrayBuffer = await response.arrayBuffer()
@@ -44,7 +48,9 @@ export async function extractAudioBufferFromUrl(videoUrl: string): Promise<Audio
     return audioBuffer
   } catch (error) {
     console.error('Failed to extract audio buffer from URL:', error)
-    throw new Error(`Audio extraction from URL failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    throw new Error(
+      `Audio extraction from URL failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+    )
   }
 }
 
@@ -93,7 +99,7 @@ export function generateWaveformPeaks(
   return {
     peaks,
     sampleRate: samplesPerSecond,
-    duration
+    duration,
   }
 }
 
@@ -133,7 +139,10 @@ export function getSegmentPeaks(
  * @param radius - Smoothing radius (default: 2)
  * @returns Smoothed peaks array
  */
-export function smoothWaveformPeaks(peaks: number[], radius: number = 2): number[] {
+export function smoothWaveformPeaks(
+  peaks: number[],
+  radius: number = 2
+): number[] {
   if (peaks.length <= radius * 2) {
     return [...peaks]
   }
@@ -171,13 +180,14 @@ export function generateFallbackWaveform(
   // Generate a simple sine wave pattern as fallback
   for (let i = 0; i < totalSamples; i++) {
     const t = i / totalSamples
-    const value = 0.3 + 0.4 * Math.sin(t * Math.PI * 8) + 0.2 * Math.sin(t * Math.PI * 20)
+    const value =
+      0.3 + 0.4 * Math.sin(t * Math.PI * 8) + 0.2 * Math.sin(t * Math.PI * 20)
     peaks.push(Math.max(0, Math.min(1, value)))
   }
 
   return {
     peaks,
     sampleRate: samplesPerSecond,
-    duration
+    duration,
   }
 }

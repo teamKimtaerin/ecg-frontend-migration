@@ -8,7 +8,7 @@ import {
   extractAudioBuffer,
   extractAudioBufferFromUrl,
   generateFallbackWaveform,
-  WaveformData
+  WaveformData,
 } from '@/utils/audio/waveformExtractor'
 
 interface WorkerMessage {
@@ -30,7 +30,7 @@ export function useWaveformGenerationOptimized() {
     setWaveformLoading,
     setWaveformError,
     clearWaveformData,
-    videoDuration
+    videoDuration,
   } = useEditorStore()
 
   const workerRef = useRef<Worker | null>(null)
@@ -133,152 +133,200 @@ export function useWaveformGenerationOptimized() {
   /**
    * Generate waveform using Web Worker (or fallback to main thread)
    */
-  const generateWaveformWithWorker = useCallback(async (
-    audioBuffer: AudioBuffer
-  ): Promise<WaveformData | null> => {
-    return new Promise((resolve, reject) => {
-      // Try to use Web Worker first
-      if (!workerRef.current) {
-        workerRef.current = initializeWorker()
-      }
+  const generateWaveformWithWorker = useCallback(
+    async (audioBuffer: AudioBuffer): Promise<WaveformData | null> => {
+      return new Promise((resolve, reject) => {
+        // Try to use Web Worker first
+        if (!workerRef.current) {
+          workerRef.current = initializeWorker()
+        }
 
-      if (workerRef.current) {
-        // Use Web Worker
-        const handleMessage = (e: MessageEvent<WorkerResponse>) => {
-          const { type, data, error } = e.data
+        if (workerRef.current) {
+          // Use Web Worker
+          const handleMessage = (e: MessageEvent<WorkerResponse>) => {
+            const { type, data, error } = e.data
 
-          workerRef.current?.removeEventListener('message', handleMessage)
+            workerRef.current?.removeEventListener('message', handleMessage)
 
-          if (type === 'WAVEFORM_GENERATED' && data) {
-            resolve(data)
-          } else if (type === 'WAVEFORM_ERROR') {
-            reject(new Error(error || 'Worker error'))
+            if (type === 'WAVEFORM_GENERATED' && data) {
+              resolve(data)
+            } else if (type === 'WAVEFORM_ERROR') {
+              reject(new Error(error || 'Worker error'))
+            }
+          }
+
+          workerRef.current.addEventListener('message', handleMessage)
+
+          const message: WorkerMessage = {
+            type: 'GENERATE_WAVEFORM',
+            audioBuffer,
+            samplesPerSecond: 100,
+          }
+
+          workerRef.current.postMessage(message)
+        } else {
+          // Fallback to main thread
+          console.warn(
+            'Using main thread for waveform generation (no worker available)'
+          )
+
+          try {
+            // Import and use the main thread function
+            import('@/utils/audio/waveformExtractor')
+              .then(({ generateWaveformPeaks }) => {
+                const result = generateWaveformPeaks(audioBuffer, 100)
+                resolve(result)
+              })
+              .catch(reject)
+          } catch (error) {
+            reject(error)
           }
         }
-
-        workerRef.current.addEventListener('message', handleMessage)
-
-        const message: WorkerMessage = {
-          type: 'GENERATE_WAVEFORM',
-          audioBuffer,
-          samplesPerSecond: 100
-        }
-
-        workerRef.current.postMessage(message)
-      } else {
-        // Fallback to main thread
-        console.warn('Using main thread for waveform generation (no worker available)')
-
-        try {
-          // Import and use the main thread function
-          import('@/utils/audio/waveformExtractor').then(({ generateWaveformPeaks }) => {
-            const result = generateWaveformPeaks(audioBuffer, 100)
-            resolve(result)
-          }).catch(reject)
-        } catch (error) {
-          reject(error)
-        }
-      }
-    })
-  }, [initializeWorker])
+      })
+    },
+    [initializeWorker]
+  )
 
   /**
    * Generate waveform data from uploaded file (optimized version)
    */
-  const generateWaveformFromFile = useCallback(async (file: File): Promise<WaveformData | null> => {
-    try {
-      setWaveformLoading(true)
-      setWaveformError(null)
+  const generateWaveformFromFile = useCallback(
+    async (file: File): Promise<WaveformData | null> => {
+      try {
+        setWaveformLoading(true)
+        setWaveformError(null)
 
-      console.log('🎵 Starting optimized waveform generation from file:', file.name)
+        console.log(
+          '🎵 Starting optimized waveform generation from file:',
+          file.name
+        )
 
-      // Extract audio buffer from file
-      const audioBuffer = await extractAudioBuffer(file)
-      setAudioBuffer(audioBuffer)
+        // Extract audio buffer from file
+        const audioBuffer = await extractAudioBuffer(file)
+        setAudioBuffer(audioBuffer)
 
-      // Generate waveform using Web Worker
-      const waveformData = await generateWaveformWithWorker(audioBuffer)
+        // Generate waveform using Web Worker
+        const waveformData = await generateWaveformWithWorker(audioBuffer)
 
-      if (waveformData) {
-        setGlobalWaveformData(waveformData)
+        if (waveformData) {
+          setGlobalWaveformData(waveformData)
 
-        console.log('✅ Optimized waveform generated successfully:', {
-          duration: waveformData.duration,
-          peaksCount: waveformData.peaks.length,
-          sampleRate: waveformData.sampleRate
-        })
+          console.log('✅ Optimized waveform generated successfully:', {
+            duration: waveformData.duration,
+            peaksCount: waveformData.peaks.length,
+            sampleRate: waveformData.sampleRate,
+          })
 
-        return waveformData
-      } else {
-        throw new Error('Failed to generate waveform data')
+          return waveformData
+        } else {
+          throw new Error('Failed to generate waveform data')
+        }
+      } catch (error) {
+        console.error(
+          '❌ Failed to generate optimized waveform from file:',
+          error
+        )
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error'
+        setWaveformError(`Failed to generate waveform: ${errorMessage}`)
+
+        // Generate fallback waveform if we have video duration
+        if (videoDuration) {
+          console.log(
+            '🔄 Generating fallback waveform with duration:',
+            videoDuration
+          )
+          const fallbackData = generateFallbackWaveform(videoDuration, 100)
+          setGlobalWaveformData(fallbackData)
+          return fallbackData
+        }
+
+        return null
+      } finally {
+        setWaveformLoading(false)
       }
-    } catch (error) {
-      console.error('❌ Failed to generate optimized waveform from file:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      setWaveformError(`Failed to generate waveform: ${errorMessage}`)
-
-      // Generate fallback waveform if we have video duration
-      if (videoDuration) {
-        console.log('🔄 Generating fallback waveform with duration:', videoDuration)
-        const fallbackData = generateFallbackWaveform(videoDuration, 100)
-        setGlobalWaveformData(fallbackData)
-        return fallbackData
-      }
-
-      return null
-    } finally {
-      setWaveformLoading(false)
-    }
-  }, [generateWaveformWithWorker, setAudioBuffer, setGlobalWaveformData, setWaveformLoading, setWaveformError, videoDuration])
+    },
+    [
+      generateWaveformWithWorker,
+      setAudioBuffer,
+      setGlobalWaveformData,
+      setWaveformLoading,
+      setWaveformError,
+      videoDuration,
+    ]
+  )
 
   /**
    * Generate waveform data from video URL (optimized version)
    */
-  const generateWaveformFromUrl = useCallback(async (videoUrl: string): Promise<WaveformData | null> => {
-    try {
-      setWaveformLoading(true)
-      setWaveformError(null)
+  const generateWaveformFromUrl = useCallback(
+    async (videoUrl: string): Promise<WaveformData | null> => {
+      try {
+        setWaveformLoading(true)
+        setWaveformError(null)
 
-      console.log('🎵 Starting optimized waveform generation from URL:', videoUrl)
+        console.log(
+          '🎵 Starting optimized waveform generation from URL:',
+          videoUrl
+        )
 
-      // Extract audio buffer from URL
-      const audioBuffer = await extractAudioBufferFromUrl(videoUrl)
-      setAudioBuffer(audioBuffer)
+        // Extract audio buffer from URL
+        const audioBuffer = await extractAudioBufferFromUrl(videoUrl)
+        setAudioBuffer(audioBuffer)
 
-      // Generate waveform using Web Worker
-      const waveformData = await generateWaveformWithWorker(audioBuffer)
+        // Generate waveform using Web Worker
+        const waveformData = await generateWaveformWithWorker(audioBuffer)
 
-      if (waveformData) {
-        setGlobalWaveformData(waveformData)
+        if (waveformData) {
+          setGlobalWaveformData(waveformData)
 
-        console.log('✅ Optimized waveform generated successfully from URL:', {
-          duration: waveformData.duration,
-          peaksCount: waveformData.peaks.length,
-          sampleRate: waveformData.sampleRate
-        })
+          console.log(
+            '✅ Optimized waveform generated successfully from URL:',
+            {
+              duration: waveformData.duration,
+              peaksCount: waveformData.peaks.length,
+              sampleRate: waveformData.sampleRate,
+            }
+          )
 
-        return waveformData
-      } else {
-        throw new Error('Failed to generate waveform data')
+          return waveformData
+        } else {
+          throw new Error('Failed to generate waveform data')
+        }
+      } catch (error) {
+        console.error(
+          '❌ Failed to generate optimized waveform from URL:',
+          error
+        )
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error'
+        setWaveformError(`Failed to generate waveform: ${errorMessage}`)
+
+        // Generate fallback waveform if we have video duration
+        if (videoDuration) {
+          console.log(
+            '🔄 Generating fallback waveform with duration:',
+            videoDuration
+          )
+          const fallbackData = generateFallbackWaveform(videoDuration, 100)
+          setGlobalWaveformData(fallbackData)
+          return fallbackData
+        }
+
+        return null
+      } finally {
+        setWaveformLoading(false)
       }
-    } catch (error) {
-      console.error('❌ Failed to generate optimized waveform from URL:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      setWaveformError(`Failed to generate waveform: ${errorMessage}`)
-
-      // Generate fallback waveform if we have video duration
-      if (videoDuration) {
-        console.log('🔄 Generating fallback waveform with duration:', videoDuration)
-        const fallbackData = generateFallbackWaveform(videoDuration, 100)
-        setGlobalWaveformData(fallbackData)
-        return fallbackData
-      }
-
-      return null
-    } finally {
-      setWaveformLoading(false)
-    }
-  }, [generateWaveformWithWorker, setAudioBuffer, setGlobalWaveformData, setWaveformLoading, setWaveformError, videoDuration])
+    },
+    [
+      generateWaveformWithWorker,
+      setAudioBuffer,
+      setGlobalWaveformData,
+      setWaveformLoading,
+      setWaveformError,
+      videoDuration,
+    ]
+  )
 
   /**
    * Clear all waveform data and cleanup worker
@@ -299,18 +347,21 @@ export function useWaveformGenerationOptimized() {
   /**
    * Generate waveform data automatically based on input type (optimized)
    */
-  const generateWaveform = useCallback(async (input: File | string): Promise<WaveformData | null> => {
-    if (input instanceof File) {
-      return generateWaveformFromFile(input)
-    } else {
-      return generateWaveformFromUrl(input)
-    }
-  }, [generateWaveformFromFile, generateWaveformFromUrl])
+  const generateWaveform = useCallback(
+    async (input: File | string): Promise<WaveformData | null> => {
+      if (input instanceof File) {
+        return generateWaveformFromFile(input)
+      } else {
+        return generateWaveformFromUrl(input)
+      }
+    },
+    [generateWaveformFromFile, generateWaveformFromUrl]
+  )
 
   return {
     generateWaveform,
     generateWaveformFromFile,
     generateWaveformFromUrl,
-    clearWaveform
+    clearWaveform,
   }
 }

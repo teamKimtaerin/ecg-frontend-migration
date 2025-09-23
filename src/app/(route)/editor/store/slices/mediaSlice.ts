@@ -199,7 +199,10 @@ export const createMediaSlice: StateCreator<MediaSlice> = (set) => ({
   setGlobalWaveformData: (data) => {
     set({ globalWaveformData: data })
     if (data) {
-      log('mediaSlice.ts', `Waveform data set: ${data.peaks.length} peaks, ${data.duration.toFixed(2)}s duration`)
+      log(
+        'mediaSlice.ts',
+        `Waveform data set: ${data.peaks.length} peaks, ${data.duration.toFixed(2)}s duration`
+      )
     } else {
       log('mediaSlice.ts', 'Waveform data cleared')
     }

@@ -194,15 +194,23 @@ export const useUploadModal = () => {
 
         // 🎵 즉시 파형 생성 시작 (백그라운드로 처리)
         log('useUploadModal', '🎵 Starting waveform generation in background')
-        generateWaveform(data.file).then((waveformData) => {
-          if (waveformData) {
-            log('useUploadModal', '✅ Waveform generated successfully for immediate use')
-          } else {
-            log('useUploadModal', '⚠️ Waveform generation failed, fallback will be used')
-          }
-        }).catch((error) => {
-          log('useUploadModal', `❌ Waveform generation error: ${error}`)
-        })
+        generateWaveform(data.file)
+          .then((waveformData) => {
+            if (waveformData) {
+              log(
+                'useUploadModal',
+                '✅ Waveform generated successfully for immediate use'
+              )
+            } else {
+              log(
+                'useUploadModal',
+                '⚠️ Waveform generation failed, fallback will be used'
+              )
+            }
+          })
+          .catch((error) => {
+            log('useUploadModal', `❌ Waveform generation error: ${error}`)
+          })
 
         // State에도 Blob URL 저장 (S3 업로드 중에도 계속 사용)
         updateState({
