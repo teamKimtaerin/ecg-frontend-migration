@@ -29,21 +29,49 @@ export const autofillProviders = {
 
     if (!targetWordId) return null
 
-    // wordId에서 clipId 추출 (word-{segmentId}-{wordIndex} 형식)
-    const clipIdMatch = targetWordId.match(/^word-(\d+)-\d+$/)
-    console.log('🔍 [AUTOFILL Provider] clipIdMatch:', clipIdMatch)
+    // wordId에서 clipId 추출
+    // Handle multiple formats:
+    // - Standard: "word-0-0" (segment-wordIndex)
+    // - With prefix: "word-word-0-0" (double prefix from initialScenario)
+    // First, normalize the ID by removing duplicate "word-" prefix if present
+    const normalizedWordId = targetWordId.replace(/^word-word-/, 'word-')
 
-    if (!clipIdMatch) return null
+    // Extract segment ID from normalized format: word-{segmentId}-{wordIndex}
+    const wordIdMatch = normalizedWordId.match(/^word-(\d+)-\d+$/)
+    console.log('🔍 [AUTOFILL Provider] Word ID match:', {
+      original: targetWordId,
+      normalized: normalizedWordId,
+      match: wordIdMatch,
+    })
 
-    const segmentId = clipIdMatch[1]
-    const clipId = `clip-${segmentId}`
-    const clip = store.clips.find((c) => c.id === clipId)
+    if (!wordIdMatch) return null
+
+    const segmentId = wordIdMatch[1]
+
+    // Try to find the clip with different possible ID formats
+    // 1. Original format: clip-{segmentId}
+    // 2. Split format: clip-{segmentId}_split_{index}_{timestamp}
+    // 3. Nested split: clip-{segmentId}_split_*_split_* (from multiple splits)
+    const clip = store.clips.find((c) => {
+      // Direct match
+      if (c.id === `clip-${segmentId}`) return true
+
+      // Check if it's a split clip from the same segment
+      // Handle both simple and nested split patterns
+      if (c.id.startsWith(`clip-${segmentId}_split_`)) return true
+
+      // Also handle case where the base clip ID itself contains underscores
+      // Extract the first numeric segment after "clip-"
+      const baseClipMatch = c.id.match(/^clip-(\d+)/)
+      return baseClipMatch && baseClipMatch[1] === segmentId
+    })
 
     console.log('🔍 [AUTOFILL Provider] Found clip:', {
       segmentId,
-      clipId,
+      searchedPatterns: [`clip-${segmentId}`, `clip-${segmentId}_split_*`],
       clip: clip ? { id: clip.id, speaker: clip.speaker } : null,
       speaker: clip?.speaker,
+      allClipIds: store.clips.map((c) => c.id), // Debug: show all clip IDs
     })
 
     return clip?.speaker || null

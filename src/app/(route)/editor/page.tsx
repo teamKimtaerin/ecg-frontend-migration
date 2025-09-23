@@ -8,6 +8,7 @@ import {
 } from '@dnd-kit/core'
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+
 // Store
 import { useEditorStore } from './store'
 
@@ -17,6 +18,8 @@ import { AutosaveManager } from '@/utils/managers/AutosaveManager'
 import { projectInfoManager } from '@/utils/managers/ProjectInfoManager'
 import { mediaStorage } from '@/utils/storage/mediaStorage'
 import { projectStorage } from '@/utils/storage/projectStorage'
+
+// API Services
 
 // Types
 import { ClipItem } from './components/ClipComponent/types'
@@ -494,6 +497,7 @@ export default function EditorPage() {
     removeSpeakerColor,
     speakers: globalSpeakers,
     setSpeakers: setGlobalSpeakers,
+    applyAutoLineBreak,
   } = useEditorStore()
 
   // ChatBot state
@@ -1420,6 +1424,17 @@ export default function EditorPage() {
     showToast('원본으로 복원되었습니다.', 'success')
   }, [restoreOriginalClips, clearSelection, setActiveClipId])
 
+  // 자동 줄바꿈 핸들러
+  const handleAutoLineBreak = useCallback(() => {
+    try {
+      applyAutoLineBreak()
+      showToast('자동 줄바꿈이 적용되었습니다.', 'success')
+    } catch (error) {
+      console.error('Auto line break error:', error)
+      showToast('자동 줄바꿈 적용 중 오류가 발생했습니다.', 'error')
+    }
+  }, [applyAutoLineBreak])
+
   // 프로젝트 저장 핸들러
   const handleSave = useCallback(() => {
     saveProject()
@@ -1841,6 +1856,7 @@ export default function EditorPage() {
                 onPaste={handlePasteClips}
                 onSplitClip={handleSplitClip}
                 onRestore={handleRestore}
+                onAutoLineBreak={handleAutoLineBreak}
                 onToggleAnimationSidebar={handleToggleAnimationSidebar}
                 onToggleTemplateSidebar={handleToggleTemplateSidebar}
                 onSave={handleSave}

@@ -14,7 +14,7 @@ ECG (Easy Caption Generator) Frontend - A powerful subtitle editing tool built w
 - **Styling**: TailwindCSS v4 with PostCSS
 - **State Management**: Zustand 5.0.8
 - **Drag & Drop**: @dnd-kit/core & @dnd-kit/sortable
-- **Animation**: GSAP 3.13.0, motiontext-renderer 1.1.0
+- **Animation**: GSAP 3.13.0, motiontext-renderer 1.3.1
 - **Icons**: Lucide React via react-icons
 - **Utilities**: clsx, tailwind-merge, chroma-js
 
@@ -43,6 +43,15 @@ yarn gen:scenario # Generate scenario from real.json
 yarn test        # Run Jest unit tests
 yarn test:watch  # Run tests in watch mode
 yarn test:coverage # Generate test coverage report
+
+# Run a single test file
+yarn test path/to/file.test.ts
+
+# Run tests matching a pattern
+yarn test --testNamePattern="pattern"
+
+# Run tests in specific directory
+yarn test src/utils
 ```
 
 **Note**: E2E testing with Playwright is configured in the CI pipeline but not currently set up for local development.
@@ -105,7 +114,11 @@ store/
     ├── uiSlice.ts       # UI state (tabs, modals)
     ├── saveSlice.ts     # Save/autosave state
     ├── mediaSlice.ts    # Media/video state
-    └── wordSlice.ts     # Word-level editing state
+    ├── wordSlice.ts     # Word-level editing state
+    ├── scenarioSlice.ts # Animation scenario management
+    ├── indexSlice.ts    # Index management for clips
+    ├── textInsertionSlice.ts # Text insertion overlay state
+    └── timelineSlice.ts # Timeline and playback state
 ```
 
 ### Animation Plugin System
@@ -239,6 +252,7 @@ When creating animation plugins:
 4. **Real-time Preview**: Live animation preview with controls
 5. **Speaker Management**: Auto-detection and manual assignment
 6. **Undo/Redo**: Command pattern implementation
+7. **Automatic Line Splitting**: Smart line breaks based on safe area calculation and fontSizeRel
 
 ## 🚀 GPU 렌더링 시스템
 
@@ -488,6 +502,11 @@ src/
 
 ## 📝 Git Workflow
 
+### Git Hooks (Husky)
+
+- **Pre-push Hook**: Automatically runs `npm run type-check` before push
+  - **Note**: The hook uses `npm` instead of `yarn` for type checking
+
 ### PR Automation Scripts
 
 Located in `.claude/scripts/`:
@@ -554,6 +573,8 @@ docker build --target prod -t ecg-frontend:prod .
 11. **Plugin System**: Uses external server at localhost:3300 for 2.0.0 plugins, no hardcoded fallbacks
 12. **Parameter Flow**: Plugin parameters pass through AnimationTrack → initialScenario.ts → pluginChain
 13. **Error Handling**: Show error messages instead of fallbacks when plugins fail to load
+14. **Pre-push Hook**: Uses `npm run type-check` (not yarn) to validate TypeScript before push
+15. **Testing**: Jest unit tests are configured and working, but Playwright E2E tests are only in CI, not local development
 
 # important-instruction-reminders
 

@@ -26,6 +26,7 @@ interface ToolbarsProps {
   onPaste?: () => void
   onSplitClip?: () => void
   onRestore?: () => void
+  onAutoLineBreak?: () => void
   onToggleAnimationSidebar?: () => void
   onToggleTemplateSidebar?: () => void
   onSave?: () => void
@@ -55,6 +56,7 @@ export default function Toolbars({
   onPaste,
   onSplitClip,
   onRestore,
+  onAutoLineBreak,
   // onToggleAnimationSidebar,
   onToggleTemplateSidebar,
   onSave,
@@ -74,6 +76,7 @@ export default function Toolbars({
     onPaste,
     onMergeClips,
     onSplitClip,
+    onAutoLineBreak,
   }
 
   // Export 버튼 핸들러
