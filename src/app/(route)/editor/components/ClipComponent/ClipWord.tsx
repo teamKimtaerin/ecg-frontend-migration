@@ -23,7 +23,9 @@ export default function ClipWord({
 }: ClipWordProps) {
   const wordRef = useRef<HTMLDivElement>(null)
   const editableRef = useRef<HTMLSpanElement>(null)
-  const [lastClickTime, setLastClickTime] = useState(0)
+  const lastClickTimeRef = useRef(0)
+  const clickCountRef = useRef(0)
+  const clickResetTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const [editingText, setEditingText] = useState(word.text)
   const [isComposing, setIsComposing] = useState(false)
 
@@ -93,16 +95,32 @@ export default function ClipWord({
       if (isEditing) return // Ignore clicks while editing
 
       const currentTime = Date.now()
-      const timeDiff = currentTime - lastClickTime
+      const timeDiff = currentTime - lastClickTimeRef.current
 
       // Check for modifier keys
       const isShiftClick = e.shiftKey
       const isCtrlOrCmdClick = e.ctrlKey || e.metaKey
 
-      if (timeDiff < 500 && isFocused && !isShiftClick && !isCtrlOrCmdClick) {
-        // Double-click on focused word -> enter inline text edit
+      // Track clicks for double-click detection
+      if (timeDiff < 500) {
+        clickCountRef.current++
+      } else {
+        clickCountRef.current = 1
+      }
+
+      // Clear any existing timeout
+      if (clickResetTimeoutRef.current) {
+        clearTimeout(clickResetTimeoutRef.current)
+        clickResetTimeoutRef.current = null
+      }
+
+      if (clickCountRef.current >= 2 && !isShiftClick && !isCtrlOrCmdClick) {
+        // Double-click detected -> enter inline text edit immediately
         startInlineEdit(clipId, word.id)
         setEditingText(word.text)
+        clickCountRef.current = 0 // Reset counter after entering edit mode
+        lastClickTimeRef.current = currentTime
+        return // Prevent single-click logic from running
       } else if (isShiftClick) {
         // Shift+click for range selection
         selectWordRange(clipId, word.id)
@@ -146,25 +164,21 @@ export default function ClipWord({
         onWordClick(word.id, isCenter)
       }
 
-      setLastClickTime(currentTime)
+      // Set timeout to reset click counter if no second click comes
+      clickResetTimeoutRef.current = setTimeout(() => {
+        clickCountRef.current = 0
+      }, 500)
+
+      lastClickTimeRef.current = currentTime
     },
     [
       word.id,
       word.text,
       word.start,
-      isFocused,
       isEditing,
-      lastClickTime,
       clipId,
       onWordClick,
       startInlineEdit,
-      // activeTab,
-      // setActiveTab,
-      // rightSidebarType,
-      // setRightSidebarType,
-      // isAssetSidebarOpen,
-      // setIsAssetSidebarOpen,
-      // expandClip,
       selectWordRange,
       toggleMultiSelectWord,
       clearMultiSelection,
@@ -175,14 +189,18 @@ export default function ClipWord({
 
   // Handle inline editing
   const handleInlineEditSave = useCallback(() => {
-    const trimmedText = editingText.trim()
-    if (trimmedText && trimmedText !== word.text) {
-      onWordEdit(clipId, word.id, trimmedText)
+    // Don't trim if the user intentionally wants a space
+    const textToSave = editingText === ' ' ? ' ' : editingText.trim()
+    // Allow saving even if it's empty or just a space, as long as it's different
+    if (textToSave !== word.text) {
+      // Ensure at least a space if completely empty (to maintain word structure)
+      const finalText = textToSave || ' '
+      onWordEdit(clipId, word.id, finalText)
 
       // Update scenario to reflect the text change
       try {
         const store = useEditorStore.getState() as any
-        store.updateWordTextInScenario?.(word.id, trimmedText)
+        store.updateWordTextInScenario?.(word.id, finalText)
       } catch (error) {
         console.error('Failed to update scenario:', error)
       }
