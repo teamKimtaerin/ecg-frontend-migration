@@ -10,6 +10,7 @@ export interface InitialScenarioOptions {
   baseAspect?: '16:9' | '9:16' | 'auto'
   wordAnimationTracks?: Map<string, any[]> // eslint-disable-line @typescript-eslint/no-explicit-any
   insertedTexts?: InsertedText[] // Add support for inserted texts
+  speakerColors?: Record<string, string> // Speaker color palette for cwi-color plugin
 }
 
 export interface NodeIndexEntry {
@@ -146,6 +147,7 @@ export function buildInitialScenarioFromClips(
   const insertedTexts = opts.insertedTexts ?? []
   const fontSizeRel = opts.fontSizeRel ?? 0.05 // Default font size
   const baseAspect = opts.baseAspect ?? '16:9'
+  const speakerColors = opts.speakerColors ?? {}
 
   const cues: RendererConfigV2['cues'] = []
   const index: Record<string, NodeIndexEntry> = {}
@@ -199,9 +201,15 @@ export function buildInitialScenarioFromClips(
               timeOffset = [startOffset, endOffset]
             }
 
+            // For cwi-color plugin, update palette reference to use define.speakerPalette
+            const params = { ...track.params }
+            if (track.pluginKey === 'cwi-color@2.0.0' && params.palette === 'definitions.speakerPalette') {
+              params.palette = 'define.speakerPalette'
+            }
+
             return {
               name: track.pluginKey,
-              params: track.params || {},
+              params,
               ...(timeOffset && { timeOffset }),
             }
           })
@@ -331,6 +339,8 @@ export function buildInitialScenarioFromClips(
           justify: 'center',
         },
       },
+      // Speaker color palette for cwi-color plugin
+      speakerPalette: Object.keys(speakerColors).length > 0 ? speakerColors : undefined,
     },
     tracks: [
       {

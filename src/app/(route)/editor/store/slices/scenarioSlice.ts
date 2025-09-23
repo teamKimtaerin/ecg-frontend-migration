@@ -55,12 +55,14 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
     const fullState = get() as any
     const insertedTexts = fullState.insertedTexts || []
     const wordAnimationTracks = fullState.wordAnimationTracks
+    const speakerColors = fullState.speakerColors || {}
 
-    // Merge insertedTexts and wordAnimationTracks into options
+    // Merge insertedTexts, wordAnimationTracks, and speakerColors into options
     const mergedOpts = {
       ...opts,
       insertedTexts,
       wordAnimationTracks,
+      speakerColors,
     }
 
     const { config, index } = buildInitialScenarioFromClips(clips, mergedOpts)

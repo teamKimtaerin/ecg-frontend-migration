@@ -587,6 +587,54 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
       // Apply timeOffset to timing for soundWave visualization
       const adjustedTiming = applyTimeOffset(baseTiming, timeOffset)
 
+      // For cwi-color plugin, ensure palette uses define.speakerPalette and add speaker info
+      let adjustedParams = params
+      if (pluginKey === 'cwi-color@2.0.0') {
+        // Update palette reference and ensure speaker is included
+        adjustedParams = {
+          ...params,
+          palette: 'define.speakerPalette'
+        }
+
+        // Try to get speaker from the clip containing this word
+        if (!adjustedParams.speaker) {
+          try {
+            const anyGet = get() as any
+            const clips = anyGet.clips || []
+
+            // Normalize wordId by removing duplicate "word-" prefix if present
+            const normalizedWordId = wordId.replace(/^word-word-/, 'word-')
+
+            const clip = clips.find((c: any) => {
+              if (!c.words) return false
+              return c.words.some((w: any) => {
+                // Also normalize the word IDs in clips for comparison
+                const normalizedWId = (w.id || '').replace(/^word-word-/, 'word-')
+                return normalizedWId === normalizedWordId || w.id === wordId
+              })
+            })
+
+            if (clip?.speaker) {
+              adjustedParams.speaker = clip.speaker
+              console.log('🔍 [cwi-color] Found speaker for word:', {
+                wordId,
+                normalizedWordId,
+                clipId: clip.id,
+                speaker: clip.speaker,
+              })
+            } else {
+              console.log('🔍 [cwi-color] No speaker found for word:', {
+                wordId,
+                normalizedWordId,
+                clipsChecked: clips.length,
+              })
+            }
+          } catch (error) {
+            console.warn('[cwi-color] Error getting speaker:', error)
+          }
+        }
+      }
+
       const newTrack: AnimationTrack = {
         assetId,
         assetName,
@@ -595,7 +643,7 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
         intensity: { min: 0.3, max: 0.7 },
         color,
         timeOffset,
-        params,
+        params: adjustedParams,
       }
 
       newTracks.set(wordId, [...existingTracks, newTrack])
