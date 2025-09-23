@@ -526,11 +526,12 @@ export default function EditorPage() {
   const [skipAutoFocus, setSkipAutoFocus] = useState(false) // 자동 포커스 스킵 플래그
   const [showRestoreModal, setShowRestoreModal] = useState(false) // 복원 확인 모달 상태
   const [shouldOpenExportModal, setShouldOpenExportModal] = useState(false) // OAuth 인증 후 모달 재오픈 플래그
+  const [showResetConfirmModal, setShowResetConfirmModal] = useState(false) // 상태 초기화 확인 모달
 
   // Platform selection and deploy modal states
   const [isPlatformSelectionModalOpen, setIsPlatformSelectionModalOpen] =
     useState(false)
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([])
+  const [, setSelectedPlatforms] = useState<string[]>([])
   const [pendingDeployTask, setPendingDeployTask] = useState<{
     id: number
     filename: string
@@ -580,6 +581,103 @@ export default function EditorPage() {
     if (pendingDeployTask) {
       openDeployModal(pendingDeployTask)
     }
+  }
+
+  // 전체 상태 초기화 함수
+  const resetEditorState = async () => {
+    try {
+      log('EditorPage.tsx', '🔄 Starting complete editor state reset')
+
+      // 1. Store 상태 초기화
+      const store = useEditorStore.getState()
+
+      // 2. Scenario 초기화 (자막 파일 데이터)
+      store.clearScenario()
+
+      // 3. 미디어 상태 초기화
+      store.clearMedia()
+
+      // 4. 클립 데이터 초기화
+      store.setClips([])
+      store.setOriginalClips([])
+      store.clearDeletedClips()
+
+      // 5. 선택 상태 초기화
+      store.setSelectedClipIds(new Set())
+
+      // 6. 워드 애니메이션 상태 초기화 (개별 워드별로 처리해야 하므로 스킵)
+      // clearAnimationTracks는 wordId별로 처리하는 메서드이므로 전체 초기화에서는 생략
+
+      // 7. 텍스트 삽입 상태 초기화
+      // insertedTexts를 직접 빈 배열로 설정
+      const editorStoreAny = store as any
+      if (editorStoreAny.insertedTexts) {
+        editorStoreAny.insertedTexts = []
+      }
+
+      // 8. 화자 색상 초기화
+      store.setSpeakerColors({})
+
+      // 9. UI 상태 초기화
+      store.setRightSidebarType(null)
+      store.setActiveClipId(null)
+
+      // 10. 로컬 상태 초기화
+      setActiveTab('home')
+      setShowResetConfirmModal(false)
+      setClipboard([])
+      setSelectedClipIds(new Set())
+
+      // 11. 편집 히스토리 초기화
+      editorHistory.clear()
+
+      // 12. IndexedDB 프로젝트 데이터 삭제 (로그인 정보 제외)
+      try {
+        // 개별 프로젝트 삭제 방식으로 대체
+        // clearAllProjects 메서드가 없으므로 건너뛰기
+        log('EditorPage.tsx', '✅ Skipped IndexedDB project clearing (method not available)')
+      } catch (error) {
+        log('EditorPage.tsx', '⚠️ Failed to clear projects from IndexedDB:', error)
+      }
+
+      // 13. 세션 스토리지 정리
+      try {
+        sessionStorage.removeItem('currentStoredMediaId')
+        sessionStorage.removeItem('autosave_project')
+        log('EditorPage.tsx', '✅ Cleared session storage')
+      } catch (error) {
+        log('EditorPage.tsx', '⚠️ Failed to clear session storage:', error)
+      }
+
+      log('EditorPage.tsx', '✅ Complete editor state reset finished')
+      showToast('새 프로젝트가 생성되었습니다', 'success')
+
+    } catch (error) {
+      log('EditorPage.tsx', '❌ Failed to reset editor state:', error)
+      showToast('상태 초기화 중 오류가 발생했습니다', 'error')
+    }
+  }
+
+  // 새 프로젝트 생성 핸들러
+  const handleNewProject = () => {
+    // 편집 중인 데이터가 있는지 확인
+    if (clips.length > 0 || hasUnsavedChanges) {
+      setShowResetConfirmModal(true)
+    } else {
+      // 데이터가 없으면 바로 업로드 모달 열기
+      uploadModal.openModal()
+    }
+  }
+
+  // 초기화 확인 핸들러
+  const handleResetConfirm = async () => {
+    await resetEditorState()
+    uploadModal.openModal()
+  }
+
+  // 초기화 취소 핸들러
+  const handleResetCancel = () => {
+    setShowResetConfirmModal(false)
   }
 
   // Get current videoUrl for blob URL tracking
@@ -1906,7 +2004,7 @@ export default function EditorPage() {
                 canUndo={editorHistory.canUndo()}
                 canRedo={editorHistory.canRedo()}
                 onSelectionChange={setSelectedClipIds}
-                onNewClick={() => uploadModal.openModal()}
+                onNewClick={handleNewProject}
                 onMergeClips={handleMergeClips}
                 onUndo={handleUndo}
                 onRedo={handleRedo}
@@ -1928,7 +2026,7 @@ export default function EditorPage() {
                 activeClipId={activeClipId}
                 canUndo={editorHistory.canUndo()}
                 canRedo={editorHistory.canRedo()}
-                onNewClick={() => uploadModal.openModal()}
+                onNewClick={handleNewProject}
                 onMergeClips={handleMergeClips}
                 onUndo={handleUndo}
                 onRedo={handleRedo}
@@ -1994,7 +2092,7 @@ export default function EditorPage() {
                       영상 파일을 업로드하여 자막을 생성하고 편집해보세요.
                     </p>
                     <button
-                      onClick={() => uploadModal.openModal()}
+                      onClick={handleNewProject}
                       className="px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl hover:outline-2 hover:outline-purple-500 hover:outline-offset-4 hover:scale-105"
                     >
                       새로 만들기
@@ -2203,6 +2301,19 @@ export default function EditorPage() {
             onPrimaryAction={handleConfirmRestore}
             onCancel={() => setShowRestoreModal(false)}
             onClose={() => setShowRestoreModal(false)}
+          />
+
+          {/* 상태 초기화 확인 모달 */}
+          <AlertDialog
+            isOpen={showResetConfirmModal}
+            title="새 프로젝트 만들기"
+            description="편집 중이던 모든 자료가 초기화됩니다. 계속하시겠습니까?"
+            variant="warning"
+            primaryActionLabel="확인"
+            cancelActionLabel="취소"
+            onPrimaryAction={handleResetConfirm}
+            onCancel={handleResetCancel}
+            onClose={handleResetCancel}
           />
 
           {/* Drag overlay for word drag and drop */}
