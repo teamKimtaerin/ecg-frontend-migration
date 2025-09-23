@@ -2177,26 +2177,6 @@ export default function EditorPage() {
         }
         onClose={uploadModal.closeModal}
         onCancel={uploadModal.cancelProcessing}
-        status={
-          uploadModal.step as
-            | 'uploading'
-            | 'processing'
-            | 'completed'
-            | 'failed'
-            | 'select'
-        }
-        progress={
-          uploadModal.step === 'uploading'
-            ? uploadModal.uploadProgress
-            : uploadModal.processingProgress
-        }
-        currentStage={uploadModal.currentStage}
-        estimatedTimeRemaining={uploadModal.estimatedTimeRemaining}
-        fileName={uploadModal.fileName}
-        videoFile={uploadModal.videoFile}
-        videoThumbnail={uploadModal.videoThumbnail}
-        videoMetadata={uploadModal.videoMetadata}
-        canCancel={uploadModal.step !== 'failed'}
         backdrop={false}
       />
 

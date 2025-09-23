@@ -1,68 +1,44 @@
 'use client'
 
-import { FaTimes } from 'react-icons/fa'
-import { FaSpinner } from 'react-icons/fa'
+import { useEditorStore } from '@/app/(route)/editor/store'
+import { useProgressTasks } from '@/hooks/useProgressTasks'
+import React, { useRef, useState } from 'react'
+import { FaSpinner, FaTimes } from 'react-icons/fa'
 import { LuLightbulb } from 'react-icons/lu'
-import React, { useState, useRef } from 'react'
-
-export interface VideoMetadata {
-  duration?: number
-  size?: number
-  width?: number
-  height?: number
-  fps?: number
-}
 
 export interface ProcessingModalProps {
   isOpen: boolean
   onClose: () => void
   onCancel?: () => void
-  status: 'uploading' | 'processing' | 'completed' | 'failed' | 'select'
-  progress: number
-  currentStage?: string
-  estimatedTimeRemaining?: number
-  fileName?: string
-  videoFile?: File
-  videoThumbnail?: string
-  videoMetadata?: VideoMetadata
-  canCancel?: boolean
   backdrop?: boolean
 }
 
-const STAGE_MESSAGES = {
-  file_validation: '파일 검증 중',
-  audio_extraction: '오디오 추출 중',
-  whisper_transcription: '음성 인식 중',
-  speaker_diarization: '화자 분리 중',
-  post_processing: '후처리 중',
-} as const
 
 export default function ProcessingModal({
   isOpen,
   onClose,
-  onCancel,
-  status,
-  progress,
-  currentStage,
-  estimatedTimeRemaining,
-  fileName,
-  videoFile,
-  videoThumbnail,
-  videoMetadata,
-  canCancel = true,
   backdrop = true,
 }: ProcessingModalProps) {
-  // 디버깅 로그
-  React.useEffect(() => {
-    if (isOpen) {
-      console.log('🎬 ProcessingModal opened with video info:', {
-        fileName,
-        videoFile: videoFile ? 'present' : 'missing',
-        videoThumbnail: videoThumbnail ? 'present' : 'missing',
-        videoMetadata: videoMetadata || 'missing',
-      })
-    }
-  }, [isOpen, fileName, videoFile, videoThumbnail, videoMetadata])
+  // Get current upload task data from global state
+  const { uploadTasks } = useProgressTasks()
+
+  // Get video thumbnail from editor store
+  const { videoThumbnail } = useEditorStore()
+
+  // Find the currently active upload task
+  const activeUploadTask = uploadTasks.find(
+    (task) => task.status === 'uploading' || task.status === 'processing'
+  )
+
+  // If no active task and modal is open, check if there's any upload task at all
+  const latestUploadTask = uploadTasks.length > 0 ? uploadTasks[uploadTasks.length - 1] : null
+  const currentTask = activeUploadTask || latestUploadTask
+
+  // Extract data from current task
+  const status = currentTask?.status || 'select'
+  const progress = currentTask?.progress || 0
+  const estimatedTimeRemaining = currentTask?.estimatedTimeRemaining
+  const fileName = currentTask?.filename
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [dragging, setDragging] = useState(false)
 
@@ -132,7 +108,6 @@ export default function ProcessingModal({
     return mins > 0 ? `${mins}분 ${secs}초` : `${secs}초`
   }
 
-  const shouldShowCloseButton = status === 'completed' || status === 'failed'
 
   if (!isOpen) return null
 
