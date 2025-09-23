@@ -46,8 +46,8 @@ const TemplateSidebar: React.FC<TemplateSidebarProps> = ({
   }
 
   const handleExpandTemplate = (templateId: string, templateName: string) => {
-    setExpandedTemplateId(templateId === expandedTemplateId ? null : templateId)
-    setExpandedTemplateName(templateName)
+    // Disabled: Don't expand template detail panel
+    // Keep toast notification only without showing detail options
   }
 
   return (
@@ -81,8 +81,8 @@ const TemplateSidebar: React.FC<TemplateSidebarProps> = ({
         />
       </div>
 
-      {/* Control Panel */}
-      {expandedTemplateId && (
+      {/* Control Panel - Disabled to prevent template detail options */}
+      {false && expandedTemplateId && (
         <TemplateControlPanel
           templateId={expandedTemplateId}
           templateName={expandedTemplateName}
