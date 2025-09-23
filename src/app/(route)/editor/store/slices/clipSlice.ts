@@ -292,6 +292,9 @@ export const createClipSlice: StateCreator<
               fullText: clip.words
                 .map((word) => (word.id === wordId ? newText : word.text))
                 .join(' '),
+              subtitle: clip.words
+                .map((word) => (word.id === wordId ? newText : word.text))
+                .join(' '), // Also update subtitle field
             }
           : clip
       ),
@@ -300,6 +303,8 @@ export const createClipSlice: StateCreator<
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const anyGet = get() as any
       anyGet.rebuildIndexesFromClips?.()
+      // Also update the scenario to reflect text change
+      anyGet.updateWordTextInScenario?.(wordId, newText)
     } catch {}
   },
 
