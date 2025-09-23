@@ -288,6 +288,20 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
           return
         }
 
+        // Check if word editing is active - don't handle arrow keys during editing
+        const editorState = useEditorStore.getState()
+        const isEditingWord = editorState.editingWordId !== null
+
+        // Also check for contentEditable elements (used in word editing)
+        const activeElement = document.activeElement
+        const isContentEditable =
+          activeElement?.getAttribute('contenteditable') === 'true'
+
+        if (isEditingWord || isContentEditable) {
+          // Don't interfere with word editing
+          return
+        }
+
         switch (e.key) {
           case ' ':
             e.preventDefault()
@@ -370,7 +384,7 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
       }
     }, [deletedClipIds])
 
-    // 비디오 URL 디버깅 및 src 변경 타임스탬프 기록
+    // Handle video URL changes with proper cleanup and reset
     useEffect(() => {
       lastSrcChangeAtRef.current = Date.now()
       console.log('[VideoPlayer] Video URL changed:', {
@@ -379,6 +393,31 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
         urlLength: videoUrl?.length,
         timestamp: new Date().toISOString(),
       })
+
+      // If we have a video element and the URL changed, force a reset
+      if (videoRef.current) {
+        const video = videoRef.current
+        console.log('🔄 Forcing video element reset for new URL')
+
+        // Stop current playback
+        video.pause()
+        setIsPlaying(false)
+
+        // Clear current source to force reload
+        video.removeAttribute('src')
+        video.load()
+
+        // If we have a new URL, set it after a brief delay to ensure cleanup
+        if (videoUrl) {
+          setTimeout(() => {
+            if (videoRef.current && videoUrl) {
+              console.log('📺 Setting new video source:', videoUrl)
+              videoRef.current.src = videoUrl
+              videoRef.current.load()
+            }
+          }, 50)
+        }
+      }
     }, [videoUrl])
 
     // Error state

@@ -326,223 +326,47 @@ If you encounter `EPERM: operation not permitted, rename` errors on Windows:
 9. **GPU Rendering**: Server-side rendering for 20-40x performance improvement
 10. **File System Access API**: Direct file saving without downloads
 
-## 🚀 GPU 렌더링 시스템
+## 🚀 GPU Rendering System
 
-### 시스템 개요
+### Overview
 
-ECG는 **20-40배 속도 개선**을 달성하는 GPU 기반 서버 렌더링 시스템을 구현했습니다.
+ECG implements a GPU-based server rendering system achieving **20-40x speed improvement**.
 
-**성능 비교:**
+**Performance Comparison:**
 
-- **현재 방식 (MediaRecorder)**: 1분 영상 → 5-10분 처리
-- **GPU 렌더링**: 1분 영상 → **15-20초 처리** ⚡
+- **Browser (MediaRecorder)**: 1min video → 5-10min processing
+- **GPU Rendering**: 1min video → **15-20sec processing** ⚡
 
-### 전체 시스템 아키텍처
-
-ECG는 두 개의 주요 처리 단계로 구성됩니다:
-
-#### 1️⃣ Upload Phase (음성 분석)
+### Architecture Flow
 
 ```
-Frontend → API Server → S3 Storage
-                ↓
-         ML Audio Server (WhisperX)
-                ↓
-         API Server (콜백 수신)
-                ↓
-         Frontend (텍스트/자막 결과)
+Frontend → API Server → GPU Render Server → S3 Storage
 ```
 
-**처리 과정:**
+### Frontend Implementation
 
-- 비디오 파일을 S3에 업로드
-- ML Audio Server가 S3에서 비디오를 가져와 분석
-- 화자 분리, 음성 인식, 감정 분석 수행
-- 결과를 API Server로 콜백 전송
-- Frontend는 polling으로 상태 확인 및 결과 수신
+#### Key Components
 
-#### 2️⃣ Export Phase (GPU 렌더링)
+- **ServerVideoExportModal.tsx** - GPU rendering UI component
+- **useServerVideoExport.ts** - State management hook
+- **renderService.ts** - API service layer with FastAPI compatibility
 
-```
-Frontend → API Server → GPU Render Server
-                ↓
-         S3 Storage (렌더링된 비디오)
-                ↓
-         API Server (콜백 수신)
-                ↓
-         Frontend (다운로드 URL)
-```
-
-**처리 과정:**
-
-- 편집된 자막 시나리오를 GPU 서버로 전송
-- GPU 서버가 Playwright + FFmpeg로 렌더링 (20-40배 속도 개선)
-- 완성된 비디오를 S3에 업로드
-- Frontend는 File System Access API로 자동 저장
-
-#### Phase 연결 흐름
-
-```
-Upload Phase 결과 (자막 데이터)
-        ↓
-    Editor에서 편집
-        ↓
-Export Phase 입력 (편집된 시나리오)
-```
-
-**중요**: Frontend는 ML/GPU 서버와 직접 통신하지 않고, 항상 **API Server를 통해** 간접 통신합니다.
-
-### 프론트엔드 구현 상태
-
-#### ✅ 완료된 기능
-
-1. **ServerVideoExportModal.tsx**
-   - GPU 렌더링 전용 UI 컴포넌트
-   - 3단계 플로우: Ready → Exporting → Completed
-   - 실시간 진행률 표시 및 예상 시간 계산
-
-2. **File System Access API 통합**
-
-   ```typescript
-   // 렌더링 시작 시 저장 위치 선택
-   const handle = await window.showSaveFilePicker({
-     suggestedName: `${videoName}_GPU_${timestamp}.mp4`,
-     types: [{ description: 'MP4 Video', accept: { 'video/mp4': ['.mp4'] } }],
-   })
-   ```
-
-3. **useServerVideoExport.ts 훅**
-   - 렌더링 상태 관리 (진행률, 예상 시간, 에러)
-   - 자동 파일 저장 기능
-   - 취소 및 에러 처리
-
-4. **renderService.ts API 레이어**
-   - 백엔드 호환 타입 시스템
-   - 에러 코드별 세분화된 처리
-   - 자동 폴백 시스템 (구형 브라우저)
-
-#### 🔄 백엔드 연동 준비 완료
-
-- **타입 정의**: 백엔드 FastAPI와 완벽 호환
-- **에러 처리**: GPU 서버, 네트워크, 인증 오류 구분
-- **인증 토큰**: JWT 연동 준비 (활성화 대기)
-
-### API 플로우
-
-#### 렌더링 요청
+#### File System Access API
 
 ```typescript
-// 1. 저장 위치 선택
-const fileHandle = await selectSaveLocation()
-
-// 2. 렌더링 시작
-const response = await renderService.createRenderJob({
-  videoUrl: 'https://s3.amazonaws.com/bucket/video.mp4',
-  scenario: motionTextScenario,
-  options: { width: 1920, height: 1080, fps: 30 },
+// Auto-save on completion
+const handle = await window.showSaveFilePicker({
+  suggestedName: `${videoName}_GPU_${timestamp}.mp4`,
+  types: [{ description: 'MP4 Video', accept: { 'video/mp4': ['.mp4'] } }],
 })
-
-// 3. 진행 상황 폴링 (5초 간격)
-const status = await renderService.pollJobStatus(response.data.jobId)
-
-// 4. 완료 시 자동 저장
-if (status.status === 'completed') {
-  await saveToSelectedLocation(status.downloadUrl, fileHandle)
-}
 ```
 
-### 사용자 경험 개선
-
-#### 이전 플로우 (비효율적)
-
-```
-렌더링 시작 → 20-30초 대기 → 완료 → 다운로드 버튼 → 저장 위치 선택
-```
-
-#### 현재 플로우 (최적화됨)
-
-```
-GPU 렌더링 시작 → 저장 위치 먼저 선택 → 렌더링 진행 → 완료 시 자동 저장 ✨
-```
-
-### 에러 처리 체계
-
-```typescript
-enum RenderErrorCode {
-  CREATE_JOB_ERROR = 'CREATE_JOB_ERROR',
-  GPU_SERVER_ERROR = 'GPU_SERVER_ERROR',
-  CONNECTION_ERROR = 'CONNECTION_ERROR',
-  TIMEOUT_ERROR = 'TIMEOUT_ERROR',
-  ABORTED = 'ABORTED',
-}
-
-// 사용자 친화적 메시지
-if (error.includes('GPU')) {
-  showToast('GPU 서버에 일시적인 문제가 발생했습니다', 'error')
-} else if (error.includes('network')) {
-  showToast('네트워크 연결을 확인해주세요', 'error')
-}
-```
-
-### 개발 환경 설정
-
-#### 환경 변수
+### Testing GPU Rendering
 
 ```bash
-# .env.local
-NEXT_PUBLIC_GPU_RENDER_API_URL=http://localhost:8000/api/render
-```
-
-#### GPU 렌더링 테스트
-
-```bash
-# 개발 서버 실행
 yarn dev
-
-# GPU 렌더링 모달 접근
-# Editor → Export → GPU 렌더링 선택
+# Navigate to Editor → Export → GPU Rendering
 ```
-
-### 파일 구조
-
-#### GPU 렌더링 관련 파일들
-
-```
-src/
-├── services/api/
-│   ├── renderService.ts           # GPU 렌더링 API 서비스
-│   └── types/render.types.ts      # 타입 정의
-├── app/(route)/editor/
-│   ├── components/Export/
-│   │   └── ServerVideoExportModal.tsx  # GPU 렌더링 UI
-│   └── hooks/
-│       └── useServerVideoExport.ts     # 상태 관리 훅
-└── types/
-    └── file-system-access.d.ts    # File System Access API 타입
-```
-
-### 성능 메트릭
-
-#### 측정 가능한 지표
-
-- **처리 시간**: 비디오 길이 대비 렌더링 시간
-- **성공률**: 완료된 작업 / 전체 요청 \* 100
-- **사용자 만족도**: 대기 시간 및 품질 평가
-- **자동 저장율**: File System Access API 사용률
-
-#### 모니터링 도구
-
-- **CloudWatch**: 백엔드 메트릭
-- **Sentry**: 프론트엔드 에러 추적
-- **Google Analytics**: 사용자 행동 분석
-
-### 문서 참조
-
-상세한 GPU 렌더링 시스템 정보는 다음 문서들을 참조하세요:
-
-- **`docs/GPU_RENDERING_COMPLETE_ARCHITECTURE.md`**: 전체 시스템 아키텍처
-- **`docs/BACKEND_REQUIREMENTS_FOR_GPU_RENDERING.md`**: 백엔드 구현 요구사항
-- **`docs/GPU_RENDERING_API_SPEC.md`**: API 명세서
 
 ## 🔧 Configuration
 
@@ -647,10 +471,3 @@ docker build --target prod -t ecg-frontend:prod .
 13. **Error Handling**: Show error messages instead of fallbacks when plugins fail to load
 14. **Pre-push Hook**: Uses `npm run type-check` (not yarn) to validate TypeScript before push
 15. **Testing**: Jest unit tests are configured and working, but Playwright E2E tests are only in CI, not local development
-
-# important-instruction-reminders
-
-Do what has been asked; nothing more, nothing less.
-NEVER create files unless they're absolutely necessary for achieving your goal.
-ALWAYS prefer editing an existing file to creating a new one.
-NEVER proactively create documentation files (\*.md) or README files. Only create documentation files if explicitly requested by the User.

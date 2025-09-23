@@ -4,7 +4,7 @@ import { useEditorStore } from '@/app/(route)/editor/store'
 import { useProgressTasks } from '@/hooks/useProgressTasks'
 import React, { useRef, useState } from 'react'
 import { FaSpinner, FaTimes } from 'react-icons/fa'
-import { LuLightbulb } from 'react-icons/lu'
+import { LuChevronDown, LuLightbulb } from 'react-icons/lu'
 
 export interface ProcessingModalProps {
   isOpen: boolean
@@ -12,7 +12,6 @@ export interface ProcessingModalProps {
   onCancel?: () => void
   backdrop?: boolean
 }
-
 
 export default function ProcessingModal({
   isOpen,
@@ -31,7 +30,8 @@ export default function ProcessingModal({
   )
 
   // If no active task and modal is open, check if there's any upload task at all
-  const latestUploadTask = uploadTasks.length > 0 ? uploadTasks[uploadTasks.length - 1] : null
+  const latestUploadTask =
+    uploadTasks.length > 0 ? uploadTasks[uploadTasks.length - 1] : null
   const currentTask = activeUploadTask || latestUploadTask
 
   // Extract data from current task
@@ -107,7 +107,6 @@ export default function ProcessingModal({
     const secs = Math.floor(seconds % 60)
     return mins > 0 ? `${mins}분 ${secs}초` : `${secs}초`
   }
-
 
   if (!isOpen) return null
 
@@ -190,11 +189,13 @@ export default function ProcessingModal({
                   알고 계셨나요?
                 </h4>
                 <p className="text-sm text-gray-700 mb-1">
-                  편집 중인 영상을 다른 사람에게 보여주고 싶다면,
+                  애니메이션 템플릿을 적용하면 전체 자막 스타일을 한 번에 변경할
+                  수 있습니다.
                 </p>
                 <p className="text-sm text-gray-700">
-                  <span className="font-medium">[만일] &gt; [프리뷰 공유]</span>
-                  를 사용하여 간편하게 영상을 공유해 보세요.
+                  <span className="font-medium"> 적합한 템플릿이 없다면</span>
+                  챗봇 어시스턴트를 사용하여 간편하게 커스텀 템플릿을
+                  제작해보세요.
                 </p>
               </div>
             </div>
@@ -224,7 +225,6 @@ export default function ProcessingModal({
               </p>
             </div>
           )}
-
 
           {/* Action Buttons for Completed/Failed States */}
           {status === 'completed' && (
