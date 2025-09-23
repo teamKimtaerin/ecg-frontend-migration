@@ -70,6 +70,7 @@ import { PasteClipsCommand } from '@/utils/editor/commands/PasteClipsCommand'
 import { RemoveSpeakerCommand } from '@/utils/editor/commands/RemoveSpeakerCommand'
 import { SplitClipCommand } from '@/utils/editor/commands/SplitClipCommand'
 import { showToast } from '@/utils/ui/toast'
+import { processingResultStorage } from '@/utils/storage/processingResultStorage'
 
 // TimelineClipCard 컴포넌트
 interface TimelineClipCardProps {
@@ -498,6 +499,9 @@ export default function EditorPage() {
     removeSpeakerColor,
     speakers: globalSpeakers,
     setSpeakers: setGlobalSpeakers,
+    setSpeakerColors,
+    buildInitialScenario,
+    setCurrentProject,
     applyAutoLineBreak,
   } = useEditorStore()
 
@@ -542,6 +546,161 @@ export default function EditorPage() {
 
   // Get media actions from store
   const { setMediaInfo, validateAndRestoreBlobUrl } = useEditorStore()
+
+  // 대기 중인 처리 결과 확인 및 적용
+  const checkAndApplyPendingResults = useCallback(async () => {
+    const pendingJobId = sessionStorage.getItem('pendingJobId')
+    if (!pendingJobId) return
+
+    try {
+      log(
+        'EditorPage.tsx',
+        `🔍 Checking pending result for job: ${pendingJobId}`
+      )
+
+      // IndexedDB에서 결과 로드
+      const result = await processingResultStorage.loadResult(pendingJobId)
+      if (!result) {
+        log('EditorPage.tsx', '⚠️ No result found for pending job')
+        sessionStorage.removeItem('pendingJobId')
+        return
+      }
+
+      log('EditorPage.tsx', '🎉 Found pending result, applying to editor')
+
+      // useUploadModal의 convertSegmentsToClips 로직을 여기서 재현
+      const convertedClips: ClipItem[] = result.result.segments.map(
+        (segment, index) => {
+          const segmentId = `clip-${index + 1}`
+
+          // 세그먼트 타이밍 계산
+          let segmentStart = segment.start || 0
+          let segmentEnd = segment.end || 0
+
+          if (!isFinite(segmentStart) || segmentStart < 0) segmentStart = 0
+          if (!isFinite(segmentEnd) || segmentEnd < 0) segmentEnd = 0
+          if (segmentEnd <= segmentStart) segmentEnd = segmentStart + 0.001
+
+          // 화자 정보 처리
+          let speakerValue = 'Unknown'
+          if (typeof segment.speaker === 'string') {
+            speakerValue = segment.speaker
+          } else if (segment.speaker && typeof segment.speaker === 'object') {
+            speakerValue = (segment.speaker as any).speaker_id || 'Unknown'
+          }
+
+          // 화자 매핑 적용
+          if (
+            result.result.speakerMapping &&
+            result.result.speakerMapping[speakerValue]
+          ) {
+            speakerValue = result.result.speakerMapping[speakerValue]
+          }
+
+          // 단어 데이터 변환
+          const words =
+            segment.words?.map((word, wordIndex) => {
+              let wordStart = word.start || 0
+              let wordEnd = word.end || 0
+
+              if (!isFinite(wordStart) || wordStart < 0) wordStart = 0
+              if (!isFinite(wordEnd) || wordEnd < 0) wordEnd = 0
+              if (wordEnd <= wordStart) wordEnd = wordStart + 0.001
+
+              return {
+                id: `word-${segmentId}-${wordIndex}`,
+                text: word.word,
+                start: wordStart,
+                end: wordEnd,
+                isEditable: true,
+                confidence: word.confidence || 0.9,
+              }
+            }) || []
+
+          return {
+            id: segmentId,
+            timeline: `${(segmentStart || 0).toFixed(2)}s - ${(segmentEnd || 0).toFixed(2)}s`,
+            text: segment.text,
+            subtitle: segment.text,
+            fullText: segment.text,
+            speaker: speakerValue,
+            start: segmentStart,
+            end: segmentEnd,
+            duration: `${((segmentEnd || 0) - (segmentStart || 0)).toFixed(2)}초`,
+            thumbnail: '',
+            confidence: segment.confidence || 0.9,
+            words,
+            stickers: [],
+          }
+        }
+      )
+
+      // 화자 정보 초기화
+      const mlSpeakers = result.result.speakers || []
+      const allSpeakers = [...mlSpeakers]
+      const finalSpeakers = allSpeakers.length > 0 ? allSpeakers : ['화자1']
+
+      const finalColors: Record<string, string> = {}
+      finalSpeakers.forEach((speaker, index) => {
+        // getSpeakerColorByIndex 함수 대신 간단한 색상 할당
+        const colors = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6']
+        finalColors[speaker] = colors[index % colors.length]
+      })
+
+      // Store에 데이터 적용
+      setClips(convertedClips)
+      setGlobalSpeakers(finalSpeakers)
+      setSpeakerColors(finalColors)
+
+      // 시나리오 생성
+      try {
+        buildInitialScenario(convertedClips)
+      } catch (error) {
+        log('EditorPage.tsx', '⚠️ Failed to build scenario:', error)
+      }
+
+      // 프로젝트 생성
+      const projectId = `project-${Date.now()}`
+      const projectName =
+        result.metadata?.fileName?.replace(/\.[^/.]+$/, '') || 'Untitled'
+
+      const newProject = {
+        id: projectId,
+        name: projectName,
+        clips: convertedClips,
+        settings: {
+          autoSaveEnabled: true,
+          autoSaveInterval: 30,
+          defaultSpeaker: '화자1',
+          exportFormat: 'srt' as const,
+        },
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        videoDuration: result.result.metadata?.duration || 0,
+        videoUrl: result.metadata?.videoUrl,
+        videoName: result.metadata?.fileName,
+      }
+
+      setCurrentProject(newProject)
+      sessionStorage.setItem('currentProjectId', projectId)
+
+      // 정리
+      sessionStorage.removeItem('pendingJobId')
+      showToast('음성 분석 결과가 적용되었습니다', 'success')
+
+      log('EditorPage.tsx', '✅ Pending result applied successfully')
+    } catch (error) {
+      log('EditorPage.tsx', '❌ Failed to apply pending result:', error)
+      sessionStorage.removeItem('pendingJobId')
+      showToast('결과 적용 중 오류가 발생했습니다', 'error')
+    }
+  }, [
+    setClips,
+    setGlobalSpeakers,
+    setSpeakerColors,
+    buildInitialScenario,
+    setCurrentProject,
+  ])
 
   // URL 파라미터에서 deploy 모달 파라미터 감지
   useEffect(() => {
@@ -635,9 +794,16 @@ export default function EditorPage() {
       try {
         // 개별 프로젝트 삭제 방식으로 대체
         // clearAllProjects 메서드가 없으므로 건너뛰기
-        log('EditorPage.tsx', '✅ Skipped IndexedDB project clearing (method not available)')
+        log(
+          'EditorPage.tsx',
+          '✅ Skipped IndexedDB project clearing (method not available)'
+        )
       } catch (error) {
-        log('EditorPage.tsx', '⚠️ Failed to clear projects from IndexedDB:', error)
+        log(
+          'EditorPage.tsx',
+          '⚠️ Failed to clear projects from IndexedDB:',
+          error
+        )
       }
 
       // 13. 세션 스토리지 정리
@@ -659,7 +825,6 @@ export default function EditorPage() {
 
       log('EditorPage.tsx', '✅ Complete editor state reset finished')
       showToast('새 프로젝트가 생성되었습니다', 'success')
-
     } catch (error) {
       log('EditorPage.tsx', '❌ Failed to reset editor state:', error)
       showToast('상태 초기화 중 오류가 발생했습니다', 'error')
@@ -775,7 +940,9 @@ export default function EditorPage() {
         // Check for project to recover
         const projectId = sessionStorage.getItem('currentProjectId')
         const mediaId = sessionStorage.getItem('currentMediaId')
-        const storedMediaIdFromSession = sessionStorage.getItem('currentStoredMediaId')
+        const storedMediaIdFromSession = sessionStorage.getItem(
+          'currentStoredMediaId'
+        )
         const lastUploadProjectId = sessionStorage.getItem(
           'lastUploadProjectId'
         )
@@ -833,7 +1000,10 @@ export default function EditorPage() {
                   if (savedProject.storedMediaId) {
                     setTimeout(() => {
                       validateAndRestoreBlobUrl().catch((error) => {
-                        log('EditorPage.tsx', `Failed to validate blob URL: ${error}`)
+                        log(
+                          'EditorPage.tsx',
+                          `Failed to validate blob URL: ${error}`
+                        )
                       })
                     }, 1000) // 1초 후 검증 시도
                   }
@@ -920,11 +1090,20 @@ export default function EditorPage() {
                 })
 
                 // 기존 프로젝트의 경우 blob URL 검증 및 복원 시도
-                if (savedProject.storedMediaId && savedProject.videoUrl?.startsWith('blob:')) {
-                  log('EditorPage.tsx', '🔄 Validating existing project blob URL...')
+                if (
+                  savedProject.storedMediaId &&
+                  savedProject.videoUrl?.startsWith('blob:')
+                ) {
+                  log(
+                    'EditorPage.tsx',
+                    '🔄 Validating existing project blob URL...'
+                  )
                   setTimeout(() => {
                     validateAndRestoreBlobUrl().catch((error) => {
-                      log('EditorPage.tsx', `Failed to restore blob URL: ${error}`)
+                      log(
+                        'EditorPage.tsx',
+                        `Failed to restore blob URL: ${error}`
+                      )
                     })
                   }, 500) // 0.5초 후 검증 시도
                 }
@@ -958,8 +1137,15 @@ export default function EditorPage() {
             autosaveManager.setProject(currentProject.id, 'browser')
 
             // 미디어 정보 복원 (storedMediaId가 있으면 즉시 복원)
-            if (currentProject.storedMediaId || currentProject.videoUrl || currentProject.mediaId) {
-              log('EditorPage.tsx', '🔄 Restoring media from autosaved project...')
+            if (
+              currentProject.storedMediaId ||
+              currentProject.videoUrl ||
+              currentProject.mediaId
+            ) {
+              log(
+                'EditorPage.tsx',
+                '🔄 Restoring media from autosaved project...'
+              )
 
               setMediaInfo({
                 mediaId: currentProject.mediaId || null,
@@ -973,10 +1159,16 @@ export default function EditorPage() {
 
               // storedMediaId가 있으면 즉시 복원 시도
               if (currentProject.storedMediaId) {
-                log('EditorPage.tsx', `🎬 Attempting immediate media restoration: ${currentProject.storedMediaId}`)
+                log(
+                  'EditorPage.tsx',
+                  `🎬 Attempting immediate media restoration: ${currentProject.storedMediaId}`
+                )
                 setTimeout(() => {
                   validateAndRestoreBlobUrl().catch((error) => {
-                    log('EditorPage.tsx', `Failed to restore autosaved media: ${error}`)
+                    log(
+                      'EditorPage.tsx',
+                      `Failed to restore autosaved media: ${error}`
+                    )
                   })
                 }, 100) // 100ms 후 즉시 복원 시도
               }
@@ -1012,6 +1204,17 @@ export default function EditorPage() {
     loadOriginalClipsFromStorage,
     setGlobalSpeakers,
   ])
+
+  // Check for pending processing results on page load
+  useEffect(() => {
+    // sessionStorage에 pendingJobId가 있을 때만 실행
+    if (
+      typeof window !== 'undefined' &&
+      sessionStorage.getItem('pendingJobId')
+    ) {
+      checkAndApplyPendingResults()
+    }
+  }, [checkAndApplyPendingResults])
 
   // Generate stable ID for DndContext to prevent hydration mismatch
   const dndContextId = useId()

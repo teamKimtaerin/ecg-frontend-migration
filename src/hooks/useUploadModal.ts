@@ -24,6 +24,8 @@ import {
 import { useWaveformGeneration } from '@/hooks/useWaveformGeneration'
 import { projectStorage } from '@/utils/storage/projectStorage'
 import { mediaStorage } from '@/utils/storage/mediaStorage'
+import { processingResultStorage } from '@/utils/storage/processingResultStorage'
+import { showToast } from '@/utils/ui/toast'
 import { useRouter } from 'next/navigation'
 import { useCallback, useRef, useState } from 'react'
 
@@ -82,6 +84,7 @@ export const useUploadModal = () => {
     removeTask,
     startGlobalPolling,
     stopGlobalPolling,
+    setUploadNotification,
   } = useProgressStore()
 
   // Waveform generation hook
@@ -230,7 +233,10 @@ export const useUploadModal = () => {
           })
           log('useUploadModal', `💾 Media saved to IndexedDB: ${storedMediaId}`)
         } catch (error) {
-          log('useUploadModal', `⚠️ Failed to save media to IndexedDB: ${error}`)
+          log(
+            'useUploadModal',
+            `⚠️ Failed to save media to IndexedDB: ${error}`
+          )
           // IndexedDB 저장 실패해도 계속 진행
         }
 
@@ -539,6 +545,11 @@ export const useUploadModal = () => {
         setCurrentJobId(job_id)
         updateState({ estimatedTimeRemaining: estimated_time || 180 })
 
+        // jobId를 progress task에 추가
+        if (progressTaskId) {
+          updateTask(progressTaskId, { jobId: job_id })
+        }
+
         log('useUploadModal', `🔄 Starting global polling for job: ${job_id}`)
         console.log(
           '[useUploadModal] About to start global polling for job:',
@@ -703,9 +714,26 @@ export const useUploadModal = () => {
 
   // 처리 완료 핸들러
   const handleProcessingComplete = useCallback(
-    (result: ProcessingResult) => {
+    async (result: ProcessingResult) => {
       try {
         log('useUploadModal', '🔄 Converting segments to clips')
+
+        // 1. 결과를 IndexedDB에 저장
+        try {
+          await processingResultStorage.saveResult(result.job_id, result, {
+            fileName: state.fileName,
+            videoUrl: state.videoUrl,
+          })
+          log('useUploadModal', '💾 Processing result saved to IndexedDB')
+        } catch (error) {
+          log('useUploadModal', '⚠️ Failed to save processing result:', error)
+        }
+
+        // 2. 업로드 완료 토스트 메시지
+        showToast('음성 분석이 완료되었습니다', 'success')
+
+        // 3. 업로드 알림 설정 (벨 아이콘에 빨간 점)
+        setUploadNotification(true)
 
         // 🔥 중요: videoUrl 안정적 해결
         const resolvedVideoUrl =

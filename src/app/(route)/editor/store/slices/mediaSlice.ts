@@ -365,13 +365,19 @@ export const createMediaSlice: StateCreator<MediaSlice> = (set, get) => ({
         if (state.currentBlobUrl) {
           try {
             URL.revokeObjectURL(state.currentBlobUrl)
-            log('mediaSlice.ts', `🧹 Revoked old blob URL: ${state.currentBlobUrl}`)
+            log(
+              'mediaSlice.ts',
+              `🧹 Revoked old blob URL: ${state.currentBlobUrl}`
+            )
           } catch (error) {
             log('mediaSlice.ts', 'Failed to revoke old blob URL:', error)
           }
         }
 
-        log('mediaSlice.ts', `✅ Media restored successfully: ${mediaFile.fileName}`)
+        log(
+          'mediaSlice.ts',
+          `✅ Media restored successfully: ${mediaFile.fileName}`
+        )
 
         return {
           ...state,
@@ -385,12 +391,11 @@ export const createMediaSlice: StateCreator<MediaSlice> = (set, get) => ({
           videoError: null,
         }
       })
-
     } catch (error) {
       log('mediaSlice.ts', `❌ Failed to restore media: ${error}`)
       set({
         isRestoringMedia: false,
-        videoError: `미디어 복원 실패: ${error}`
+        videoError: `미디어 복원 실패: ${error}`,
       })
     }
   },
@@ -415,7 +420,10 @@ export const createMediaSlice: StateCreator<MediaSlice> = (set, get) => ({
           return
         }
       } catch {
-        log('mediaSlice.ts', '⚠️ Current blob URL is invalid, attempting restoration')
+        log(
+          'mediaSlice.ts',
+          '⚠️ Current blob URL is invalid, attempting restoration'
+        )
       }
     }
 

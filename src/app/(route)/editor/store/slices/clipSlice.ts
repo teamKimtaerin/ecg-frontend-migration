@@ -729,7 +729,10 @@ export const createClipSlice: StateCreator<
       })
 
       // Restore media information to MediaSlice if available
-      if (state.setMediaInfo && (project.mediaId || project.videoUrl || project.storedMediaId)) {
+      if (
+        state.setMediaInfo &&
+        (project.mediaId || project.videoUrl || project.storedMediaId)
+      ) {
         state.setMediaInfo({
           mediaId: project.mediaId || null,
           videoUrl: project.videoUrl || null,
