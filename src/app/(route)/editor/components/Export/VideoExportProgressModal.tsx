@@ -60,7 +60,7 @@ export default function VideoExportProgressModal({
       status="processing"
       progress={progress}
       estimatedTimeRemaining={remainingSeconds}
-      videoThumbnail={videoThumbnail}
+      videoThumbnail={videoThumbnail || undefined}
       canCancel={true}
       closeOnBackdropClick={false}
       aria-label="내보내기 진행 상황"
