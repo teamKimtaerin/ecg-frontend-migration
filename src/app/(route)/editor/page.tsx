@@ -1875,6 +1875,7 @@ export default function EditorPage() {
                 onRedo={handleRedo}
                 onSplitClip={handleSplitClip}
                 onToggleTemplateSidebar={handleToggleTemplateSidebar}
+                onAutoLineBreak={handleAutoLineBreak}
                 onSave={handleSave}
                 onSaveAs={handleSaveAs}
                 forceOpenExportModal={shouldOpenExportModal}
