@@ -25,6 +25,7 @@ export default function ClipWord({
   const editableRef = useRef<HTMLSpanElement>(null)
   const [lastClickTime, setLastClickTime] = useState(0)
   const [editingText, setEditingText] = useState(word.text)
+  const [isComposing, setIsComposing] = useState(false)
 
   const {
     focusedWordId,
@@ -98,7 +99,7 @@ export default function ClipWord({
       const isShiftClick = e.shiftKey
       const isCtrlOrCmdClick = e.ctrlKey || e.metaKey
 
-      if (timeDiff < 300 && isFocused && !isShiftClick && !isCtrlOrCmdClick) {
+      if (timeDiff < 500 && isFocused && !isShiftClick && !isCtrlOrCmdClick) {
         // Double-click on focused word -> enter inline text edit
         startInlineEdit(clipId, word.id)
         setEditingText(word.text)
@@ -141,13 +142,8 @@ export default function ClipWord({
           }
         }
 
-        // If already focused and clicking in center, start inline edit
-        if (isFocused && isCenter) {
-          startInlineEdit(clipId, word.id)
-          setEditingText(word.text)
-        } else {
-          onWordClick(word.id, isCenter)
-        }
+        // Single click just focuses the word, double-click will edit
+        onWordClick(word.id, isCenter)
       }
 
       setLastClickTime(currentTime)
@@ -182,6 +178,14 @@ export default function ClipWord({
     const trimmedText = editingText.trim()
     if (trimmedText && trimmedText !== word.text) {
       onWordEdit(clipId, word.id, trimmedText)
+
+      // Update scenario to reflect the text change
+      try {
+        const store = useEditorStore.getState() as any
+        store.updateWordTextInScenario?.(word.id, trimmedText)
+      } catch (error) {
+        console.error('Failed to update scenario:', error)
+      }
     }
     endInlineEdit()
   }, [editingText, word.text, clipId, word.id, onWordEdit, endInlineEdit])
@@ -193,27 +197,42 @@ export default function ClipWord({
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
+      // Stop propagation to prevent video player from handling arrow keys
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        e.stopPropagation()
+      }
+
       if (e.key === 'Escape') {
         handleInlineEditCancel()
+      } else if (e.key === 'Enter' && !isComposing) {
+        e.preventDefault()
+        handleInlineEditSave()
       }
-      // Note: No Enter key handling - only save on blur
     },
-    [handleInlineEditCancel]
+    [handleInlineEditCancel, handleInlineEditSave, isComposing]
   )
 
-  // Focus and select text when entering edit mode
+  // Focus and set initial text when entering edit mode
   useEffect(() => {
     if (isEditing && editableRef.current) {
+      // Set the initial text content
+      editableRef.current.textContent = editingText
       editableRef.current.focus()
-      // Move cursor to end
+
+      // Move cursor to end after setting text
       const range = document.createRange()
       const sel = window.getSelection()
-      range.selectNodeContents(editableRef.current)
-      range.collapse(false)
+      if (editableRef.current.firstChild) {
+        range.setStartAfter(editableRef.current.lastChild || editableRef.current.firstChild)
+        range.collapse(true)
+      } else {
+        range.selectNodeContents(editableRef.current)
+        range.collapse(false)
+      }
       sel?.removeAllRanges()
       sel?.addRange(range)
     }
-  }, [isEditing])
+  }, [isEditing]) // Don't include editingText to avoid re-running on every keystroke
 
   // Determine visual state classes
   const getWordClasses = () => {
@@ -354,11 +373,22 @@ export default function ClipWord({
           contentEditable
           suppressContentEditableWarning
           className="outline-none min-w-[20px] inline-block"
-          onInput={(e) => setEditingText(e.currentTarget.textContent || '')}
-          onBlur={handleInlineEditSave}
+          onInput={(e) => {
+            // Use textContent instead of innerHTML to preserve cursor position
+            const text = e.currentTarget.textContent || ''
+            setEditingText(text)
+          }}
+          onBlur={() => {
+            if (!isComposing) {
+              handleInlineEditSave()
+            }
+          }}
           onKeyDown={handleKeyDown}
+          onCompositionStart={() => setIsComposing(true)}
+          onCompositionEnd={() => {
+            setIsComposing(false)
+          }}
           style={{ minWidth: '1ch' }}
-          dangerouslySetInnerHTML={{ __html: editingText }}
         />
       ) : (
         <span className="flex items-center gap-1">{word.text}</span>

@@ -41,6 +41,9 @@ export interface ScenarioSlice {
     }
   ) => void
 
+  // Update word text in scenario
+  updateWordTextInScenario: (wordId: string, newText: string) => void
+
   // Set scenario from arbitrary JSON (editor apply)
   setScenarioFromJson: (config: RendererConfigV2) => void
 }
@@ -397,6 +400,69 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
 
     set({
       currentScenario: newScenario,
+      scenarioVersion: (get().scenarioVersion || 0) + 1,
+    })
+  },
+
+  updateWordTextInScenario: (wordId, newText) => {
+    let { currentScenario, nodeIndex } = get()
+
+    // Lazily build scenario if it doesn't exist
+    if (!currentScenario) {
+      try {
+        const anyGet = get() as unknown as {
+          clips?: import('../../types').ClipItem[]
+          deletedClipIds?: Set<string>
+          buildInitialScenario?: ScenarioSlice['buildInitialScenario']
+          insertedTexts?: any[]
+        }
+        const clipsAll = anyGet.clips || []
+        const deleted = anyGet.deletedClipIds || new Set<string>()
+        const activeClips = clipsAll.filter((c) => !deleted.has(c.id))
+        anyGet.buildInitialScenario?.(activeClips)
+        // Refresh local refs
+        currentScenario = get().currentScenario
+        nodeIndex = get().nodeIndex
+      } catch {
+        return // Cannot proceed without scenario
+      }
+    }
+
+    if (!currentScenario || !currentScenario.cues) return
+
+    // Find the word node in the scenario
+    const entry = nodeIndex[wordId]
+    if (!entry) {
+      console.warn(`Word node not found in scenario index: ${wordId}`)
+      return
+    }
+
+    const cue = currentScenario.cues[entry.cueIndex]
+    const childIdx = entry.path[0]
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const node: any = cue?.root?.children?.[childIdx]
+
+    if (!node) {
+      console.warn(`Word node not found in cue children: ${wordId}`)
+      return
+    }
+
+    // Update the word text (use 'text' field, not 'content')
+    node.text = newText
+
+    // Deep clone the cues array to ensure React detects the change
+    const updatedCues = [...currentScenario.cues]
+    updatedCues[entry.cueIndex] = {
+      ...cue,
+      root: {
+        ...cue.root,
+        children: cue.root.children ? [...cue.root.children] : [],
+      },
+    }
+
+    // Create new scenario object to trigger re-render
+    set({
+      currentScenario: { ...currentScenario, cues: updatedCues },
       scenarioVersion: (get().scenarioVersion || 0) + 1,
     })
   },
