@@ -24,6 +24,7 @@ import {
   ensureMinimumSpeakers,
   normalizeSpeakerMapping,
 } from '@/utils/speaker/speakerUtils'
+import { useWaveformGeneration } from '@/hooks/useWaveformGeneration'
 
 export interface UploadModalState {
   isOpen: boolean
@@ -70,6 +71,9 @@ export const useUploadModal = () => {
     startGlobalPolling,
     stopGlobalPolling,
   } = useProgressStore()
+
+  // Waveform generation hook
+  const { generateWaveform } = useWaveformGeneration()
 
   const [state, setState] = useState<UploadModalState>(getInitialModalState)
 
@@ -187,6 +191,26 @@ export const useUploadModal = () => {
           blobUrlPrefix: blobUrl.substring(0, 20) + '...',
           timestamp: new Date().toISOString(),
         })
+
+        // 🎵 즉시 파형 생성 시작 (백그라운드로 처리)
+        log('useUploadModal', '🎵 Starting waveform generation in background')
+        generateWaveform(data.file)
+          .then((waveformData) => {
+            if (waveformData) {
+              log(
+                'useUploadModal',
+                '✅ Waveform generated successfully for immediate use'
+              )
+            } else {
+              log(
+                'useUploadModal',
+                '⚠️ Waveform generation failed, fallback will be used'
+              )
+            }
+          })
+          .catch((error) => {
+            log('useUploadModal', `❌ Waveform generation error: ${error}`)
+          })
 
         // State에도 Blob URL 저장 (S3 업로드 중에도 계속 사용)
         updateState({
