@@ -294,7 +294,8 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
 
         // Also check for contentEditable elements (used in word editing)
         const activeElement = document.activeElement
-        const isContentEditable = activeElement?.getAttribute('contenteditable') === 'true'
+        const isContentEditable =
+          activeElement?.getAttribute('contenteditable') === 'true'
 
         if (isEditingWord || isContentEditable) {
           // Don't interfere with word editing

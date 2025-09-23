@@ -261,6 +261,7 @@ When creating animation plugins:
 ECG implements a GPU-based server rendering system achieving **20-40x speed improvement**.
 
 **Performance Comparison:**
+
 - **Browser (MediaRecorder)**: 1min video → 5-10min processing
 - **GPU Rendering**: 1min video → **15-20sec processing** ⚡
 

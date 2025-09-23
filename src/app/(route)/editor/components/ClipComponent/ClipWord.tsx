@@ -216,7 +216,12 @@ export default function ClipWord({
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       // Stop propagation to prevent video player from handling arrow keys
-      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      if (
+        e.key === 'ArrowLeft' ||
+        e.key === 'ArrowRight' ||
+        e.key === 'ArrowUp' ||
+        e.key === 'ArrowDown'
+      ) {
         e.stopPropagation()
       }
 
@@ -241,7 +246,9 @@ export default function ClipWord({
       const range = document.createRange()
       const sel = window.getSelection()
       if (editableRef.current.firstChild) {
-        range.setStartAfter(editableRef.current.lastChild || editableRef.current.firstChild)
+        range.setStartAfter(
+          editableRef.current.lastChild || editableRef.current.firstChild
+        )
         range.collapse(true)
       } else {
         range.selectNodeContents(editableRef.current)
