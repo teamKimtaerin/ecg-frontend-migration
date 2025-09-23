@@ -520,7 +520,7 @@ export default function EditorMotionTextOverlay({
     const config = buildInitialScenario(activeClips, {
       position: { x: 0.5, y: subtitlePosition === 'top' ? 0.15 : 0.925 },
       anchor: 'bc',
-      fontSizeRel: subtitleSize === 'small' ? 0.05 : subtitleSize === 'large' ? 0.09 : 0.07,
+      fontSizeRel: subtitleSize === 'small' ? 0.035 : subtitleSize === 'large' ? 0.07 : 0.05,
       baseAspect: '16:9',
     })
 

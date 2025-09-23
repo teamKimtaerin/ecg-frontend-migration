@@ -384,7 +384,7 @@ export function generateLoopedScenarioV2(
                 overflow: 'visible',
               },
               style: {
-                fontSizeRel: settings.fontSizeRel || 0.07,
+                fontSizeRel: settings.fontSizeRel || 0.05,
                 fontFamily: 'Arial, sans-serif',
                 color: '#ffffff',
                 align: 'center',
@@ -522,7 +522,7 @@ export function generateLoopedScenario(
                 overflow: 'visible',
               },
               style: {
-                fontSizeRel: settings.fontSizeRel || 0.07,
+                fontSizeRel: settings.fontSizeRel || 0.05,
                 fontFamily: 'Arial, sans-serif',
                 color: '#ffffff',
                 align: 'center',

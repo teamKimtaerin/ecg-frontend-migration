@@ -56,12 +56,12 @@ export function calculateMaxWidthForFontSize(
   })
 
   // 자동 줄바꿈 시 wrap이 동작하지 않도록 보수적인 너비 적용
-  // safeArea 계산 결과보다 10% 더 좁게 사용 (wrap 방지용 여유)
-  const conservativeRatio = 0.9
+  // safeArea 계산 결과보다 50% 더 좁게 사용 (매우 엄격한 줄바꿈)
+  const conservativeRatio = 0.5
 
   // 폰트 크기에 따른 추가 조정
   // 큰 폰트일수록 더 많은 여백 필요
-  const fontSizeAdjustment = fontSizeRel > 0.08 ? 0.95 : 1.0
+  const fontSizeAdjustment = fontSizeRel > 0.06 ? 0.95 : 1.0
 
   return Math.floor(maxWidth * conservativeRatio * fontSizeAdjustment)
 }
@@ -84,7 +84,7 @@ export function extractFontSettingsFromScenario(scenario: RendererConfigV2): {
 
   return {
     fontFamily: (defaultStyle?.fontFamily as string) ?? 'Arial, sans-serif',
-    fontSizeRel: (defaultStyle?.fontSizeRel as number) ?? 0.07,
+    fontSizeRel: (defaultStyle?.fontSizeRel as number) ?? 0.05,
   }
 }
 

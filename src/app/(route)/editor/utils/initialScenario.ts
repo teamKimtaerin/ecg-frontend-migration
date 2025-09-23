@@ -144,9 +144,8 @@ export function buildInitialScenarioFromClips(
   const anchor = opts.anchor ?? 'bc'
   const wordAnimationTracks = opts.wordAnimationTracks
   const insertedTexts = opts.insertedTexts ?? []
-  const fontSizeRel = opts.fontSizeRel ?? 0.07 // Changed from 0.05 to 0.07 to match cwi_demo_full
+  const fontSizeRel = opts.fontSizeRel ?? 0.05 // Default font size
   const baseAspect = opts.baseAspect ?? '16:9'
-
 
   const cues: RendererConfigV2['cues'] = []
   const index: Record<string, NodeIndexEntry> = {}
@@ -227,7 +226,8 @@ export function buildInitialScenarioFromClips(
 
     // displayTime은 이 클립의 첫 단어 시작과 마지막 단어 끝 시간
     const firstWordStart = children[0]?.baseTime?.[0] ?? adjClipStart
-    const lastWordEnd = children[children.length - 1]?.baseTime?.[1] ?? adjClipEnd
+    const lastWordEnd =
+      children[children.length - 1]?.baseTime?.[1] ?? adjClipEnd
 
     const cue = {
       id: cueId,
@@ -344,7 +344,7 @@ export function buildInitialScenarioFromClips(
           align: 'center',
         },
         defaultBoxStyle: {
-          backgroundColor: 'rgba(0, 0, 0, 0.9)',
+          backgroundColor: 'rgba(0, 0, 0, 0.6)',
           padding: '4px 8px',
           borderRadius: '4px',
           opacity: 1,

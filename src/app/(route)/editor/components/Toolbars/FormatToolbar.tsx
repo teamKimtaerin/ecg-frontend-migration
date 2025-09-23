@@ -111,7 +111,7 @@ export default function FormatToolbar({ clips }: FormatToolbarProps) {
     }
 
     if (typeof combinedStyle.fontSizeRel === 'number') {
-      const sizePercent = Math.round((combinedStyle.fontSizeRel / 0.07) * 100)
+      const sizePercent = Math.round((combinedStyle.fontSizeRel / 0.05) * 100)
       setFontSize(sizePercent.toString())
     }
 
@@ -401,9 +401,9 @@ export default function FormatToolbar({ clips }: FormatToolbarProps) {
           onChange={(e) => {
             const newSize = e.target.value
             setFontSize(newSize)
-            // 폰트 크기를 fontSizeRel로 변환 (100% = 0.07)
+            // 폰트 크기를 fontSizeRel로 변환 (100% = 0.05)
             const sizePercent = parseInt(newSize) || 100
-            const fontSizeRel = (sizePercent / 100) * 0.07
+            const fontSizeRel = (sizePercent / 100) * 0.05
             applyStyle({
               fontSizeRel: fontSizeRel,
             })
@@ -468,9 +468,9 @@ export default function FormatToolbar({ clips }: FormatToolbarProps) {
                     onClick={(e) => {
                       e.stopPropagation()
                       setFontSize(size)
-                      // 폰트 크기를 fontSizeRel로 변환 (100% = 0.07)
+                      // 폰트 크기를 fontSizeRel로 변환 (100% = 0.05)
                       const sizePercent = parseInt(size) || 100
-                      const fontSizeRel = (sizePercent / 100) * 0.07
+                      const fontSizeRel = (sizePercent / 100) * 0.05
                       applyStyle({
                         fontSizeRel: fontSizeRel,
                       })

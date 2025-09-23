@@ -41,7 +41,7 @@ export class UnifiedClipProcessor {
     videoWidth: 1920,
     videoHeight: 1080,
     fontFamily: 'Arial, sans-serif',
-    fontSizeRel: 0.07,
+    fontSizeRel: 0.05,
     scenario: undefined, // 외부에서 주입
     minClipDuration: 0.5,
     maxClipDuration: 5,
