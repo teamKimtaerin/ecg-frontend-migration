@@ -18,6 +18,12 @@ import { log } from '@/utils/logger'
 import API_CONFIG from '@/config/api.config'
 import { useProgressStore } from '@/lib/store/progressStore'
 import { getSpeakerColorByIndex } from '@/utils/editor/speakerColors'
+import {
+  extractSpeakersFromClips,
+  normalizeSpeakerList,
+  ensureMinimumSpeakers,
+  normalizeSpeakerMapping,
+} from '@/utils/speaker/speakerUtils'
 
 export interface UploadModalState {
   isOpen: boolean
@@ -31,12 +37,26 @@ export interface UploadModalState {
   error?: string
 }
 
+// 초기 모달 상태 정의
+const getInitialModalState = (): UploadModalState => ({
+  isOpen: false,
+  step: 'select',
+  uploadProgress: 0,
+  processingProgress: 0,
+  currentStage: undefined,
+  estimatedTimeRemaining: undefined,
+  fileName: undefined,
+  videoUrl: undefined,
+  error: undefined,
+})
+
 export const useUploadModal = () => {
   const router = useRouter()
   const {
     setMediaInfo,
     setClips,
     clearMedia,
+    cleanupPreviousBlobUrl,
     setCurrentProject,
     setSpeakerColors,
     setSpeakers,
@@ -51,12 +71,7 @@ export const useUploadModal = () => {
     stopGlobalPolling,
   } = useProgressStore()
 
-  const [state, setState] = useState<UploadModalState>({
-    isOpen: false,
-    step: 'select',
-    uploadProgress: 0,
-    processingProgress: 0,
-  })
+  const [state, setState] = useState<UploadModalState>(getInitialModalState)
 
   const [currentJobId, setCurrentJobId] = useState<string>()
   const [currentProgressTaskId, setCurrentProgressTaskId] = useState<number>()
@@ -67,10 +82,30 @@ export const useUploadModal = () => {
     setState((prev) => ({ ...prev, ...updates }))
   }, [])
 
-  // 모달 열기
+  // 모달 열기 - 완전한 초기 상태로 리셋
   const openModal = useCallback(() => {
-    updateState({ isOpen: true, step: 'select' })
-  }, [updateState])
+    log('useUploadModal', '🎬 Opening upload modal with fresh state')
+
+    // 진행 중인 폴링이 있다면 중단
+    if (stopPollingRef.current) {
+      stopPollingRef.current()
+      stopPollingRef.current = null
+    }
+
+    // 완전한 초기 상태로 리셋 (단, isOpen은 true로 설정)
+    setState(() => ({
+      ...getInitialModalState(),
+      isOpen: true,
+    }))
+
+    // 현재 작업 ID들도 초기화
+    setCurrentJobId(undefined)
+    setCurrentProgressTaskId(undefined)
+
+    console.log(
+      '[UPLOAD MODAL] Modal opened with fresh state - no previous upload info'
+    )
+  }, [setState])
 
   // 모달 닫기
   const closeModal = useCallback(() => {
@@ -83,19 +118,13 @@ export const useUploadModal = () => {
     // 전역 폴링은 유지하고, progress task도 유지 (다른 페이지에서 확인 가능하도록)
     // Progress store task는 제거하지 않음
 
-    updateState({
-      isOpen: false,
-      step: 'select',
-      uploadProgress: 0,
-      processingProgress: 0,
-      currentStage: undefined,
-      estimatedTimeRemaining: undefined,
-      fileName: undefined,
-      error: undefined,
-    })
+    // 완전한 초기 상태로 리셋 (isOpen은 false로 설정)
+    setState(() => getInitialModalState())
     setCurrentJobId(undefined)
     setCurrentProgressTaskId(undefined)
-  }, [updateState])
+
+    log('useUploadModal', '🔒 Upload modal closed and state reset')
+  }, [setState])
 
   // 파일 선택 처리
   const handleFileSelect = useCallback(
@@ -113,8 +142,13 @@ export const useUploadModal = () => {
       try {
         log('useUploadModal', '🚀 Starting upload and transcription process')
 
-        // 기존 데이터 초기화
-        clearMedia() // 이전 영상 정보 제거
+        // 기존 데이터 초기화 (clearMedia는 자동으로 blob URL을 정리함)
+        log(
+          'useUploadModal',
+          '🧹 Cleaning up previous video data and blob URLs'
+        )
+        cleanupPreviousBlobUrl() // 이전 blob URL 먼저 정리
+        clearMedia() // 이전 영상 정보 제거 (내부적으로 blob URL도 정리)
         setClips([]) // 이전 클립 제거
 
         // localStorage에서 이전 프로젝트 완전 제거
@@ -139,16 +173,19 @@ export const useUploadModal = () => {
         })
 
         // 즉시 비디오 플레이어 업데이트 - 업로드 전에 바로 재생 가능!
+        log('useUploadModal', '📺 Setting new video in player with blob URL')
         setMediaInfo({
           videoUrl: blobUrl, // S3 대신 로컬 Blob URL 사용
           videoName: data.file.name,
           videoType: data.file.type,
           videoDuration: 0, // Duration은 비디오 로드 후 자동 설정
         })
-        console.log('[VIDEO DEBUG] Media info set:', {
+        console.log('[VIDEO REPLACEMENT DEBUG] Media info set successfully:', {
           videoUrl: blobUrl,
           videoName: data.file.name,
           videoType: data.file.type,
+          blobUrlPrefix: blobUrl.substring(0, 20) + '...',
+          timestamp: new Date().toISOString(),
         })
 
         // State에도 Blob URL 저장 (S3 업로드 중에도 계속 사용)
@@ -292,16 +329,19 @@ export const useUploadModal = () => {
               ? Object.keys(json.speakers)
               : []
 
-            // 화자 매핑 (SPEAKER_XX -> 화자X)
-            const speakerMapping: Record<string, string> = {}
+            // 화자 매핑 (SPEAKER_XX -> 화자X) - 정규화 함수 사용
+            const rawSpeakerMapping: Record<string, string> = {}
             const mappedSpeakers: string[] = []
 
             // 화자 ID를 정렬해서 일관된 순서로 매핑
             speakersFromJson.sort().forEach((speakerId, index) => {
               const mappedName = `화자${index + 1}`
-              speakerMapping[speakerId] = mappedName
+              rawSpeakerMapping[speakerId] = mappedName
               mappedSpeakers.push(mappedName)
             })
+
+            // 화자 매핑 정규화
+            const speakerMapping = normalizeSpeakerMapping(rawSpeakerMapping)
 
             // ProcessingResult 형태로 포장해서 기존 완료 핸들러 재사용
             const mockResult: ProcessingResult = {
@@ -507,7 +547,74 @@ export const useUploadModal = () => {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [updateState, setMediaInfo, clearMedia, setClips, state]
+    [
+      updateState,
+      setMediaInfo,
+      clearMedia,
+      cleanupPreviousBlobUrl,
+      setClips,
+      state,
+    ]
+  )
+
+  // 화자 정보 초기화 헬퍼 함수
+  const initializeSpeakers = useCallback(
+    (clips: ClipItem[], mlSpeakers?: string[]) => {
+      try {
+        // 1. ML 분석에서 받은 화자 목록 정규화
+        const normalizedMLSpeakers = mlSpeakers
+          ? normalizeSpeakerList(mlSpeakers).speakers
+          : []
+
+        // 2. 실제 클립에서 사용된 화자 추출
+        const clipsBasedSpeakers = extractSpeakersFromClips(clips)
+
+        // 3. 두 목록을 병합하고 정규화
+        const allSpeakers = [...normalizedMLSpeakers, ...clipsBasedSpeakers]
+        const { speakers: finalSpeakers, colors: speakerColors } =
+          normalizeSpeakerList(allSpeakers)
+
+        // 4. 최소 1명의 화자 보장
+        const guaranteedSpeakers = ensureMinimumSpeakers(finalSpeakers)
+
+        // 5. 보장된 화자에 대한 색상 재할당
+        const finalColors: Record<string, string> = {}
+        guaranteedSpeakers.forEach((speaker, index) => {
+          finalColors[speaker] = getSpeakerColorByIndex(index)
+        })
+
+        // 6. Store에 화자 정보 설정
+        setSpeakers(guaranteedSpeakers)
+        setSpeakerColors(finalColors)
+
+        log('useUploadModal', `🎨 Initialized speakers:`, {
+          mlSpeakers: mlSpeakers || [],
+          clipsBasedSpeakers,
+          finalSpeakers: guaranteedSpeakers,
+          colors: finalColors,
+        })
+
+        return {
+          speakers: guaranteedSpeakers,
+          colors: finalColors,
+        }
+      } catch (error) {
+        log('useUploadModal', `❌ Failed to initialize speakers: ${error}`)
+
+        // 실패 시 기본 화자 설정
+        const defaultSpeakers = ['화자1']
+        const defaultColors = { 화자1: getSpeakerColorByIndex(0) }
+
+        setSpeakers(defaultSpeakers)
+        setSpeakerColors(defaultColors)
+
+        return {
+          speakers: defaultSpeakers,
+          colors: defaultColors,
+        }
+      }
+    },
+    [setSpeakers, setSpeakerColors]
   )
 
   // 처리 완료 핸들러
@@ -560,7 +667,12 @@ export const useUploadModal = () => {
             'useUploadModal',
             '⚠️ No segments found, creating empty clips list'
           )
-          setClips([])
+
+          const emptyClips: ClipItem[] = []
+          setClips(emptyClips)
+
+          // 빈 클립에서도 화자 정보 초기화 (최소 기본 화자 생성)
+          initializeSpeakers(emptyClips, result.result?.speakers)
 
           // 메타데이터는 기본값으로 설정 (중요: videoUrl은 유지!)
           setMediaInfo({
@@ -574,7 +686,7 @@ export const useUploadModal = () => {
           const emptyProject: ProjectData = {
             id: projectId,
             name: projectName,
-            clips: [],
+            clips: emptyClips,
             settings: {
               autoSaveEnabled: true,
               autoSaveInterval: 30,
@@ -594,15 +706,17 @@ export const useUploadModal = () => {
           sessionStorage.setItem('currentProjectId', projectId)
           sessionStorage.setItem('lastUploadProjectId', projectId)
 
-          log('useUploadModal', `💾 Created empty project: ${projectId}`)
+          log(
+            'useUploadModal',
+            `💾 Created empty project with speakers: ${projectId}`
+          )
 
-          // 조기 완료 처리 제거 - 실제 처리가 완료될 때까지 기다림
-          // updateState({ step: 'completed' })
-          // 조기 에디터 이동 제거 - 폴링이 완료될 때까지 기다림
-          // setTimeout(() => {
-          //   goToEditor()
-          // }, 1000)
-          // return 제거 - 아래 정상 처리로 진행
+          // 빈 프로젝트에서도 정상적인 완료 처리로 진행
+          updateState({ step: 'completed' })
+          setTimeout(() => {
+            goToEditor()
+          }, 1000)
+          return
         }
 
         // 정상적인 결과 처리
@@ -645,25 +759,8 @@ export const useUploadModal = () => {
         })
         setClips(clips)
 
-        // 화자 정보 초기화 및 색상환 기반 자동 색상 할당
-        if (result.result.speakers && result.result.speakers.length > 0) {
-          const speakerColors: Record<string, string> = {}
-
-          // 각 화자에게 색상환의 색상을 순서대로 할당
-          result.result.speakers.forEach((speaker, index) => {
-            speakerColors[speaker] = getSpeakerColorByIndex(index)
-          })
-
-          // Store에 화자 목록과 색상 설정
-          setSpeakers(result.result.speakers)
-          setSpeakerColors(speakerColors)
-
-          log(
-            'useUploadModal',
-            `🎨 Initialized ${result.result.speakers.length} speakers with color wheel colors:`,
-            speakerColors
-          )
-        }
+        // 화자 정보 초기화 (ML 분석 결과와 클립 기반 화자 통합)
+        initializeSpeakers(clips, result.result.speakers)
 
         // 프로젝트 생성 및 저장 (Blob URL 포함)
         const newProject: ProjectData = {
