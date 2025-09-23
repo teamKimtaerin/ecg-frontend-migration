@@ -125,12 +125,24 @@ const useAuthStore = create<AuthStore>()((set, get) => ({
       // 토큰이 있으면 Bearer 인증, 없으면 쿠키 인증 시도
       const user = await AuthAPI.getCurrentUser(token || undefined)
 
-      set({
-        user,
-        isAuthenticated: true,
-        isLoading: false,
-        hasAuthChecked: true,
-      })
+      if (user) {
+        set({
+          user,
+          isAuthenticated: true,
+          isLoading: false,
+          hasAuthChecked: true,
+        })
+      } else {
+        // 401/403 에러는 정상적인 비로그인 상태로 처리
+        set({
+          user: null,
+          token: null,
+          isAuthenticated: false,
+          isLoading: false,
+          error: null,
+          hasAuthChecked: true,
+        })
+      }
     } catch (error) {
       set({
         user: null,
