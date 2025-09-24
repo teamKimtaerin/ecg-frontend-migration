@@ -40,6 +40,7 @@ export interface ClipSlice {
   saveOriginalClipsToStorage: () => Promise<void> // IndexedDB에 원본 클립 영구 저장
   loadOriginalClipsFromStorage: () => Promise<void> // IndexedDB에서 원본 클립 로드
   updateClipWords: (clipId: string, wordId: string, newText: string) => void
+  updateClipFullText: (clipId: string, newText: string) => void
 
   applyAssetsToWord: (
     clipId: string,
@@ -305,6 +306,25 @@ export const createClipSlice: StateCreator<
       anyGet.rebuildIndexesFromClips?.()
       // Also update the scenario to reflect text change
       anyGet.updateWordTextInScenario?.(wordId, newText)
+    } catch {}
+  },
+
+  updateClipFullText: (clipId, newText) => {
+    set((state) => ({
+      clips: state.clips.map((clip) =>
+        clip.id === clipId
+          ? {
+              ...clip,
+              fullText: newText,
+              subtitle: newText,
+            }
+          : clip
+      ),
+    }))
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const anyGet = get() as any
+      anyGet.rebuildIndexesFromClips?.()
     } catch {}
   },
 
