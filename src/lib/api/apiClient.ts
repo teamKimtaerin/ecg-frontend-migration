@@ -1,6 +1,6 @@
 import { useAuthStore } from '@/lib/store/authStore'
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://ho-it.site'
 
 // API 요청을 위한 인터셉터
 export async function apiRequest(endpoint: string, options: RequestInit = {}) {
