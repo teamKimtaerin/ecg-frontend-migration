@@ -89,7 +89,6 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
         window.removeEventListener('storage', handleStorageChange)
         window.removeEventListener('asset-favorites-updated', handleCustomEvent)
       }
-
     }
   }, [])
 
