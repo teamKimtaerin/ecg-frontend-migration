@@ -279,10 +279,10 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
             {activeAssetTab === 'my' && !isLoggedIn
               ? '즐겨찾기 기능을 사용하려면 로그인이 필요합니다.'
               : activeAssetTab === 'my'
-              ? '즐겨찾기한 에셋이 없습니다.'
-              : assetSearchQuery
-              ? '검색 결과가 없습니다.'
-              : '사용 가능한 에셋이 없습니다.'}
+                ? '즐겨찾기한 에셋이 없습니다.'
+                : assetSearchQuery
+                  ? '검색 결과가 없습니다.'
+                  : '사용 가능한 에셋이 없습니다.'}
           </p>
         </div>
       )}

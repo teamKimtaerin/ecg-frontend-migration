@@ -97,9 +97,7 @@ export async function getFavoriteAssets(): Promise<AssetItem[]> {
   ).replace(/\/$/, '')
 
   return data.assets.map((asset) => {
-    const base = asset.pluginKey
-      ? `${origin}/plugins/${asset.pluginKey}`
-      : null
+    const base = asset.pluginKey ? `${origin}/plugins/${asset.pluginKey}` : null
 
     return {
       ...asset,

@@ -148,7 +148,9 @@ export default function AssetPage() {
         const assetsData = await fetchAssets()
         setAssets(assetsData)
         setUserFavorites(
-          new Set(assetsData.filter((asset) => asset.isFavorite).map((a) => a.id))
+          new Set(
+            assetsData.filter((asset) => asset.isFavorite).map((a) => a.id)
+          )
         )
 
         const templatesResponse = await fetch(
@@ -169,7 +171,9 @@ export default function AssetPage() {
   useEffect(() => {
     if (!isLoggedIn) {
       setUserFavorites(new Set())
-      setAssets((prev) => prev.map((asset) => ({ ...asset, isFavorite: false })))
+      setAssets((prev) =>
+        prev.map((asset) => ({ ...asset, isFavorite: false }))
+      )
     }
   }, [isLoggedIn])
 
@@ -247,7 +251,8 @@ export default function AssetPage() {
       return
     }
 
-    const findAsset = (list: AssetItem[]) => list.find((asset) => asset.id === assetId)
+    const findAsset = (list: AssetItem[]) =>
+      list.find((asset) => asset.id === assetId)
     const targetAsset = findAsset(assets) || findAsset(templates)
 
     if (!targetAsset) {
