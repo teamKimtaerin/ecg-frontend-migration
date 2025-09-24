@@ -93,6 +93,7 @@ export class FavoritesService {
     console.log('🔍 Fetching user favorites...')
 
     const result = await apiRequest<FavoritesResponse>('/api/v1/favorites', {
+
       method: 'GET',
     })
 
@@ -112,6 +113,7 @@ export class FavoritesService {
     console.log('❤️ Adding favorite:', pluginKey)
 
     const result = await apiRequest<FavoriteItem>('/api/v1/favorites', {
+
       method: 'POST',
       body: JSON.stringify({ plugin_key: pluginKey }),
     })
@@ -132,6 +134,7 @@ export class FavoritesService {
     console.log('💔 Removing favorite:', pluginKey)
 
     const result = await apiRequest<{ deleted: boolean }>('/api/v1/favorites', {
+
       method: 'DELETE',
       body: JSON.stringify({ plugin_key: pluginKey }),
     })
@@ -180,6 +183,7 @@ export class FavoritesService {
       console.error('❌ Failed to toggle favorite:', result.error)
       return {
         success: false,
+
         error: result.error,
       }
     }
