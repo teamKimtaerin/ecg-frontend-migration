@@ -193,7 +193,8 @@ export default function ProcessingModal({
                   수 있습니다.
                 </p>
                 <p className="text-sm text-gray-700">
-                  챗봇 어시스턴트를 사용하여 간편하게 커스텀 템플릿을 제작해보세요.
+                  챗봇 어시스턴트를 사용하여 간편하게 커스텀 템플릿을
+                  제작해보세요.
                 </p>
               </div>
             </div>
