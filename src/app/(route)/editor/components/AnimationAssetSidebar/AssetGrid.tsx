@@ -9,6 +9,8 @@ import {
   isMultipleWordsSelected,
   canAddAnimationToSelection,
 } from '../../utils/animationHelpers'
+import FavoritesService from '@/services/api/favoritesService'
+import { useAuthStatus } from '@/hooks/useAuthStatus'
 
 interface AssetGridProps {
   onAssetSelect?: (asset: AssetItem) => void
@@ -44,16 +46,33 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
     multiSelectedWordIds,
   } = useEditorStore()
 
-  // Hardcoded favorite assets for '담은 에셋' tab
-  const favoriteAssetNames = [
-    'TypeWriter Effect',
-    'Rotation Text',
-    'Elastic Bounce',
-  ]
+  const { isLoggedIn } = useAuthStatus()
 
   const [assets, setAssets] = useState<AssetItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [userFavoritePluginKeys, setUserFavoritePluginKeys] = useState<string[]>([])
+
+  // 사용자 즐겨찾기 목록 로드
+  useEffect(() => {
+    const loadUserFavorites = async () => {
+      if (!isLoggedIn) {
+        setUserFavoritePluginKeys([])
+        return
+      }
+
+      try {
+        console.log('🔍 [Editor] Loading user favorites...')
+        const favoriteKeys = await FavoritesService.getFavoritePluginKeys()
+        console.log('✅ [Editor] Loaded favorites:', favoriteKeys)
+        setUserFavoritePluginKeys(favoriteKeys)
+      } catch (error) {
+        console.error('❌ [Editor] Failed to load user favorites:', error)
+      }
+    }
+
+    loadUserFavorites()
+  }, [isLoggedIn])
 
   // Fetch assets from JSON file
   useEffect(() => {
@@ -108,15 +127,13 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
   const filteredAssets = assets.filter((asset) => {
     // Filter by tab
     if (activeAssetTab === 'my') {
-      // '담은 에셋' tab - show only favorite assets
-      if (!favoriteAssetNames.includes(asset.name)) {
+      // '내 에셋' tab - show only user's favorite assets
+      if (!asset.pluginKey || !userFavoritePluginKeys.includes(asset.pluginKey)) {
         return false
       }
     } else if (activeAssetTab === 'free') {
-      // '무료 에셋' tab - show all assets EXCEPT favorites
-      if (favoriteAssetNames.includes(asset.name)) {
-        return false
-      }
+      // '무료 에셋' tab - show all assets
+      // No additional filtering needed
     }
 
     // Filter by search query
@@ -305,7 +322,7 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
                 isUsed:
                   isAppliedToFocusedWord ||
                   currentWordAssets.includes(asset.id),
-                isFavorite: favoriteAssetNames.includes(asset.name),
+                isFavorite: asset.pluginKey ? userFavoritePluginKeys.includes(asset.pluginKey) : false,
               }}
               onClick={handleAssetClick}
             />
@@ -316,7 +333,11 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
       {!loading && !error && filteredAssets.length === 0 && (
         <div className="text-center py-8">
           <p className="text-gray-700 text-sm">
-            {assetSearchQuery
+            {activeAssetTab === 'my' && !isLoggedIn
+              ? '즐겨찾기 기능을 사용하려면 로그인이 필요합니다.'
+              : activeAssetTab === 'my'
+              ? '즐겨찾기한 에셋이 없습니다.'
+              : assetSearchQuery
               ? '검색 결과가 없습니다.'
               : '사용 가능한 에셋이 없습니다.'}
           </p>
