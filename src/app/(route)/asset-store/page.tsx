@@ -256,7 +256,7 @@ export default function AssetPage() {
     }
 
     if (!targetAsset.pluginKey) {
-      showToast('이 에셋은 즐겨찾기를 지원하지 않습니다.', 'info')
+      showToast('이 에셋은 즐겨찾기를 지원하지 않습니다.', 'warning')
       return
     }
 
