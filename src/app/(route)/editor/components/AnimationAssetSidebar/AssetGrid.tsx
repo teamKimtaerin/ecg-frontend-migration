@@ -9,6 +9,8 @@ import {
   isMultipleWordsSelected,
   canAddAnimationToSelection,
 } from '../../utils/animationHelpers'
+import FavoritesService from '@/services/api/favoritesService'
+import { useAuthStatus } from '@/hooks/useAuthStatus'
 
 interface AssetGridProps {
   onAssetSelect?: (asset: AssetItem) => void
@@ -44,61 +46,33 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
     multiSelectedWordIds,
   } = useEditorStore()
 
-  // Load favorite assets from localStorage
-  const [favoriteAssetIds, setFavoriteAssetIds] = useState<Set<string>>(
-    new Set()
-  )
-
-  useEffect(() => {
-    const loadFavorites = () => {
-      if (typeof window !== 'undefined') {
-        const saved = localStorage.getItem('asset-favorites')
-        console.log('Editor - Loading favorites from localStorage:', saved)
-        if (saved) {
-          try {
-            const parsedFavorites = JSON.parse(saved)
-            console.log('Editor - Parsed favorites:', parsedFavorites)
-            setFavoriteAssetIds(
-              new Set(Array.isArray(parsedFavorites) ? parsedFavorites : [])
-            )
-          } catch (error) {
-            console.error('Failed to parse saved favorites:', error)
-          }
-        } else {
-          console.log('Editor - No favorites found in localStorage')
-        }
-      }
-    }
-
-    loadFavorites()
-
-    // Listen for storage changes (when user toggles favorites in asset store)
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'asset-favorites') {
-        loadFavorites()
-      }
-    }
-
-    // Listen for custom event (same-tab synchronization)
-    const handleCustomEvent = (e: Event) => {
-      const customEvent = e as CustomEvent
-      console.log('Editor - Received favorites update:', customEvent.detail)
-      setFavoriteAssetIds(new Set(customEvent.detail))
-    }
-
-    if (typeof window !== 'undefined') {
-      window.addEventListener('storage', handleStorageChange)
-      window.addEventListener('asset-favorites-updated', handleCustomEvent)
-      return () => {
-        window.removeEventListener('storage', handleStorageChange)
-        window.removeEventListener('asset-favorites-updated', handleCustomEvent)
-      }
-    }
-  }, [])
+  const { isLoggedIn } = useAuthStatus()
 
   const [assets, setAssets] = useState<AssetItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [userFavoritePluginKeys, setUserFavoritePluginKeys] = useState<string[]>([])
+
+  // 사용자 즐겨찾기 목록 로드
+  useEffect(() => {
+    const loadUserFavorites = async () => {
+      if (!isLoggedIn) {
+        setUserFavoritePluginKeys([])
+        return
+      }
+
+      try {
+        console.log('🔍 [Editor] Loading user favorites...')
+        const favoriteKeys = await FavoritesService.getFavoritePluginKeys()
+        console.log('✅ [Editor] Loaded favorites:', favoriteKeys)
+        setUserFavoritePluginKeys(favoriteKeys)
+      } catch (error) {
+        console.error('❌ [Editor] Failed to load user favorites:', error)
+      }
+    }
+
+    loadUserFavorites()
+  }, [isLoggedIn])
 
   // Fetch assets from JSON file
   useEffect(() => {
@@ -153,20 +127,13 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
   const filteredAssets = assets.filter((asset) => {
     // Filter by tab
     if (activeAssetTab === 'my') {
-      // '내 에셋' tab - show only favorite assets
-      console.log(
-        `Editor - Checking asset ${asset.id} (${asset.name}), isFavorite:`,
-        favoriteAssetIds.has(asset.id)
-      )
-
-      if (!favoriteAssetIds.has(asset.id)) {
+      // '내 에셋' tab - show only user's favorite assets
+      if (!asset.pluginKey || !userFavoritePluginKeys.includes(asset.pluginKey)) {
         return false
       }
     } else if (activeAssetTab === 'free') {
-      // '무료 에셋' tab - show all assets EXCEPT favorites
-      if (favoriteAssetIds.has(asset.id)) {
-        return false
-      }
+      // '무료 에셋' tab - show all assets
+      // No additional filtering needed
     }
 
     // Filter by search query
@@ -355,7 +322,7 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
                 isUsed:
                   isAppliedToFocusedWord ||
                   currentWordAssets.includes(asset.id),
-                isFavorite: favoriteAssetIds.has(asset.id),
+                isFavorite: asset.pluginKey ? userFavoritePluginKeys.includes(asset.pluginKey) : false,
               }}
               onClick={handleAssetClick}
             />
@@ -366,7 +333,11 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
       {!loading && !error && filteredAssets.length === 0 && (
         <div className="text-center py-8">
           <p className="text-gray-700 text-sm">
-            {assetSearchQuery
+            {activeAssetTab === 'my' && !isLoggedIn
+              ? '즐겨찾기 기능을 사용하려면 로그인이 필요합니다.'
+              : activeAssetTab === 'my'
+              ? '즐겨찾기한 에셋이 없습니다.'
+              : assetSearchQuery
               ? '검색 결과가 없습니다.'
               : '사용 가능한 에셋이 없습니다.'}
           </p>

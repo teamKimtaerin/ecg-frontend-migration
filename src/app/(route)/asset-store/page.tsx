@@ -12,6 +12,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState, useMemo } from 'react'
 import { LuSearch, LuChevronDown } from 'react-icons/lu'
 import { useAuthStatus } from '@/hooks/useAuthStatus'
+import FavoritesService from '@/services/api/favoritesService'
 
 // 메인 페이지 컴포넌트
 export default function AssetPage() {
@@ -187,6 +188,39 @@ export default function AssetPage() {
     return new Set()
   })
 
+  // 사용자 즐겨찾기 목록 로드
+  useEffect(() => {
+    const loadUserFavorites = async () => {
+      if (!isLoggedIn) {
+        setUserFavorites(new Set()) // 비로그인 시 초기화
+        return
+      }
+
+      try {
+        console.log('🔍 Loading user favorites...')
+        const favoriteKeys = await FavoritesService.getFavoritePluginKeys()
+        console.log('✅ Loaded favorites:', favoriteKeys)
+
+        // pluginKey를 asset id와 매핑
+        const favoriteAssetIds = new Set<string>()
+        assets.forEach(asset => {
+          if (asset.pluginKey && favoriteKeys.includes(asset.pluginKey)) {
+            favoriteAssetIds.add(asset.id)
+          }
+        })
+
+        setUserFavorites(favoriteAssetIds)
+      } catch (error) {
+        console.error('❌ Failed to load user favorites:', error)
+      }
+    }
+
+    // 로그인 상태와 assets 데이터가 준비되면 실행
+    if (!authLoading && assets.length > 0) {
+      loadUserFavorites()
+    }
+  }, [isLoggedIn, authLoading, assets])
+
   // selectedAsset의 즐겨찾기 상태를 userFavorites와 동기화
   useEffect(() => {
     if (selectedAsset) {
@@ -254,35 +288,48 @@ export default function AssetPage() {
     )
   }
 
-  const handleFavoriteToggle = (assetId: string) => {
-    setUserFavorites((prev) => {
-      const newFavorites = new Set(prev)
-      if (newFavorites.has(assetId)) {
-        newFavorites.delete(assetId)
+  const handleFavoriteToggle = async (assetId: string) => {
+    // 비로그인 사용자 처리
+    if (!isLoggedIn) {
+      alert('즐겨찾기 기능을 사용하려면 로그인이 필요합니다.')
+      router.push('/auth')
+      return
+    }
+
+    // 해당 에셋 찾기
+    const asset = assets.find(a => a.id === assetId)
+    if (!asset?.pluginKey) {
+      console.error('Asset plugin key not found:', assetId)
+      return
+    }
+
+    try {
+      console.log('🔄 Toggling favorite:', asset.pluginKey)
+
+      // API 호출
+      const result = await FavoritesService.toggleFavorite(asset.pluginKey)
+
+      if (result.success && result.data) {
+        // 성공 시 로컬 상태 업데이트
+        setUserFavorites((prev) => {
+          const newFavorites = new Set(prev)
+          if (result.data!.is_favorite) {
+            newFavorites.add(assetId)
+            console.log('✅ Added to favorites:', asset.title)
+          } else {
+            newFavorites.delete(assetId)
+            console.log('✅ Removed from favorites:', asset.title)
+          }
+          return newFavorites
+        })
       } else {
-        newFavorites.add(assetId)
+        console.error('❌ Failed to toggle favorite:', result.error)
+        alert('즐겨찾기 처리 중 오류가 발생했습니다.')
       }
-
-      // localStorage에 저장
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(
-          'asset-favorites',
-          JSON.stringify(Array.from(newFavorites))
-        )
-        // Custom event for same-tab synchronization
-        console.log(
-          'Asset Store - Favorites updated:',
-          Array.from(newFavorites)
-        )
-        window.dispatchEvent(
-          new CustomEvent('asset-favorites-updated', {
-            detail: Array.from(newFavorites),
-          })
-        )
-      }
-
-      return newFavorites
-    })
+    } catch (error) {
+      console.error('❌ Favorite toggle error:', error)
+      alert('즐겨찾기 처리 중 오류가 발생했습니다.')
+    }
   }
 
   // 정렬 옵션
