@@ -46,6 +46,9 @@ export interface ScenarioSlice {
 
   // Set scenario from arbitrary JSON (editor apply)
   setScenarioFromJson: (config: RendererConfigV2) => void
+
+  // Clear scenario (for reset)
+  clearScenario: () => void
 }
 
 export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
@@ -180,14 +183,35 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
         timeOffset, // seconds relative to baseTime[0]
       }
     })
-    node.pluginChain = pluginChain
-    // Make word node visible if it has any animations
-    node.style = {
-      ...(node.style || {}),
-      opacity: pluginChain.length > 0 ? 1 : (node.style?.opacity ?? 0),
+    // Create a deep copy of the scenario to ensure state changes are detected
+    const updatedScenario = { ...currentScenario }
+    updatedScenario.cues = [...currentScenario.cues]
+    updatedScenario.cues[entry.cueIndex] = {
+      ...cue,
+      root: {
+        ...cue.root,
+        children: [...(cue.root.children || [])],
+      },
     }
+
+    // Create a new node object with updated pluginChain and style
+    const updatedNode = {
+      ...node,
+      pluginChain,
+      style: {
+        ...(node.style || {}),
+        opacity: pluginChain.length > 0 ? 1 : (node.style?.opacity ?? 0),
+      },
+    }
+
+    // Replace the specific node in the children array
+    const targetCue = updatedScenario.cues[entry.cueIndex]
+    if (targetCue?.root?.children) {
+      targetCue.root.children[childIdx] = updatedNode
+    }
+
     set({
-      currentScenario: { ...currentScenario },
+      currentScenario: updatedScenario,
       scenarioVersion: (get().scenarioVersion || 0) + 1,
     })
   },
@@ -485,6 +509,14 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
       currentScenario: config,
       nodeIndex: index,
       scenarioVersion: (get().scenarioVersion || 0) + 1,
+    })
+  },
+
+  clearScenario: () => {
+    set({
+      currentScenario: null,
+      nodeIndex: {},
+      scenarioVersion: 0,
     })
   },
 })

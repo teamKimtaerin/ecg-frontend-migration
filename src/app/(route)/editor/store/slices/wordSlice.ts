@@ -1352,8 +1352,9 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
     }
 
     // Call the regular addAnimationTrack with the fetched timeOffset and autofilled params
-    const state = get()
-    state.addAnimationTrack(
+    // Use get() to get current state and call addAnimationTrack method
+    const { addAnimationTrack } = get()
+    addAnimationTrack(
       wordId,
       assetId,
       assetName,
@@ -1362,6 +1363,21 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
       timeOffset,
       finalParams
     )
+
+    // Ensure refreshWordPluginChain is called after the async operation completes
+    // Use setTimeout to ensure it runs after the state update
+    setTimeout(() => {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const anyGet = get() as any
+        anyGet.refreshWordPluginChain?.(wordId)
+      } catch (error) {
+        console.warn(
+          'Failed to refresh plugin chain after async track addition:',
+          error
+        )
+      }
+    }, 0)
   },
 
   setAnimationTrackPluginKey: (wordId, assetId, pluginKey) =>

@@ -23,6 +23,9 @@ import {
 } from '@/utils/speaker/speakerUtils'
 import { useWaveformGeneration } from '@/hooks/useWaveformGeneration'
 import { projectStorage } from '@/utils/storage/projectStorage'
+import { mediaStorage } from '@/utils/storage/mediaStorage'
+import { processingResultStorage } from '@/utils/storage/processingResultStorage'
+import { showToast } from '@/utils/ui/toast'
 import { useRouter } from 'next/navigation'
 import { useCallback, useRef, useState } from 'react'
 
@@ -81,6 +84,7 @@ export const useUploadModal = () => {
     removeTask,
     startGlobalPolling,
     stopGlobalPolling,
+    setUploadNotification,
   } = useProgressStore()
 
   // Waveform generation hook
@@ -203,6 +207,7 @@ export const useUploadModal = () => {
         // sessionStorage 초기화 (이전 프로젝트 정보 제거)
         sessionStorage.removeItem('currentProjectId')
         sessionStorage.removeItem('currentMediaId')
+        sessionStorage.removeItem('currentStoredMediaId')
         sessionStorage.removeItem('lastUploadProjectId')
 
         // 🔥 핵심 변경: 즉시 로컬 Blob URL 생성하여 비디오 플레이어에서 사용
@@ -218,6 +223,23 @@ export const useUploadModal = () => {
           blobUrl: blobUrl,
         })
 
+        // 🗃️ IndexedDB에 미디어 파일 저장 (백그라운드)
+        const projectId = `project-${Date.now()}`
+        let storedMediaId: string | null = null
+
+        try {
+          storedMediaId = await mediaStorage.saveMedia(projectId, data.file, {
+            duration: 0, // Duration은 비디오 로드 후 업데이트
+          })
+          log('useUploadModal', `💾 Media saved to IndexedDB: ${storedMediaId}`)
+        } catch (error) {
+          log(
+            'useUploadModal',
+            `⚠️ Failed to save media to IndexedDB: ${error}`
+          )
+          // IndexedDB 저장 실패해도 계속 진행
+        }
+
         // 즉시 비디오 플레이어 업데이트 - 업로드 전에 바로 재생 가능!
         log('useUploadModal', '📺 Setting new video in player with blob URL')
         setMediaInfo({
@@ -226,6 +248,7 @@ export const useUploadModal = () => {
           videoType: data.file.type,
           videoDuration: 0, // Duration은 비디오 로드 후 자동 설정
           videoThumbnail: state.videoThumbnail, // 업로드 시 생성된 썸네일 저장
+          storedMediaId: storedMediaId, // IndexedDB에 저장된 미디어 ID
         })
         console.log('[VIDEO REPLACEMENT DEBUG] Media info set successfully:', {
           videoUrl: blobUrl,
@@ -522,6 +545,11 @@ export const useUploadModal = () => {
         setCurrentJobId(job_id)
         updateState({ estimatedTimeRemaining: estimated_time || 180 })
 
+        // jobId를 progress task에 추가
+        if (progressTaskId) {
+          updateTask(progressTaskId, { jobId: job_id })
+        }
+
         log('useUploadModal', `🔄 Starting global polling for job: ${job_id}`)
         console.log(
           '[useUploadModal] About to start global polling for job:',
@@ -686,9 +714,26 @@ export const useUploadModal = () => {
 
   // 처리 완료 핸들러
   const handleProcessingComplete = useCallback(
-    (result: ProcessingResult) => {
+    async (result: ProcessingResult) => {
       try {
         log('useUploadModal', '🔄 Converting segments to clips')
+
+        // 1. 결과를 IndexedDB에 저장
+        try {
+          await processingResultStorage.saveResult(result.job_id, result, {
+            fileName: state.fileName,
+            videoUrl: state.videoUrl,
+          })
+          log('useUploadModal', '💾 Processing result saved to IndexedDB')
+        } catch (error) {
+          log('useUploadModal', '⚠️ Failed to save processing result:', error)
+        }
+
+        // 2. 업로드 완료 토스트 메시지
+        showToast('음성 분석이 완료되었습니다', 'success')
+
+        // 3. 업로드 알림 설정 (벨 아이콘에 빨간 점)
+        setUploadNotification(true)
 
         // 🔥 중요: videoUrl 안정적 해결
         const resolvedVideoUrl =
@@ -766,6 +811,7 @@ export const useUploadModal = () => {
             videoDuration: result?.result?.metadata?.duration || 0,
             videoUrl: resolvedVideoUrl, // ✅ 안정적으로 해결된 URL 저장!
             videoName: state.fileName,
+            storedMediaId: useEditorStore.getState().storedMediaId || undefined, // IndexedDB에 저장된 미디어 ID
           }
 
           setCurrentProject(emptyProject)
@@ -773,6 +819,11 @@ export const useUploadModal = () => {
           // sessionStorage 업데이트 (새로고침 시 이 프로젝트를 로드하도록)
           sessionStorage.setItem('currentProjectId', projectId)
           sessionStorage.setItem('lastUploadProjectId', projectId)
+          // storedMediaId도 백업 저장
+          const currentStoredMediaId = useEditorStore.getState().storedMediaId
+          if (currentStoredMediaId) {
+            sessionStorage.setItem('currentStoredMediaId', currentStoredMediaId)
+          }
 
           log(
             'useUploadModal',
@@ -846,6 +897,7 @@ export const useUploadModal = () => {
           videoDuration: videoDuration || 0,
           videoUrl: resolvedVideoUrl, // ✅ 안정적으로 해결된 URL 저장!
           videoName: state.fileName,
+          storedMediaId: useEditorStore.getState().storedMediaId || undefined, // IndexedDB에 저장된 미디어 ID
         }
 
         // 프로젝트를 localStorage에 저장
@@ -858,6 +910,11 @@ export const useUploadModal = () => {
         // sessionStorage 업데이트 (새로고침 시 이 프로젝트를 로드하도록)
         sessionStorage.setItem('currentProjectId', projectId)
         sessionStorage.setItem('lastUploadProjectId', projectId)
+        // storedMediaId도 백업 저장
+        const currentStoredMediaId = useEditorStore.getState().storedMediaId
+        if (currentStoredMediaId) {
+          sessionStorage.setItem('currentStoredMediaId', currentStoredMediaId)
+        }
 
         log(
           'useUploadModal',
