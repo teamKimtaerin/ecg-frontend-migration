@@ -54,7 +54,6 @@ import PlatformSelectionModal from './components/Export/PlatformSelectionModal'
 import SimpleToolbar from './components/SimpleToolbar'
 import SpeakerManagementSidebar from './components/SpeakerManagementSidebar'
 import SubtitleEditList from './components/SubtitleEditList'
-import TemplateSidebar from './components/TemplateSidebar'
 import Toolbars from './components/Toolbars'
 import VideoSection from './components/VideoSection'
 
@@ -1365,9 +1364,10 @@ export default function EditorPage() {
     setRightSidebarType(rightSidebarType === 'animation' ? null : 'animation')
   }
 
-  const handleToggleTemplateSidebar = () => {
-    setRightSidebarType(rightSidebarType === 'template' ? null : 'template')
-  }
+  // Template sidebar disabled
+  // const handleToggleTemplateSidebar = () => {
+  //   setRightSidebarType(rightSidebarType === 'template' ? null : 'template')
+  // }
 
   const handleCloseSidebar = () => {
     setRightSidebarType(null)
@@ -2229,7 +2229,7 @@ export default function EditorPage() {
                 onRestore={handleRestore}
                 onAutoLineBreak={handleAutoLineBreak}
                 onToggleAnimationSidebar={handleToggleAnimationSidebar}
-                onToggleTemplateSidebar={handleToggleTemplateSidebar}
+                onToggleTemplateSidebar={() => {}} // Template sidebar disabled
                 onSave={handleSave}
                 onSaveAs={handleSaveAs}
                 forceOpenExportModal={shouldOpenExportModal}
@@ -2245,7 +2245,7 @@ export default function EditorPage() {
                 onUndo={handleUndo}
                 onRedo={handleRedo}
                 onSplitClip={handleSplitClip}
-                onToggleTemplateSidebar={handleToggleTemplateSidebar}
+                onToggleTemplateSidebar={() => {}} // Template sidebar disabled
                 onAutoLineBreak={handleAutoLineBreak}
                 onSave={handleSave}
                 onSaveAs={handleSaveAs}
@@ -2428,27 +2428,7 @@ export default function EditorPage() {
                         </div>
                       )}
 
-                      {/* Template Sidebar */}
-                      {rightSidebarType === 'template' && (
-                        <div
-                          className={`transform transition-all duration-300 ease-out w-full ${
-                            rightSidebarType === 'template'
-                              ? 'translate-x-0 opacity-100'
-                              : 'translate-x-full opacity-0'
-                          }`}
-                        >
-                          <TemplateSidebar
-                            onTemplateSelect={(template) => {
-                              console.log(
-                                'Template selected in editor:',
-                                template
-                              )
-                              // TODO: Apply template to focused clip
-                            }}
-                            onClose={handleCloseSidebar}
-                          />
-                        </div>
-                      )}
+                      {/* Template Sidebar - DISABLED */}
 
                       {/* Speaker Management Sidebar */}
                       {rightSidebarType === 'speaker' && (
