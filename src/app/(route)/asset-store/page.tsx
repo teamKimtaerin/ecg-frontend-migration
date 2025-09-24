@@ -171,8 +171,21 @@ export default function AssetPage() {
   }, [])
   const [isLoading, setIsLoading] = useState(true)
 
-  // 사용자 즐겨찾기 목록 상태
-  const [userFavorites, setUserFavorites] = useState<Set<string>>(new Set())
+  // 사용자 즐겨찾기 목록 상태 (localStorage에서 로드)
+  const [userFavorites, setUserFavorites] = useState<Set<string>>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('asset-favorites')
+      if (saved) {
+        try {
+          const parsedFavorites = JSON.parse(saved)
+          return new Set(Array.isArray(parsedFavorites) ? parsedFavorites : [])
+        } catch (error) {
+          console.error('Failed to parse saved favorites:', error)
+        }
+      }
+    }
+    return new Set()
+  })
 
   // selectedAsset의 즐겨찾기 상태를 userFavorites와 동기화
   useEffect(() => {
@@ -249,6 +262,12 @@ export default function AssetPage() {
       } else {
         newFavorites.add(assetId)
       }
+      
+      // localStorage에 저장
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('asset-favorites', JSON.stringify(Array.from(newFavorites)))
+      }
+      
       return newFavorites
     })
   }
