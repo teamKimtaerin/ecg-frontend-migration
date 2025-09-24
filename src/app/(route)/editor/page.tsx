@@ -283,7 +283,7 @@ function TimelineClipCard({
                       className={`truncate overflow-hidden whitespace-nowrap ${!clip.speaker ? 'text-orange-500' : ''}`}
                       style={{ maxWidth: '70px' }}
                     >
-                      {clip.speaker || '미지정'}
+                      {clip.speaker || '화자 없음'}
                     </span>
                   </div>
                   <ChevronDownIcon
@@ -634,10 +634,10 @@ export default function EditorPage() {
         }
       )
 
-      // 화자 정보 초기화
+      // 화자 정보 초기화 (감지된 화자가 없으면 빈 배열)
       const mlSpeakers = result.result.speakers || []
       const allSpeakers = [...mlSpeakers]
-      const finalSpeakers = allSpeakers.length > 0 ? allSpeakers : ['화자1']
+      const finalSpeakers = allSpeakers
 
       const finalColors: Record<string, string> = {}
       finalSpeakers.forEach((speaker, index) => {
@@ -670,7 +670,7 @@ export default function EditorPage() {
         settings: {
           autoSaveEnabled: true,
           autoSaveInterval: 30,
-          defaultSpeaker: '화자1',
+          defaultSpeaker: finalSpeakers.length > 0 ? finalSpeakers[0] : '',
           exportFormat: 'srt' as const,
         },
         createdAt: new Date(),
