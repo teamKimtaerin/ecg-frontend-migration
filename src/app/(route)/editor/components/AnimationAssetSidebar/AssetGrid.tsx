@@ -9,11 +9,25 @@ import {
   isMultipleWordsSelected,
   canAddAnimationToSelection,
 } from '../../utils/animationHelpers'
-import { getAssets as fetchAssetsFromApi } from '@/services/assetsService'
-import { useAuthStatus } from '@/hooks/useAuthStatus'
 
 interface AssetGridProps {
   onAssetSelect?: (asset: AssetItem) => void
+}
+
+interface AssetDatabaseItem {
+  id: string
+  title: string
+  category: string
+  description: string
+  thumbnail?: string
+  pluginKey?: string
+  thumbnailPath?: string
+  iconName?: string
+  isPro: boolean
+}
+
+interface AssetDatabase {
+  assets: AssetDatabaseItem[]
 }
 
 const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
@@ -42,26 +56,38 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // Fetch assets from JSON file
   useEffect(() => {
-    const loadAssets = async () => {
+    const fetchAssets = async () => {
       try {
         setLoading(true)
-        const apiAssets = await fetchAssetsFromApi()
+        const response = await fetch('/asset-store/assets-database.json')
+        if (!response.ok) {
+          throw new Error('Failed to fetch assets')
+        }
+        const data: AssetDatabase = await response.json()
 
-        const transformedAssets: AssetItem[] = apiAssets.map((asset) => ({
-          id: asset.id,
-          name: asset.title,
-          category: asset.category,
-          type: asset.isPro ? 'premium' : 'free',
-          pluginKey: asset.pluginKey,
-          iconName: asset.iconName,
-          isFavorite: asset.isFavorite,
-          preview: {
-            type: 'image' as const,
-            value: asset.thumbnail || '/placeholder-thumb.jpg',
-          },
-          description: asset.description,
-        }))
+        const origin = (
+          process.env.NEXT_PUBLIC_MOTIONTEXT_PLUGIN_ORIGIN ||
+          'http://localhost:3300'
+        ).replace(/\/$/, '')
+
+        // Transform JSON data to AssetItem format
+        const transformedAssets: AssetItem[] = data.assets.map((item) => {
+          const thumb = item.thumbnailPath
+            ? `${origin}/${item.pluginKey}/${item.thumbnailPath}`
+            : '/placeholder-thumb.jpg'
+
+          return {
+            ...item,
+            name: item.title,
+            type: item.isPro ? 'premium' : 'free',
+            preview: {
+              type: 'image' as const,
+              value: thumb,
+            },
+          }
+        })
 
         setAssets(transformedAssets)
         setError(null)
@@ -72,7 +98,7 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
       }
     }
 
-    loadAssets()
+    fetchAssets()
   }, [])
 
   // Filter assets based on tab, category, and search query
@@ -287,13 +313,11 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
       {!loading && !error && filteredAssets.length === 0 && (
         <div className="text-center py-8">
           <p className="text-gray-700 text-sm">
-            {activeAssetTab === 'my' && !isLoggedIn
-              ? '즐겨찾기 기능을 사용하려면 로그인이 필요합니다.'
-              : activeAssetTab === 'my'
-                ? '즐겨찾기한 에셋이 없습니다.'
-                : assetSearchQuery
-                  ? '검색 결과가 없습니다.'
-                  : '사용 가능한 에셋이 없습니다.'}
+            {activeAssetTab === 'my'
+              ? '담은 에셋이 없습니다.'
+              : assetSearchQuery
+                ? '검색 결과가 없습니다.'
+                : '사용 가능한 에셋이 없습니다.'}
           </p>
         </div>
       )}
