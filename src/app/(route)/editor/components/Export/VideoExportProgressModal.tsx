@@ -27,7 +27,9 @@ export default function VideoExportProgressModal({
       return
     }
 
-    console.log('🧪 [VideoExportProgressModal] 하드코딩된 썸네일 사용: friends-thumbnail.png')
+    console.log(
+      '🧪 [VideoExportProgressModal] 하드코딩된 썸네일 사용: friends-thumbnail.png'
+    )
 
     // 하드코딩된 썸네일 경로 설정
     setCurrentThumbnail('/friends-thumbnail.png')
