@@ -53,15 +53,19 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
     const loadFavorites = () => {
       if (typeof window !== 'undefined') {
         const saved = localStorage.getItem('asset-favorites')
+        console.log('Editor - Loading favorites from localStorage:', saved)
         if (saved) {
           try {
             const parsedFavorites = JSON.parse(saved)
+            console.log('Editor - Parsed favorites:', parsedFavorites)
             setFavoriteAssetIds(
               new Set(Array.isArray(parsedFavorites) ? parsedFavorites : [])
             )
           } catch (error) {
             console.error('Failed to parse saved favorites:', error)
           }
+        } else {
+          console.log('Editor - No favorites found in localStorage')
         }
       }
     }
