@@ -12,7 +12,12 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState, useMemo } from 'react'
 import { LuSearch, LuChevronDown } from 'react-icons/lu'
 import { useAuthStatus } from '@/hooks/useAuthStatus'
-import FavoritesService from '@/services/api/favoritesService'
+import {
+  addFavorite as addFavoriteApi,
+  getAssets as fetchAssets,
+  removeFavorite as removeFavoriteApi,
+} from '@/services/assetsService'
+import { showToast } from '@/utils/ui/toast'
 
 // 메인 페이지 컴포넌트
 export default function AssetPage() {
@@ -31,6 +36,8 @@ export default function AssetPage() {
 
   const [assets, setAssets] = useState<AssetItem[]>([])
   const [templates, setTemplates] = useState<AssetItem[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [userFavorites, setUserFavorites] = useState<Set<string>>(new Set())
 
   // 현재 데이터 소스 결정
   const currentData = contentType === 'effects' ? assets : templates
@@ -130,96 +137,41 @@ export default function AssetPage() {
   }, [contentType, assets, templates])
 
   useEffect(() => {
+    if (authLoading) {
+      return
+    }
+
     const loadData = async () => {
       try {
-        // 이펙트 데이터를 DB API에서 로드
-        const { getAssets } = await import('@/services/assetsService')
-        const assetsData = await getAssets()
+        setIsLoading(true)
 
-        const origin = (
-          process.env.NEXT_PUBLIC_MOTIONTEXT_PLUGIN_ORIGIN ||
-          'http://localhost:80'
-        ).replace(/\/$/, '')
+        const assetsData = await fetchAssets()
+        setAssets(assetsData)
+        setUserFavorites(
+          new Set(assetsData.filter((asset) => asset.isFavorite).map((a) => a.id))
+        )
 
-        const resolvedAssets = assetsData.map((asset) => {
-          if (asset?.pluginKey) {
-            const base = `${origin}/plugins/${asset.pluginKey}`
-            return {
-              ...asset,
-              thumbnail: `${base}/${asset.thumbnailPath || 'assets/thumbnail.svg'}`,
-              manifestFile: `${base}/manifest.json`,
-            }
-          }
-          return asset
-        })
-        setAssets(resolvedAssets)
-
-        // 템플릿 데이터 로드
         const templatesResponse = await fetch(
           '/asset-store/templates-database.json'
         )
         const templatesData = await templatesResponse.json()
         console.log('Loaded templates:', templatesData.templates)
         setTemplates(templatesData.templates)
-
         setIsLoading(false)
       } catch (error) {
         console.error('Failed to load data:', error)
         setIsLoading(false)
       }
     }
+
     loadData()
-  }, [])
-  const [isLoading, setIsLoading] = useState(true)
-
-  // 사용자 즐겨찾기 목록 상태 (localStorage에서 로드)
-  const [userFavorites, setUserFavorites] = useState<Set<string>>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('asset-favorites')
-      if (saved) {
-        try {
-          const parsedFavorites = JSON.parse(saved)
-          return new Set(Array.isArray(parsedFavorites) ? parsedFavorites : [])
-        } catch (error) {
-          console.error('Failed to parse saved favorites:', error)
-        }
-      }
-    }
-    return new Set()
-  })
-
-  // 사용자 즐겨찾기 목록 로드
+  }, [authLoading, isLoggedIn])
   useEffect(() => {
-    const loadUserFavorites = async () => {
-      if (!isLoggedIn) {
-        setUserFavorites(new Set()) // 비로그인 시 초기화
-        return
-      }
-
-      try {
-        console.log('🔍 Loading user favorites...')
-        const favoriteKeys = await FavoritesService.getFavoritePluginKeys()
-        console.log('✅ Loaded favorites:', favoriteKeys)
-
-        // pluginKey를 asset id와 매핑
-        const favoriteAssetIds = new Set<string>()
-        assets.forEach(asset => {
-          if (asset.pluginKey && favoriteKeys.includes(asset.pluginKey)) {
-            favoriteAssetIds.add(asset.id)
-          }
-        })
-
-        setUserFavorites(favoriteAssetIds)
-      } catch (error) {
-        console.error('❌ Failed to load user favorites:', error)
-      }
+    if (!isLoggedIn) {
+      setUserFavorites(new Set())
+      setAssets((prev) => prev.map((asset) => ({ ...asset, isFavorite: false })))
     }
-
-    // 로그인 상태와 assets 데이터가 준비되면 실행
-    if (!authLoading && assets.length > 0) {
-      loadUserFavorites()
-    }
-  }, [isLoggedIn, authLoading, assets])
+  }, [isLoggedIn])
 
   // selectedAsset의 즐겨찾기 상태를 userFavorites와 동기화
   useEffect(() => {
@@ -289,46 +241,67 @@ export default function AssetPage() {
   }
 
   const handleFavoriteToggle = async (assetId: string) => {
-    // 비로그인 사용자 처리
     if (!isLoggedIn) {
-      alert('즐겨찾기 기능을 사용하려면 로그인이 필요합니다.')
+      showToast('즐겨찾기 기능을 사용하려면 로그인이 필요합니다.', 'warning')
       router.push('/auth')
       return
     }
 
-    // 해당 에셋 찾기
-    const asset = assets.find(a => a.id === assetId)
-    if (!asset?.pluginKey) {
-      console.error('Asset plugin key not found:', assetId)
+    const findAsset = (list: AssetItem[]) => list.find((asset) => asset.id === assetId)
+    const targetAsset = findAsset(assets) || findAsset(templates)
+
+    if (!targetAsset) {
+      showToast('에셋을 찾을 수 없습니다.', 'error')
       return
     }
 
+    if (!targetAsset.pluginKey) {
+      showToast('이 에셋은 즐겨찾기를 지원하지 않습니다.', 'info')
+      return
+    }
+
+    const currentlyFavorite = userFavorites.has(assetId)
+
+    const applyFavoriteState = (isFavorite: boolean) => {
+      setAssets((prev) =>
+        prev.map((asset) =>
+          asset.id === assetId ? { ...asset, isFavorite } : asset
+        )
+      )
+      setTemplates((prev) =>
+        prev.map((asset) =>
+          asset.id === assetId ? { ...asset, isFavorite } : asset
+        )
+      )
+      setUserFavorites((prev) => {
+        const next = new Set(prev)
+        if (isFavorite) {
+          next.add(assetId)
+        } else {
+          next.delete(assetId)
+        }
+        return next
+      })
+      setSelectedAsset((prev) =>
+        prev && prev.id === assetId ? { ...prev, isFavorite } : prev
+      )
+    }
+
+    // Optimistic update
+    applyFavoriteState(!currentlyFavorite)
+
     try {
-      console.log('🔄 Toggling favorite:', asset.pluginKey)
-
-      // API 호출
-      const result = await FavoritesService.toggleFavorite(asset.pluginKey)
-
-      if (result.success && result.data) {
-        // 성공 시 로컬 상태 업데이트
-        setUserFavorites((prev) => {
-          const newFavorites = new Set(prev)
-          if (result.data!.is_favorite) {
-            newFavorites.add(assetId)
-            console.log('✅ Added to favorites:', asset.title)
-          } else {
-            newFavorites.delete(assetId)
-            console.log('✅ Removed from favorites:', asset.title)
-          }
-          return newFavorites
-        })
+      if (currentlyFavorite) {
+        await removeFavoriteApi(targetAsset.pluginKey)
+        showToast('즐겨찾기에서 제거했습니다.', 'success')
       } else {
-        console.error('❌ Failed to toggle favorite:', result.error)
-        alert('즐겨찾기 처리 중 오류가 발생했습니다.')
+        await addFavoriteApi(targetAsset.pluginKey)
+        showToast('즐겨찾기에 추가했습니다.', 'success')
       }
     } catch (error) {
-      console.error('❌ Favorite toggle error:', error)
-      alert('즐겨찾기 처리 중 오류가 발생했습니다.')
+      console.error('즐겨찾기 토글 실패:', error)
+      applyFavoriteState(currentlyFavorite)
+      showToast('즐겨찾기 업데이트 중 오류가 발생했습니다.', 'error')
     }
   }
 
