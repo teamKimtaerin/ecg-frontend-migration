@@ -80,7 +80,10 @@ async function apiRequest<T>(
     console.error(`API request failed [${endpoint}]:`, error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : '네트워크 오류가 발생했습니다.',
+      error:
+        error instanceof Error
+          ? error.message
+          : '네트워크 오류가 발생했습니다.',
     }
   }
 }
@@ -93,7 +96,6 @@ export class FavoritesService {
     console.log('🔍 Fetching user favorites...')
 
     const result = await apiRequest<FavoritesResponse>('/api/v1/favorites', {
-
       method: 'GET',
     })
 
@@ -109,11 +111,12 @@ export class FavoritesService {
   /**
    * 즐겨찾기 추가
    */
-  static async addFavorite(pluginKey: string): Promise<ApiResponse<FavoriteItem>> {
+  static async addFavorite(
+    pluginKey: string
+  ): Promise<ApiResponse<FavoriteItem>> {
     console.log('❤️ Adding favorite:', pluginKey)
 
     const result = await apiRequest<FavoriteItem>('/api/v1/favorites', {
-
       method: 'POST',
       body: JSON.stringify({ plugin_key: pluginKey }),
     })
@@ -130,11 +133,12 @@ export class FavoritesService {
   /**
    * 즐겨찾기 제거
    */
-  static async removeFavorite(pluginKey: string): Promise<ApiResponse<{ deleted: boolean }>> {
+  static async removeFavorite(
+    pluginKey: string
+  ): Promise<ApiResponse<{ deleted: boolean }>> {
     console.log('💔 Removing favorite:', pluginKey)
 
     const result = await apiRequest<{ deleted: boolean }>('/api/v1/favorites', {
-
       method: 'DELETE',
       body: JSON.stringify({ plugin_key: pluginKey }),
     })
@@ -155,7 +159,7 @@ export class FavoritesService {
     const result = await this.getFavorites()
 
     if (result.success && result.data) {
-      return result.data.favorites.some(fav => fav.plugin_key === pluginKey)
+      return result.data.favorites.some((fav) => fav.plugin_key === pluginKey)
     }
 
     return false
@@ -164,14 +168,19 @@ export class FavoritesService {
   /**
    * 즐겨찾기 토글 (추가/제거)
    */
-  static async toggleFavorite(pluginKey: string): Promise<ApiResponse<{ is_favorite: boolean }>> {
+  static async toggleFavorite(
+    pluginKey: string
+  ): Promise<ApiResponse<{ is_favorite: boolean }>> {
     console.log('🔄 Toggling favorite:', pluginKey)
 
     // 백엔드의 toggle 엔드포인트 사용
-    const result = await apiRequest<{ is_favorite: boolean; message: string }>('/api/v1/favorites/toggle', {
-      method: 'POST',
-      body: JSON.stringify({ plugin_key: pluginKey }),
-    })
+    const result = await apiRequest<{ is_favorite: boolean; message: string }>(
+      '/api/v1/favorites/toggle',
+      {
+        method: 'POST',
+        body: JSON.stringify({ plugin_key: pluginKey }),
+      }
+    )
 
     if (result.success && result.data) {
       console.log('✅ Favorite toggled:', result.data.message)
@@ -196,7 +205,7 @@ export class FavoritesService {
     const result = await this.getFavorites()
 
     if (result.success && result.data) {
-      return result.data.favorites.map(fav => fav.plugin_key)
+      return result.data.favorites.map((fav) => fav.plugin_key)
     }
 
     return []

@@ -1,6 +1,7 @@
 'use client'
 
 import ProgressModal from '@/components/ui/ProgressModal'
+import { generateVideoThumbnail } from '@/utils/video/videoThumbnail'
 import { useEffect, useState } from 'react'
 import { useEditorStore } from '../../store'
 
@@ -16,7 +17,23 @@ export default function VideoExportProgressModal({
   onComplete,
 }: VideoExportProgressModalProps) {
   const [progress, setProgress] = useState(0)
-  const { videoThumbnail } = useEditorStore()
+  const [currentThumbnail, setCurrentThumbnail] = useState<string>('')
+  const { videoThumbnail, videoUrl } = useEditorStore()
+
+  // 🧪 [임시 하드코딩] 썸네일 생성/설정 - friends-thumbnail.png 사용
+  useEffect(() => {
+    if (!isOpen) {
+      setCurrentThumbnail('')
+      return
+    }
+
+    console.log(
+      '🧪 [VideoExportProgressModal] 하드코딩된 썸네일 사용: friends-thumbnail.png'
+    )
+
+    // 하드코딩된 썸네일 경로 설정
+    setCurrentThumbnail('/friends-thumbnail.png')
+  }, [isOpen])
 
   // 진행률 시뮬레이션
   useEffect(() => {
@@ -60,7 +77,7 @@ export default function VideoExportProgressModal({
       status="processing"
       progress={progress}
       estimatedTimeRemaining={remainingSeconds}
-      videoThumbnail={videoThumbnail || undefined}
+      videoThumbnail={currentThumbnail || videoThumbnail || undefined}
       canCancel={true}
       closeOnBackdropClick={false}
       aria-label="내보내기 진행 상황"
