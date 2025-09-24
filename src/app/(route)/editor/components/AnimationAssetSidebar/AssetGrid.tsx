@@ -44,12 +44,42 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
     multiSelectedWordIds,
   } = useEditorStore()
 
-  // Hardcoded favorite assets for '담은 에셋' tab
-  const favoriteAssetNames = [
-    'TypeWriter Effect',
-    'Rotation Text',
-    'Elastic Bounce',
-  ]
+  // Load favorite assets from localStorage
+  const [favoriteAssetIds, setFavoriteAssetIds] = useState<Set<string>>(
+    new Set()
+  )
+
+  useEffect(() => {
+    const loadFavorites = () => {
+      if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('asset-favorites')
+        if (saved) {
+          try {
+            const parsedFavorites = JSON.parse(saved)
+            setFavoriteAssetIds(
+              new Set(Array.isArray(parsedFavorites) ? parsedFavorites : [])
+            )
+          } catch (error) {
+            console.error('Failed to parse saved favorites:', error)
+          }
+        }
+      }
+    }
+
+    loadFavorites()
+
+    // Listen for storage changes (when user toggles favorites in asset store)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'asset-favorites') {
+        loadFavorites()
+      }
+    }
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('storage', handleStorageChange)
+      return () => window.removeEventListener('storage', handleStorageChange)
+    }
+  }, [])
 
   const [assets, setAssets] = useState<AssetItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -109,12 +139,12 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
     // Filter by tab
     if (activeAssetTab === 'my') {
       // '담은 에셋' tab - show only favorite assets
-      if (!favoriteAssetNames.includes(asset.name)) {
+      if (!favoriteAssetIds.has(asset.id)) {
         return false
       }
     } else if (activeAssetTab === 'free') {
       // '무료 에셋' tab - show all assets EXCEPT favorites
-      if (favoriteAssetNames.includes(asset.name)) {
+      if (favoriteAssetIds.has(asset.id)) {
         return false
       }
     }
@@ -305,7 +335,7 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
                 isUsed:
                   isAppliedToFocusedWord ||
                   currentWordAssets.includes(asset.id),
-                isFavorite: favoriteAssetNames.includes(asset.name),
+                isFavorite: favoriteAssetIds.has(asset.id),
               }}
               onClick={handleAssetClick}
             />
