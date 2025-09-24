@@ -2023,11 +2023,11 @@ export default function EditorPage() {
     setAssetSidebarWidth,
   ])
 
-  // 편집 모드 변경 시 사이드바 자동 설정
+  // 편집 모드 변경 시 사이드바 자동 설정 (템플릿 사이드바 비활성화됨)
   useEffect(() => {
     if (editingMode === 'simple' && clips.length > 0) {
-      // 쉬운 편집 모드에서는 클립이 있을 때만 템플릿 사이드바 표시
-      setRightSidebarType('template')
+      // 템플릿 사이드바가 비활성화되어 사이드바를 닫음
+      setRightSidebarType(null)
     } else if (clips.length === 0) {
       // 빈 상태에서는 사이드바 닫기
       setRightSidebarType(null)
@@ -2337,7 +2337,7 @@ export default function EditorPage() {
                       자막 타임라인
                     </h2>
                     <div className="space-y-2">
-                      {clips.slice(0, 20).map((clip) => {
+                      {clips.map((clip) => {
                         const isActive = clip.id === activeClipId
                         const formatTime = (seconds: number) => {
                           const mins = Math.floor(seconds / 60)
