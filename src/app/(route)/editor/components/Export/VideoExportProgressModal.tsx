@@ -31,13 +31,22 @@ export default function VideoExportProgressModal({
       return
     }
 
-    console.log('🔍 [VideoExportProgressModal] Export started - checking thumbnail status:', {
-      hasVideoThumbnail: !!videoThumbnail,
-      videoThumbnailValue: videoThumbnail,
-      hasVideoUrl: !!videoUrl,
-      videoUrlValue: videoUrl,
-      videoUrlType: videoUrl ? (videoUrl.startsWith('blob:') ? 'blob' : videoUrl.startsWith('http') ? 'http' : 'other') : 'none'
-    })
+    console.log(
+      '🔍 [VideoExportProgressModal] Export started - checking thumbnail status:',
+      {
+        hasVideoThumbnail: !!videoThumbnail,
+        videoThumbnailValue: videoThumbnail,
+        hasVideoUrl: !!videoUrl,
+        videoUrlValue: videoUrl,
+        videoUrlType: videoUrl
+          ? videoUrl.startsWith('blob:')
+            ? 'blob'
+            : videoUrl.startsWith('http')
+              ? 'http'
+              : 'other'
+          : 'none',
+      }
+    )
 
     // 1. 기존 썸네일이 유효하면 사용
     if (videoThumbnail && videoThumbnail.trim() !== '') {
@@ -83,7 +92,7 @@ export default function VideoExportProgressModal({
           const thumbnailUrl = await generateVideoThumbnail(videoFile, {
             width: 384,
             height: 216,
-            quality: 0.8
+            quality: 0.8,
           })
 
           if (thumbnailUrl) {
