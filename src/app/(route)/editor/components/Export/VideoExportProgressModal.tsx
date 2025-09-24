@@ -20,93 +20,18 @@ export default function VideoExportProgressModal({
   const [currentThumbnail, setCurrentThumbnail] = useState<string>('')
   const { videoThumbnail, videoUrl } = useEditorStore()
 
-  // 썸네일 생성/설정
+  // 🧪 [임시 하드코딩] 썸네일 생성/설정 - friends-thumbnail.png 사용
   useEffect(() => {
     if (!isOpen) {
-      // 모달이 닫힐 때 새로 생성한 썸네일 정리
-      if (currentThumbnail && currentThumbnail.startsWith('blob:')) {
-        URL.revokeObjectURL(currentThumbnail)
-        setCurrentThumbnail('')
-      }
+      setCurrentThumbnail('')
       return
     }
 
-    console.log(
-      '🔍 [VideoExportProgressModal] Export started - checking thumbnail status:',
-      {
-        hasVideoThumbnail: !!videoThumbnail,
-        videoThumbnailValue: videoThumbnail,
-        hasVideoUrl: !!videoUrl,
-        videoUrlValue: videoUrl,
-        videoUrlType: videoUrl
-          ? videoUrl.startsWith('blob:')
-            ? 'blob'
-            : videoUrl.startsWith('http')
-              ? 'http'
-              : 'other'
-          : 'none',
-      }
-    )
+    console.log('🧪 [VideoExportProgressModal] 하드코딩된 썸네일 사용: friends-thumbnail.png')
 
-    // 1. 기존 썸네일이 유효하면 사용
-    if (videoThumbnail && videoThumbnail.trim() !== '') {
-      console.log('🖼️ Using existing thumbnail from store:', videoThumbnail)
-      setCurrentThumbnail(videoThumbnail)
-      return
-    }
-
-    // 2. 썸네일이 없거나 유효하지 않으면 새로 생성
-    console.log('🎬 No valid thumbnail found, generating new one from video')
-
-    const generateThumbnailFromVideo = async () => {
-      if (!videoUrl) {
-        console.log('⚠️ No video URL available for thumbnail generation')
-        return
-      }
-
-      try {
-        // videoUrl이 blob URL이면 직접 사용, 아니면 fetch해서 blob 생성
-        let videoFile: File | null = null
-
-        if (videoUrl.startsWith('blob:')) {
-          // Blob URL에서 파일 생성
-          console.log('📁 Fetching video from blob URL:', videoUrl)
-          const response = await fetch(videoUrl)
-          const blob = await response.blob()
-          videoFile = new File([blob], 'video.mp4', { type: 'video/mp4' })
-        } else if (videoUrl.startsWith('http')) {
-          // HTTP URL에서 파일 생성 (CORS 허용되는 경우만)
-          try {
-            console.log('🌐 Fetching video from HTTP URL:', videoUrl)
-            const response = await fetch(videoUrl)
-            const blob = await response.blob()
-            videoFile = new File([blob], 'video.mp4', { type: 'video/mp4' })
-          } catch (fetchError) {
-            console.log('❌ Failed to fetch from HTTP URL:', fetchError)
-            return
-          }
-        }
-
-        if (videoFile) {
-          console.log('🎬 Generating thumbnail from video file')
-          const thumbnailUrl = await generateVideoThumbnail(videoFile, {
-            width: 384,
-            height: 216,
-            quality: 0.8,
-          })
-
-          if (thumbnailUrl) {
-            console.log('✅ Thumbnail generated successfully:', thumbnailUrl)
-            setCurrentThumbnail(thumbnailUrl)
-          }
-        }
-      } catch (error) {
-        console.error('❌ Failed to generate thumbnail for export:', error)
-      }
-    }
-
-    generateThumbnailFromVideo()
-  }, [isOpen, videoThumbnail, videoUrl])
+    // 하드코딩된 썸네일 경로 설정
+    setCurrentThumbnail('/friends-thumbnail.png')
+  }, [isOpen])
 
   // 진행률 시뮬레이션
   useEffect(() => {
