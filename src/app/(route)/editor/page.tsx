@@ -2337,7 +2337,7 @@ export default function EditorPage() {
                       자막 타임라인
                     </h2>
                     <div className="space-y-2">
-                      {clips.slice(0, 20).map((clip) => {
+                      {clips.map((clip) => {
                         const isActive = clip.id === activeClipId
                         const formatTime = (seconds: number) => {
                           const mins = Math.floor(seconds / 60)

@@ -23,9 +23,7 @@ export interface UISlice {
 
   // Right Sidebar state
   rightSidebarType: 'speaker' | 'animation' | null
-  setRightSidebarType: (
-    type: 'speaker' | 'animation' | null
-  ) => void
+  setRightSidebarType: (type: 'speaker' | 'animation' | null) => void
 
   // Editing Mode state
   editingMode: 'simple' | 'advanced'
