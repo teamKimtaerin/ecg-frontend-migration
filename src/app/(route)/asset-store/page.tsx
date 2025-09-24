@@ -12,6 +12,12 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState, useMemo } from 'react'
 import { LuSearch, LuChevronDown } from 'react-icons/lu'
 import { useAuthStatus } from '@/hooks/useAuthStatus'
+import {
+  addFavorite as addFavoriteApi,
+  getAssets as fetchAssets,
+  removeFavorite as removeFavoriteApi,
+} from '@/services/assetsService'
+import { showToast } from '@/utils/ui/toast'
 
 // 메인 페이지 컴포넌트
 export default function AssetPage() {
@@ -30,6 +36,8 @@ export default function AssetPage() {
 
   const [assets, setAssets] = useState<AssetItem[]>([])
   const [templates, setTemplates] = useState<AssetItem[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [userFavorites, setUserFavorites] = useState<Set<string>>(new Set())
 
   // 현재 데이터 소스 결정
   const currentData = contentType === 'effects' ? assets : templates
@@ -129,38 +137,28 @@ export default function AssetPage() {
   }, [contentType, assets, templates])
 
   useEffect(() => {
+    if (authLoading) {
+      return
+    }
+
     const loadData = async () => {
       try {
-        // 이펙트 데이터를 DB API에서 로드
-        const { getAssets } = await import('@/services/assetsService')
-        const assetsData = await getAssets()
+        setIsLoading(true)
 
-        const origin = (
-          process.env.NEXT_PUBLIC_MOTIONTEXT_PLUGIN_ORIGIN ||
-          'http://localhost:80'
-        ).replace(/\/$/, '')
+        const assetsData = await fetchAssets()
+        setAssets(assetsData)
+        setUserFavorites(
+          new Set(
+            assetsData.filter((asset) => asset.isFavorite).map((a) => a.id)
+          )
+        )
 
-        const resolvedAssets = assetsData.map((asset) => {
-          if (asset?.pluginKey) {
-            const base = `${origin}/plugins/${asset.pluginKey}`
-            return {
-              ...asset,
-              thumbnail: `${base}/${asset.thumbnailPath || 'assets/thumbnail.svg'}`,
-              manifestFile: `${base}/manifest.json`,
-            }
-          }
-          return asset
-        })
-        setAssets(resolvedAssets)
-
-        // 템플릿 데이터 로드
         const templatesResponse = await fetch(
           '/asset-store/templates-database.json'
         )
         const templatesData = await templatesResponse.json()
         console.log('Loaded templates:', templatesData.templates)
         setTemplates(templatesData.templates)
-
         setIsLoading(false)
       } catch (error) {
         console.error('Failed to load data:', error)
