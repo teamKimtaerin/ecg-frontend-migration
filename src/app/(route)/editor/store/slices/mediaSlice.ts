@@ -4,6 +4,7 @@
 
 import { WaveformData } from '@/utils/audio/waveformExtractor'
 import { log } from '@/utils/logger'
+import { mediaStorage } from '@/utils/storage/mediaStorage'
 import { StateCreator } from 'zustand'
 
 export interface MediaState {
@@ -11,6 +12,7 @@ export interface MediaState {
   mediaId: string | null
   videoUrl: string | null
   currentBlobUrl: string | null // Track current blob URL for cleanup
+  storedMediaId: string | null // IndexedDB에 저장된 미디어 ID
   videoName: string | null
   videoType: string | null
   videoDuration: number | null
@@ -24,6 +26,7 @@ export interface MediaState {
   } | null
   isVideoLoading: boolean
   videoError: string | null
+  isRestoringMedia: boolean // 미디어 복원 중 상태
 
   // Audio waveform state
   audioBuffer: AudioBuffer | null
@@ -50,6 +53,8 @@ export interface MediaActions {
   cleanupPreviousBlobUrl: () => void // New action for blob URL cleanup
   setVideoLoading: (loading: boolean) => void
   setVideoError: (error: string | null) => void
+  restoreMediaFromStorage: (storedMediaId: string) => Promise<void> // 저장된 미디어에서 복원
+  validateAndRestoreBlobUrl: () => Promise<void> // blob URL 검증 및 복원
 
   // Audio waveform actions
   setAudioBuffer: (buffer: AudioBuffer | null) => void
@@ -76,6 +81,7 @@ const initialState: MediaState = {
   mediaId: null,
   videoUrl: null,
   currentBlobUrl: null,
+  storedMediaId: null,
   videoName: null,
   videoType: null,
   videoDuration: null,
@@ -83,6 +89,7 @@ const initialState: MediaState = {
   videoMetadata: null,
   isVideoLoading: false,
   videoError: null,
+  isRestoringMedia: false,
 
   // Audio waveform state
   audioBuffer: null,
@@ -103,7 +110,7 @@ const initialState: MediaState = {
   subtitlePosition: 'bottom',
 }
 
-export const createMediaSlice: StateCreator<MediaSlice> = (set) => ({
+export const createMediaSlice: StateCreator<MediaSlice> = (set, get) => ({
   ...initialState,
 
   setMediaInfo: (info) => {
@@ -335,5 +342,93 @@ export const createMediaSlice: StateCreator<MediaSlice> = (set) => ({
 
   setSubtitlePosition: (position) => {
     set({ subtitlePosition: position })
+  },
+
+  // 저장된 미디어에서 복원
+  restoreMediaFromStorage: async (storedMediaId: string) => {
+    set({ isRestoringMedia: true, videoError: null })
+
+    try {
+      log('mediaSlice.ts', `🔄 Restoring media from storage: ${storedMediaId}`)
+
+      // IndexedDB에서 미디어 로드
+      const mediaFile = await mediaStorage.loadMedia(storedMediaId)
+      if (!mediaFile) {
+        throw new Error('Media file not found in storage')
+      }
+
+      // 새로운 blob URL 생성
+      const newBlobUrl = URL.createObjectURL(mediaFile.blob)
+
+      set((state) => {
+        // 기존 blob URL 정리
+        if (state.currentBlobUrl) {
+          try {
+            URL.revokeObjectURL(state.currentBlobUrl)
+            log(
+              'mediaSlice.ts',
+              `🧹 Revoked old blob URL: ${state.currentBlobUrl}`
+            )
+          } catch (error) {
+            log('mediaSlice.ts', 'Failed to revoke old blob URL:', error)
+          }
+        }
+
+        log(
+          'mediaSlice.ts',
+          `✅ Media restored successfully: ${mediaFile.fileName}`
+        )
+
+        return {
+          ...state,
+          videoUrl: newBlobUrl,
+          currentBlobUrl: newBlobUrl,
+          storedMediaId: storedMediaId,
+          videoName: mediaFile.fileName,
+          videoType: mediaFile.fileType,
+          videoDuration: mediaFile.duration || null,
+          isRestoringMedia: false,
+          videoError: null,
+        }
+      })
+    } catch (error) {
+      log('mediaSlice.ts', `❌ Failed to restore media: ${error}`)
+      set({
+        isRestoringMedia: false,
+        videoError: `미디어 복원 실패: ${error}`,
+      })
+    }
+  },
+
+  // blob URL 검증 및 복원
+  validateAndRestoreBlobUrl: async () => {
+    const state = get()
+
+    // storedMediaId가 없으면 복원할 수 없음
+    if (!state.storedMediaId) {
+      log('mediaSlice.ts', '⚠️ No stored media ID for restoration')
+      return
+    }
+
+    // 현재 blob URL이 유효한지 확인
+    if (state.videoUrl && state.videoUrl.startsWith('blob:')) {
+      try {
+        // Blob URL 유효성 검사를 위해 fetch 시도
+        const response = await fetch(state.videoUrl, { method: 'HEAD' })
+        if (response.ok) {
+          log('mediaSlice.ts', '✅ Current blob URL is valid')
+          return
+        }
+      } catch {
+        log(
+          'mediaSlice.ts',
+          '⚠️ Current blob URL is invalid, attempting restoration'
+        )
+      }
+    }
+
+    // blob URL이 무효하면 저장된 미디어에서 복원
+    const mediaSlice = get()
+    await mediaSlice.restoreMediaFromStorage(state.storedMediaId)
   },
 })

@@ -8,7 +8,7 @@ ECG (Easy Caption Generator) Frontend - A powerful subtitle editing tool built w
 
 ### Tech Stack
 
-- **Framework**: Next.js 15.5.3 with App Router
+- **Framework**: Next.js 15.5.2 with App Router
 - **Language**: TypeScript 5
 - **UI Library**: React 19.1.1
 - **Styling**: TailwindCSS v4 with PostCSS
@@ -27,8 +27,9 @@ Use yarn as the package manager:
 ```bash
 yarn dev         # Start development server (http://localhost:3000)
 yarn build       # Build for production
-yarn build:static # Build for static S3 hosting
+yarn build:static # Build for static S3 hosting (moves API folder temporarily)
 yarn start       # Start production server
+yarn serve       # Serve static build from out/ directory (port 3000)
 yarn lint        # Run ESLint checks
 yarn lint:fix    # Fix linting issues automatically
 yarn format      # Format code with Prettier
@@ -396,10 +397,12 @@ yarn dev
 
 ### Next.js
 
-- Static export for S3: `output: 'export'` (currently disabled for API route compatibility)
+- Static export for S3: `output: 'export'` (production only, disabled in development for API route compatibility)
 - Image optimization disabled for static hosting (`unoptimized: true`)
 - CloudFront domains configured for remote images
 - Transpiles `motiontext-renderer` ES module package
+- API rewrites for development CORS handling
+- **Static Build Process**: `yarn build:static` temporarily moves `src/app/api/` folder during build since API routes are incompatible with static export
 
 ## 📝 Git Workflow
 
@@ -476,3 +479,10 @@ docker build --target prod -t ecg-frontend:prod .
 13. **Error Handling**: Show error messages instead of fallbacks when plugins fail to load
 14. **Pre-push Hook**: Uses `npm run type-check` (not yarn) to validate TypeScript before push
 15. **Testing**: Jest unit tests are configured and working, but Playwright E2E tests are only in CI, not local development
+
+# important-instruction-reminders
+
+Do what has been asked; nothing more, nothing less.
+NEVER create files unless they're absolutely necessary for achieving your goal.
+ALWAYS prefer editing an existing file to creating a new one.
+NEVER proactively create documentation files (\*.md) or README files. Only create documentation files if explicitly requested by the User.
