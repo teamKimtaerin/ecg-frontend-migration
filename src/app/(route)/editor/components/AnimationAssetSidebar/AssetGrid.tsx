@@ -45,8 +45,10 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
   } = useEditorStore()
 
   // Load favorite assets from localStorage
-  const [favoriteAssetIds, setFavoriteAssetIds] = useState<Set<string>>(new Set())
-  
+  const [favoriteAssetIds, setFavoriteAssetIds] = useState<Set<string>>(
+    new Set()
+  )
+
   useEffect(() => {
     const loadFavorites = () => {
       if (typeof window !== 'undefined') {
@@ -54,7 +56,9 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
         if (saved) {
           try {
             const parsedFavorites = JSON.parse(saved)
-            setFavoriteAssetIds(new Set(Array.isArray(parsedFavorites) ? parsedFavorites : []))
+            setFavoriteAssetIds(
+              new Set(Array.isArray(parsedFavorites) ? parsedFavorites : [])
+            )
           } catch (error) {
             console.error('Failed to parse saved favorites:', error)
           }

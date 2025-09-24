@@ -262,12 +262,15 @@ export default function AssetPage() {
       } else {
         newFavorites.add(assetId)
       }
-      
+
       // localStorage에 저장
       if (typeof window !== 'undefined') {
-        localStorage.setItem('asset-favorites', JSON.stringify(Array.from(newFavorites)))
+        localStorage.setItem(
+          'asset-favorites',
+          JSON.stringify(Array.from(newFavorites))
+        )
       }
-      
+
       return newFavorites
     })
   }
