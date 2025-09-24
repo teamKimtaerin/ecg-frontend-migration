@@ -279,6 +279,7 @@ export default function AssetPage() {
             detail: Array.from(newFavorites),
           })
         )
+
       }
 
       return newFavorites

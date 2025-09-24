@@ -89,6 +89,7 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
         window.removeEventListener('storage', handleStorageChange)
         window.removeEventListener('asset-favorites-updated', handleCustomEvent)
       }
+
     }
   }, [])
 
@@ -154,6 +155,7 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
         `Editor - Checking asset ${asset.id} (${asset.name}), isFavorite:`,
         favoriteAssetIds.has(asset.id)
       )
+
       if (!favoriteAssetIds.has(asset.id)) {
         return false
       }
