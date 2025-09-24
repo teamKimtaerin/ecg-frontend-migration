@@ -77,6 +77,7 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
 
     // Listen for custom event (same-tab synchronization)
     const handleCustomEvent = (e: CustomEvent) => {
+      console.log('Editor - Received favorites update:', e.detail)
       setFavoriteAssetIds(new Set(e.detail))
     }
 
@@ -148,6 +149,7 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
     // Filter by tab
     if (activeAssetTab === 'my') {
       // '내 에셋' tab - show only favorite assets
+      console.log(`Editor - Checking asset ${asset.id} (${asset.name}), isFavorite:`, favoriteAssetIds.has(asset.id))
       if (!favoriteAssetIds.has(asset.id)) {
         return false
       }

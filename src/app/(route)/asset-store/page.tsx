@@ -270,6 +270,7 @@ export default function AssetPage() {
           JSON.stringify(Array.from(newFavorites))
         )
         // Custom event for same-tab synchronization
+        console.log('Asset Store - Favorites updated:', Array.from(newFavorites))
         window.dispatchEvent(new CustomEvent('asset-favorites-updated', {
           detail: Array.from(newFavorites)
         }))
