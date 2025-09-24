@@ -111,6 +111,7 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
     if (activeAssetTab === 'my') {
       // '담은 에셋' tab - show only favorite assets
       if (!favoriteAssetNames.includes(asset.name)) {
+
         return false
       }
     } else if (activeAssetTab === 'free') {
