@@ -92,7 +92,7 @@ export class FavoritesService {
   static async getFavorites(): Promise<ApiResponse<FavoritesResponse>> {
     console.log('🔍 Fetching user favorites...')
 
-    const result = await apiRequest<FavoritesResponse>('/api/favorites', {
+    const result = await apiRequest<FavoritesResponse>('/api/v1/favorites', {
       method: 'GET',
     })
 
@@ -111,7 +111,7 @@ export class FavoritesService {
   static async addFavorite(pluginKey: string): Promise<ApiResponse<FavoriteItem>> {
     console.log('❤️ Adding favorite:', pluginKey)
 
-    const result = await apiRequest<FavoriteItem>('/api/favorites', {
+    const result = await apiRequest<FavoriteItem>('/api/v1/favorites', {
       method: 'POST',
       body: JSON.stringify({ plugin_key: pluginKey }),
     })
@@ -131,7 +131,7 @@ export class FavoritesService {
   static async removeFavorite(pluginKey: string): Promise<ApiResponse<{ deleted: boolean }>> {
     console.log('💔 Removing favorite:', pluginKey)
 
-    const result = await apiRequest<{ deleted: boolean }>('/api/favorites', {
+    const result = await apiRequest<{ deleted: boolean }>('/api/v1/favorites', {
       method: 'DELETE',
       body: JSON.stringify({ plugin_key: pluginKey }),
     })
@@ -164,23 +164,22 @@ export class FavoritesService {
   static async toggleFavorite(pluginKey: string): Promise<ApiResponse<{ is_favorite: boolean }>> {
     console.log('🔄 Toggling favorite:', pluginKey)
 
-    // 현재 즐겨찾기 상태 확인
-    const isFav = await this.isFavorite(pluginKey)
+    // 백엔드의 toggle 엔드포인트 사용
+    const result = await apiRequest<{ is_favorite: boolean; message: string }>('/api/v1/favorites/toggle', {
+      method: 'POST',
+      body: JSON.stringify({ plugin_key: pluginKey }),
+    })
 
-    if (isFav) {
-      // 즐겨찾기 제거
-      const result = await this.removeFavorite(pluginKey)
+    if (result.success && result.data) {
+      console.log('✅ Favorite toggled:', result.data.message)
       return {
-        success: result.success,
-        data: result.success ? { is_favorite: false } : undefined,
-        error: result.error,
+        success: true,
+        data: { is_favorite: result.data.is_favorite },
       }
     } else {
-      // 즐겨찾기 추가
-      const result = await this.addFavorite(pluginKey)
+      console.error('❌ Failed to toggle favorite:', result.error)
       return {
-        success: result.success,
-        data: result.success ? { is_favorite: true } : undefined,
+        success: false,
         error: result.error,
       }
     }
