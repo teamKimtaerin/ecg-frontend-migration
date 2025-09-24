@@ -167,10 +167,6 @@ export default function AssetPage() {
     }
     loadData()
   }, [])
-  const [isLoading, setIsLoading] = useState(true)
-
-  // 사용자 즐겨찾기 목록 상태
-  const [userFavorites, setUserFavorites] = useState<Set<string>>(new Set())
 
   // selectedAsset의 즐겨찾기 상태를 userFavorites와 동기화
   useEffect(() => {

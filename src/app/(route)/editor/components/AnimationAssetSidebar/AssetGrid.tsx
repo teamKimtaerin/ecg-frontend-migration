@@ -51,7 +51,6 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
     'Elastic Bounce',
   ]
 
-
   const [assets, setAssets] = useState<AssetItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -106,7 +105,6 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
     if (activeAssetTab === 'my') {
       // '담은 에셋' tab - show only favorite assets
       if (!favoriteAssetNames.includes(asset.name)) {
-
         return false
       }
     } else if (activeAssetTab === 'free') {
