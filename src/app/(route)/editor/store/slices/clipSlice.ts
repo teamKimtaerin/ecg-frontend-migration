@@ -41,6 +41,7 @@ export interface ClipSlice {
   loadOriginalClipsFromStorage: () => Promise<void> // IndexedDB에서 원본 클립 로드
   updateClipWords: (clipId: string, wordId: string, newText: string) => void
   updateClipFullText: (clipId: string, newText: string) => void
+  updateClipFullTextAdvanced: (clipId: string, newText: string) => void
 
   applyAssetsToWord: (
     clipId: string,
@@ -325,6 +326,56 @@ export const createClipSlice: StateCreator<
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const anyGet = get() as any
       anyGet.rebuildIndexesFromClips?.()
+    } catch {}
+  },
+
+  updateClipFullTextAdvanced: (clipId, newText) => {
+    set((state) => ({
+      clips: state.clips.map((clip) => {
+        if (clip.id !== clipId) return clip
+
+        // displayTime 구간 보존하면서 새로운 단어 배열 생성
+        const originalWords = clip.words || []
+        const newWords = newText.trim().split(/\s+/).filter(Boolean)
+
+        // 시작 시간과 끝 시간 계산 (기존 words 배열 기반)
+        const startTime = originalWords.length > 0 ? originalWords[0].start : 0
+        const endTime = originalWords.length > 0 ? originalWords[originalWords.length - 1].end : startTime + 3
+        const totalDuration = endTime - startTime
+
+        // 새로운 단어들에 대해 시간을 균등 분배
+        const updatedWords = newWords.map((word, index) => {
+          const wordDuration = totalDuration / newWords.length
+          const wordStart = startTime + (wordDuration * index)
+          const wordEnd = wordStart + wordDuration
+
+          return {
+            id: originalWords[index]?.id || `${clipId}-word-${index}`,
+            text: word,
+            start: wordStart,
+            end: wordEnd,
+            isEditable: true,
+            confidence: originalWords[index]?.confidence || 0.95,
+            appliedAssets: originalWords[index]?.appliedAssets || [],
+            animationTracks: originalWords[index]?.animationTracks || [],
+          }
+        })
+
+        return {
+          ...clip,
+          words: updatedWords,
+          fullText: newText,
+          subtitle: newText,
+        }
+      }),
+    }))
+
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const anyGet = get() as any
+      anyGet.rebuildIndexesFromClips?.()
+      // MotionText 시나리오 업데이트를 위한 추가 호출
+      anyGet.updateScenarioFromClips?.()
     } catch {}
   },
 

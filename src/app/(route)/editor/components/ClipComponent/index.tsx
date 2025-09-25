@@ -32,7 +32,7 @@ export default function ClipComponent({
   onStickerDeleteRequest,
 }: ClipComponentProps) {
   const [isHovered, setIsHovered] = useState(false)
-  const { expandedClipId, focusedWordId, updateClipFullText } = useEditorStore()
+  const { expandedClipId, focusedWordId, updateClipFullText, updateClipFullTextAdvanced } = useEditorStore()
   const isExpanded = expandedClipId === clip.id
 
   const { dragProps, isDragging } = useClipDragAndDrop(
@@ -144,6 +144,7 @@ export default function ClipComponent({
               clipId={clip.id}
               fullText={clip.fullText}
               onFullTextEdit={updateClipFullText}
+              onFullTextEditAdvanced={updateClipFullTextAdvanced}
             />
           </div>
 

@@ -1,15 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { useEditorStore } from '../../store'
 
 interface ClipTextProps {
   clipId: string
   fullText: string
   onFullTextEdit?: (clipId: string, newText: string) => void
+  onFullTextEditAdvanced?: (clipId: string, newText: string) => void
 }
 
-export default function ClipText({ clipId, fullText, onFullTextEdit }: ClipTextProps) {
+export default function ClipText({
+  clipId,
+  fullText,
+  onFullTextEdit,
+  onFullTextEditAdvanced
+}: ClipTextProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [inputValue, setInputValue] = useState(fullText)
   const inputRef = useRef<HTMLInputElement>(null)
+  const { editingMode } = useEditorStore()
 
   useEffect(() => {
     setInputValue(fullText)
@@ -23,14 +31,19 @@ export default function ClipText({ clipId, fullText, onFullTextEdit }: ClipTextP
   }, [isEditing])
 
   const handleClick = () => {
-    if (onFullTextEdit) {
+    if (onFullTextEdit || onFullTextEditAdvanced) {
       setIsEditing(true)
     }
   }
 
   const handleSave = () => {
-    if (onFullTextEdit && inputValue.trim() !== fullText) {
-      onFullTextEdit(clipId, inputValue.trim())
+    if (inputValue.trim() !== fullText) {
+      // 고급 편집 모드에서는 고급 함수 사용, 그렇지 않으면 일반 함수 사용
+      if (editingMode === 'advanced' && onFullTextEditAdvanced) {
+        onFullTextEditAdvanced(clipId, inputValue.trim())
+      } else if (onFullTextEdit) {
+        onFullTextEdit(clipId, inputValue.trim())
+      }
     }
     setIsEditing(false)
   }
