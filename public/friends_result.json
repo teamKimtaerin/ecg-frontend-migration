@@ -13,11 +13,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 220.364,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "Now, are you a rusher, or are you a dragger, or are you gonna be on my fucking time?",
       "words": [
@@ -244,11 +240,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 275.962,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "I'm gonna be on your time. What does that say? Quarter note equals 215. Count me a 215. [SILENCE]",
       "words": [
@@ -475,11 +467,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 274.438,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "One, two, three, four. One, two, three, four. Jesus fucking Christ! I didn't know they allowed recharges into Schaefer. Am I to understand that you cannot read tempo?",
       "words": [
@@ -805,11 +793,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 314.39,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "Can you even",
       "words": [
@@ -860,11 +844,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 236.937,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "fucking read",
       "words": [
@@ -904,11 +884,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 255.007,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "music? What",
       "words": [
@@ -948,11 +924,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 217.323,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "is that?",
       "words": [
@@ -992,11 +964,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 186.246,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "Eighth note.",
       "words": [
@@ -1036,11 +1004,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 329.456,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "Yes, what",
       "words": [
@@ -1080,11 +1044,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 181.877,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "is that?",
       "words": [
@@ -1124,11 +1084,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 234.612,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "Dotted 16th.",
       "words": [
@@ -1168,11 +1124,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 333.778,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "Sight read",
       "words": [
@@ -1212,11 +1164,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 168.227,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "measure 101.",
       "words": [
@@ -1256,11 +1204,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 308.925,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "Ba-ba-ba-ba-ba-ba-ba-ba-ba-ba. What",
       "words": [
@@ -1300,11 +1244,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 284.7,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "are you,",
       "words": [
@@ -1344,11 +1284,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 157.307,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "in a fucking",
       "words": [
@@ -1399,11 +1335,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 191.372,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "a cappella",
       "words": [
@@ -1443,11 +1375,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 252.753,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "group? Play",
       "words": [
@@ -1487,11 +1415,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 186.249,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "the goddamn",
       "words": [
@@ -1531,11 +1455,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 207.642,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "[SILENCE]  Now answer my question, were you rushing or were you dragging?",
       "words": [
@@ -1685,11 +1605,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 188.268,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "I'm upset. Louder! I'm upset! I'm upset! You are a worthless, friendless, faggot-lipped little piece of shit whose mommy left daddy when she figured out he wasn't Eugene O'Neal, and who is now weeping and slobbering all over my drum set like a fucking nine-year-old girl. So for the final fucking time, say it lou- Start practicing harder, Damon. Whiplash, bar 125, big boy tempo, 5-6-and.",
       "words": [

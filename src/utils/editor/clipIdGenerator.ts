@@ -28,7 +28,10 @@ export function generateMergedClipId(): string {
  * 분할된 클립용 고유 ID 생성
  * 형식: originalId_split_1_123456_1
  */
-export function generateSplitClipId(originalId: string, splitIndex: number): string {
+export function generateSplitClipId(
+  originalId: string,
+  splitIndex: number
+): string {
   const timestamp = generateShortTimestamp()
   const counter = ++splitIdCounter
   return `${originalId}_split_${splitIndex}_${timestamp}_${counter}`
