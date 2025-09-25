@@ -323,7 +323,7 @@ export default function EditorHeaderTabs({
             >
               <LuBell className="w-5 h-5" />
               {/* Notification Badge */}
-              {(hasUnreadExportNotification || hasUnreadUploadNotification) && (
+              {hasUnreadExportNotification && (
                 <div
                   className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"
                   style={{ zIndex: 1000 }}
